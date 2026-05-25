@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FORMCHI</title>
+
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #f5f4ee;
+    font-family: Arial, sans-serif;
+}
+
+canvas { display: block; }
+video { display: none; }
+
+#title {
+    position: fixed;
+    top: 34px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 10px;
+    user-select: none;
+}
+
+#formText {
+    color: #111;
+    cursor: pointer;
+}
+
+#chiText {
+    color: #d22b22;
+    cursor: pointer;
+}
+
+#chakraColumn,
+#ascensionColumn {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 18px;
+    z-index: 20;
+}
+
+#chakraColumn { left: 22px; }
+#ascensionColumn { right: 22px; }
+
+.dot,
+.ascensionDot,
+.progressDot {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    border: 2px solid rgba(0,0,0,0.9);
+    background: transparent;
+    box-sizing: border-box;
+    transition: 0.3s ease;
+}
+
+#bottomDots {
+    position: fixed;
+    bottom: 34px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    z-index: 20;
+}
+</style>
+</head>
+
+<body>
+
+<div id="title">
+    <span id="formText">FORM</span><span id="chiText">CHI</span>
+</div>
+
+<div id="chakraColumn"></div>
+<div id="ascensionColumn"></div>
+<div id="bottomDots"></div>
+
+<video id="video" playsinline></video>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+
+<script>
+let scene, camera, renderer;
+let formGroup, material;
+let ringGroup;
+
+let gameStarted = false;
+let paused = false;
+
+let resonance = 0;
+let cycleActive = false;
+
+let progress = 0;
+let chakraIndex = 0;
+let ascension = 0;
+
+const puzzlesPerLevel = 7;
+const maxAscension = 7;
+
+let lastX = 0;
+let lastY = 0;
+let lastShoulderWidth = 0;
+let lastHipY = 0;
+
+let horizontalEnergy = 0;
+let verticalEnergy = 0;
+let shakeEnergy = 0;
+let clapEnergy = 0;
+let jumpEnergy = 0;
+let stillnessEnergy = 0;
+let expandEnergy = 0;
+
+let completing = false;
+
+let audioCtx;
+let masterGain;
+let ambientOsc;
+let ambientGain;
+
+let nextHeartbeatTime = 0;
+
+const video = document.getElementById("video");
+const chakraColumn = document.getElementById("chakraColumn");
+const ascensionColumn = document.getElementById("ascensionColumn");
+const bottomDots = document.getElementById("bottomDots");
+const formText = document.getElementById("formText");
+const chiText = document.getElementById("chiText");
+
+const chakraData = [
+    { color:0xff3b30, shape:"cube", mode:"reach", tone:110 },
+    { color:0xff9500, shape:"icosahedron", mode:"expand", tone:146 },
+    { color:0xffcc00, shape:"tetrahedron", mode:"heart", tone:196 },
+    { color:0x34c759, shape:"octahedron", mode:"shake", tone:220 },
+    { color:0x007aff, shape:"dodecahedron", mode:"jump", tone:293 },
+    { color:0x5856d6, shape:"merkaba", mode:"clap", tone:392 },
+    { color:0xaf52de, shape:"sphere", mode:"stillness", tone:440 }
+];
+
+function saveGame() {
+    localStorage.setItem("formchi_progress", progress);
+    localStorage.setItem("formchi_chakra", chakraIndex);
+    localStorage.setItem("formchi_ascension", ascension);
+}
+
+function loadGame() {
+    progress = parseInt(localStorage.getItem("formchi_progress")) || 0;
+    chakraIndex = parseInt(localStorage.getItem("formchi_chakra")) || 0;
+    ascension = parseInt(localStorage.getItem("formchi_ascension")) || 0;
+}
+
+loadGame();
+
+function buildUI() {
+    chakraColumn.innerHTML = "";
+    ascensionColumn.innerHTML = "";
+    bottomDots.innerHTML = "";
+
+    chakraData.forEach(() => {
+        const d = document.createElement("div");
+        d.className = "dot";
+        chakraColumn.appendChild(d);
+    });
+
+    chakraData.forEach(() => {
+        const d = document.createElement("div");
+        d.className = "ascensionDot";
+        ascensionColumn.appendChild(d);
+    });
+
+    for (let i = 0; i < 7; i++) {
+        const d = document.createElement("div");
+        d.className = "progressDot";
+        bottomDots.appendChild(d);
+    }
+
+    updateUI();
+}
+
+function glowDot(dot, color) {
+    dot.style.background = color;
+    dot.style.opacity = 1;
+    dot.style.boxShadow = `0 0 16px ${color}`;
+}
+
+function clearDot(dot) {
+    dot.style.background = "transparent";
+    dot.style.boxShadow = "none";
+    dot.style.opacity = 0.25;
+}
+
+function updateUI() {
+    const currentColor =
+    "#" + chakraData[chakraIndex].color.toString(16).padStart(6,"0");
+
+    document.querySelectorAll(".dot").forEach((d, i) => {
+        clearDot(d);
+
+        if (i < chakraIndex) {
+            const c = "#" + chakraData[i].color.toString(16).padStart(6,"0");
+            glowDot(d, c);
+        }
+
+        if (i === chakraIndex) {
+            glowDot(d, currentColor);
+        }
+    });
+
+    document.querySelectorAll(".ascensionDot").forEach((d, i) => {
+        clearDot(d);
+
+        if (i < ascension) {
+            const c = "#" + chakraData[i].color.toString(16).padStart(6,"0");
+            glowDot(d, c);
+        }
+    });
+
+    document.querySelectorAll(".progressDot").forEach((d, i) => {
+        if (i < progress) {
+            glowDot(d, currentColor);
+        } else {
+            clearDot(d);
+        }
+    });
+}
+
+buildUI();
+
+function initThree() {
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color("#f5f4ee");
+
+    camera = new THREE.PerspectiveCamera(
+        45,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        100
+    );
+
+    camera.position.z = 5;
+
+    renderer = new THREE.WebGLRenderer({ antialias:true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    material = new THREE.MeshPhysicalMaterial({
+        color: chakraData[chakraIndex].color,
+        emissive: chakraData[chakraIndex].color,
+        emissiveIntensity: 0.3,
+        roughness: 0.35,
+        metalness: 0.8,
+        clearcoat: 1,
+        flatShading: true,
+        side: THREE.DoubleSide
+    });
+
+    formGroup = new THREE.Group();
+    ringGroup = new THREE.Group();
+
+    scene.add(ringGroup);
+    scene.add(formGroup);
+
+    createShape();
+    createAscensionRings();
+
+    const light1 = new THREE.DirectionalLight(0xffffff, 5);
+    light1.position.set(5,5,5);
+    scene.add(light1);
+
+    const light2 = new THREE.DirectionalLight(0xffffff, 3);
+    light2.position.set(-5,-5,5);
+    scene.add(light2);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 2));
+
+    window.addEventListener("resize", onResize);
+
+    animate();
+}
+
+function onResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function createMerkaba() {
+    const group = new THREE.Group();
+    const geo = new THREE.TetrahedronGeometry(1);
+
+    const top = new THREE.Mesh(geo, material);
+    const bottom = new THREE.Mesh(geo, material);
+
+    top.rotation.y = Math.PI / 4;
+    bottom.rotation.x = Math.PI;
+    bottom.rotation.y = Math.PI / 4;
+
+    group.add(top);
+    group.add(bottom);
+
+    return group;
+}
+
+function createShape() {
+    while (formGroup.children.length) {
+        formGroup.remove(formGroup.children[0]);
+    }
+
+    const shape = chakraData[chakraIndex].shape;
+    let mesh;
+
+    if (shape === "cube") {
+        mesh = new THREE.Mesh(new THREE.BoxGeometry(1,1,1), material);
+    } else if (shape === "icosahedron") {
+        mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(1), material);
+    } else if (shape === "tetrahedron") {
+        mesh = new THREE.Mesh(new THREE.TetrahedronGeometry(1), material);
+    } else if (shape === "octahedron") {
+        mesh = new THREE.Mesh(new THREE.OctahedronGeometry(1), material);
+    } else if (shape === "dodecahedron") {
+        mesh = new THREE.Mesh(new THREE.DodecahedronGeometry(1), material);
+    } else if (shape === "sphere") {
+        mesh = new THREE.Mesh(new THREE.SphereGeometry(1,48,48), material);
+    } else if (shape === "merkaba") {
+        mesh = createMerkaba();
+    }
+
+    formGroup.add(mesh);
+
+    material.color.setHex(chakraData[chakraIndex].color);
+    material.emissive.setHex(chakraData[chakraIndex].color);
+    material.opacity = 1;
+    material.transparent = false;
+
+    updateAmbientTone();
+}
+
+function createAscensionRings() {
+    while (ringGroup.children.length) {
+        ringGroup.remove(ringGroup.children[0]);
+    }
+
+    for (let r = 0; r < ascension; r++) {
+        const ring = new THREE.Group();
+
+        const radius = 1.65 + r * 0.34;
+        const dots = 96;
+
+        for (let i = 0; i < dots; i++) {
+            const angle = (i / dots) * Math.PI * 2;
+
+            const dotGeo = new THREE.SphereGeometry(0.018, 8, 8);
+            const dotMat = new THREE.MeshBasicMaterial({
+                color: 0x111111,
+                transparent: true,
+                opacity: 0.78
+            });
+
+            const dot = new THREE.Mesh(dotGeo, dotMat);
+
+            dot.position.set(
+                Math.cos(angle) * radius,
+                Math.sin(angle) * radius,
+                -0.05 * r
+            );
+
+            ring.add(dot);
+        }
+
+        ring.userData.baseRadius = radius;
+        ring.userData.layer = r + 1;
+
+        ringGroup.add(ring);
+    }
+}
+
+async function initAudio() {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 1;
+    masterGain.connect(audioCtx.destination);
+
+    createAmbientTone();
+}
+
+function createAmbientTone() {
+    ambientOsc = audioCtx.createOscillator();
+    ambientGain = audioCtx.createGain();
+
+    ambientOsc.type = "sine";
+    ambientOsc.frequency.value = chakraData[chakraIndex].tone;
+
+    ambientGain.gain.value = chakraIndex <= 1 ? 0.065 : 0.04;
+
+    ambientOsc.connect(ambientGain);
+    ambientGain.connect(masterGain);
+    ambientOsc.start();
+}
+
+function updateAmbientTone() {
+    if (!ambientOsc || !audioCtx || !ambientGain) return;
+
+    ambientOsc.frequency.linearRampToValueAtTime(
+        chakraData[chakraIndex].tone,
+        audioCtx.currentTime + 0.8
+    );
+
+    const targetGain = chakraIndex <= 1 ? 0.065 : 0.04;
+
+    ambientGain.gain.linearRampToValueAtTime(
+        targetGain,
+        audioCtx.currentTime + 0.8
+    );
+}
+
+function playHeartbeat() {
+    if (!audioCtx || !masterGain) return;
+
+    const now = audioCtx.currentTime;
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(88, now);
+    osc.frequency.exponentialRampToValueAtTime(42, now + 0.18);
+
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.38, now + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.24);
+
+    osc.connect(gain);
+    gain.connect(masterGain);
+
+    osc.start(now);
+    osc.stop(now + 0.26);
+}
+
+function playDeflate() {
+    if (!audioCtx || !masterGain) return;
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = "sine";
+
+    osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(45, audioCtx.currentTime + 1.5);
+
+    gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.55, audioCtx.currentTime + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.8);
+
+    osc.connect(gain);
+    gain.connect(masterGain);
+
+    osc.start();
+    osc.stop(audioCtx.currentTime + 2);
+}
+
+async function startTracking() {
+    const pose = new Pose({
+        locateFile: file =>
+        `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+    });
+
+    pose.setOptions({
+        modelComplexity: 1,
+        smoothLandmarks: true,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5
+    });
+
+    pose.onResults(onPose);
+
+    const cam = new Camera(video, {
+        onFrame: async () => {
+            await pose.send({ image: video });
+        },
+        width: 640,
+        height: 480
+    });
+
+    cam.start();
+}
+
+function onPose(results) {
+    if (!results.poseLandmarks) return;
+
+    const lm = results.poseLandmarks;
+
+    const leftShoulder = lm[11];
+    const rightShoulder = lm[12];
+
+    const leftWrist = lm[15];
+    const rightWrist = lm[16];
+
+    const leftHip = lm[23];
+    const rightHip = lm[24];
+
+    const centerX = (leftShoulder.x + rightShoulder.x) / 2;
+    const centerY = (leftShoulder.y + rightShoulder.y) / 2;
+
+    const dx = centerX - lastX;
+    const dy = centerY - lastY;
+
+    horizontalEnergy = Math.min(1, Math.abs(dx) * 40);
+    verticalEnergy = Math.min(1, Math.abs(dy) * 40);
+
+    const shoulderWidth = Math.abs(leftShoulder.x - rightShoulder.x);
+    expandEnergy = Math.max(0, (shoulderWidth - lastShoulderWidth) * 12);
+
+    shakeEnergy = Math.min(1, Math.abs(dx) * 65);
+
+    const hipY = (leftHip.y + rightHip.y) / 2;
+    jumpEnergy = Math.min(1, Math.abs(hipY - lastHipY) * 18);
+
+    const handDistance = Math.abs(leftWrist.x - rightWrist.x);
+
+    if (handDistance < 0.05) {
+        clapEnergy = 1;
+    }
+
+    clapEnergy *= 0.92;
+
+    const movement = Math.abs(dx) + Math.abs(dy);
+    stillnessEnergy = Math.max(0, 1 - movement * 22);
+
+    lastShoulderWidth = shoulderWidth;
+    lastHipY = hipY;
+    lastX = centerX;
+    lastY = centerY;
+}
+
+function getInfluence() {
+    const mode = chakraData[chakraIndex].mode;
+
+    switch(mode) {
+        case "reach":
+            return verticalEnergy;
+
+        case "expand":
+            return expandEnergy;
+
+        case "heart":
+            return horizontalEnergy;
+
+        case "shake":
+            return shakeEnergy;
+
+        case "jump":
+            return jumpEnergy;
+
+        case "clap":
+            return clapEnergy;
+
+        case "stillness":
+            return stillnessEnergy > 0.9 ? stillnessEnergy : 0;
+    }
+
+    return 0;
+}
+
+function completePuzzle() {
+    if (completing) return;
+
+    completing = true;
+
+    progress++;
+
+    updateUI();
+    saveGame();
+
+    setTimeout(() => {
+        if (progress >= puzzlesPerLevel) {
+            progress = 0;
+            chakraIndex++;
+
+            if (chakraIndex >= 7) {
+                chakraIndex = 0;
+                ascension++;
+
+                if (ascension > maxAscension) {
+                    ascension = 0;
+                }
+
+                createAscensionRings();
+            }
+
+            createShape();
+        }
+
+        saveGame();
+        updateUI();
+        completing = false;
+
+    }, 600);
+}
+
+function resetCycle() {
+    cycleActive = false;
+}
+
+formText.addEventListener("click", async () => {
+    if (!gameStarted) {
+        gameStarted = true;
+
+        await navigator.mediaDevices.getUserMedia({
+            video: true
+        });
+
+        await initAudio();
+        await startTracking();
+
+        return;
+    }
+
+    paused = !paused;
+
+    if (masterGain && audioCtx) {
+        masterGain.gain.linearRampToValueAtTime(
+            paused ? 0.0001 : 1,
+            audioCtx.currentTime + 0.3
+        );
+    }
+});
+
+chiText.addEventListener("click", () => {
+    progress = 0;
+    chakraIndex = 0;
+    ascension = 0;
+    resonance = 0;
+
+    resetCycle();
+    saveGame();
+    createShape();
+    createAscensionRings();
+    updateUI();
+});
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    if (!paused) {
+        const influence = gameStarted ? getInfluence() : 0;
+
+        const growthRate = 0.012;
+        const decayRate = 0.004;
+
+        if (influence > 0.12) {
+            if (!cycleActive) {
+                cycleActive = true;
+            }
+
+            resonance += influence * growthRate;
+        } else {
+            resonance -= decayRate;
+        }
+
+        resonance = Math.max(0, Math.min(1, resonance));
+
+        if (cycleActive && audioCtx) {
+            const beatInterval = Math.max(0.34, 0.78 - resonance * 0.32);
+
+            if (audioCtx.currentTime >= nextHeartbeatTime) {
+                playHeartbeat();
+                nextHeartbeatTime = audioCtx.currentTime + beatInterval;
+            }
+        }
+
+        if (resonance >= 1) {
+            playDeflate();
+            resonance = 0;
+            cycleActive = false;
+            completePuzzle();
+        }
+
+        if (resonance <= 0) {
+            cycleActive = false;
+        }
+
+        const scale = 0.28 + resonance * 1.35;
+        formGroup.scale.setScalar(scale);
+        ringGroup.scale.setScalar(scale);
+
+        formGroup.rotation.y += 0.01;
+        formGroup.rotation.x += 0.003;
+
+        ringGroup.rotation.z += 0.0015 + ascension * 0.0004;
+
+        ringGroup.children.forEach((ring, index) => {
+            const pulse =
+            Math.sin(Date.now() * 0.0015 + index) * 0.5 + 0.5;
+
+            const layerScale =
+            1 + pulse * 0.015 + index * 0.01;
+
+            ring.scale.setScalar(layerScale);
+
+            ring.children.forEach(dot => {
+                dot.material.opacity = 0.45 + pulse * 0.35;
+            });
+        });
+
+        material.emissiveIntensity = 0.35 + resonance * 1.1 + ascension * 0.08;
+    }
+
+    renderer.render(scene,camera);
+}
+
+initThree();
+
+</script>
+
+</body>
+</html>
