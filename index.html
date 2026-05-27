@@ -17,78 +17,98 @@ html, body {
 canvas { display: block; }
 video { display: none; }
 
-    /* START SCREEN */
-    background:#f5f4ee;
-    z-index:99999;
+/* STARTUP OVERLAY */
 
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    transition:opacity 1s ease;
+#startupOverlay {
+    position: fixed;
+    inset: 0;
+    background: #f5f4ee;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 1s ease;
 }
 
-#startupOverlay.hidden{
-    opacity:0;
-    pointer-events:none;
+#startupOverlay.hidden {
+    opacity: 0;
+    pointer-events: none;
 }
 
-#startupContent{
-    text-align:center;
-    max-width:520px;
-    padding:40px;
+#startupContent {
+    text-align: center;
+    width: 90%;
+    max-width: 520px;
+    padding: 40px;
 }
 
-#startupLogo{
-    font-size:54px;
-    font-weight:700;
-    letter-spacing:14px;
-    color:#111;
-    margin-bottom:24px;
+#startupLogo {
+    font-size: 54px;
+    font-weight: 700;
+    letter-spacing: 14px;
+    color: #111;
+    margin-bottom: 24px;
 }
 
-#startupLogo span{
-    color:#d22b22;
+#startupLogo span {
+    color: #d22b22;
 }
 
-#startupSubtitle{
-    font-size:12px;
-    letter-spacing:6px;
-    color:#666;
-    margin-bottom:50px;
+#startupSubtitle {
+    font-size: 12px;
+    letter-spacing: 6px;
+    color: #666;
+    margin-bottom: 50px;
 }
 
-#startupInstructions{
-    display:flex;
-    flex-direction:column;
-    gap:22px;
+#startupInstructions {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
 }
 
-.instruction{
-    font-size:17px;
-    line-height:1.6;
-    color:#222;
-    letter-spacing:1px;
+.instruction {
+    font-size: 17px;
+    line-height: 1.6;
+    color: #222;
+    letter-spacing: 1px;
 }
 
-.instruction.small{
-    font-size:12px;
-    opacity:.55;
+.instruction.small {
+    font-size: 12px;
+    opacity: 0.55;
 }
 
-#tapToStart{
-    margin-top:60px;
-    font-size:12px;
-    letter-spacing:5px;
-    color:#d22b22;
-    animation:pulseText 2s infinite;
+#tapToStart {
+    margin-top: 60px;
+    font-size: 12px;
+    letter-spacing: 5px;
+    color: #d22b22;
+    animation: pulseText 2s infinite;
 }
 
-@keyframes pulseText{
-    0%{opacity:.3;}
-    50%{opacity:1;}
-    100%{opacity:.3;}
+@keyframes pulseText {
+    0% { opacity: 0.3; }
+    50% { opacity: 1; }
+    100% { opacity: 0.3; }
 }
+
+@media (max-width: 768px) {
+    #startupLogo {
+        font-size: 38px;
+        letter-spacing: 10px;
+    }
+
+    #startupSubtitle {
+        font-size: 10px;
+        margin-bottom: 42px;
+    }
+
+    .instruction {
+        font-size: 15px;
+    }
+}
+
 
 #title {
     position: fixed;
@@ -151,6 +171,7 @@ video { display: none; }
 </head>
 
 <body>
+
 <div id="startupOverlay">
 
     <div id="startupContent">
@@ -194,7 +215,7 @@ video { display: none; }
 
     </div>
 
-</div>    
+</div>
 
 <div id="title">
     <span id="formText">FORM</span><span id="chiText">CHI</span>
@@ -606,15 +627,27 @@ async function startTracking() {
 
     pose.onResults(onPose);
 
-    const cam = new Camera(video, {
-        onFrame: async () => {
-            await pose.send({ image: video });
+    const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+            facingMode: { ideal: "user" },
+            width: { ideal: 640 },
+            height: { ideal: 480 }
         },
-        width: 640,
-        height: 480
+        audio: false
     });
 
-    cam.start();
+    video.srcObject = stream;
+    await video.play();
+
+    async function sendFrame() {
+        if (video.readyState >= 2) {
+            await pose.send({ image: video });
+        }
+
+        requestAnimationFrame(sendFrame);
+    }
+
+    sendFrame();
 }
 
 function onPose(results) {
@@ -733,31 +766,27 @@ function completePuzzle() {
 function resetCycle() {
     cycleActive = false;
 }
-startupOverlay.addEventListener("click", async () => {
 
+startupOverlay.addEventListener("click", async () => {
     if (gameStarted) return;
 
-    gameStarted = true;
+    try {
+        gameStarted = true;
 
-    await navigator.mediaDevices.getUserMedia({
-        video: {
-            facingMode: "user",
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-        },
-        audio:false
-    });
+        await initAudio();
+        await startTracking();
 
-    await initAudio();
-    await startTracking();
+        startupOverlay.classList.add("hidden");
 
-    startupOverlay.classList.add("hidden");
-
+    } catch (error) {
+        gameStarted = false;
+        console.error("FORMCHI startup error:", error);
+        alert("Please allow camera access, then refresh FORMCHI.");
+    }
 });
-    
+
 formText.addEventListener("click", async () => {
     if (!gameStarted) return;
-    
 
     paused = !paused;
 
