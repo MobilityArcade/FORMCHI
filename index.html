@@ -17,6 +17,79 @@ html, body {
 canvas { display: block; }
 video { display: none; }
 
+    /* START SCREEN */
+    background:#f5f4ee;
+    z-index:99999;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    transition:opacity 1s ease;
+}
+
+#startupOverlay.hidden{
+    opacity:0;
+    pointer-events:none;
+}
+
+#startupContent{
+    text-align:center;
+    max-width:520px;
+    padding:40px;
+}
+
+#startupLogo{
+    font-size:54px;
+    font-weight:700;
+    letter-spacing:14px;
+    color:#111;
+    margin-bottom:24px;
+}
+
+#startupLogo span{
+    color:#d22b22;
+}
+
+#startupSubtitle{
+    font-size:12px;
+    letter-spacing:6px;
+    color:#666;
+    margin-bottom:50px;
+}
+
+#startupInstructions{
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+}
+
+.instruction{
+    font-size:17px;
+    line-height:1.6;
+    color:#222;
+    letter-spacing:1px;
+}
+
+.instruction.small{
+    font-size:12px;
+    opacity:.55;
+}
+
+#tapToStart{
+    margin-top:60px;
+    font-size:12px;
+    letter-spacing:5px;
+    color:#d22b22;
+    animation:pulseText 2s infinite;
+}
+
+@keyframes pulseText{
+    0%{opacity:.3;}
+    50%{opacity:1;}
+    100%{opacity:.3;}
+}
+
 #title {
     position: fixed;
     top: 34px;
@@ -78,6 +151,50 @@ video { display: none; }
 </head>
 
 <body>
+<div id="startupOverlay">
+
+    <div id="startupContent">
+
+        <div id="startupLogo">
+            FORM<span>CHI</span>
+        </div>
+
+        <div id="startupSubtitle">
+            MOVE. RESONATE. ASCEND.
+        </div>
+
+        <div id="startupInstructions">
+
+            <div class="instruction">
+                Allow camera access
+            </div>
+
+            <div class="instruction">
+                Headphones recommended
+            </div>
+
+            <div class="instruction">
+                Stand 4–6 feet back
+            </div>
+
+            <div class="instruction">
+                Explore different hand gestures.<br>
+                Discover what resonates.
+            </div>
+
+            <div class="instruction small">
+                Chrome recommended on Android
+            </div>
+
+        </div>
+
+        <div id="tapToStart">
+            TAP ANYWHERE TO BEGIN
+        </div>
+
+    </div>
+
+</div>    
 
 <div id="title">
     <span id="formText">FORM</span><span id="chiText">CHI</span>
@@ -139,6 +256,7 @@ const ascensionColumn = document.getElementById("ascensionColumn");
 const bottomDots = document.getElementById("bottomDots");
 const formText = document.getElementById("formText");
 const chiText = document.getElementById("chiText");
+const startupOverlay = document.getElementById("startupOverlay");
 
 const chakraData = [
     { color:0xff3b30, shape:"cube", mode:"reach", tone:110 },
@@ -615,20 +733,31 @@ function completePuzzle() {
 function resetCycle() {
     cycleActive = false;
 }
+startupOverlay.addEventListener("click", async () => {
 
+    if (gameStarted) return;
+
+    gameStarted = true;
+
+    await navigator.mediaDevices.getUserMedia({
+        video: {
+            facingMode: "user",
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+        },
+        audio:false
+    });
+
+    await initAudio();
+    await startTracking();
+
+    startupOverlay.classList.add("hidden");
+
+});
+    
 formText.addEventListener("click", async () => {
-    if (!gameStarted) {
-        gameStarted = true;
-
-        await navigator.mediaDevices.getUserMedia({
-            video: true
-        });
-
-        await initAudio();
-        await startTracking();
-
-        return;
-    }
+    if (!gameStarted) return;
+    
 
     paused = !paused;
 
