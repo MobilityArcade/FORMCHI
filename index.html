@@ -17,9 +17,9 @@ html, body {
 canvas { display: block; }
 video { display: none; }
 
-/* STARTUP OVERLAY */
+/* INTRO + STARTUP OVERLAYS */
 
-#startupOverlay {
+.overlayScreen {
     position: fixed;
     inset: 0;
     background: #f5f4ee;
@@ -27,22 +27,22 @@ video { display: none; }
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: opacity 1s ease;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
 }
 
-#startupOverlay.hidden {
+.overlayScreen.hidden {
     opacity: 0;
     pointer-events: none;
 }
 
-#startupContent {
+.overlayContent {
     text-align: center;
     width: 90%;
-    max-width: 520px;
+    max-width: 560px;
     padding: 40px;
 }
 
-#startupLogo {
+.overlayLogo {
     font-size: 54px;
     font-weight: 700;
     letter-spacing: 14px;
@@ -50,15 +50,78 @@ video { display: none; }
     margin-bottom: 24px;
 }
 
-#startupLogo span {
+.overlayLogo span {
     color: #d22b22;
 }
 
-#startupSubtitle {
+.overlaySubtitle {
     font-size: 12px;
     letter-spacing: 6px;
     color: #666;
-    margin-bottom: 50px;
+    margin-bottom: 44px;
+}
+
+#introFormPreview {
+    position: relative;
+    
+    width: 230px;
+    height: 230px;
+    margin: 0 auto 36px auto;
+}
+
+.previewRing {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px dotted rgba(0,0,0,0.35);
+}
+
+.ring1 {
+    inset: 28px;
+    animation: ringRotate 95s linear infinite;
+}
+
+.ring2 {
+    inset: 0;
+    animation: ringRotate 95s linear infinite;
+}
+
+.previewShape {
+    position: absolute;
+    width: 82px;
+    height: 82px;
+    background: linear-gradient(135deg,#4caf50,#8bc34a);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%) rotate(45deg);
+    box-shadow: 0 0 38px rgba(76,175,80,0.35);
+    animation: floatPulse 18s linear infinite;
+    transform-style: preserve-3d;
+    will-change: transform;
+}
+
+#creatorCredit {
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: rgba(0,0,0,0.55);
+    margin-top: 12px;
+}
+
+.tapPrompt {
+    margin-top: 52px;
+    font-size: 12px;
+    letter-spacing: 5px;
+    color: #d22b22;
+    animation: pulseText 2s infinite;
+}
+
+.overlayFooter {
+    position: fixed;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: rgba(0,0,0,0.35);
 }
 
 #startupInstructions {
@@ -79,12 +142,16 @@ video { display: none; }
     opacity: 0.55;
 }
 
-#tapToStart {
-    margin-top: 60px;
-    font-size: 12px;
-    letter-spacing: 5px;
-    color: #d22b22;
-    animation: pulseText 2s infinite;
+
+
+@keyframes ringRotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(-360deg);
+    }
 }
 
 @keyframes pulseText {
@@ -93,22 +160,61 @@ video { display: none; }
     100% { opacity: 0.3; }
 }
 
-@media (max-width: 768px) {
-    #startupLogo {
-        font-size: 38px;
-        letter-spacing: 10px;
+
+    to { transform: rotate(360deg); }
+}
+
+
+    to { transform: rotate(0deg); }
+}
+
+@keyframes floatPulse {
+    0% {
+        transform: translate(-50%,-50%) rotate(0deg);
     }
 
-    #startupSubtitle {
-        font-size: 10px;
-        margin-bottom: 42px;
-    }
-
-    .instruction {
-        font-size: 15px;
+    100% {
+        transform: translate(-50%,-50%) rotate(360deg);
     }
 }
 
+@media (max-width:768px){
+
+    .overlayLogo{
+        font-size:38px;
+        letter-spacing:10px;
+    }
+
+    .overlaySubtitle{
+        font-size:10px;
+        margin-bottom:34px;
+    }
+
+    #introFormPreview{
+        width:180px;
+        height:180px;
+    }
+
+    .previewShape{
+        width:68px;
+        height:68px;
+    }
+
+    .instruction{
+        font-size:15px;
+    }
+
+}
+
+body.prelaunch #title,
+body.prelaunch #chakraColumn,
+body.prelaunch #ascensionColumn,
+body.prelaunch #bottomDots,
+body.prelaunch canvas,
+body.prelaunch #video {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
 
 #title {
     position: fixed;
@@ -170,17 +276,58 @@ video { display: none; }
 </style>
 </head>
 
-<body>
+<body class="prelaunch">
 
-<div id="startupOverlay">
+<!-- INTRO SCREEN -->
 
-    <div id="startupContent">
+<div id="introOverlay" class="overlayScreen">
 
-        <div id="startupLogo">
+    <div class="overlayContent">
+
+        <div class="overlayLogo">
             FORM<span>CHI</span>
         </div>
 
-        <div id="startupSubtitle">
+        <div class="overlaySubtitle">
+            MOVE. RESONATE. ASCEND.
+        </div>
+
+        <div id="introFormPreview">
+
+            <div class="previewRing ring1"></div>
+            <div class="previewRing ring2"></div>
+
+            <div class="previewShape"></div>
+
+        </div>
+
+        <div id="creatorCredit">
+            FORMCHI created by Roberto Olvera
+        </div>
+
+        <div class="tapPrompt">
+            TAP ANYWHERE TO CONTINUE
+        </div>
+
+        <div class="overlayFooter">
+            © 2026 Olvera Design
+        </div>
+
+    </div>
+
+</div>
+
+<!-- STARTUP INSTRUCTIONS -->
+
+<div id="startupOverlay" class="overlayScreen hidden" style="display:none;">
+
+    <div class="overlayContent">
+
+        <div class="overlayLogo">
+            FORM<span>CHI</span>
+        </div>
+
+        <div class="overlaySubtitle">
             MOVE. RESONATE. ASCEND.
         </div>
 
@@ -209,8 +356,12 @@ video { display: none; }
 
         </div>
 
-        <div id="tapToStart">
-            TAP ANYWHERE TO BEGIN
+        <div class="tapPrompt">
+            CONTINUE TO BEGIN
+        </div>
+
+        <div class="overlayFooter">
+            © 2026 Olvera Design
         </div>
 
     </div>
@@ -277,6 +428,7 @@ const ascensionColumn = document.getElementById("ascensionColumn");
 const bottomDots = document.getElementById("bottomDots");
 const formText = document.getElementById("formText");
 const chiText = document.getElementById("chiText");
+const introOverlay = document.getElementById("introOverlay");
 const startupOverlay = document.getElementById("startupOverlay");
 
 const chakraData = [
@@ -767,22 +919,75 @@ function resetCycle() {
     cycleActive = false;
 }
 
+let introComplete = false;
+let startupReady = false;
+
+introOverlay.addEventListener("click", (e) => {
+
+    e.stopPropagation();
+
+    if (introComplete) return;
+
+    introComplete = true;
+    startupReady = false;
+
+    startupOverlay.style.display = "flex";
+    startupOverlay.style.opacity = "0";
+
+    introOverlay.classList.add("hidden");
+
+    setTimeout(() => {
+
+        startupOverlay.style.display = "flex";
+        startupOverlay.classList.remove("hidden");
+        startupOverlay.style.opacity = "1";
+
+        setTimeout(() => {
+            startupReady = true;
+        }, 400);
+
+    }, 1000);
+
+});
+
 startupOverlay.addEventListener("click", async () => {
-    if (gameStarted) return;
+
+    if (!startupReady || gameStarted) return;
 
     try {
-        gameStarted = true;
 
-        await initAudio();
-        await startTracking();
+        gameStarted = true;
+        startupReady = false;
 
         startupOverlay.classList.add("hidden");
 
+        setTimeout(async () => {
+
+            startupOverlay.style.display = "none";
+
+            await initAudio();
+            await startTracking();
+
+            setTimeout(() => {
+                document.body.classList.remove("prelaunch");
+            }, 400);
+
+        }, 1000);
+
     } catch (error) {
+
         gameStarted = false;
+        startupReady = true;
+
+        startupOverlay.style.display = "flex";
+        startupOverlay.classList.remove("hidden");
+
         console.error("FORMCHI startup error:", error);
+
         alert("Please allow camera access, then refresh FORMCHI.");
+
     }
+
 });
 
 formText.addEventListener("click", async () => {
