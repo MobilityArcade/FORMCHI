@@ -10,7 +10,7 @@ html, body {
     margin: 0;
     padding: 0;
     overflow: hidden;
-    background: #f5f4ee;
+    background: radial-gradient(circle at center, #f5f4ee 0%, #ece9df 100%);
     font-family: Arial, sans-serif;
 }
 
@@ -63,40 +63,98 @@ video { display: none; }
 
 #introFormPreview {
     position: relative;
-    
     width: 230px;
     height: 230px;
     margin: 0 auto 36px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 900px;
 }
 
 .previewRing {
     position: absolute;
+    left: 50%;
+    top: 50%;
     border-radius: 50%;
     border: 2px dotted rgba(0,0,0,0.35);
+    transform: translate(-50%,-50%);
+    transform-origin: center center;
 }
 
 .ring1 {
-    inset: 28px;
-    animation: ringRotate 95s linear infinite;
+    width: 168px;
+    height: 168px;
+    animation: ringRotateCCW 90s linear infinite;
 }
 
 .ring2 {
-    inset: 0;
-    animation: ringRotate 95s linear infinite;
+    width: 220px;
+    height: 220px;
+    animation: ringRotateCCW 120s linear infinite;
 }
 
-.previewShape {
+
+
+
+.previewCube {
     position: absolute;
-    width: 82px;
-    height: 82px;
-    background: linear-gradient(135deg,#4caf50,#8bc34a);
-    top: 50%;
     left: 50%;
-    transform: translate(-50%,-50%) rotate(45deg);
-    box-shadow: 0 0 38px rgba(76,175,80,0.35);
-    animation: floatPulse 18s linear infinite;
+    top: 50%;
+    width: 78px;
+    height: 78px;
     transform-style: preserve-3d;
-    will-change: transform;
+    transform-origin: center center;
+    animation: cubeTumble 18s linear infinite;
+}
+
+.cubeFace {
+    position: absolute;
+    width: 78px;
+    height: 78px;
+    opacity: 0.96;
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: inset 0 0 18px rgba(255,255,255,0.08);
+}
+
+.cubeFace.front  { transform: translateZ(39px); background: #ff3b30; }
+.cubeFace.back   { transform: rotateY(180deg) translateZ(39px); background: #a81914; }
+.cubeFace.right  { transform: rotateY(90deg) translateZ(39px); background: #d92d25; }
+.cubeFace.left   { transform: rotateY(-90deg) translateZ(39px); background: #b8201a; }
+.cubeFace.top    { transform: rotateX(90deg) translateZ(39px); background: #ff6b60; }
+.cubeFace.bottom { transform: rotateX(-90deg) translateZ(39px); background: #8c1713; }
+
+
+@keyframes ringRotateCCW {
+    from {
+        transform: translate(-50%,-50%) rotate(0deg);
+    }
+
+    to {
+        transform: translate(-50%,-50%) rotate(-360deg);
+    }
+}
+
+@keyframes cubeTumble {
+    0% {
+        transform: translate(-50%,-50%) rotateX(18deg) rotateY(0deg) rotateZ(0deg) scale(0.94);
+    }
+
+    25% {
+        transform: translate(-50%,-50%) rotateX(88deg) rotateY(95deg) rotateZ(14deg) scale(1.02);
+    }
+
+    50% {
+        transform: translate(-50%,-50%) rotateX(170deg) rotateY(185deg) rotateZ(-8deg) scale(1.06);
+    }
+
+    75% {
+        transform: translate(-50%,-50%) rotateX(260deg) rotateY(275deg) rotateZ(16deg) scale(1.02);
+    }
+
+    100% {
+        transform: translate(-50%,-50%) rotateX(378deg) rotateY(360deg) rotateZ(0deg) scale(0.94);
+    }
 }
 
 #creatorCredit {
@@ -144,15 +202,22 @@ video { display: none; }
 
 
 
-@keyframes ringRotate {
-    from {
-        transform: rotate(0deg);
+
+
+
+    50% {
+        transform: translate(-50%,-50%) rotate(180deg) scale(1.02);
     }
 
-    to {
-        transform: rotate(-360deg);
+    100% {
+        transform: translate(-50%,-50%) rotate(360deg) scale(0.94);
     }
 }
+
+
+
+
+
 
 @keyframes pulseText {
     0% { opacity: 0.3; }
@@ -168,10 +233,7 @@ video { display: none; }
     to { transform: rotate(0deg); }
 }
 
-@keyframes floatPulse {
-    0% {
-        transform: translate(-50%,-50%) rotate(0deg);
-    }
+
 
     100% {
         transform: translate(-50%,-50%) rotate(360deg);
@@ -190,15 +252,18 @@ video { display: none; }
         margin-bottom:34px;
     }
 
-    #introFormPreview{
-        width:180px;
-        height:180px;
-    }
+    #introFormPreview {
+    position: relative;
+    width: 230px;
+    height: 230px;
+    margin: 0 auto 36px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 900px;
+}
 
-    .previewShape{
-        width:68px;
-        height:68px;
-    }
+    
 
     .instruction{
         font-size:15px;
@@ -297,7 +362,14 @@ body.prelaunch #video {
             <div class="previewRing ring1"></div>
             <div class="previewRing ring2"></div>
 
-            <div class="previewShape"></div>
+            <div class="previewCube">
+                <div class="cubeFace front"></div>
+                <div class="cubeFace back"></div>
+                <div class="cubeFace right"></div>
+                <div class="cubeFace left"></div>
+                <div class="cubeFace top"></div>
+                <div class="cubeFace bottom"></div>
+            </div>
 
         </div>
 
@@ -342,7 +414,7 @@ body.prelaunch #video {
             </div>
 
             <div class="instruction">
-                Stand 4–6 feet back
+                Stand 2–3 feet back
             </div>
 
             <div class="instruction">
@@ -969,7 +1041,9 @@ startupOverlay.addEventListener("click", async () => {
             await startTracking();
 
             setTimeout(() => {
+                setTimeout(() => {
                 document.body.classList.remove("prelaunch");
+            }, 350);
             }, 400);
 
         }, 1000);
