@@ -1076,48 +1076,75 @@ introOverlay.addEventListener("click", (e) => {
 
 });
 
-startupOverlay.addEventListener("click", async () => {
+let gestureReady = false;
 
-    if (!startupReady || gameStarted) return;
+startupOverlay.addEventListener("click", () => {
+
+    if (!startupReady) return;
+
+    startupReady = false;
+
+    startupOverlay.classList.add("hidden");
+
+    setTimeout(() => {
+
+        startupOverlay.style.display = "none";
+
+        gestureOverlay.style.display = "flex";
+        gestureOverlay.style.opacity = "0";
+
+        setTimeout(() => {
+
+            gestureOverlay.classList.remove("hidden");
+            gestureOverlay.style.opacity = "1";
+
+            gestureReady = true;
+
+        }, 100);
+
+    }, 1000);
+
+});
+
+gestureOverlay.addEventListener("click", async () => {
+
+    if (!gestureReady || gameStarted) return;
 
     try {
 
+        gestureReady = false;
         gameStarted = true;
-        startupReady = false;
 
-        startupOverlay.classList.add("hidden");
+        gestureOverlay.classList.add("hidden");
 
         setTimeout(async () => {
 
-            startupOverlay.style.display = "none";
+            gestureOverlay.style.display = "none";
 
             await initAudio();
             await startTracking();
 
             setTimeout(() => {
+
                 setTimeout(() => {
-                document.body.classList.remove("prelaunch");
-            }, 350);
+
+                    document.body.classList.remove("prelaunch");
+
+                }, 350);
+
             }, 400);
 
         }, 1000);
 
     } catch (error) {
 
-        gameStarted = false;
-        startupReady = true;
-
-        startupOverlay.style.display = "flex";
-        startupOverlay.classList.remove("hidden");
-
-        console.error("FORMCHI startup error:", error);
+        console.error(error);
 
         alert("Please allow camera access, then refresh FORMCHI.");
 
     }
 
 });
-
 formText.addEventListener("click", async () => {
     if (!gameStarted) return;
 
