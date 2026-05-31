@@ -414,7 +414,7 @@ body.prelaunch #video {
             </div>
 
             <div class="instruction">
-                Stand 2–3 feet back
+                Make sure your hands can be seen by the camera
             </div>
 
             <div class="instruction">
@@ -440,6 +440,59 @@ body.prelaunch #video {
 
 </div>
 
+    <!-- GESTURE SCREEN -->
+
+<div id="gestureOverlay" class="overlayScreen hidden" style="display:none;">
+
+    <div class="overlayContent">
+
+        <div class="overlayLogo">
+            FORM<span>CHI</span>
+        </div>
+
+        <div class="overlaySubtitle">
+            TRY THESE MOVES
+        </div>
+
+        <div id="startupInstructions">
+
+            <div class="instruction">
+                👋 Wave
+            </div>
+
+            <div class="instruction">
+                ✋ Reach
+            </div>
+
+            <div class="instruction">
+                👏 Clap
+            </div>
+
+            <div class="instruction">
+                ⭕ Circle
+            </div>
+
+            <div class="instruction">
+                🙌 Raise Your Hands
+            </div>
+
+            <div class="instruction small" style="margin-top:10px;">
+                There is no wrong way to play.
+            </div>
+
+        </div>
+
+        <div class="tapPrompt">
+            TAP ANYWHERE TO BEGIN
+        </div>
+
+        <div class="overlayFooter">
+            © 2026 Olvera Design
+        </div>
+
+    </div>
+
+</div>
 <div id="title">
     <span id="formText">FORM</span><span id="chiText">CHI</span>
 </div>
@@ -502,6 +555,7 @@ const formText = document.getElementById("formText");
 const chiText = document.getElementById("chiText");
 const introOverlay = document.getElementById("introOverlay");
 const startupOverlay = document.getElementById("startupOverlay");
+const gestureOverlay = document.getElementById("gestureOverlay");
 
 const chakraData = [
     { color:0xff3b30, shape:"cube", mode:"reach", tone:110 },
