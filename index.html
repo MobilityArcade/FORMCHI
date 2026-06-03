@@ -1114,6 +1114,8 @@ let gestureReady = false;
 let sessionTracked30 = false;
 let sessionTracked60 = false;
 
+let firstResonanceTracked = false;
+
 const urlParams = new URLSearchParams(window.location.search);
 
 const trafficSource =
@@ -1263,9 +1265,20 @@ function animate() {
         const decayRate = 0.004;
 
         if (influence > 0.12) {
+            
             if (!cycleActive) {
-                cycleActive = true;
-            }
+
+    cycleActive = true;
+
+    if (!firstResonanceTracked) {
+
+        gtag('event', 'first_resonance');
+
+        firstResonanceTracked = true;
+
+    }
+
+}
 
             resonance += influence * growthRate;
         } else {
