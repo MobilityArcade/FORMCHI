@@ -1095,6 +1095,9 @@ introOverlay.addEventListener("click", (e) => {
 
 let gestureReady = false;
 
+let sessionTracked30 = false;
+let sessionTracked60 = false;
+
 startupOverlay.addEventListener("click", () => {
 
     if (!startupReady) return;
@@ -1108,6 +1111,9 @@ startupOverlay.addEventListener("click", () => {
         startupOverlay.style.display = "none";
 
         gestureOverlay.style.display = "flex";
+
+        gtag('event', 'gesture_screen_viewed');
+        
         gestureOverlay.style.opacity = "0";
 
         setTimeout(() => {
@@ -1140,6 +1146,33 @@ gestureOverlay.addEventListener("click", async () => {
 
             await initAudio();
             await startTracking();
+
+            gtag('event', 'game_started');
+
+            setTimeout(() => {
+
+    if (!sessionTracked30) {
+
+        gtag('event', 'session_30_seconds');
+
+        sessionTracked30 = true;
+
+    }
+
+}, 30000);
+
+setTimeout(() => {
+
+    if (!sessionTracked60) {
+
+        gtag('event', 'session_60_seconds');
+
+        sessionTracked60 = true;
+
+    }
+
+}, 60000);
+
 
             setTimeout(() => {
 
