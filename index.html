@@ -1030,6 +1030,13 @@ function completePuzzle() {
     chakra: chakraIndex + 1,
     ascension: ascension
 });
+    if (!firstFormCompletedTracked) {
+
+    gtag('event', 'first_form_completed');
+
+    firstFormCompletedTracked = true;
+
+}
 
     completing = true;
 
@@ -1115,7 +1122,8 @@ let sessionTracked30 = false;
 let sessionTracked60 = false;
 
 let firstResonanceTracked = false;
-
+let firstFormCompletedTracked = false;
+    
 const urlParams = new URLSearchParams(window.location.search);
 
 const trafficSource =
