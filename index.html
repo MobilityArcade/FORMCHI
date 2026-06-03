@@ -1023,13 +1023,13 @@ function getInfluence() {
 }
 
 function completePuzzle() {
+    
+    if (completing) return;
 
     gtag('event', 'form_completed', {
     chakra: chakraIndex + 1,
     ascension: ascension
 });
-    
-    if (completing) return;
 
     completing = true;
 
