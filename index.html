@@ -1023,6 +1023,12 @@ function getInfluence() {
 }
 
 function completePuzzle() {
+
+    gtag('event', 'form_completed', {
+    chakra: chakraIndex + 1,
+    ascension: ascension
+});
+    
     if (completing) return;
 
     completing = true;
@@ -1034,10 +1040,20 @@ function completePuzzle() {
 
     setTimeout(() => {
         if (progress >= puzzlesPerLevel) {
+
+            gtag('event', 'chakra_completed', {
+    chakra: chakraIndex + 1
+});
+            
             progress = 0;
             chakraIndex++;
 
             if (chakraIndex >= 7) {
+
+                gtag('event', 'ascension_completed', {
+    ascension: ascension + 1
+});
+                
                 chakraIndex = 0;
                 ascension++;
 
@@ -1200,6 +1216,8 @@ formText.addEventListener("click", async () => {
 
     paused = !paused;
 
+    gtag('event', paused ? 'game_paused' : 'game_resumed');
+
     if (masterGain && audioCtx) {
         masterGain.gain.linearRampToValueAtTime(
             paused ? 0.0001 : 1,
@@ -1209,6 +1227,9 @@ formText.addEventListener("click", async () => {
 });
 
 chiText.addEventListener("click", () => {
+
+    gtag('event', 'reset_pressed');
+    
     progress = 0;
     chakraIndex = 0;
     ascension = 0;
