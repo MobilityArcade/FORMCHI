@@ -1114,6 +1114,17 @@ let gestureReady = false;
 let sessionTracked30 = false;
 let sessionTracked60 = false;
 
+const urlParams = new URLSearchParams(window.location.search);
+
+const trafficSource =
+    urlParams.get('source') ||
+    document.referrer ||
+    'direct';
+
+gtag('event', 'visitor_source', {
+    source: trafficSource
+});
+
 startupOverlay.addEventListener("click", () => {
 
     if (!startupReady) return;
