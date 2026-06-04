@@ -1030,14 +1030,16 @@ function completePuzzle() {
     chakra: chakraIndex + 1,
     ascension: ascension
 });
-    if (!firstFormCompletedTracked) {
+  if (!firstFormCompletedTracked) {
 
-    gtag('event', 'first_form_completed');
+    gtag('event', 'first_form_completed', {
+        chakra: chakraIndex + 1,
+        ascension: ascension + 1
+    });
 
     firstFormCompletedTracked = true;
 
 }
-
     completing = true;
 
     progress++;
