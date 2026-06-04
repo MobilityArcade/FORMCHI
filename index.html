@@ -1052,6 +1052,35 @@ function completePuzzle() {
     chakra: chakraIndex + 1
 });
             
+
+if (chakraIndex === 0) {
+    gtag('event', 'red_chakra_completed');
+}
+
+if (chakraIndex === 1) {
+    gtag('event', 'orange_chakra_completed');
+}
+
+if (chakraIndex === 2) {
+    gtag('event', 'yellow_chakra_completed');
+}
+
+if (chakraIndex === 3) {
+    gtag('event', 'green_chakra_completed');
+}
+
+if (chakraIndex === 4) {
+    gtag('event', 'blue_chakra_completed');
+}
+
+if (chakraIndex === 5) {
+    gtag('event', 'indigo_chakra_completed');
+}
+
+if (chakraIndex === 6) {
+    gtag('event', 'violet_chakra_completed');
+}
+            
             progress = 0;
             chakraIndex++;
 
