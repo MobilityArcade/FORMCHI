@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-    
+
 <head>
 
     <!-- Google tag (gtag.js) -->
@@ -1222,41 +1222,49 @@ gestureOverlay.addEventListener("click", async () => {
             gestureOverlay.style.display = "none";
 
             await initAudio();
-await startTracking();
+            await startTracking();
 
-gtag('event', 'game_started');
+            gtag('event', 'game_started');
 
-setTimeout(() => {
-    if (!sessionTracked10) {
-        gtag('event', 'session_10_seconds');
-        sessionTracked10 = true;
-    }
-}, 10000);
+            setTimeout(() => {
+                if (!sessionTracked10) {
+                    gtag('event', 'session_10_seconds');
+                    sessionTracked10 = true;
+                }
+            }, 10000);
 
-setTimeout(() => {
-    if (!sessionTracked30) {
-        gtag('event', 'session_30_seconds');
-        sessionTracked30 = true;
-    }
-}, 30000);
+            setTimeout(() => {
+                if (!sessionTracked30) {
+                    gtag('event', 'session_30_seconds');
+                    sessionTracked30 = true;
+                }
+            }, 30000);
 
-setTimeout(() => {
-    if (!sessionTracked60) {
-        gtag('event', 'session_60_seconds');
-        sessionTracked60 = true;
-    }
-}, 60000);
+            setTimeout(() => {
+                if (!sessionTracked60) {
+                    gtag('event', 'session_60_seconds');
+                    sessionTracked60 = true;
+                }
+            }, 60000);
 
-setTimeout(() => {
-    if (!sessionTracked120) {
-        gtag('event', 'session_120_seconds');
-        sessionTracked120 = true;
-    }
-}, 120000);
+            setTimeout(() => {
+                if (!sessionTracked120) {
+                    gtag('event', 'session_120_seconds');
+                    sessionTracked120 = true;
+                }
+            }, 120000);
 
-setTimeout(() => {
-    document.body.classList.remove("prelaunch");
-}, 350);
+            setTimeout(() => {
+
+                setTimeout(() => {
+
+                    document.body.classList.remove("prelaunch");
+
+                }, 350);
+
+            }, 400);
+
+        }, 1000);
 
     } catch (error) {
 
