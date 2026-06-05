@@ -1222,21 +1222,11 @@ gestureOverlay.addEventListener("click", async () => {
             gestureOverlay.style.display = "none";
 
             await initAudio();
-            await startTracking();
+await startTracking();
 
-            gtag('event', 'game_started');
+gtag('event', 'game_started');
 
-            if (!sessionTracked10) {
-
-    gtag('event', 'session_10_seconds');
-
-    sessionTracked10 = true;
-
-  }
-
-}, 10000);
-
-           setTimeout(() => {
+setTimeout(() => {
     if (!sessionTracked10) {
         gtag('event', 'session_10_seconds');
         sessionTracked10 = true;
@@ -1264,11 +1254,9 @@ setTimeout(() => {
     }
 }, 120000);
 
-                setTimeout(() => {
-
-                    document.body.classList.remove("prelaunch");
-
-                }, 350);
+setTimeout(() => {
+    document.body.classList.remove("prelaunch");
+}, 350);
 
             }, 400);
 
