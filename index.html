@@ -1236,29 +1236,33 @@ gestureOverlay.addEventListener("click", async () => {
 
 }, 10000);
 
-            setTimeout(() => {
-
-    if (!sessionTracked30) {
-
-        gtag('event', 'session_30_seconds');
-
-        sessionTracked30 = true;
-
+           setTimeout(() => {
+    if (!sessionTracked10) {
+        gtag('event', 'session_10_seconds');
+        sessionTracked10 = true;
     }
+}, 10000);
 
+setTimeout(() => {
+    if (!sessionTracked30) {
+        gtag('event', 'session_30_seconds');
+        sessionTracked30 = true;
+    }
 }, 30000);
 
 setTimeout(() => {
-
     if (!sessionTracked60) {
-
         gtag('event', 'session_60_seconds');
-
         sessionTracked60 = true;
-
     }
-
 }, 60000);
+
+setTimeout(() => {
+    if (!sessionTracked120) {
+        gtag('event', 'session_120_seconds');
+        sessionTracked120 = true;
+    }
+}, 120000);
 
                 setTimeout(() => {
 
