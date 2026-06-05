@@ -1262,18 +1262,6 @@ setTimeout(() => {
 
                 setTimeout(() => {
 
-  if (!sessionTracked120) {
-
-    gtag('event', 'session_120_seconds');
-
-    sessionTracked120 = true;
-
-  }
-
-}, 120000);
-
-                setTimeout(() => {
-
                     document.body.classList.remove("prelaunch");
 
                 }, 350);
