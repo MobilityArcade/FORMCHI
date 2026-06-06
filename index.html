@@ -931,6 +931,8 @@ async function startTracking() {
         audio: false
     });
 
+    gtag('event', 'camera_permission_granted');
+
     video.srcObject = stream;
     await video.play();
 
@@ -1266,13 +1268,15 @@ gestureOverlay.addEventListener("click", async () => {
 
         }, 1000);
 
-    } catch (error) {
+    catch (error) {
 
-        console.error(error);
+    gtag('event', 'camera_permission_denied');
 
-        alert("Please allow camera access, then refresh FORMCHI.");
+    console.error(error);
 
-    }
+    alert("Please allow camera access, then refresh FORMCHI.");
+
+}
 
 });
 formText.addEventListener("click", async () => {
