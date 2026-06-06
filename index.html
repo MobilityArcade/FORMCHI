@@ -868,6 +868,20 @@ function startOnboardingTone() {
 
     onboardingOsc.start();
 }
+
+function stopOnboardingTone() {
+
+    if (!onboardingOsc) return;
+
+    onboardingGain.gain.linearRampToValueAtTime(
+        0.0001,
+        audioCtx.currentTime + 1
+    );
+
+    onboardingOsc.stop(audioCtx.currentTime + 1);
+
+    onboardingOsc = null;
+}
     
 function updateAmbientTone() {
     if (!ambientOsc || !audioCtx || !ambientGain) return;
@@ -1258,8 +1272,9 @@ gestureOverlay.addEventListener("click", async () => {
 
             gestureOverlay.style.display = "none";
 
-            await initAudio();
-            await startTracking();
+           stopOnboardingTone();
+
+           await startTracking();
 
             gtag('event', 'game_started');
 
