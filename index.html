@@ -1133,6 +1133,8 @@ introOverlay.addEventListener("click", (e) => {
 
     if (introComplete) return;
 
+    gtag('event', 'intro_screen_continue');
+
     introComplete = true;
     startupReady = false;
 
@@ -1181,6 +1183,8 @@ startupOverlay.addEventListener("click", () => {
 
     if (!startupReady) return;
 
+    gtag('event', 'startup_screen_continue');
+
     startupReady = false;
 
     startupOverlay.classList.add("hidden");
@@ -1211,6 +1215,8 @@ startupOverlay.addEventListener("click", () => {
 gestureOverlay.addEventListener("click", async () => {
 
     if (!gestureReady || gameStarted) return;
+
+    gtag('event', 'gesture_screen_continue');
 
     try {
 
