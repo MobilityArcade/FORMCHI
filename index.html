@@ -561,6 +561,8 @@ let audioCtx;
 let masterGain;
 let ambientOsc;
 let ambientGain;
+let onboardingOsc;
+let onboardingGain;
 
 let nextHeartbeatTime = 0;
 
@@ -846,6 +848,27 @@ function createAmbientTone() {
     ambientOsc.start();
 }
 
+function startOnboardingTone() {
+
+    if (!audioCtx) return;
+
+    if (onboardingOsc) return;
+
+    onboardingOsc = audioCtx.createOscillator();
+    onboardingGain = audioCtx.createGain();
+
+    onboardingOsc.type = "sine";
+
+    onboardingOsc.frequency.value = 110;
+
+    onboardingGain.gain.value = 0.008;
+
+    onboardingOsc.connect(onboardingGain);
+    onboardingGain.connect(masterGain);
+
+    onboardingOsc.start();
+}
+    
 function updateAmbientTone() {
     if (!ambientOsc || !audioCtx || !ambientGain) return;
 
@@ -1133,7 +1156,13 @@ introOverlay.addEventListener("click", (e) => {
 
     if (introComplete) return;
 
-    gtag('event', 'intro_screen_continue');
+if (!audioCtx) {
+    initAudio();
+}
+
+startOnboardingTone();
+
+gtag('event', 'intro_screen_continue');
 
     introComplete = true;
     startupReady = false;
