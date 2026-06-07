@@ -68,9 +68,10 @@ video { display: none; }
 }
 
 .overlaySubtitle {
-    font-size: 12px;
-    letter-spacing: 6px;
-    color: #666;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 7px;
+    color: #444;
     margin-bottom: 44px;
 }
 
@@ -174,7 +175,7 @@ video { display: none; }
     font-size: 12px;
     letter-spacing: 2px;
     color: rgba(0,0,0,0.55);
-    margin-top: 12px;
+    margin-top: 24px;
 }
 
 .tapPrompt {
@@ -184,6 +185,53 @@ video { display: none; }
     color: #d22b22;
     animation: pulseText 2s infinite;
 }
+
+/* FORMCHI PLAY BUTTON */
+#playButton {
+    position: relative;
+    width: 82px;
+    height: 82px;
+    margin: 40px auto 0 auto;
+    border-radius: 50%;
+    background: #111;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+    cursor: pointer;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+#playButton::before {
+    content: "";
+    position: absolute;
+    left: 32px;
+    top: 24px;
+    width: 0;
+    height: 0;
+    border-top: 17px solid transparent;
+    border-bottom: 17px solid transparent;
+    border-left: 25px solid #d22b22;
+}
+
+#playButton:hover {
+    transform: scale(1.06);
+    box-shadow: 0 14px 34px rgba(0,0,0,0.22);
+}
+
+@media (max-width:768px){
+    #playButton{
+        width:72px;
+        height:72px;
+        margin-top:34px;
+    }
+
+    #playButton::before{
+        left:28px;
+        top:21px;
+        border-top-width:15px;
+        border-bottom-width:15px;
+        border-left-width:23px;
+    }
+}
+
 
 .overlayFooter {
     position: fixed;
@@ -250,6 +298,294 @@ video { display: none; }
 
     100% {
         transform: translate(-50%,-50%) rotate(360deg);
+    }
+}
+
+
+
+/* FORMCHI TUTORIAL HINT - V12 */
+#tutorialHint {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(96vw, 620px);
+    height: 300px;
+    z-index: 999999999 !important;
+    pointer-events: none;
+    user-select: none;
+    display: block;
+    opacity: 0;
+    visibility: hidden;
+    text-align: center;
+    background: transparent;
+    box-shadow: none;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+#tutorialHint.tutorialHidden {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    display: none !important;
+}
+
+#tutorialHint.tutorialVisible {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+}
+
+.tutorialIcon,
+.tutorialIconInner {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 270px;
+    height: 270px;
+    transform: translate(-50%, -50%);
+    overflow: visible;
+    filter: drop-shadow(0 10px 14px rgba(0,0,0,0.16));
+}
+
+.tutorialIcon svg,
+.tutorialIconInner svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.tutorialIcon path,
+.tutorialIcon line,
+.tutorialIcon polyline,
+.tutorialIcon circle,
+.tutorialIcon rect,
+.tutorialIconInner path,
+.tutorialIconInner line,
+.tutorialIconInner polyline,
+.tutorialIconInner circle,
+.tutorialIconInner rect {
+    vector-effect: non-scaling-stroke;
+}
+
+
+/* FORMCHI V12: emoji hand for gestures 1-5 */
+.emojiSingleHand{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:140px;
+    line-height:1;
+    width:270px;
+    height:270px;
+}
+
+@media (max-width:768px){
+    .emojiSingleHand{
+        font-size:112px;
+        width:220px;
+        height:220px;
+    }
+}
+
+#tutorialHint.waveHint .tutorialIcon { animation: waveHint 1.2s ease-in-out infinite; }
+#tutorialHint.pushHint .tutorialIcon { animation: pushHint 1.35s ease-in-out infinite; }
+#tutorialHint.pullHint .tutorialIcon { animation: pullHint 1.35s ease-in-out infinite; }
+#tutorialHint.circleHint .tutorialIcon { animation: circleHint 1.7s linear infinite; }
+#tutorialHint.holdHint .tutorialIcon { animation: none !important; }
+
+.twoHandsWrap {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: min(96vw, 620px);
+    height: 290px;
+    transform: translate(-50%, -50%);
+}
+
+.twoHandsWrap .leftHand,
+.twoHandsWrap .rightHand {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 210px;
+    height: 210px;
+    filter: drop-shadow(0 10px 14px rgba(0,0,0,0.16));
+}
+
+/* FORMCHI V12 EMOJI HANDS */
+.emojiDoubleHold,
+.emojiCrossHands{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:420px;
+    height:190px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:120px;
+    line-height:1;
+    filter: drop-shadow(0 10px 14px rgba(0,0,0,0.16));
+}
+
+.emojiDoubleHold span,
+.emojiCrossHands span{
+    display:inline-block;
+    position:relative;
+    line-height:1;
+}
+
+/* V11: use 🫲 and 🫱 rotated so fingers face up and thumbs face inward. */
+.emojiDoubleHold .leftHandEmoji,
+.emojiCrossHands .leftHandEmoji{
+    transform: rotate(90deg);
+}
+
+.emojiDoubleHold .rightHandEmoji,
+.emojiCrossHands .rightHandEmoji{
+    transform: rotate(-90deg);
+}
+
+#tutorialHint.opencloseHint .leftHandEmoji{
+    animation:leftCross 1.8s ease-in-out infinite;
+}
+
+#tutorialHint.opencloseHint .rightHandEmoji{
+    animation:rightCross 1.8s ease-in-out infinite;
+}
+
+@keyframes leftCross{
+    0%,100%{ transform:translateX(0) rotate(90deg); }
+    50%{ transform:translateX(150px) rotate(90deg); }
+}
+
+@keyframes rightCross{
+    0%,100%{ transform:translateX(0) rotate(-90deg); }
+    50%{ transform:translateX(-150px) rotate(-90deg); }
+}
+
+#tutorialHint.doubleholdHint .leftHand {
+    transform: translate(-50%, -50%) translateX(-130px) rotate(-2deg);
+    animation: none !important;
+}
+
+#tutorialHint.doubleholdHint .rightHand {
+    transform: translate(-50%, -50%) translateX(130px) rotate(2deg);
+    animation: none !important;
+}
+
+#tutorialHint.opencloseHint .leftHand {
+    animation: openCloseLeft 1.7s ease-in-out infinite;
+}
+
+#tutorialHint.opencloseHint .rightHand {
+    animation: openCloseRight 1.7s ease-in-out infinite;
+}
+
+@keyframes waveHint {
+    0%,100% { transform: translate(-50%, -50%) translateX(-58px) rotate(-9deg); }
+    50% { transform: translate(-50%, -50%) translateX(58px) rotate(9deg); }
+}
+
+@keyframes pushHint {
+    0% { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(0.52); opacity: 0.72; }
+}
+
+@keyframes pullHint {
+    0% { transform: translate(-50%, -50%) scale(0.52); opacity: 0.72; }
+    100% { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+}
+
+@keyframes circleHint {
+    0% { transform: translate(-50%, -50%) translate(0,-70px); }
+    25% { transform: translate(-50%, -50%) translate(70px,0); }
+    50% { transform: translate(-50%, -50%) translate(0,70px); }
+    75% { transform: translate(-50%, -50%) translate(-70px,0); }
+    100% { transform: translate(-50%, -50%) translate(0,-70px); }
+}
+
+@keyframes openCloseLeft {
+    0%,100% { transform: translate(-50%, -50%) translateX(-190px) rotate(-2deg); }
+    50% { transform: translate(-50%, -50%) translateX(-45px) rotate(0deg); }
+}
+
+@keyframes openCloseRight {
+    0%,100% { transform: translate(-50%, -50%) translateX(190px) rotate(2deg); }
+    50% { transform: translate(-50%, -50%) translateX(45px) rotate(0deg); }
+}
+
+@media (max-width:768px){
+    #tutorialHint{
+        top: 50%;
+        width: min(96vw, 430px);
+        height: 240px;
+    }
+
+    .tutorialIcon,
+    .tutorialIconInner{
+        width: 220px;
+        height: 220px;
+    }
+
+    .twoHandsWrap{
+        width: min(96vw, 430px);
+        height: 230px;
+    }
+
+    .twoHandsWrap .leftHand,
+    .twoHandsWrap .rightHand{
+        width: 150px;
+        height: 150px;
+    }
+
+    .emojiDoubleHold,
+    .emojiCrossHands{
+        width:300px;
+        height:145px;
+        font-size:86px;
+    }
+
+    @keyframes leftCross{
+        0%,100%{ transform:translateX(0) rotate(90deg); }
+        50%{ transform:translateX(105px) rotate(90deg); }
+    }
+
+    @keyframes rightCross{
+        0%,100%{ transform:translateX(0) rotate(-90deg); }
+        50%{ transform:translateX(-105px) rotate(-90deg); }
+    }
+
+    #tutorialHint.doubleholdHint .leftHand {
+        transform: translate(-50%, -50%) translateX(-95px) rotate(-2deg);
+    }
+
+    #tutorialHint.doubleholdHint .rightHand {
+        transform: translate(-50%, -50%) translateX(95px) rotate(2deg);
+    }
+
+    @keyframes waveHint {
+        0%,100% { transform: translate(-50%, -50%) translateX(-44px) rotate(-9deg); }
+        50% { transform: translate(-50%, -50%) translateX(44px) rotate(9deg); }
+    }
+
+    @keyframes circleHint {
+        0% { transform: translate(-50%, -50%) translate(0,-52px); }
+        25% { transform: translate(-50%, -50%) translate(52px,0); }
+        50% { transform: translate(-50%, -50%) translate(0,52px); }
+        75% { transform: translate(-50%, -50%) translate(-52px,0); }
+        100% { transform: translate(-50%, -50%) translate(0,-52px); }
+    }
+
+    @keyframes openCloseLeft {
+        0%,100% { transform: translate(-50%, -50%) translateX(-140px) rotate(-2deg); }
+        50% { transform: translate(-50%, -50%) translateX(-38px) rotate(0deg); }
+    }
+
+    @keyframes openCloseRight {
+        0%,100% { transform: translate(-50%, -50%) translateX(140px) rotate(2deg); }
+        50% { transform: translate(-50%, -50%) translateX(38px) rotate(0deg); }
     }
 }
 
@@ -386,14 +722,12 @@ body.prelaunch #video {
 
         </div>
 
+        <div id="playButton" aria-label="Play"></div>
+
         <div id="creatorCredit">
             FORMCHI created by Roberto Olvera
         </div>
 
-        <div class="tapPrompt">
-            TAP ANYWHERE TO CONTINUE
-        </div>
-
         <div class="overlayFooter">
             © 2026 Olvera Design
         </div>
@@ -402,114 +736,8 @@ body.prelaunch #video {
 
 </div>
 
-<!-- STARTUP INSTRUCTIONS -->
+<!-- TUTORIAL BUILD: startup and gesture instruction screens removed -->
 
-<div id="startupOverlay" class="overlayScreen hidden" style="display:none;">
-
-    <div class="overlayContent">
-
-        <div class="overlayLogo">
-            FORM<span>CHI</span>
-        </div>
-
-        <div class="overlaySubtitle">
-            MOVE. RESONATE. ASCEND.
-        </div>
-
-        <div id="startupInstructions">
-
-            <div class="instruction">
-                Allow camera access
-            </div>
-
-            <div class="instruction">
-                Headphones recommended
-            </div>
-
-            <div class="instruction">
-                Make sure your hands can be seen by the camera
-            </div>
-
-            <div class="instruction">
-                Explore different hand gestures.<br>
-                Discover what resonates.
-            </div>
-
-            <div class="instruction small">
-                Chrome recommended on Android
-            </div>
-
-        </div>
-
-        <div class="tapPrompt">
-           TAP ANYWHERE TO CONTINUE
-        </div>
-
-        <div class="overlayFooter">
-            © 2026 Olvera Design
-        </div>
-
-    </div>
-
-</div>
-
-    <!-- GESTURE SCREEN -->
-
-<div id="gestureOverlay" class="overlayScreen hidden" style="display:none;">
-
-    <div class="overlayContent">
-
-        <div class="overlayLogo">
-            FORM<span>CHI</span>
-        </div>
-
-        <div class="overlaySubtitle">
-            TRY THESE MOVES
-        </div>
-
-        <div id="startupInstructions">
-
-    <div class="instruction">
-        👋 Wave
-    </div>
-
-    <div class="instruction">
-        🫳 Reach
-    </div>
-
-    <div class="instruction">
-        🤏 Pinch
-    </div>
-
-    <div class="instruction">
-        🖐️ Push
-    </div>
-
-    <div class="instruction">
-        ⭕ Circle
-    </div>
-
-    <div class="instruction">
-        ✋ or both ✋🤚
-    </div>
-
-</div>
-
-<div class="overlaySubtitle" style="margin-top:24px; margin-bottom:24px;">
-    THERE IS NO WRONG WAY TO PLAY
-</div>
-
-        <div class="tapPrompt">
-            TAP ANYWHERE TO BEGIN
-        </div>
-
-        <div class="overlayFooter">
-            © 2026 Olvera Design
-        </div>
-
-    </div>
-
-</div>
 <div id="title">
     <span id="formText">FORM</span><span id="chiText">CHI</span>
 </div>
@@ -519,6 +747,7 @@ body.prelaunch #video {
 <div id="bottomDots"></div>
 
 <video id="video" playsinline></video>
+<div id="tutorialHint" class="tutorialHidden"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
@@ -554,6 +783,34 @@ let clapEnergy = 0;
 let jumpEnergy = 0;
 let stillnessEnergy = 0;
 let expandEnergy = 0;
+let wristHorizontalEnergy = 0;
+let wristVerticalEnergy = 0;
+let depthEnergy = 0;
+let circleEnergy = 0;
+let twoHandsEnergy = 0;
+let lastLeftWristX = 0;
+let lastLeftWristY = 0;
+let lastRightWristX = 0;
+let lastRightWristY = 0;
+let lastAvgWristZ = 0;
+
+const tutorialStorageVersion = "v12";
+const tutorialCompleteKey = `formchi_tutorial_${tutorialStorageVersion}_complete`;
+const tutorialStepKey = `formchi_tutorial_${tutorialStorageVersion}_step`;
+let tutorialMode = localStorage.getItem(tutorialCompleteKey) !== "true";
+let tutorialStep = parseInt(localStorage.getItem(tutorialStepKey)) || 0;
+let currentRequiredMove = "wave";
+let pinchFlipTimer = null;
+
+const tutorialMoves = [
+    "wave",
+    "push",
+    "pull",
+    "circle",
+    "hold",
+    "doublehold",
+    "openclose"
+];
 
 let completing = false;
 
@@ -573,8 +830,7 @@ const bottomDots = document.getElementById("bottomDots");
 const formText = document.getElementById("formText");
 const chiText = document.getElementById("chiText");
 const introOverlay = document.getElementById("introOverlay");
-const startupOverlay = document.getElementById("startupOverlay");
-const gestureOverlay = document.getElementById("gestureOverlay");
+const tutorialHint = document.getElementById("tutorialHint");
 
 const chakraData = [
     { color:0xff3b30, shape:"cube", mode:"reach", tone:110 },
@@ -585,6 +841,195 @@ const chakraData = [
     { color:0x5856d6, shape:"merkaba", mode:"clap", tone:392 },
     { color:0xaf52de, shape:"sphere", mode:"stillness", tone:440 }
 ];
+
+
+
+
+function emojiHand() {
+    return `
+    <div class="tutorialIcon emojiSingleHand" aria-hidden="true">
+        🤚
+    </div>
+    `;
+}
+
+function handOutlineSVG(flip=false, innerClass="tutorialIcon") {
+    const scale = flip ? 'scale(-1,1) translate(-100,0)' : '';
+
+    // FORMCHI V11: clean transparent open-hand outline.
+    // Four fingers + thumb, no interior fill, no fist, no extra divider lines.
+    return `
+    <span class="${innerClass}">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+            <g transform="${scale}">
+                <path
+                    d="M19 82
+                       C13 75 10 67 10 58
+                       L10 50
+                       C10 44 14 40 20 40
+                       C24 40 27 42 30 46
+                       L30 30
+                       C30 24 34 20 40 20
+                       C42 20 45 21 47 24
+                       L47 20
+                       C47 14 51 10 57 10
+                       C63 10 67 14 67 20
+                       L67 24
+                       C69 21 72 20 76 20
+                       C82 20 86 24 86 31
+                       L86 57
+                       C86 76 72 90 53 90
+                       L36 90
+                       C29 90 23 87 19 82 Z"
+                    fill="none"
+                    stroke="#111"
+                    stroke-width="6.2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                />
+            </g>
+        </svg>
+    </span>`;
+}
+
+function twoHandsOutlineSVG() {
+    return `
+    <span class="twoHandsWrap">
+        <span class="leftHand">${handOutlineSVG(false, "tutorialIconInner")}</span>
+        <span class="rightHand">${handOutlineSVG(true, "tutorialIconInner")}</span>
+    </span>`;
+}
+
+function chooseRandomMove() {
+    const nextMove = tutorialMoves[Math.floor(Math.random() * tutorialMoves.length)];
+    currentRequiredMove = nextMove;
+    return nextMove;
+}
+
+function setTutorialHint(move) {
+    if (!tutorialHint) return;
+
+    if (pinchFlipTimer) {
+        clearInterval(pinchFlipTimer);
+        pinchFlipTimer = null;
+    }
+
+    tutorialHint.className = "tutorialVisible";
+    tutorialHint.style.display = "block";
+    tutorialHint.style.opacity = "1";
+    tutorialHint.style.visibility = "visible";
+    tutorialHint.style.zIndex = "999999999";
+
+    if (move === "wave") {
+        tutorialHint.innerHTML = emojiHand();
+        tutorialHint.classList.add("waveHint");
+    } else if (move === "push") {
+        tutorialHint.innerHTML = emojiHand();
+        tutorialHint.classList.add("pushHint");
+    } else if (move === "pull") {
+        tutorialHint.innerHTML = emojiHand();
+        tutorialHint.classList.add("pullHint");
+    } else if (move === "circle") {
+        tutorialHint.innerHTML = emojiHand();
+        tutorialHint.classList.add("circleHint");
+    } else if (move === "hold") {
+        tutorialHint.innerHTML = emojiHand();
+        tutorialHint.classList.add("holdHint");
+    } else if (move === "doublehold") {
+        tutorialHint.innerHTML = `
+            <div class="emojiDoubleHold" aria-hidden="true">
+                <span class="leftHandEmoji">🫲</span>
+                <span class="rightHandEmoji">🫱</span>
+            </div>
+        `;
+        tutorialHint.classList.add("doubleholdHint");
+    } else if (move === "openclose") {
+        tutorialHint.innerHTML = `
+            <div class="emojiCrossHands" aria-hidden="true">
+                <span class="leftHandEmoji">🫲</span>
+                <span class="rightHandEmoji">🫱</span>
+            </div>
+        `;
+        tutorialHint.classList.add("opencloseHint");
+    }
+}
+
+function showTutorialHint() {
+    if (!tutorialMode || !tutorialHint) return;
+
+    tutorialStep = Math.max(0, Math.min(tutorialStep, tutorialMoves.length - 1));
+    currentRequiredMove = tutorialMoves[tutorialStep];
+    setTutorialHint(currentRequiredMove);
+
+    // Force visible for testing/build stability.
+    tutorialHint.style.display = "block";
+    tutorialHint.style.opacity = "1";
+}
+
+function hideTutorialHint() {
+    if (!tutorialHint) return;
+
+    if (pinchFlipTimer) {
+        clearInterval(pinchFlipTimer);
+        pinchFlipTimer = null;
+    }
+
+    tutorialHint.className = "tutorialHidden";
+    tutorialHint.style.opacity = "0";
+    tutorialHint.style.visibility = "hidden";
+    tutorialHint.style.display = "none";
+}
+
+function completeTutorialStep() {
+    const completedMove = tutorialMoves[tutorialStep];
+
+    gtag('event', 'tutorial_step_completed', {
+        step: tutorialStep + 1,
+        move: completedMove
+    });
+
+    tutorialStep++;
+    localStorage.setItem(tutorialStepKey, tutorialStep);
+
+    if (tutorialStep >= tutorialMoves.length) {
+        tutorialMode = false;
+        localStorage.setItem(tutorialCompleteKey, "true");
+        hideTutorialHint();
+        chooseRandomMove();
+
+        gtag('event', 'tutorial_completed');
+    } else {
+        currentRequiredMove = tutorialMoves[tutorialStep];
+        setTutorialHint(currentRequiredMove);
+    }
+}
+
+function getMoveInfluence(move) {
+    switch(move) {
+        case "wave":
+            return Math.max(wristHorizontalEnergy, horizontalEnergy);
+
+        case "push":
+            return Math.max(depthEnergy, expandEnergy, wristVerticalEnergy * 0.6);
+
+        case "pull":
+            return Math.max(depthEnergy, expandEnergy, wristVerticalEnergy * 0.6);
+
+        case "circle":
+            return Math.max(circleEnergy, Math.min(1, (wristHorizontalEnergy + wristVerticalEnergy) * 0.7));
+
+        case "hold":
+            return stillnessEnergy > 0.88 ? stillnessEnergy : 0;
+
+        case "doublehold":
+            return stillnessEnergy > 0.88 ? stillnessEnergy : 0;
+
+        case "openclose":
+            return Math.max(twoHandsEnergy, clapEnergy, expandEnergy, wristHorizontalEnergy * 0.45);
+    }
+
+    return 0;
+}
 
 function saveGame() {
     localStorage.setItem("formchi_progress", progress);
@@ -1017,11 +1462,32 @@ function onPose(results) {
 
     const handDistance = Math.abs(leftWrist.x - rightWrist.x);
 
+    const leftWristDX = leftWrist.x - lastLeftWristX;
+    const rightWristDX = rightWrist.x - lastRightWristX;
+    const leftWristDY = leftWrist.y - lastLeftWristY;
+    const rightWristDY = rightWrist.y - lastRightWristY;
+
+    wristHorizontalEnergy = Math.min(1, (Math.abs(leftWristDX) + Math.abs(rightWristDX)) * 38);
+    wristVerticalEnergy = Math.min(1, (Math.abs(leftWristDY) + Math.abs(rightWristDY)) * 38);
+
+    const avgWristZ = ((leftWrist.z || 0) + (rightWrist.z || 0)) / 2;
+    depthEnergy = Math.min(1, Math.abs(avgWristZ - lastAvgWristZ) * 18);
+
+    circleEnergy = Math.min(1, Math.min(wristHorizontalEnergy, wristVerticalEnergy) * 1.8);
+
     if (handDistance < 0.05) {
         clapEnergy = 1;
     }
 
+    twoHandsEnergy = Math.max(0, 1 - handDistance * 4) * Math.max(wristHorizontalEnergy, wristVerticalEnergy, depthEnergy);
+
     clapEnergy *= 0.92;
+
+    lastLeftWristX = leftWrist.x;
+    lastLeftWristY = leftWrist.y;
+    lastRightWristX = rightWrist.x;
+    lastRightWristY = rightWrist.y;
+    lastAvgWristZ = avgWristZ;
 
     const movement = Math.abs(dx) + Math.abs(dy);
     stillnessEnergy = Math.max(0, 1 - movement * 22);
@@ -1033,32 +1499,11 @@ function onPose(results) {
 }
 
 function getInfluence() {
-    const mode = chakraData[chakraIndex].mode;
-
-    switch(mode) {
-        case "reach":
-            return verticalEnergy;
-
-        case "expand":
-            return expandEnergy;
-
-        case "heart":
-            return horizontalEnergy;
-
-        case "shake":
-            return shakeEnergy;
-
-        case "jump":
-            return jumpEnergy;
-
-        case "clap":
-            return clapEnergy;
-
-        case "stillness":
-            return stillnessEnergy > 0.9 ? stillnessEnergy : 0;
+    if (tutorialMode) {
+        return getMoveInfluence(tutorialMoves[tutorialStep]);
     }
 
-    return 0;
+    return getMoveInfluence(currentRequiredMove);
 }
 
 function completePuzzle() {
@@ -1088,6 +1533,12 @@ function completePuzzle() {
 });
     
     progress++;
+
+    if (tutorialMode) {
+        completeTutorialStep();
+    } else {
+        chooseRandomMove();
+    }
 
     updateUI();
     saveGame();
@@ -1162,45 +1613,7 @@ function resetCycle() {
 }
 
 let introComplete = false;
-let startupReady = false;
-
-introOverlay.addEventListener("click", (e) => {
-
-    e.stopPropagation();
-
-    if (introComplete) return;
-
-if (!audioCtx) {
-    initAudio();
-}
-
-startOnboardingTone();
-
-gtag('event', 'intro_screen_continue');
-
-    introComplete = true;
-    startupReady = false;
-
-    startupOverlay.style.display = "flex";
-    startupOverlay.style.opacity = "0";
-
-    introOverlay.classList.add("hidden");
-
-    setTimeout(() => {
-
-        startupOverlay.style.display = "flex";
-        startupOverlay.classList.remove("hidden");
-        startupOverlay.style.opacity = "1";
-
-        setTimeout(() => {
-            startupReady = true;
-        }, 400);
-
-    }, 1000);
-
-});
-
-let gestureReady = false;
+let gameLaunchStarted = false;
 
 let sessionTracked10 = false;
 let sessionTracked30 = false;
@@ -1222,59 +1635,45 @@ gtag('event', 'visitor_source', {
     source: trafficSource
 });
 
-startupOverlay.addEventListener("click", () => {
+async function launchGameFromIntro() {
+    if (gameLaunchStarted) return;
 
-    if (!startupReady) return;
+    gameLaunchStarted = true;
+    gameStarted = true;
 
-    gtag('event', 'startup_screen_continue');
+    introOverlay.classList.add("hidden");
 
-    startupReady = false;
+    setTimeout(async () => {
+        try {
+            introOverlay.style.display = "none";
 
-    startupOverlay.classList.add("hidden");
+            stopOnboardingTone();
 
-    setTimeout(() => {
+            await startTracking();
 
-        startupOverlay.style.display = "none";
+            document.body.classList.remove("prelaunch");
 
-        gestureOverlay.style.display = "flex";
+            if (tutorialMode) {
+                tutorialStep = Math.max(0, Math.min(tutorialStep, tutorialMoves.length - 1));
+                currentRequiredMove = tutorialMoves[tutorialStep];
 
-        gtag('event', 'gesture_screen_viewed');
-        
-        gestureOverlay.style.opacity = "0";
+                // Show the first tutorial hint after the canvas is visible.
+                setTimeout(() => {
+                    tutorialHint.style.display = "block";
+                    tutorialHint.style.opacity = "1";
+                    tutorialHint.style.visibility = "visible";
+                    tutorialHint.style.zIndex = "999999999";
+                    showTutorialHint();
+                }, 500);
 
-        setTimeout(() => {
-
-            gestureOverlay.classList.remove("hidden");
-            gestureOverlay.style.opacity = "1";
-
-            gestureReady = true;
-
-        }, 100);
-
-    }, 1000);
-
-});
-
-gestureOverlay.addEventListener("click", async () => {
-
-    if (!gestureReady || gameStarted) return;
-
-    gtag('event', 'gesture_screen_continue');
-
-    try {
-
-        gestureReady = false;
-        gameStarted = true;
-
-        gestureOverlay.classList.add("hidden");
-
-        setTimeout(async () => {
-
-            gestureOverlay.style.display = "none";
-
-           stopOnboardingTone();
-
-           await startTracking();
+                gtag('event', 'tutorial_started', {
+                    step: tutorialStep + 1,
+                    move: currentRequiredMove
+                });
+            } else {
+                chooseRandomMove();
+                hideTutorialHint();
+            }
 
             gtag('event', 'game_started');
 
@@ -1306,29 +1705,41 @@ gestureOverlay.addEventListener("click", async () => {
                 }
             }, 120000);
 
-            setTimeout(() => {
+        } catch (error) {
+            gtag('event', 'camera_permission_denied');
 
-                setTimeout(() => {
+            console.error(error);
 
-                    document.body.classList.remove("prelaunch");
+            gameLaunchStarted = false;
+            gameStarted = false;
+            introOverlay.style.display = "flex";
+            introOverlay.classList.remove("hidden");
 
-                }, 350);
-
-            }, 400);
-
-       }, 1000);
-
-} catch (error) {
-
-    gtag('event', 'camera_permission_denied');
-
-    console.error(error);
-
-    alert("Please allow camera access, then refresh FORMCHI.");
-
+            alert("Please allow camera access, then refresh FORMCHI.");
+        }
+    }, 800);
 }
 
+introOverlay.addEventListener("click", (e) => {
+
+    e.stopPropagation();
+
+    if (introComplete) return;
+
+    introComplete = true;
+
+    if (!audioCtx) {
+        initAudio();
+    }
+
+    startOnboardingTone();
+
+    gtag('event', 'intro_screen_continue');
+
+    launchGameFromIntro();
+
 });
+
 formText.addEventListener("click", async () => {
     if (!gameStarted) return;
 
@@ -1352,6 +1763,28 @@ chiText.addEventListener("click", () => {
     chakraIndex = 0;
     ascension = 0;
     resonance = 0;
+    tutorialMode = true;
+    tutorialStep = 0;
+    currentRequiredMove = tutorialMoves[0];
+    localStorage.removeItem("formchi_tutorial_complete");
+    localStorage.removeItem("formchi_tutorial_step");
+    localStorage.removeItem("formchi_tutorial_v4_complete");
+    localStorage.removeItem("formchi_tutorial_v4_step");
+    localStorage.removeItem("formchi_tutorial_v5_complete");
+    localStorage.removeItem("formchi_tutorial_v5_step");
+    localStorage.removeItem("formchi_tutorial_v6_complete");
+    localStorage.removeItem("formchi_tutorial_v6_step");
+    localStorage.removeItem("formchi_tutorial_v7_complete");
+    localStorage.removeItem("formchi_tutorial_v7_step");
+    localStorage.removeItem("formchi_tutorial_v8_complete");
+    localStorage.removeItem("formchi_tutorial_v8_step");
+    localStorage.removeItem("formchi_tutorial_v9_complete");
+    localStorage.removeItem("formchi_tutorial_v9_step");
+    localStorage.removeItem("formchi_tutorial_v10_complete");
+    localStorage.removeItem("formchi_tutorial_v10_step");
+    localStorage.removeItem(tutorialCompleteKey);
+    localStorage.removeItem(tutorialStepKey);
+    showTutorialHint();
 
     resetCycle();
     saveGame();
