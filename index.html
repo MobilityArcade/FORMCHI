@@ -202,8 +202,9 @@ video { display: none; }
 #playButton::before {
     content: "";
     position: absolute;
-    left: 32px;
-    top: 24px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-35%, -50%);
     width: 0;
     height: 0;
     border-top: 17px solid transparent;
@@ -1853,6 +1854,15 @@ function animate() {
         const scale = 0.28 + resonance * 1.35;
         formGroup.scale.setScalar(scale);
         ringGroup.scale.setScalar(scale);
+
+        const isPhonePortrait =
+        window.innerWidth <= 768 &&
+        window.innerHeight > window.innerWidth;
+
+        const mobileYOffset = isPhonePortrait ? 0.75 : 0;
+
+        formGroup.position.y = mobileYOffset;
+        ringGroup.position.y = mobileYOffset;
 
         formGroup.rotation.y += 0.01;
         formGroup.rotation.x += 0.003;
