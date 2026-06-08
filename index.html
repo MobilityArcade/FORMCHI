@@ -200,11 +200,18 @@ video { display: none; }
 }
 
 #playButton::before{
-    left:28px;
-    top:21px;
-    border-top-width:15px;
-    border-bottom-width:15px;
-    border-left-width:23px;
+    content:"";
+    position:absolute;
+
+    left:32px;
+    top:26px;
+
+    width:0;
+    height:0;
+
+    border-top:14px solid transparent;
+    border-bottom:14px solid transparent;
+    border-left:22px solid #d22b22;
 }
 #playButton:hover {
     transform: scale(1.06);
