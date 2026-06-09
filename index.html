@@ -186,48 +186,6 @@ video { display: none; }
     animation: pulseText 2s infinite;
 }
 
-/* FORMCHI PLAY BUTTON */
-#playButton {
-    position: relative;
-    width: 82px;
-    height: 82px;
-    margin: 40px auto 0 auto;
-    border-radius: 50%;
-    background: #111;
-    box-shadow: 0 10px 28px rgba(0,0,0,0.18);
-    cursor: pointer;
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-
-#playButton::before{
-    content:"";
-    position:absolute;
-
-    left:32px;
-    top:26px;
-
-    width:0;
-    height:0;
-
-    border-top:14px solid transparent;
-    border-bottom:14px solid transparent;
-    border-left:22px solid #d22b22;
-}
-#playButton:hover {
-    transform: scale(1.06);
-    box-shadow: 0 14px 34px rgba(0,0,0,0.22);
-}
-
-    #playButton::before{
-        left:28px;
-        top:21px;
-        border-top-width:15px;
-        border-bottom-width:15px;
-        border-left-width:23px;
-    }
-}
-
-
 .overlayFooter {
     position: fixed;
     bottom: 22px;
@@ -255,10 +213,6 @@ video { display: none; }
     font-size: 12px;
     opacity: 0.55;
 }
-
-
-
-
 
 
     50% {
@@ -689,50 +643,6 @@ body.prelaunch #video {
 
 <body class="prelaunch">
 
-<!-- INTRO SCREEN -->
-
-<div id="introOverlay" class="overlayScreen">
-
-    <div class="overlayContent">
-
-        <div class="overlayLogo">
-            FORM<span>CHI</span>
-        </div>
-
-        <div class="overlaySubtitle">
-            MOVE. RESONATE. ASCEND.
-        </div>
-
-        <div id="introFormPreview">
-
-            <div class="previewRing ring1"></div>
-            <div class="previewRing ring2"></div>
-
-            <div class="previewCube">
-                <div class="cubeFace front"></div>
-                <div class="cubeFace back"></div>
-                <div class="cubeFace right"></div>
-                <div class="cubeFace left"></div>
-                <div class="cubeFace top"></div>
-                <div class="cubeFace bottom"></div>
-            </div>
-
-        </div>
-
-        <div id="playButton" aria-label="Play"></div>
-
-        <div id="creatorCredit">
-            FORMCHI created by Roberto Olvera
-        </div>
-
-        <div class="overlayFooter">
-            © 2026 Olvera Design
-        </div>
-
-    </div>
-
-</div>
-
 <!-- TUTORIAL BUILD: startup and gesture instruction screens removed -->
 
 <div id="title">
@@ -826,7 +736,6 @@ const ascensionColumn = document.getElementById("ascensionColumn");
 const bottomDots = document.getElementById("bottomDots");
 const formText = document.getElementById("formText");
 const chiText = document.getElementById("chiText");
-const introOverlay = document.getElementById("introOverlay");
 const tutorialHint = document.getElementById("tutorialHint");
 
 const chakraData = [
@@ -1609,9 +1518,6 @@ function resetCycle() {
     cycleActive = false;
 }
 
-let introComplete = false;
-let gameLaunchStarted = false;
-
 let sessionTracked10 = false;
 let sessionTracked30 = false;
 let sessionTracked60 = false;
@@ -1630,111 +1536,6 @@ const trafficSource =
 
 gtag('event', 'visitor_source', {
     source: trafficSource
-});
-
-async function launchGameFromIntro() {
-    if (gameLaunchStarted) return;
-
-    gameLaunchStarted = true;
-    gameStarted = true;
-
-    introOverlay.classList.add("hidden");
-
-    setTimeout(async () => {
-        try {
-            introOverlay.style.display = "none";
-
-            stopOnboardingTone();
-
-            await startTracking();
-
-            document.body.classList.remove("prelaunch");
-
-            if (tutorialMode) {
-                tutorialStep = Math.max(0, Math.min(tutorialStep, tutorialMoves.length - 1));
-                currentRequiredMove = tutorialMoves[tutorialStep];
-
-                // Show the first tutorial hint after the canvas is visible.
-                setTimeout(() => {
-                    tutorialHint.style.display = "block";
-                    tutorialHint.style.opacity = "1";
-                    tutorialHint.style.visibility = "visible";
-                    tutorialHint.style.zIndex = "999999999";
-                    showTutorialHint();
-                }, 500);
-
-                gtag('event', 'tutorial_started', {
-                    step: tutorialStep + 1,
-                    move: currentRequiredMove
-                });
-            } else {
-                chooseRandomMove();
-                hideTutorialHint();
-            }
-
-            gtag('event', 'game_started');
-
-            setTimeout(() => {
-                if (!sessionTracked10) {
-                    gtag('event', 'session_10_seconds');
-                    sessionTracked10 = true;
-                }
-            }, 10000);
-
-            setTimeout(() => {
-                if (!sessionTracked30) {
-                    gtag('event', 'session_30_seconds');
-                    sessionTracked30 = true;
-                }
-            }, 30000);
-
-            setTimeout(() => {
-                if (!sessionTracked60) {
-                    gtag('event', 'session_60_seconds');
-                    sessionTracked60 = true;
-                }
-            }, 60000);
-
-            setTimeout(() => {
-                if (!sessionTracked120) {
-                    gtag('event', 'session_120_seconds');
-                    sessionTracked120 = true;
-                }
-            }, 120000);
-
-        } catch (error) {
-            gtag('event', 'camera_permission_denied');
-
-            console.error(error);
-
-            gameLaunchStarted = false;
-            gameStarted = false;
-            introOverlay.style.display = "flex";
-            introOverlay.classList.remove("hidden");
-
-            alert("Please allow camera access, then refresh FORMCHI.");
-        }
-    }, 800);
-}
-
-introOverlay.addEventListener("click", (e) => {
-
-    e.stopPropagation();
-
-    if (introComplete) return;
-
-    introComplete = true;
-
-    if (!audioCtx) {
-        initAudio();
-    }
-
-    startOnboardingTone();
-
-    gtag('event', 'intro_screen_continue');
-
-    launchGameFromIntro();
-
 });
 
 formText.addEventListener("click", async () => {
@@ -1881,6 +1682,58 @@ function animate() {
 }
 
 initThree();
+
+(async () => {
+
+    try {
+
+        gameStarted = true;
+
+        if (!audioCtx) {
+            await initAudio();
+        }
+
+        await startTracking();
+
+        document.body.classList.remove("prelaunch");
+
+        if (tutorialMode) {
+
+            tutorialStep = Math.max(
+                0,
+                Math.min(
+                    tutorialStep,
+                    tutorialMoves.length - 1
+                )
+            );
+
+            currentRequiredMove =
+                tutorialMoves[tutorialStep];
+
+            setTimeout(() => {
+                showTutorialHint();
+            }, 500);
+
+        } else {
+
+            chooseRandomMove();
+            hideTutorialHint();
+
+        }
+
+        gtag('event', 'game_started');
+
+    } catch(error) {
+
+        console.error(error);
+
+        alert(
+            "Please allow camera access and refresh FORMCHI."
+        );
+
+    }
+
+})();();
 
 </script>
 
