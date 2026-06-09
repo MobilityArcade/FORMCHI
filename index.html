@@ -1640,13 +1640,7 @@ function animate() {
         }
 
         let baseScale = 0.28;
-
-if (isPhone && isPortrait) {
-    baseScale = 0.22;
-}
-else if (isTablet && isLandscape) {
-    baseScale = 0.22;
-}
+        
 
 const scale = baseScale + resonance * 1.35;
         formGroup.scale.setScalar(scale);
