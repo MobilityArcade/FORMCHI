@@ -1134,13 +1134,30 @@ animate();
 
 function onResize() {
 
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+    const vv = window.visualViewport;
+
+    const width = vv ? vv.width : window.innerWidth;
+    const height = vv ? vv.height : window.innerHeight;
 
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
 
     renderer.setSize(width, height, false);
+}
+    window.addEventListener("resize", onResize);
+
+if (window.visualViewport) {
+
+    window.visualViewport.addEventListener(
+        "resize",
+        onResize
+    );
+
+    window.visualViewport.addEventListener(
+        "scroll",
+        onResize
+    );
+
 }
 
 function createMerkaba() {
