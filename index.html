@@ -1639,15 +1639,46 @@ function animate() {
             cycleActive = false;
         }
 
-        const scale = 0.28 + resonance * 1.35;
+        let baseScale = 0.28;
+
+if (isPhone && isPortrait) {
+    baseScale = 0.22;
+}
+else if (isTablet && isLandscape) {
+    baseScale = 0.22;
+}
+
+const scale = baseScale + resonance * 1.35;
         formGroup.scale.setScalar(scale);
         ringGroup.scale.setScalar(scale);
 
-        const isPhonePortrait =
-        window.innerWidth <= 768 &&
+        const isPhone =
+        window.innerWidth <= 768;
+
+        const isTablet =
+        window.innerWidth > 768 &&
+        window.innerWidth <= 1400;
+
+        const isPortrait =
         window.innerHeight > window.innerWidth;
 
-        const mobileYOffset = 0;
+        const isLandscape =
+        window.innerWidth > window.innerHeight;
+
+        let mobileYOffset = 0;
+
+if (isPhone && isPortrait) {
+    mobileYOffset = 0.35;
+}
+else if (isPhone && isLandscape) {
+    mobileYOffset = 0;
+}
+else if (isTablet && isPortrait) {
+    mobileYOffset = 0;
+}
+else if (isTablet && isLandscape) {
+    mobileYOffset = -0.25;
+}
 
         formGroup.position.y = mobileYOffset;
         ringGroup.position.y = mobileYOffset;
