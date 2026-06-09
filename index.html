@@ -1681,18 +1681,21 @@ initThree();
 
 (async () => {
 
+   try {
+
+    gameStarted = true;
+
+    // ALWAYS show FORMCHI immediately
+    document.body.classList.remove("prelaunch");
+
+    // Start camera AFTER UI appears
     try {
-
-        gameStarted = true;
-
-        // audio starts after first user interaction
-
         await startTracking();
+    } catch(cameraError) {
+        console.error("Camera startup failed:", cameraError);
+    }
 
-        document.body.classList.remove("prelaunch");
-
-        if (tutorialMode) {
-
+    if (tutorialMode) {
             tutorialStep = Math.max(
                 0,
                 Math.min(
@@ -1717,16 +1720,13 @@ initThree();
 
         gtag('event', 'game_started');
 
-    } catch(error) {
+    catch(error) {
 
-        console.error(error);
+    console.error(error);
 
-        alert(
-            "Please allow camera access and refresh FORMCHI."
-        );
+    document.body.classList.remove("prelaunch");
 
-    }
-
+}
 })();
 
 </script>
