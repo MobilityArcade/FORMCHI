@@ -860,6 +860,25 @@ function setTutorialHint(move) {
     }
 }
 
+    function positionTutorialHint() {
+
+    if (!tutorialHint) return;
+
+    const vv = window.visualViewport;
+
+    const centerX = vv
+        ? vv.offsetLeft + vv.width / 2
+        : window.innerWidth / 2;
+
+    const centerY = vv
+        ? vv.offsetTop + vv.height / 2
+        : window.innerHeight / 2;
+
+    tutorialHint.style.left = centerX + "px";
+    tutorialHint.style.top = centerY + "px";
+    tutorialHint.style.transform = "translate(-50%, -50%)";
+}
+    
 function showTutorialHint() {
     if (!tutorialMode || !tutorialHint) return;
 
@@ -870,6 +889,12 @@ function showTutorialHint() {
     // Force visible for testing/build stability.
     tutorialHint.style.display = "block";
     tutorialHint.style.opacity = "1";
+
+    positionTutorialHint();
+
+    setTimeout(positionTutorialHint, 300);
+    setTimeout(positionTutorialHint, 800);
+    setTimeout(positionTutorialHint, 1500);
 }
 
 function hideTutorialHint() {
@@ -1075,6 +1100,24 @@ function initThree() {
     scene.add(new THREE.AmbientLight(0xffffff, 2));
 
     window.addEventListener("resize", onResize);
+    window.addEventListener("resize", positionTutorialHint);
+
+window.addEventListener("orientationchange", () => {
+    setTimeout(positionTutorialHint, 500);
+});
+
+if (window.visualViewport) {
+
+    window.visualViewport.addEventListener(
+        "resize",
+        positionTutorialHint
+    );
+
+    window.visualViewport.addEventListener(
+        "scroll",
+        positionTutorialHint
+    );
+}
 
     animate();
 }
@@ -1662,7 +1705,7 @@ const scale = baseScale + resonance * 1.35;
         let mobileYOffset = 0;
 
 if (isPhone && isPortrait) {
-    mobileYOffset = 0.35;
+    mobileYOffset = 0;
 }
 else if (isPhone && isLandscape) {
     mobileYOffset = 0;
@@ -1719,6 +1762,12 @@ initThree();
     } catch(cameraError) {
         console.error("Camera startup failed:", cameraError);
     }
+
+       positionTutorialHint();
+
+       setTimeout(positionTutorialHint, 500);
+       setTimeout(positionTutorialHint, 1000);
+       setTimeout(positionTutorialHint, 2000);
 
     if (tutorialMode) {
             tutorialStep = Math.max(
