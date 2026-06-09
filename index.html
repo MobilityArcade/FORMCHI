@@ -1721,9 +1721,13 @@ else if (isTablet && isPortrait) {
 else if (isTablet && isLandscape) {
     mobileYOffset = -0.25;
 }
+else {
+    // Desktop
+    mobileYOffset = -0.55;
+}
 
-        formGroup.position.y = mobileYOffset;
-        ringGroup.position.y = mobileYOffset;
+formGroup.position.y = mobileYOffset;
+ringGroup.position.y = mobileYOffset;
 
         formGroup.rotation.y += 0.01;
         formGroup.rotation.x += 0.003;
