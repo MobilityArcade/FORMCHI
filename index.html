@@ -1685,10 +1685,10 @@ initThree();
 
     gameStarted = true;
 
-    // ALWAYS show FORMCHI immediately
     document.body.classList.remove("prelaunch");
 
-    // Start camera AFTER UI appears
+    await initAudio();
+
     try {
         await startTracking();
     } catch(cameraError) {
