@@ -1689,9 +1689,7 @@ initThree();
 
         gameStarted = true;
 
-        if (!audioCtx) {
-            await initAudio();
-        }
+        // audio starts after first user interaction
 
         await startTracking();
 
