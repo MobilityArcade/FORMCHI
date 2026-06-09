@@ -1787,38 +1787,31 @@ ringGroup.position.y = mobileYOffset;
 initThree();
 
 (async () => {
-
-   try {
-
-    gameStarted = true;
-
-    document.body.classList.remove("prelaunch");
-
-    await initAudio();
-
     try {
-    await startTracking();
+        gameStarted = true;
 
-    window.dispatchEvent(new Event("resize"));
+        document.body.classList.remove("prelaunch");
 
-    setTimeout(() => {
-        window.dispatchEvent(new Event("resize"));
-    }, 500);
+        await initAudio();
 
-    setTimeout(() => {
-        window.dispatchEvent(new Event("resize"));
-    }, 1200);
+        try {
+            await startTracking();
 
-} catch(cameraError) {
-    console.error("Camera startup failed:", cameraError);
-}
+            window.dispatchEvent(new Event("resize"));
 
-       // positionTutorialHint();
-// setTimeout(positionTutorialHint, 500);
-// setTimeout(positionTutorialHint, 1000);
-// setTimeout(positionTutorialHint, 2000);
+            setTimeout(() => {
+                window.dispatchEvent(new Event("resize"));
+            }, 500);
 
-    if (tutorialMode) {
+            setTimeout(() => {
+                window.dispatchEvent(new Event("resize"));
+            }, 1200);
+
+        } catch (cameraError) {
+            console.error("Camera startup failed:", cameraError);
+        }
+
+        if (tutorialMode) {
             tutorialStep = Math.max(
                 0,
                 Math.min(
@@ -1827,30 +1820,23 @@ initThree();
                 )
             );
 
-            currentRequiredMove =
-                tutorialMoves[tutorialStep];
+            currentRequiredMove = tutorialMoves[tutorialStep];
 
             setTimeout(() => {
                 showTutorialHint();
             }, 500);
 
         } else {
-
             chooseRandomMove();
             hideTutorialHint();
-
         }
 
-         gtag('event', 'game_started');
+        gtag('event', 'game_started');
 
-    } catch(error) {
-
+    } catch (error) {
         console.error(error);
-
         document.body.classList.remove("prelaunch");
-
     }
-
 })();
 
 </script>
