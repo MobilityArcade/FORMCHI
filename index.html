@@ -860,7 +860,8 @@ function setTutorialHint(move) {
     }
 }
 
-    function positionTutorialHint() {
+    /*
+function positionTutorialHint() {
 
     if (!tutorialHint) return;
 
@@ -878,6 +879,7 @@ function setTutorialHint(move) {
     tutorialHint.style.top = centerY + "px";
     tutorialHint.style.transform = "translate(-50%, -50%)";
 }
+*/
     
 function showTutorialHint() {
     if (!tutorialMode || !tutorialHint) return;
@@ -890,11 +892,10 @@ function showTutorialHint() {
     tutorialHint.style.display = "block";
     tutorialHint.style.opacity = "1";
 
-    positionTutorialHint();
-
-    setTimeout(positionTutorialHint, 300);
-    setTimeout(positionTutorialHint, 800);
-    setTimeout(positionTutorialHint, 1500);
+    // positionTutorialHint();
+// setTimeout(positionTutorialHint, 300);
+// setTimeout(positionTutorialHint, 800);
+// setTimeout(positionTutorialHint, 1500);
 }
 
 function hideTutorialHint() {
@@ -1100,7 +1101,9 @@ function initThree() {
     scene.add(new THREE.AmbientLight(0xffffff, 2));
 
     window.addEventListener("resize", onResize);
-    window.addEventListener("resize", positionTutorialHint);
+
+/*
+window.addEventListener("resize", positionTutorialHint);
 
 window.addEventListener("orientationchange", () => {
     setTimeout(positionTutorialHint, 500);
@@ -1117,7 +1120,9 @@ if (window.visualViewport) {
         "scroll",
         positionTutorialHint
     );
+
 }
+*/
 
     animate();
 }
@@ -1763,11 +1768,10 @@ initThree();
         console.error("Camera startup failed:", cameraError);
     }
 
-       positionTutorialHint();
-
-       setTimeout(positionTutorialHint, 500);
-       setTimeout(positionTutorialHint, 1000);
-       setTimeout(positionTutorialHint, 2000);
+       // positionTutorialHint();
+// setTimeout(positionTutorialHint, 500);
+// setTimeout(positionTutorialHint, 1000);
+// setTimeout(positionTutorialHint, 2000);
 
     if (tutorialMode) {
             tutorialStep = Math.max(
