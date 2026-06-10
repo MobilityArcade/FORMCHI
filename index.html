@@ -631,6 +631,70 @@ body.prelaunch #video {
     gap: 12px;
     z-index: 20;
 }
+
+
+/* FORMCHI ROTATE DEVICE OVERLAY - mobile/tablet portrait lock */
+#rotateDevice {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at center, #f5f4ee 0%, #ece9df 100%);
+    z-index: 1000000000 !important;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    pointer-events: auto;
+    user-select: none;
+}
+
+#rotateDevice .rotateBrand {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 10px;
+    color: #111;
+    margin-bottom: 44px;
+}
+
+#rotateDevice .rotateBrand span {
+    color: #d22b22;
+}
+
+.rotatePhone {
+    font-size: 118px;
+    line-height: 1;
+    animation: rotatePrompt 2s ease-in-out infinite;
+    filter: drop-shadow(0 12px 18px rgba(0,0,0,0.16));
+}
+
+@keyframes rotatePrompt {
+    0%, 25% {
+        transform: rotate(90deg) scale(1);
+        opacity: 0.72;
+    }
+
+    50%, 75% {
+        transform: rotate(0deg) scale(1.08);
+        opacity: 1;
+    }
+
+    100% {
+        transform: rotate(90deg) scale(1);
+        opacity: 0.72;
+    }
+}
+
+@media (max-width: 768px) {
+    #rotateDevice .rotateBrand {
+        font-size: 22px;
+        letter-spacing: 8px;
+        margin-bottom: 36px;
+    }
+
+    .rotatePhone {
+        font-size: 96px;
+    }
+}
+
 </style>
 </head>
 
@@ -648,6 +712,12 @@ body.prelaunch #video {
 
 <video id="video" playsinline></video>
 <div id="tutorialHint" class="tutorialHidden"></div>
+
+<div id="rotateDevice" aria-hidden="true">
+    <div class="rotateBrand">FORM<span>CHI</span></div>
+    <div class="rotatePhone">📱</div>
+</div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
@@ -1782,10 +1852,80 @@ ringGroup.position.y = mobileYOffset;
     renderer.render(scene,camera);
 }
 
+
+function isMobileOrTabletDevice() {
+    const ua = navigator.userAgent || "";
+
+    const isIOSMobileOrTablet =
+        /iPhone|iPad|iPod/i.test(ua) ||
+        (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
+
+    const isAndroidMobileOrTablet =
+        /Android/i.test(ua);
+
+    return isIOSMobileOrTablet || isAndroidMobileOrTablet;
+}
+
+function isPortraitOrientation() {
+    const vv = window.visualViewport;
+    const width = vv ? vv.width : window.innerWidth;
+    const height = vv ? vv.height : window.innerHeight;
+
+    return height >= width;
+}
+
+function checkOrientation() {
+    const rotateScreen = document.getElementById("rotateDevice");
+
+    if (!rotateScreen) return true;
+
+    if (!isMobileOrTabletDevice()) {
+        rotateScreen.style.display = "none";
+        rotateScreen.setAttribute("aria-hidden", "true");
+        return true;
+    }
+
+    if (!isPortraitOrientation()) {
+        rotateScreen.style.display = "flex";
+        rotateScreen.setAttribute("aria-hidden", "false");
+        return false;
+    }
+
+    rotateScreen.style.display = "none";
+    rotateScreen.setAttribute("aria-hidden", "true");
+    return true;
+}
+
+async function waitForPortraitOrientation() {
+    if (checkOrientation()) return;
+
+    await new Promise(resolve => {
+        const interval = setInterval(() => {
+            if (checkOrientation()) {
+                clearInterval(interval);
+                resolve();
+            }
+        }, 250);
+    });
+}
+
+window.addEventListener("resize", checkOrientation);
+
+window.addEventListener("orientationchange", () => {
+    setTimeout(checkOrientation, 300);
+});
+
+if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", checkOrientation);
+    window.visualViewport.addEventListener("scroll", checkOrientation);
+}
+
 initThree();
 
 (async () => {
     try {
+        await waitForPortraitOrientation();
+
         gameStarted = true;
 
         document.body.classList.remove("prelaunch");
