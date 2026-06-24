@@ -42,7 +42,6 @@ canvas{display:block}
 <div style="display:none"><span id="world">Distance Run</span>
 <span id="found">0</span><span id="score">0</span><span id="bestScore">0</span><span id="combo">1x</span><div id="signal"></div></div></div>
 <div id="center"></div><div id="pauseText">PAUSED</div><div id="laneLabel">CENTER</div><div id="roundComplete"></div>
-<div id="startOverlay"><div class="startCard"><h1>HYPER9</h1><p>Swipe through 9 lanes and stay connected to the Source strings.</p><p>The run begins after your first collection.</p><p>Break the chain 3 times and the run ends.</p><div class="tap">TAP TO START</div></div></div>
 
 <script type="module">
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
@@ -87,7 +86,7 @@ window.addEventListener("pointerup",e=>{
   moveLane(mx,my);
 });
 window.addEventListener("keydown",e=>{initAudio();if(!gameStarted)startGame();if(e.key==="ArrowLeft"||e.key==="a")moveLane(-1,0);if(e.key==="ArrowRight"||e.key==="d")moveLane(1,0);if(e.key==="ArrowUp"||e.key==="w")moveLane(0,-1);if(e.key==="ArrowDown"||e.key==="s")moveLane(0,1);});
-function startGame(){gameStarted=true;document.getElementById("startOverlay").style.display="none";spawnWave();}
+function startGame(){gameStarted=true;spawnWave();}
 function showScorePopup(text){const el=document.createElement("div");el.className="scorePopup";el.textContent=text;document.body.appendChild(el);setTimeout(()=>el.remove(),900);}
 function updateStrikes(){for(let i=0;i<3;i++)document.getElementById("s"+i).classList.toggle("used",i<strikes);}
 function takeStrike(){if(!runStarted||gameOver)return;strikes++;breakTimer=0;combo=1;playStrike();if(navigator.vibrate)navigator.vibrate([30,40,30]);updateStrikes();document.getElementById("signal").textContent="Signal: break "+strikes+"/3";if(strikes>=3)endRun();}
