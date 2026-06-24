@@ -134,39 +134,39 @@ function startMusic(){
   const BPM = 148;
   const STEP = (60 / BPM) / 2;
 
-  let bassStep = 0;
-  let leadStep = 0;
-  let arpStep = 0;
+  let step = 0;
 
   musicTimer = setInterval(()=>{
 
+    const section = Math.floor(step / 32) % 2;
+
+    const bass = section === 0 ? bassPatternA : bassPatternB;
+    const lead = section === 0 ? leadPatternA : leadPatternB;
+
     playTone(
-      bassPattern[bassStep % bassPattern.length],
+      bass[step % bass.length],
       "triangle",
       0.04,
       STEP * 0.9
     );
 
     playTone(
-      leadPattern[leadStep % leadPattern.length],
+      lead[step % lead.length],
       "square",
       0.025,
       STEP * 0.8
     );
 
     playTone(
-      arpPattern[arpStep % arpPattern.length],
+      arpPattern[step % arpPattern.length],
       "square",
       0.01,
       STEP * 0.5
     );
 
-    bassStep++;
-    leadStep++;
-    arpStep++;
+    step++;
 
   }, STEP * 1000);
-
 }
 function makeStarField(){const count=850,positions=new Float32Array(count*3),colors=new Float32Array(count*3),palette=[0xffffff,0x777777,0x55ccff,0xff66cc,0x5d3dff,0xff8800].map(c=>new THREE.Color(c));for(let i=0;i<count;i++){positions[i*3]=(Math.random()*2-1)*260;positions[i*3+1]=(Math.random()*2-1)*180;positions[i*3+2]=-50-Math.random()*1200;const c=palette[Math.floor(Math.random()*palette.length)].clone().multiplyScalar(.35+Math.random()*.7);colors[i*3]=c.r;colors[i*3+1]=c.g;colors[i*3+2]=c.b;}const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(positions,3));geo.setAttribute("color",new THREE.BufferAttribute(colors,3));const mat=new THREE.PointsMaterial({size:1.3,sizeAttenuation:true,transparent:true,opacity:.72,vertexColors:true});const pts=new THREE.Points(geo,mat);scene.add(pts);stars.push(pts);}
 function makeLaneGuides(){LANE_X.forEach(x=>{LANE_Y.forEach(y=>{const geo=new THREE.BufferGeometry(),positions=[];for(let i=0;i<52;i++)positions.push(x,y,-80-i*25);geo.setAttribute("position",new THREE.Float32BufferAttribute(positions,3));const mat=new THREE.PointsMaterial({color:0xff66cc,size:.85,transparent:true,opacity:.16,sizeAttenuation:true,depthWrite:false});const pts=new THREE.Points(geo,mat);scene.add(pts);laneGuides.push(pts);});});}
@@ -177,11 +177,22 @@ function spawnWave(){const trains=Math.random()<.78?2:3;for(let i=0;i<trains;i++
 function moveLane(dx,dy){if(!gameStarted||gameOver)return;laneX=Math.max(0,Math.min(2,laneX+dx));laneY=Math.max(0,Math.min(2,laneY+dy));targetX=LANE_X[laneX];targetY=LANE_Y[laneY];const namesY=["UP","CENTER","DOWN"],namesX=["LEFT","CENTER","RIGHT"];document.getElementById("laneLabel").textContent=namesY[laneY]+" "+namesX[laneX];if(navigator.vibrate)navigator.vibrate(10);}
 let downX=0,downY=0;
 window.addEventListener("pointerdown",e=>{
-  if(e.target&&e.target.id==="center")return;
+
+  if(e.target && e.target.id==="center") return;
+
   initAudio();
-  downX=e.clientX;
-  downY=e.clientY;
-  if(!gameStarted)startGame();
+
+  if(!musicStarted){
+    startMusic();
+  }
+
+  downX = e.clientX;
+  downY = e.clientY;
+
+  if(!gameStarted){
+    startGame();
+  }
+
 },{passive:false});
 window.addEventListener("pointerup",e=>{
   if(e.target&&e.target.id==="center")return;
