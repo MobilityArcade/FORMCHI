@@ -74,6 +74,20 @@ const bassPatternB = [
   98,98,98,98
 ];
 
+const bassPatternC = [
+  147,147,147,147,
+  131,131,131,131,
+  165,165,165,165,
+  110,110,110,110
+];
+
+const bassPatternD = [
+  165,165,165,165,
+  196,196,196,196,
+  220,220,220,220,
+  147,147,147,147
+];
+
 const leadPatternA = [
   330,392,440,494,
   330,392,440,587,
@@ -86,6 +100,22 @@ const leadPatternB = [
   659,587,494,440,
   587,494,440,392,
   494,440,392,330
+];
+
+const leadPatternC = [
+  587,659,784,659,
+  587,659,880,784,
+
+  659,784,988,880,
+  784,880,988,1174
+];
+
+const leadPatternD = [
+  784,659,784,880,
+  784,659,784,988,
+
+  880,784,988,1174,
+  988,880,1174,1318
 ];
 
 const arpPattern = [
@@ -138,10 +168,27 @@ function startMusic(){
 
   musicTimer = setInterval(()=>{
 
-    const section = Math.floor(step / 32) % 2;
+    const section = Math.floor(step / 32) % 4;
 
-    const bass = section === 0 ? bassPatternA : bassPatternB;
-    const lead = section === 0 ? leadPatternA : leadPatternB;
+let bass;
+let lead;
+
+if(section === 0){
+  bass = bassPatternA;
+  lead = leadPatternA;
+}
+else if(section === 1){
+  bass = bassPatternB;
+  lead = leadPatternB;
+}
+else if(section === 2){
+  bass = bassPatternC;
+  lead = leadPatternC;
+}
+else{
+  bass = bassPatternD;
+  lead = leadPatternD;
+}
 
     playTone(
       bass[step % bass.length],
