@@ -77,7 +77,7 @@ window.addEventListener("pointerup",e=>{
   const dx=e.clientX-downX;
   const dy=e.clientY-downY;
   if(Math.hypot(dx,dy)<20)return;
-  const threshold=40;
+  const threshold=20;
   let mx=0,my=0;
   if(dx>threshold)mx=1;
   if(dx<-threshold)mx=-1;
