@@ -183,15 +183,11 @@ window.addEventListener("pointerdown",e=>{
   initAudio();
 
   if(!musicStarted){
-    startMusic();
+      startMusic();
   }
 
   downX = e.clientX;
   downY = e.clientY;
-
-  if(!gameStarted){
-    startGame();
-  }
 
 },{passive:false});
 window.addEventListener("pointerup",e=>{
@@ -209,7 +205,16 @@ window.addEventListener("pointerup",e=>{
   moveLane(mx,my);
 });
 window.addEventListener("keydown",e=>{initAudio();if(!gameStarted)startGame();if(e.key==="ArrowLeft"||e.key==="a")moveLane(-1,0);if(e.key==="ArrowRight"||e.key==="d")moveLane(1,0);if(e.key==="ArrowUp"||e.key==="w")moveLane(0,-1);if(e.key==="ArrowDown"||e.key==="s")moveLane(0,1);});
-function startGame(){gameStarted = true;startMusic();spawnWave();}
+function startGame(){
+
+  gameStarted = true;
+
+  if(audioCtx && !musicStarted){
+      startMusic();
+  }
+
+  spawnWave();
+}
 function showScorePopup(text){const el=document.createElement("div");el.className="scorePopup";el.textContent=text;document.body.appendChild(el);setTimeout(()=>el.remove(),900);}
 function updateStrikes(){for(let i=0;i<3;i++)document.getElementById("s"+i).classList.toggle("used",i<strikes);}
 function takeStrike(){if(!runStarted||gameOver)return;strikes++;breakTimer=0;combo=1;playStrike();if(navigator.vibrate)navigator.vibrate([30,40,30]);updateStrikes();document.getElementById("signal").textContent="Signal: break "+strikes+"/3";if(strikes>=3)endRun();}
