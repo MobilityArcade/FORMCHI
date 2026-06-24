@@ -168,20 +168,55 @@ function startMusic(){
 
   musicTimer = setInterval(()=>{
 
-    const section = Math.floor(step / 32) % 4;
+    const arrangementsEasy = [
+  ["A","B"],
+  ["B","A"]
+];
+
+const arrangementsMid = [
+  ["A","B","C"],
+  ["A","C","B"],
+  ["B","A","C"]
+];
+
+const arrangementsHard = [
+  ["A","B","C","D"],
+  ["A","C","D","B"],
+  ["D","A","B","C"],
+  ["B","D","A","C"],
+  ["C","A","D","B"]
+];
+
+let arrangements;
+
+if(distance < 500){
+  arrangements = arrangementsEasy;
+}
+else if(distance < 1500){
+  arrangements = arrangementsMid;
+}
+else{
+  arrangements = arrangementsHard;
+}
+
+const phraseNumber = Math.floor(step / 128);
+const currentArrangement = arrangements[phraseNumber % arrangements.length];
+
+const sectionIndex = Math.floor(step / 32) % currentArrangement.length;
+const section = currentArrangement[sectionIndex];
 
 let bass;
 let lead;
 
-if(section === 0){
+if(section === "A"){
   bass = bassPatternA;
   lead = leadPatternA;
 }
-else if(section === 1){
+else if(section === "B"){
   bass = bassPatternB;
   lead = leadPatternB;
 }
-else if(section === 2){
+else if(section === "C"){
   bass = bassPatternC;
   lead = leadPatternC;
 }
