@@ -54,8 +54,107 @@ let paused=false;
 const clock=new THREE.Clock(), beacons=[], stars=[], laneGuides=[];
 const TIERS=[{name:"WHITE",color:0xffffff,value:10,size:3.8,freq:880},{name:"BLUE",color:0x55ccff,value:25,size:4.3,freq:1046},{name:"GREEN",color:0x66ff66,value:50,size:4.8,freq:1174},{name:"PURPLE",color:0xcc66ff,value:75,size:5.1,freq:1240},{name:"ORANGE",color:0xff8800,value:100,size:5.4,freq:1318},{name:"RED",color:0xff4444,value:200,size:6.1,freq:1568}];
 function initAudio(){if(audioCtx){if(audioCtx.state!=="running")audioCtx.resume();return;}audioCtx=new (window.AudioContext||window.webkitAudioContext)();}
-function playCoin(tier){if(!audioCtx)return;const now=audioCtx.currentTime,osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type="square";osc.frequency.setValueAtTime(tier.freq,now);osc.frequency.exponentialRampToValueAtTime(tier.freq*1.55,now+.055);gain.gain.setValueAtTime(.0001,now);gain.gain.linearRampToValueAtTime(.028,now+.008);gain.gain.exponentialRampToValueAtTime(.0001,now+.105);osc.connect(gain).connect(audioCtx.destination);osc.start(now);osc.stop(now+.13);if(tier.value>=100){const osc2=audioCtx.createOscillator(),gain2=audioCtx.createGain();osc2.type="sine";osc2.frequency.setValueAtTime(tier.freq*2,now+.035);gain2.gain.setValueAtTime(.0001,now+.035);gain2.gain.linearRampToValueAtTime(.018,now+.045);gain2.gain.exponentialRampToValueAtTime(.0001,now+.16);osc2.connect(gain2).connect(audioCtx.destination);osc2.start(now+.035);osc2.stop(now+.18);}}
+function playCoin(tier){if(!audioCtx)return;const now=audioCtx.currentTime,osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type="square";osc.frequency.setValueAtTime(tier.freq,now);osc.frequency.exponentialRampToValueAtTime(tier.freq*1.55,now+.055);gain.gain.setValueAtTime(.0001,now);gain.gain.linearRampToValueAtTime(.018,now+.008);gain.gain.exponentialRampToValueAtTime(.0001,now+.105);osc.connect(gain).connect(audioCtx.destination);osc.start(now);osc.stop(now+.13);if(tier.value>=100){const osc2=audioCtx.createOscillator(),gain2=audioCtx.createGain();osc2.type="sine";osc2.frequency.setValueAtTime(tier.freq*2,now+.035);gain2.gain.setValueAtTime(.0001,now+.035);gain2.gain.linearRampToValueAtTime(.018,now+.045);gain2.gain.exponentialRampToValueAtTime(.0001,now+.16);osc2.connect(gain2).connect(audioCtx.destination);osc2.start(now+.035);osc2.stop(now+.18);}}
 function playStrike(){if(!audioCtx)return;const now=audioCtx.currentTime,osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type="sawtooth";osc.frequency.setValueAtTime(180,now);osc.frequency.exponentialRampToValueAtTime(70,now+.22);gain.gain.setValueAtTime(.0001,now);gain.gain.linearRampToValueAtTime(.05,now+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+.28);osc.connect(gain).connect(audioCtx.destination);osc.start(now);osc.stop(now+.3);}
+// =========================
+// HYPER9 MUSIC ENGINE
+// =========================
+
+const bassPattern = [
+  82,82,82,82,
+  98,98,98,98,
+  110,110,110,110,
+  98,98,98,98
+];
+
+const leadPattern = [
+  330,392,440,494,
+  330,392,440,587,
+
+  392,440,494,659,
+  440,494,587,784
+];
+
+const arpPattern = [
+  330,494,392,
+  330,494,392,
+
+  440,659,523,
+  440,659,523
+];
+
+let musicStarted = false;
+let musicTimer = null;
+
+function playTone(freq,type,volume,duration){
+
+  if(!audioCtx) return;
+
+  const now = audioCtx.currentTime;
+
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  osc.type = type;
+  osc.frequency.value = freq;
+
+  gain.gain.setValueAtTime(volume, now);
+
+  gain.gain.exponentialRampToValueAtTime(
+    0.0001,
+    now + duration
+  );
+
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  osc.start(now);
+  osc.stop(now + duration);
+}
+
+function startMusic(){
+
+  if(musicStarted || !audioCtx) return;
+
+  musicStarted = true;
+
+  const BPM = 148;
+  const STEP = (60 / BPM) / 2;
+
+  let bassStep = 0;
+  let leadStep = 0;
+  let arpStep = 0;
+
+  musicTimer = setInterval(()=>{
+
+    playTone(
+      bassPattern[bassStep % bassPattern.length],
+      "triangle",
+      0.04,
+      STEP * 0.9
+    );
+
+    playTone(
+      leadPattern[leadStep % leadPattern.length],
+      "square",
+      0.025,
+      STEP * 0.8
+    );
+
+    playTone(
+      arpPattern[arpStep % arpPattern.length],
+      "square",
+      0.01,
+      STEP * 0.5
+    );
+
+    bassStep++;
+    leadStep++;
+    arpStep++;
+
+  }, STEP * 1000);
+
+}
 function makeStarField(){const count=850,positions=new Float32Array(count*3),colors=new Float32Array(count*3),palette=[0xffffff,0x777777,0x55ccff,0xff66cc,0x5d3dff,0xff8800].map(c=>new THREE.Color(c));for(let i=0;i<count;i++){positions[i*3]=(Math.random()*2-1)*260;positions[i*3+1]=(Math.random()*2-1)*180;positions[i*3+2]=-50-Math.random()*1200;const c=palette[Math.floor(Math.random()*palette.length)].clone().multiplyScalar(.35+Math.random()*.7);colors[i*3]=c.r;colors[i*3+1]=c.g;colors[i*3+2]=c.b;}const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(positions,3));geo.setAttribute("color",new THREE.BufferAttribute(colors,3));const mat=new THREE.PointsMaterial({size:1.3,sizeAttenuation:true,transparent:true,opacity:.72,vertexColors:true});const pts=new THREE.Points(geo,mat);scene.add(pts);stars.push(pts);}
 function makeLaneGuides(){LANE_X.forEach(x=>{LANE_Y.forEach(y=>{const geo=new THREE.BufferGeometry(),positions=[];for(let i=0;i<52;i++)positions.push(x,y,-80-i*25);geo.setAttribute("position",new THREE.Float32BufferAttribute(positions,3));const mat=new THREE.PointsMaterial({color:0xff66cc,size:.85,transparent:true,opacity:.16,sizeAttenuation:true,depthWrite:false});const pts=new THREE.Points(geo,mat);scene.add(pts);laneGuides.push(pts);});});}
 function chooseTier(){const r=Math.random();if(r<.35)return TIERS[0];if(r<.60)return TIERS[1];if(r<.78)return TIERS[2];if(r<.90)return TIERS[3];if(r<.98)return TIERS[4];return TIERS[5];}
@@ -86,7 +185,7 @@ window.addEventListener("pointerup",e=>{
   moveLane(mx,my);
 });
 window.addEventListener("keydown",e=>{initAudio();if(!gameStarted)startGame();if(e.key==="ArrowLeft"||e.key==="a")moveLane(-1,0);if(e.key==="ArrowRight"||e.key==="d")moveLane(1,0);if(e.key==="ArrowUp"||e.key==="w")moveLane(0,-1);if(e.key==="ArrowDown"||e.key==="s")moveLane(0,1);});
-function startGame(){gameStarted=true;spawnWave();}
+function startGame(){gameStarted = true;startMusic();spawnWave();}
 function showScorePopup(text){const el=document.createElement("div");el.className="scorePopup";el.textContent=text;document.body.appendChild(el);setTimeout(()=>el.remove(),900);}
 function updateStrikes(){for(let i=0;i<3;i++)document.getElementById("s"+i).classList.toggle("used",i<strikes);}
 function takeStrike(){if(!runStarted||gameOver)return;strikes++;breakTimer=0;combo=1;playStrike();if(navigator.vibrate)navigator.vibrate([30,40,30]);updateStrikes();document.getElementById("signal").textContent="Signal: break "+strikes+"/3";if(strikes>=3)endRun();}
@@ -100,14 +199,26 @@ function togglePause(){
   const center=document.getElementById("center");
   const pauseText=document.getElementById("pauseText");
   if(paused){
-    if(pauseText)pauseText.style.display="block";
-    center.style.borderColor="#ffd36a";
-    center.style.boxShadow="0 0 20px #ffd36a";
-  }else{
-    if(pauseText)pauseText.style.display="none";
-    center.style.borderColor="rgba(255,255,255,.95)";
-    center.style.boxShadow="0 0 10px rgba(255,255,255,.55)";
-  }
+
+  clearInterval(musicTimer);
+
+  if(pauseText)
+    pauseText.style.display="block";
+
+  center.style.borderColor="#ffd36a";
+  center.style.boxShadow="0 0 20px #ffd36a";
+
+}else{
+
+  if(pauseText)
+    pauseText.style.display="none";
+
+  center.style.borderColor="rgba(255,255,255,.95)";
+  center.style.boxShadow="0 0 10px rgba(255,255,255,.55)";
+
+  musicStarted = false;
+  startMusic();
+}
 }
 function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);if(gameStarted&&!gameOver&&!paused){speed=SPEED_START+Math.min(150,distance*.018);distance+=speed*dt*.08;spawnTimer-=dt;if(spawnTimer<=0){spawnTimer=.54+Math.random()*.26;spawnWave();}if(runStarted){breakTimer+=dt;if(breakTimer>BREAK_GRACE)takeStrike();}camera.position.x+=(targetX-camera.position.x)*(1-Math.pow(.0009,dt));camera.position.y+=(targetY-camera.position.y)*(1-Math.pow(.0009,dt));camera.lookAt(camera.position.x,camera.position.y,-500);beacons.forEach(b=>{if(b.userData.state==="active"){b.position.z+=speed*dt;b.lookAt(camera.position);const dz=Math.abs(b.position.z-camera.position.z),dxy=Math.hypot(b.position.x-camera.position.x,b.position.y-camera.position.y);if(dz<42&&dxy<COLLECT_RADIUS)collectBeacon(b);if(b.position.z>NEAR_Z+60)b.userData.state="missed";}if(b.userData.state==="collected"||b.userData.state==="missed"){b.userData.fade-=dt*2.8;const f=Math.max(0,b.userData.fade);b.userData.core.material.transparent=true;b.userData.core.material.opacity=f;b.userData.glow.material.opacity=f*.09;b.scale.setScalar(Math.max(.001,f));}});for(let i=beacons.length-1;i>=0;i--){const b=beacons[i];if((b.userData.state==="collected"||b.userData.state==="missed")&&b.userData.fade<=0){scene.remove(b);beacons.splice(i,1);}}stars.forEach(s=>{const pos=s.geometry.attributes.position;for(let i=0;i<pos.count;i++){let z=pos.getZ(i)+speed*dt*.75;if(z>90)z=-1150-Math.random()*200;pos.setZ(i,z);}pos.needsUpdate=true;});updateHUD();}renderer.render(scene,camera);}
 const centerButton=document.getElementById("center");
