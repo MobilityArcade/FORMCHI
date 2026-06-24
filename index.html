@@ -60,19 +60,32 @@ function playStrike(){if(!audioCtx)return;const now=audioCtx.currentTime,osc=aud
 // HYPER9 MUSIC ENGINE
 // =========================
 
-const bassPattern = [
+const bassPatternA = [
   82,82,82,82,
   98,98,98,98,
   110,110,110,110,
   98,98,98,98
 ];
 
-const leadPattern = [
+const bassPatternB = [
+  110,110,110,110,
+  147,147,147,147,
+  131,131,131,131,
+  98,98,98,98
+];
+
+const leadPatternA = [
   330,392,440,494,
   330,392,440,587,
-
   392,440,494,659,
   440,494,587,784
+];
+
+const leadPatternB = [
+  784,659,587,494,
+  659,587,494,440,
+  587,494,440,392,
+  494,440,392,330
 ];
 
 const arpPattern = [
