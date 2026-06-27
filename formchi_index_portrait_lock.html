@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-V8KQ8QQQZ4"></script>
+
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+
+gtag('config', 'G-V8KQ8QQQZ4');
+</script>
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FORMCHI</title>
+
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: radial-gradient(circle at center, #f5f4ee 0%, #ece9df 100%);
+    font-family: Arial, sans-serif;
+}
+
+canvas { display: block; }
+video { display: none; }
+
+/* INTRO + STARTUP OVERLAYS */
+
+.overlayScreen {
+    position: fixed;
+    inset: 0;
+    background: #f5f4ee;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+
+.overlayScreen.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.overlayContent {
+    text-align: center;
+    width: 90%;
+    max-width: 560px;
+    padding: 40px;
+}
+
+.overlayLogo {
+    font-size: 54px;
+    font-weight: 700;
+    letter-spacing: 14px;
+    color: #111;
+    margin-bottom: 24px;
+}
+
+.overlayLogo span {
+    color: #d22b22;
+}
+
+.overlaySubtitle {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 7px;
+    color: #444;
+    margin-bottom: 44px;
+}
+
+#introFormPreview {
+    position: relative;
+    width: 230px;
+    height: 230px;
+    margin: 0 auto 36px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 900px;
+}
+
+.previewRing {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    border-radius: 50%;
+    border: 2px dotted rgba(0,0,0,0.35);
+    transform: translate(-50%,-50%);
+    transform-origin: center center;
+}
+
+.ring1 {
+    width: 168px;
+    height: 168px;
+    animation: ringRotateCCW 90s linear infinite;
+}
+
+.ring2 {
+    width: 220px;
+    height: 220px;
+    animation: ringRotateCCW 120s linear infinite;
+}
+
+
+
+
+.previewCube {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 78px;
+    height: 78px;
+    transform-style: preserve-3d;
+    transform-origin: center center;
+    animation: cubeTumble 18s linear infinite;
+}
+
+.cubeFace {
+    position: absolute;
+    width: 78px;
+    height: 78px;
+    opacity: 0.96;
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: inset 0 0 18px rgba(255,255,255,0.08);
+}
+
+.cubeFace.front  { transform: translateZ(39px); background: #ff3b30; }
+.cubeFace.back   { transform: rotateY(180deg) translateZ(39px); background: #a81914; }
+.cubeFace.right  { transform: rotateY(90deg) translateZ(39px); background: #d92d25; }
+.cubeFace.left   { transform: rotateY(-90deg) translateZ(39px); background: #b8201a; }
+.cubeFace.top    { transform: rotateX(90deg) translateZ(39px); background: #ff6b60; }
+.cubeFace.bottom { transform: rotateX(-90deg) translateZ(39px); background: #8c1713; }
+
+
+@keyframes ringRotateCCW {
+    from {
+        transform: translate(-50%,-50%) rotate(0deg);
+    }
+
+    to {
+        transform: translate(-50%,-50%) rotate(-360deg);
+    }
+}
+
+@keyframes cubeTumble {
+    0% {
+        transform: translate(-50%,-50%) rotateX(18deg) rotateY(0deg) rotateZ(0deg) scale(0.94);
+    }
+
+    25% {
+        transform: translate(-50%,-50%) rotateX(88deg) rotateY(95deg) rotateZ(14deg) scale(1.02);
+    }
+
+    50% {
+        transform: translate(-50%,-50%) rotateX(170deg) rotateY(185deg) rotateZ(-8deg) scale(1.06);
+    }
+
+    75% {
+        transform: translate(-50%,-50%) rotateX(260deg) rotateY(275deg) rotateZ(16deg) scale(1.02);
+    }
+
+    100% {
+        transform: translate(-50%,-50%) rotateX(378deg) rotateY(360deg) rotateZ(0deg) scale(0.94);
+    }
+}
+
+#creatorCredit {
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: rgba(0,0,0,0.55);
+    margin-top: 24px;
+}
+
+.tapPrompt {
+    margin-top: 52px;
+    font-size: 12px;
+    letter-spacing: 5px;
+    color: #d22b22;
+    animation: pulseText 2s infinite;
+}
+
+.overlayFooter {
+    position: fixed;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: rgba(0,0,0,0.35);
+}
+
+#startupInstructions {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.instruction {
+    font-size: 17px;
+    line-height: 1.6;
+    color: #222;
+    letter-spacing: 1px;
+}
+
+.instruction.small {
+    font-size: 12px;
+    opacity: 0.55;
+}
+
+
+    50% {
+        transform: translate(-50%,-50%) rotate(180deg) scale(1.02);
+    }
+
+    100% {
+        transform: translate(-50%,-50%) rotate(360deg) scale(0.94);
+    }
+}
+
+
+
+
+
+
+@keyframes pulseText {
+    0% { opacity: 0.3; }
+    50% { opacity: 1; }
+    100% { opacity: 0.3; }
+}
+
+
+    to { transform: rotate(360deg); }
+}
+
+
+    to { transform: rotate(0deg); }
+}
+
+
+
+    100% {
+        transform: translate(-50%,-50%) rotate(360deg);
+    }
+}
+
+
+
+/* FORMCHI TUTORIAL HINT - V12 */
+#tutorialHint {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100dvh;
+    z-index: 999999999 !important;
+    pointer-events: none;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    text-align: center;
+    background: transparent;
+    box-shadow: none;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+#tutorialHint.tutorialHidden {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    display: none !important;
+}
+
+#tutorialHint.tutorialVisible {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+}
+
+.tutorialIcon,
+.tutorialIconInner {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 270px;
+    height: 270px;
+    transform: translate(-50%, -50%);
+    overflow: visible;
+    filter: drop-shadow(0 10px 14px rgba(0,0,0,0.16));
+}
+
+.tutorialIcon svg,
+.tutorialIconInner svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.tutorialIcon path,
+.tutorialIcon line,
+.tutorialIcon polyline,
+.tutorialIcon circle,
+.tutorialIcon rect,
+.tutorialIconInner path,
+.tutorialIconInner line,
+.tutorialIconInner polyline,
+.tutorialIconInner circle,
+.tutorialIconInner rect {
+    vector-effect: non-scaling-stroke;
+}
+
+
+/* FORMCHI V12: emoji hand for gestures 1-5 */
+.emojiSingleHand{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:140px;
+    line-height:1;
+    width:270px;
+    height:270px;
+}
+
+@media (max-width:768px){
+    .emojiSingleHand{
+        font-size:112px;
+        width:220px;
+        height:220px;
+    }
+}
+
+#tutorialHint.waveHint .tutorialIcon { animation: waveHint 1.2s ease-in-out infinite; }
+#tutorialHint.pushHint .tutorialIcon { animation: pushHint 1.35s ease-in-out infinite; }
+#tutorialHint.pullHint .tutorialIcon { animation: pullHint 1.35s ease-in-out infinite; }
+#tutorialHint.circleHint .tutorialIcon { animation: circleHint 1.7s linear infinite; }
+#tutorialHint.holdHint .tutorialIcon { animation: none !important; }
+
+.twoHandsWrap {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: min(96vw, 620px);
+    height: 290px;
+    transform: translate(-50%, -50%);
+}
+
+.twoHandsWrap .leftHand,
+.twoHandsWrap .rightHand {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 210px;
+    height: 210px;
+    filter: drop-shadow(0 10px 14px rgba(0,0,0,0.16));
+}
+
+/* FORMCHI V12 EMOJI HANDS */
+.emojiDoubleHold,
+.emojiCrossHands{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:420px;
+    height:190px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:120px;
+    line-height:1;
+    filter: drop-shadow(0 10px 14px rgba(0,0,0,0.16));
+}
+
+.emojiDoubleHold span,
+.emojiCrossHands span{
+    display:inline-block;
+    position:relative;
+    line-height:1;
+}
+
+/* V11: use 🫲 and 🫱 rotated so fingers face up and thumbs face inward. */
+.emojiDoubleHold .leftHandEmoji,
+.emojiCrossHands .leftHandEmoji{
+    transform: rotate(90deg);
+}
+
+.emojiDoubleHold .rightHandEmoji,
+.emojiCrossHands .rightHandEmoji{
+    transform: rotate(-90deg);
+}
+
+#tutorialHint.opencloseHint .leftHandEmoji{
+    animation:leftCross 1.8s ease-in-out infinite;
+}
+
+#tutorialHint.opencloseHint .rightHandEmoji{
+    animation:rightCross 1.8s ease-in-out infinite;
+}
+
+@keyframes leftCross{
+    0%,100%{ transform:translateX(0) rotate(90deg); }
+    50%{ transform:translateX(150px) rotate(90deg); }
+}
+
+@keyframes rightCross{
+    0%,100%{ transform:translateX(0) rotate(-90deg); }
+    50%{ transform:translateX(-150px) rotate(-90deg); }
+}
+
+#tutorialHint.doubleholdHint .leftHand {
+    transform: translate(-50%, -50%) translateX(-130px) rotate(-2deg);
+    animation: none !important;
+}
+
+#tutorialHint.doubleholdHint .rightHand {
+    transform: translate(-50%, -50%) translateX(130px) rotate(2deg);
+    animation: none !important;
+}
+
+#tutorialHint.opencloseHint .leftHand {
+    animation: openCloseLeft 1.7s ease-in-out infinite;
+}
+
+#tutorialHint.opencloseHint .rightHand {
+    animation: openCloseRight 1.7s ease-in-out infinite;
+}
+
+@keyframes waveHint {
+    0%,100% { transform: translate(-50%, -50%) translateX(-58px) rotate(-9deg); }
+    50% { transform: translate(-50%, -50%) translateX(58px) rotate(9deg); }
+}
+
+@keyframes pushHint {
+    0% { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(0.52); opacity: 0.72; }
+}
+
+@keyframes pullHint {
+    0% { transform: translate(-50%, -50%) scale(0.52); opacity: 0.72; }
+    100% { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+}
+
+@keyframes circleHint {
+    0% { transform: translate(-50%, -50%) translate(0,-70px); }
+    25% { transform: translate(-50%, -50%) translate(70px,0); }
+    50% { transform: translate(-50%, -50%) translate(0,70px); }
+    75% { transform: translate(-50%, -50%) translate(-70px,0); }
+    100% { transform: translate(-50%, -50%) translate(0,-70px); }
+}
+
+@keyframes openCloseLeft {
+    0%,100% { transform: translate(-50%, -50%) translateX(-190px) rotate(-2deg); }
+    50% { transform: translate(-50%, -50%) translateX(-45px) rotate(0deg); }
+}
+
+@keyframes openCloseRight {
+    0%,100% { transform: translate(-50%, -50%) translateX(190px) rotate(2deg); }
+    50% { transform: translate(-50%, -50%) translateX(45px) rotate(0deg); }
+}
+
+@media (max-width:768px){
+
+    .tutorialIcon,
+    .tutorialIconInner{
+        width: 220px;
+        height: 220px;
+    }
+
+    .twoHandsWrap{
+        width: min(96vw, 430px);
+        height: 230px;
+    }
+
+    .twoHandsWrap .leftHand,
+    .twoHandsWrap .rightHand{
+        width: 150px;
+        height: 150px;
+    }
+
+    .emojiDoubleHold,
+    .emojiCrossHands{
+        width:300px;
+        height:145px;
+        font-size:86px;
+    }
+
+    @keyframes leftCross{
+        0%,100%{ transform:translateX(0) rotate(90deg); }
+        50%{ transform:translateX(105px) rotate(90deg); }
+    }
+
+    @keyframes rightCross{
+        0%,100%{ transform:translateX(0) rotate(-90deg); }
+        50%{ transform:translateX(-105px) rotate(-90deg); }
+    }
+
+    #tutorialHint.doubleholdHint .leftHand {
+        transform: translate(-50%, -50%) translateX(-95px) rotate(-2deg);
+    }
+
+    #tutorialHint.doubleholdHint .rightHand {
+        transform: translate(-50%, -50%) translateX(95px) rotate(2deg);
+    }
+
+    @keyframes waveHint {
+        0%,100% { transform: translate(-50%, -50%) translateX(-44px) rotate(-9deg); }
+        50% { transform: translate(-50%, -50%) translateX(44px) rotate(9deg); }
+    }
+
+    @keyframes circleHint {
+        0% { transform: translate(-50%, -50%) translate(0,-52px); }
+        25% { transform: translate(-50%, -50%) translate(52px,0); }
+        50% { transform: translate(-50%, -50%) translate(0,52px); }
+        75% { transform: translate(-50%, -50%) translate(-52px,0); }
+        100% { transform: translate(-50%, -50%) translate(0,-52px); }
+    }
+
+    @keyframes openCloseLeft {
+        0%,100% { transform: translate(-50%, -50%) translateX(-140px) rotate(-2deg); }
+        50% { transform: translate(-50%, -50%) translateX(-38px) rotate(0deg); }
+    }
+
+    @keyframes openCloseRight {
+        0%,100% { transform: translate(-50%, -50%) translateX(140px) rotate(2deg); }
+        50% { transform: translate(-50%, -50%) translateX(38px) rotate(0deg); }
+    }
+}
+
+@media (max-width:768px){
+
+    .overlayLogo{
+        font-size:38px;
+        letter-spacing:10px;
+    }
+
+    .overlaySubtitle{
+        font-size:10px;
+        margin-bottom:34px;
+    }
+
+    #introFormPreview {
+    position: relative;
+    width: 230px;
+    height: 230px;
+    margin: 0 auto 36px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 900px;
+}
+
+    
+
+    .instruction{
+        font-size:15px;
+    }
+
+}
+
+body.prelaunch #title,
+body.prelaunch #chakraColumn,
+body.prelaunch #ascensionColumn,
+body.prelaunch #bottomDots,
+body.prelaunch canvas,
+body.prelaunch #video {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+#title {
+    position: fixed;
+    top: 34px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 10px;
+    user-select: none;
+}
+
+#formText {
+    color: #111;
+    cursor: pointer;
+}
+
+#chiText {
+    color: #d22b22;
+    cursor: pointer;
+}
+
+#chakraColumn,
+#ascensionColumn {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 18px;
+    z-index: 20;
+}
+
+#chakraColumn { left: 22px; }
+#ascensionColumn { right: 22px; }
+
+.dot,
+.ascensionDot,
+.progressDot {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    border: 2px solid rgba(0,0,0,0.9);
+    background: transparent;
+    box-sizing: border-box;
+    transition: 0.3s ease;
+}
+
+#bottomDots {
+    position: fixed;
+    bottom: 34px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    z-index: 20;
+}
+
+
+/* FORMCHI ROTATE DEVICE OVERLAY - mobile/tablet portrait lock */
+#rotateDevice {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at center, #f5f4ee 0%, #ece9df 100%);
+    z-index: 1000000000 !important;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    pointer-events: auto;
+    user-select: none;
+}
+
+#rotateDevice .rotateBrand {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 10px;
+    color: #111;
+    margin-bottom: 44px;
+}
+
+#rotateDevice .rotateBrand span {
+    color: #d22b22;
+}
+
+.rotatePhone {
+    font-size: 118px;
+    line-height: 1;
+    animation: rotatePrompt 2s ease-in-out infinite;
+    filter: drop-shadow(0 12px 18px rgba(0,0,0,0.16));
+}
+
+@keyframes rotatePrompt {
+    0%, 25% {
+        transform: rotate(90deg) scale(1);
+        opacity: 0.72;
+    }
+
+    50%, 75% {
+        transform: rotate(0deg) scale(1.08);
+        opacity: 1;
+    }
+
+    100% {
+        transform: rotate(90deg) scale(1);
+        opacity: 0.72;
+    }
+}
+
+@media (max-width: 768px) {
+    #rotateDevice .rotateBrand {
+        font-size: 22px;
+        letter-spacing: 8px;
+        margin-bottom: 36px;
+    }
+
+    .rotatePhone {
+        font-size: 96px;
+    }
+}
+
+</style>
+</head>
+
+<body class="prelaunch">
+
+<!-- TUTORIAL BUILD: startup and gesture instruction screens removed -->
+
+<div id="title">
+    <span id="formText">FORM</span><span id="chiText">CHI</span>
+</div>
+
+<div id="chakraColumn"></div>
+<div id="ascensionColumn"></div>
+<div id="bottomDots"></div>
+
+<video id="video" playsinline></video>
+<div id="tutorialHint" class="tutorialHidden"></div>
+
+<div id="rotateDevice" aria-hidden="true">
+    <div class="rotateBrand">FORM<span>CHI</span></div>
+    <div class="rotatePhone">📱</div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+
+<script>
+let scene, camera, renderer;
+let formGroup, material;
+let ringGroup;
+
+let gameStarted = false;
+let paused = false;
+
+let resonance = 0;
+let cycleActive = false;
+
+let progress = 0;
+let chakraIndex = 0;
+let ascension = 0;
+
+const puzzlesPerLevel = 7;
+const maxAscension = 7;
+
+let lastX = 0;
+let lastY = 0;
+let lastShoulderWidth = 0;
+let lastHipY = 0;
+
+let horizontalEnergy = 0;
+let verticalEnergy = 0;
+let shakeEnergy = 0;
+let clapEnergy = 0;
+let jumpEnergy = 0;
+let stillnessEnergy = 0;
+let expandEnergy = 0;
+let wristHorizontalEnergy = 0;
+let wristVerticalEnergy = 0;
+let depthEnergy = 0;
+let circleEnergy = 0;
+let twoHandsEnergy = 0;
+let lastLeftWristX = 0;
+let lastLeftWristY = 0;
+let lastRightWristX = 0;
+let lastRightWristY = 0;
+let lastAvgWristZ = 0;
+
+const tutorialStorageVersion = "v12";
+const tutorialCompleteKey = `formchi_tutorial_${tutorialStorageVersion}_complete`;
+const tutorialStepKey = `formchi_tutorial_${tutorialStorageVersion}_step`;
+let tutorialMode = localStorage.getItem(tutorialCompleteKey) !== "true";
+let tutorialStep = parseInt(localStorage.getItem(tutorialStepKey)) || 0;
+let currentRequiredMove = "wave";
+let pinchFlipTimer = null;
+
+const tutorialMoves = [
+    "wave",
+    "push",
+    "pull",
+    "circle",
+    "hold",
+    "doublehold",
+    "openclose"
+];
+
+let completing = false;
+
+let audioCtx;
+let masterGain;
+let ambientOsc;
+let ambientGain;
+let onboardingOsc;
+let onboardingGain;
+
+let nextHeartbeatTime = 0;
+
+const video = document.getElementById("video");
+const chakraColumn = document.getElementById("chakraColumn");
+const ascensionColumn = document.getElementById("ascensionColumn");
+const bottomDots = document.getElementById("bottomDots");
+const formText = document.getElementById("formText");
+const chiText = document.getElementById("chiText");
+const tutorialHint = document.getElementById("tutorialHint");
+
+const chakraData = [
+    { color:0xff3b30, shape:"cube", mode:"reach", tone:110 },
+    { color:0xff9500, shape:"icosahedron", mode:"expand", tone:146 },
+    { color:0xffcc00, shape:"tetrahedron", mode:"heart", tone:196 },
+    { color:0x34c759, shape:"octahedron", mode:"shake", tone:220 },
+    { color:0x007aff, shape:"dodecahedron", mode:"jump", tone:293 },
+    { color:0x5856d6, shape:"merkaba", mode:"clap", tone:392 },
+    { color:0xaf52de, shape:"sphere", mode:"stillness", tone:440 }
+];
+
+
+
+
+function emojiHand() {
+    return `
+    <div class="tutorialIcon emojiSingleHand" aria-hidden="true">
+        🤚
+    </div>
+    `;
+}
+
+function handOutlineSVG(flip=false, innerClass="tutorialIcon") {
+    const scale = flip ? 'scale(-1,1) translate(-100,0)' : '';
+
+    // FORMCHI V11: clean transparent open-hand outline.
+    // Four fingers + thumb, no interior fill, no fist, no extra divider lines.
+    return `
+    <span class="${innerClass}">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+            <g transform="${scale}">
+                <path
+                    d="M19 82
+                       C13 75 10 67 10 58
+                       L10 50
+                       C10 44 14 40 20 40
+                       C24 40 27 42 30 46
+                       L30 30
+                       C30 24 34 20 40 20
+                       C42 20 45 21 47 24
+                       L47 20
+                       C47 14 51 10 57 10
+                       C63 10 67 14 67 20
+                       L67 24
+                       C69 21 72 20 76 20
+                       C82 20 86 24 86 31
+                       L86 57
+                       C86 76 72 90 53 90
+                       L36 90
+                       C29 90 23 87 19 82 Z"
+                    fill="none"
+                    stroke="#111"
+                    stroke-width="6.2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                />
+            </g>
+        </svg>
+    </span>`;
+}
+
+function twoHandsOutlineSVG() {
+    return `
+    <span class="twoHandsWrap">
+        <span class="leftHand">${handOutlineSVG(false, "tutorialIconInner")}</span>
+        <span class="rightHand">${handOutlineSVG(true, "tutorialIconInner")}</span>
+    </span>`;
+}
+
+function chooseRandomMove() {
+    const nextMove = tutorialMoves[Math.floor(Math.random() * tutorialMoves.length)];
+    currentRequiredMove = nextMove;
+    return nextMove;
+}
+
+function setTutorialHint(move) {
+    if (!tutorialHint) return;
+
+    if (pinchFlipTimer) {
+        clearInterval(pinchFlipTimer);
+        pinchFlipTimer = null;
+    }
+
+    tutorialHint.className = "tutorialVisible";
+    tutorialHint.style.display = "block";
+    tutorialHint.style.opacity = "1";
+    tutorialHint.style.visibility = "visible";
+    tutorialHint.style.zIndex = "999999999";
+
+    if (move === "wave") {
+        tutorialHint.innerHTML = emojiHand();
+        tutorialHint.classList.add("waveHint");
+    } else if (move === "push") {
+        tutorialHint.innerHTML = emojiHand();
+        tutorialHint.classList.add("pushHint");
+    } else if (move === "pull") {
+        tutorialHint.innerHTML = emojiHand();
+        tutorialHint.classList.add("pullHint");
+    } else if (move === "circle") {
+        tutorialHint.innerHTML = emojiHand();
+        tutorialHint.classList.add("circleHint");
+    } else if (move === "hold") {
+        tutorialHint.innerHTML = emojiHand();
+        tutorialHint.classList.add("holdHint");
+    } else if (move === "doublehold") {
+        tutorialHint.innerHTML = `
+            <div class="emojiDoubleHold" aria-hidden="true">
+                <span class="leftHandEmoji">🫲</span>
+                <span class="rightHandEmoji">🫱</span>
+            </div>
+        `;
+        tutorialHint.classList.add("doubleholdHint");
+    } else if (move === "openclose") {
+        tutorialHint.innerHTML = `
+            <div class="emojiCrossHands" aria-hidden="true">
+                <span class="leftHandEmoji">🫲</span>
+                <span class="rightHandEmoji">🫱</span>
+            </div>
+        `;
+        tutorialHint.classList.add("opencloseHint");
+    }
+}
+
+    /*
+function positionTutorialHint() {
+
+    if (!tutorialHint) return;
+
+    const vv = window.visualViewport;
+
+    const centerX = vv
+        ? vv.offsetLeft + vv.width / 2
+        : window.innerWidth / 2;
+
+    const centerY = vv
+        ? vv.offsetTop + vv.height / 2
+        : window.innerHeight / 2;
+
+    tutorialHint.style.left = centerX + "px";
+    tutorialHint.style.top = centerY + "px";
+    tutorialHint.style.transform = "translate(-50%, -50%)";
+}
+*/
+    
+function showTutorialHint() {
+    if (!tutorialMode || !tutorialHint) return;
+
+    tutorialStep = Math.max(0, Math.min(tutorialStep, tutorialMoves.length - 1));
+    currentRequiredMove = tutorialMoves[tutorialStep];
+    setTutorialHint(currentRequiredMove);
+
+    // Force visible for testing/build stability.
+    tutorialHint.style.display = "block";
+    tutorialHint.style.opacity = "1";
+
+    // positionTutorialHint();
+// setTimeout(positionTutorialHint, 300);
+// setTimeout(positionTutorialHint, 800);
+// setTimeout(positionTutorialHint, 1500);
+}
+
+function hideTutorialHint() {
+    if (!tutorialHint) return;
+
+    if (pinchFlipTimer) {
+        clearInterval(pinchFlipTimer);
+        pinchFlipTimer = null;
+    }
+
+    tutorialHint.className = "tutorialHidden";
+    tutorialHint.style.opacity = "0";
+    tutorialHint.style.visibility = "hidden";
+    tutorialHint.style.display = "none";
+}
+
+function completeTutorialStep() {
+    const completedMove = tutorialMoves[tutorialStep];
+
+    gtag('event', 'tutorial_step_completed', {
+        step: tutorialStep + 1,
+        move: completedMove
+    });
+
+    tutorialStep++;
+    localStorage.setItem(tutorialStepKey, tutorialStep);
+
+    if (tutorialStep >= tutorialMoves.length) {
+        tutorialMode = false;
+        localStorage.setItem(tutorialCompleteKey, "true");
+        hideTutorialHint();
+        chooseRandomMove();
+
+        gtag('event', 'tutorial_completed');
+    } else {
+        currentRequiredMove = tutorialMoves[tutorialStep];
+        setTutorialHint(currentRequiredMove);
+    }
+}
+
+function getMoveInfluence(move) {
+    switch(move) {
+        case "wave":
+            return Math.max(wristHorizontalEnergy, horizontalEnergy);
+
+        case "push":
+            return Math.max(depthEnergy, expandEnergy, wristVerticalEnergy * 0.6);
+
+        case "pull":
+            return Math.max(depthEnergy, expandEnergy, wristVerticalEnergy * 0.6);
+
+        case "circle":
+            return Math.max(circleEnergy, Math.min(1, (wristHorizontalEnergy + wristVerticalEnergy) * 0.7));
+
+        case "hold":
+            return stillnessEnergy > 0.88 ? stillnessEnergy : 0;
+
+        case "doublehold":
+            return stillnessEnergy > 0.88 ? stillnessEnergy : 0;
+
+        case "openclose":
+            return Math.max(twoHandsEnergy, clapEnergy, expandEnergy, wristHorizontalEnergy * 0.45);
+    }
+
+    return 0;
+}
+
+function saveGame() {
+    localStorage.setItem("formchi_progress", progress);
+    localStorage.setItem("formchi_chakra", chakraIndex);
+    localStorage.setItem("formchi_ascension", ascension);
+}
+
+function loadGame() {
+    progress = parseInt(localStorage.getItem("formchi_progress")) || 0;
+    chakraIndex = parseInt(localStorage.getItem("formchi_chakra")) || 0;
+    ascension = parseInt(localStorage.getItem("formchi_ascension")) || 0;
+}
+
+loadGame();
+
+function buildUI() {
+    chakraColumn.innerHTML = "";
+    ascensionColumn.innerHTML = "";
+    bottomDots.innerHTML = "";
+
+    chakraData.forEach(() => {
+        const d = document.createElement("div");
+        d.className = "dot";
+        chakraColumn.appendChild(d);
+    });
+
+    chakraData.forEach(() => {
+        const d = document.createElement("div");
+        d.className = "ascensionDot";
+        ascensionColumn.appendChild(d);
+    });
+
+    for (let i = 0; i < 7; i++) {
+        const d = document.createElement("div");
+        d.className = "progressDot";
+        bottomDots.appendChild(d);
+    }
+
+    updateUI();
+}
+
+function glowDot(dot, color) {
+    dot.style.background = color;
+    dot.style.opacity = 1;
+    dot.style.boxShadow = `0 0 16px ${color}`;
+}
+
+function clearDot(dot) {
+    dot.style.background = "transparent";
+    dot.style.boxShadow = "none";
+    dot.style.opacity = 0.25;
+}
+
+function updateUI() {
+    const currentColor =
+    "#" + chakraData[chakraIndex].color.toString(16).padStart(6,"0");
+
+    document.querySelectorAll(".dot").forEach((d, i) => {
+        clearDot(d);
+
+        if (i < chakraIndex) {
+            const c = "#" + chakraData[i].color.toString(16).padStart(6,"0");
+            glowDot(d, c);
+        }
+
+        if (i === chakraIndex) {
+            glowDot(d, currentColor);
+        }
+    });
+
+    document.querySelectorAll(".ascensionDot").forEach((d, i) => {
+        clearDot(d);
+
+        if (i < ascension) {
+            const c = "#" + chakraData[i].color.toString(16).padStart(6,"0");
+            glowDot(d, c);
+        }
+    });
+
+    document.querySelectorAll(".progressDot").forEach((d, i) => {
+        if (i < progress) {
+            glowDot(d, currentColor);
+        } else {
+            clearDot(d);
+        }
+    });
+}
+
+buildUI();
+
+function initThree() {
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color("#f5f4ee");
+
+    camera = new THREE.PerspectiveCamera(
+        45,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        100
+    );
+
+    camera.position.z = 5;
+
+    renderer = new THREE.WebGLRenderer({ antialias:true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    material = new THREE.MeshPhysicalMaterial({
+        color: chakraData[chakraIndex].color,
+        emissive: chakraData[chakraIndex].color,
+        emissiveIntensity: 0.3,
+        roughness: 0.35,
+        metalness: 0.8,
+        clearcoat: 1,
+        flatShading: true,
+        side: THREE.DoubleSide
+    });
+
+    formGroup = new THREE.Group();
+    ringGroup = new THREE.Group();
+
+    scene.add(ringGroup);
+    scene.add(formGroup);
+
+    createShape();
+    createAscensionRings();
+
+    const light1 = new THREE.DirectionalLight(0xffffff, 5);
+    light1.position.set(5,5,5);
+    scene.add(light1);
+
+    const light2 = new THREE.DirectionalLight(0xffffff, 3);
+    light2.position.set(-5,-5,5);
+    scene.add(light2);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 2));
+
+    if (window.visualViewport) {
+
+    window.visualViewport.addEventListener(
+        "resize",
+        onResize
+    );
+
+    window.visualViewport.addEventListener(
+        "scroll",
+        onResize
+    );
+}
+
+window.addEventListener("resize", onResize);
+
+/*
+window.addEventListener("resize", positionTutorialHint);
+
+window.addEventListener("orientationchange", () => {
+    setTimeout(positionTutorialHint, 500);
+});
+
+if (window.visualViewport) {
+
+    window.visualViewport.addEventListener(
+        "resize",
+        positionTutorialHint
+    );
+
+    window.visualViewport.addEventListener(
+        "scroll",
+        positionTutorialHint
+    );
+}
+*/
+
+animate();
+}
+
+function onResize() {
+
+    const vv = window.visualViewport;
+
+    const width = vv ? vv.width : window.innerWidth;
+    const height = vv ? vv.height : window.innerHeight;
+
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(width, height, false);
+}
+    window.addEventListener("resize", onResize);
+
+if (window.visualViewport) {
+
+    window.visualViewport.addEventListener(
+        "resize",
+        onResize
+    );
+
+    window.visualViewport.addEventListener(
+        "scroll",
+        onResize
+    );
+
+}
+
+function createMerkaba() {
+    const group = new THREE.Group();
+    const geo = new THREE.TetrahedronGeometry(1);
+
+    const top = new THREE.Mesh(geo, material);
+    const bottom = new THREE.Mesh(geo, material);
+
+    top.rotation.y = Math.PI / 4;
+    bottom.rotation.x = Math.PI;
+    bottom.rotation.y = Math.PI / 4;
+
+    group.add(top);
+    group.add(bottom);
+
+    return group;
+}
+
+function createShape() {
+    while (formGroup.children.length) {
+        formGroup.remove(formGroup.children[0]);
+    }
+
+    const shape = chakraData[chakraIndex].shape;
+    let mesh;
+
+    if (shape === "cube") {
+        mesh = new THREE.Mesh(new THREE.BoxGeometry(1,1,1), material);
+    } else if (shape === "icosahedron") {
+        mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(1), material);
+    } else if (shape === "tetrahedron") {
+        mesh = new THREE.Mesh(new THREE.TetrahedronGeometry(1), material);
+    } else if (shape === "octahedron") {
+        mesh = new THREE.Mesh(new THREE.OctahedronGeometry(1), material);
+    } else if (shape === "dodecahedron") {
+        mesh = new THREE.Mesh(new THREE.DodecahedronGeometry(1), material);
+    } else if (shape === "sphere") {
+        mesh = new THREE.Mesh(new THREE.SphereGeometry(1,48,48), material);
+    } else if (shape === "merkaba") {
+        mesh = createMerkaba();
+    }
+
+    formGroup.add(mesh);
+
+    material.color.setHex(chakraData[chakraIndex].color);
+    material.emissive.setHex(chakraData[chakraIndex].color);
+    material.opacity = 1;
+    material.transparent = false;
+
+    updateAmbientTone();
+}
+
+function createAscensionRings() {
+    while (ringGroup.children.length) {
+        ringGroup.remove(ringGroup.children[0]);
+    }
+
+    for (let r = 0; r < ascension; r++) {
+        const ring = new THREE.Group();
+
+        const radius = 1.65 + r * 0.34;
+        const dots = 96;
+
+        for (let i = 0; i < dots; i++) {
+            const angle = (i / dots) * Math.PI * 2;
+
+            const dotGeo = new THREE.SphereGeometry(0.018, 8, 8);
+            const dotMat = new THREE.MeshBasicMaterial({
+                color: 0x111111,
+                transparent: true,
+                opacity: 0.78
+            });
+
+            const dot = new THREE.Mesh(dotGeo, dotMat);
+
+            dot.position.set(
+                Math.cos(angle) * radius,
+                Math.sin(angle) * radius,
+                -0.05 * r
+            );
+
+            ring.add(dot);
+        }
+
+        ring.userData.baseRadius = radius;
+        ring.userData.layer = r + 1;
+
+        ringGroup.add(ring);
+    }
+}
+
+async function initAudio() {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 1;
+    masterGain.connect(audioCtx.destination);
+
+    createAmbientTone();
+}
+
+function createAmbientTone() {
+    ambientOsc = audioCtx.createOscillator();
+    ambientGain = audioCtx.createGain();
+
+    ambientOsc.type = "sine";
+    ambientOsc.frequency.value = chakraData[chakraIndex].tone;
+
+    ambientGain.gain.value = chakraIndex <= 1 ? 0.065 : 0.04;
+
+    ambientOsc.connect(ambientGain);
+    ambientGain.connect(masterGain);
+    ambientOsc.start();
+}
+
+function startOnboardingTone() {
+
+    if (!audioCtx) return;
+
+    if (onboardingOsc) return;
+
+    onboardingOsc = audioCtx.createOscillator();
+    onboardingGain = audioCtx.createGain();
+
+    onboardingOsc.type = "sine";
+
+    onboardingOsc.frequency.value = 110;
+
+    onboardingGain.gain.value = 0.008;
+
+    onboardingOsc.connect(onboardingGain);
+    onboardingGain.connect(masterGain);
+
+    onboardingOsc.start();
+}
+
+function stopOnboardingTone() {
+
+    if (!onboardingOsc) return;
+
+    onboardingGain.gain.linearRampToValueAtTime(
+        0.0001,
+        audioCtx.currentTime + 1
+    );
+
+    onboardingOsc.stop(audioCtx.currentTime + 1);
+
+    onboardingOsc = null;
+}
+    
+function updateAmbientTone() {
+    if (!ambientOsc || !audioCtx || !ambientGain) return;
+
+    ambientOsc.frequency.linearRampToValueAtTime(
+        chakraData[chakraIndex].tone,
+        audioCtx.currentTime + 0.8
+    );
+
+    const targetGain = chakraIndex <= 1 ? 0.065 : 0.04;
+
+    ambientGain.gain.linearRampToValueAtTime(
+        targetGain,
+        audioCtx.currentTime + 0.8
+    );
+}
+
+function playHeartbeat() {
+    if (!audioCtx || !masterGain) return;
+
+    const now = audioCtx.currentTime;
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(88, now);
+    osc.frequency.exponentialRampToValueAtTime(42, now + 0.18);
+
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.38, now + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.24);
+
+    osc.connect(gain);
+    gain.connect(masterGain);
+
+    osc.start(now);
+    osc.stop(now + 0.26);
+}
+
+function playDeflate() {
+    if (!audioCtx || !masterGain) return;
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = "sine";
+
+    osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(45, audioCtx.currentTime + 1.5);
+
+    gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.55, audioCtx.currentTime + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.8);
+
+    osc.connect(gain);
+    gain.connect(masterGain);
+
+    osc.start();
+    osc.stop(audioCtx.currentTime + 2);
+}
+
+async function startTracking() {
+    const pose = new Pose({
+        locateFile: file =>
+        `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+    });
+
+    pose.setOptions({
+        modelComplexity: 1,
+        smoothLandmarks: true,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5
+    });
+
+    pose.onResults(onPose);
+
+    const stream = await navigator.mediaDevices.getUserMedia({
+    video: true,
+    audio: false
+});
+
+    gtag('event', 'camera_permission_granted');
+
+    video.srcObject = stream;
+
+await video.play();
+
+    async function sendFrame() {
+        if (video.readyState >= 2) {
+            await pose.send({ image: video });
+        }
+
+        requestAnimationFrame(sendFrame);
+    }
+
+    sendFrame();
+}
+
+function onPose(results) {
+    if (!results.poseLandmarks) return;
+
+    const lm = results.poseLandmarks;
+
+    const leftShoulder = lm[11];
+    const rightShoulder = lm[12];
+
+    const leftWrist = lm[15];
+    const rightWrist = lm[16];
+
+    const leftHip = lm[23];
+    const rightHip = lm[24];
+
+    const centerX = (leftShoulder.x + rightShoulder.x) / 2;
+    const centerY = (leftShoulder.y + rightShoulder.y) / 2;
+
+    const dx = centerX - lastX;
+    const dy = centerY - lastY;
+
+    horizontalEnergy = Math.min(1, Math.abs(dx) * 40);
+    verticalEnergy = Math.min(1, Math.abs(dy) * 40);
+
+    const shoulderWidth = Math.abs(leftShoulder.x - rightShoulder.x);
+    expandEnergy = Math.max(0, (shoulderWidth - lastShoulderWidth) * 12);
+
+    shakeEnergy = Math.min(1, Math.abs(dx) * 65);
+
+    const hipY = (leftHip.y + rightHip.y) / 2;
+    jumpEnergy = Math.min(1, Math.abs(hipY - lastHipY) * 18);
+
+    const handDistance = Math.abs(leftWrist.x - rightWrist.x);
+
+    const leftWristDX = leftWrist.x - lastLeftWristX;
+    const rightWristDX = rightWrist.x - lastRightWristX;
+    const leftWristDY = leftWrist.y - lastLeftWristY;
+    const rightWristDY = rightWrist.y - lastRightWristY;
+
+    wristHorizontalEnergy = Math.min(1, (Math.abs(leftWristDX) + Math.abs(rightWristDX)) * 38);
+    wristVerticalEnergy = Math.min(1, (Math.abs(leftWristDY) + Math.abs(rightWristDY)) * 38);
+
+    const avgWristZ = ((leftWrist.z || 0) + (rightWrist.z || 0)) / 2;
+    depthEnergy = Math.min(1, Math.abs(avgWristZ - lastAvgWristZ) * 18);
+
+    circleEnergy = Math.min(1, Math.min(wristHorizontalEnergy, wristVerticalEnergy) * 1.8);
+
+    if (handDistance < 0.05) {
+        clapEnergy = 1;
+    }
+
+    twoHandsEnergy = Math.max(0, 1 - handDistance * 4) * Math.max(wristHorizontalEnergy, wristVerticalEnergy, depthEnergy);
+
+    clapEnergy *= 0.92;
+
+    lastLeftWristX = leftWrist.x;
+    lastLeftWristY = leftWrist.y;
+    lastRightWristX = rightWrist.x;
+    lastRightWristY = rightWrist.y;
+    lastAvgWristZ = avgWristZ;
+
+    const movement = Math.abs(dx) + Math.abs(dy);
+    stillnessEnergy = Math.max(0, 1 - movement * 22);
+
+    lastShoulderWidth = shoulderWidth;
+    lastHipY = hipY;
+    lastX = centerX;
+    lastY = centerY;
+}
+
+function getInfluence() {
+    if (tutorialMode) {
+        return getMoveInfluence(tutorialMoves[tutorialStep]);
+    }
+
+    return getMoveInfluence(currentRequiredMove);
+}
+
+function completePuzzle() {
+    
+    if (completing) return;
+
+    gtag('event', 'form_completed', {
+    chakra: chakraIndex + 1,
+    ascension: ascension
+});
+  if (!firstFormCompletedTracked) {
+
+    gtag('event', 'first_form_completed', {
+        chakra: chakraIndex + 1,
+        ascension: ascension + 1
+    });
+
+    firstFormCompletedTracked = true;
+
+}
+    completing = true;
+
+    gtag('event', 'form_completed', {
+    chakra: chakraIndex + 1,
+    ascension: ascension + 1,
+    progress: progress + 1
+});
+    
+    progress++;
+
+    if (tutorialMode) {
+        completeTutorialStep();
+    } else {
+        chooseRandomMove();
+    }
+
+    updateUI();
+    saveGame();
+
+    setTimeout(() => {
+        if (progress >= puzzlesPerLevel) {
+
+            gtag('event', 'chakra_completed', {
+    chakra: chakraIndex + 1
+});
+            
+
+if (chakraIndex === 0) {
+    gtag('event', 'red_chakra_completed');
+}
+
+if (chakraIndex === 1) {
+    gtag('event', 'orange_chakra_completed');
+}
+
+if (chakraIndex === 2) {
+    gtag('event', 'yellow_chakra_completed');
+}
+
+if (chakraIndex === 3) {
+    gtag('event', 'green_chakra_completed');
+}
+
+if (chakraIndex === 4) {
+    gtag('event', 'blue_chakra_completed');
+}
+
+if (chakraIndex === 5) {
+    gtag('event', 'indigo_chakra_completed');
+}
+
+if (chakraIndex === 6) {
+    gtag('event', 'violet_chakra_completed');
+}
+            
+            progress = 0;
+            chakraIndex++;
+
+            if (chakraIndex >= 7) {
+
+                gtag('event', 'ascension_completed', {
+    ascension: ascension + 1
+});
+                
+                chakraIndex = 0;
+                ascension++;
+
+                if (ascension > maxAscension) {
+                    ascension = 0;
+                }
+
+                createAscensionRings();
+            }
+
+            createShape();
+        }
+
+        saveGame();
+        updateUI();
+        completing = false;
+
+    }, 600);
+}
+
+function resetCycle() {
+    cycleActive = false;
+}
+
+let sessionTracked10 = false;
+let sessionTracked30 = false;
+let sessionTracked60 = false;
+let sessionTracked120 = false;
+
+let firstResonanceTracked = false;
+let firstFormCompletedTracked = false;
+let firstAscensionTracked = false;
+    
+const urlParams = new URLSearchParams(window.location.search);
+
+const trafficSource =
+    urlParams.get('source') ||
+    document.referrer ||
+    'direct';
+
+gtag('event', 'visitor_source', {
+    source: trafficSource
+});
+
+formText.addEventListener("click", async () => {
+    if (!gameStarted) return;
+
+    paused = !paused;
+
+    gtag('event', paused ? 'game_paused' : 'game_resumed');
+
+    if (masterGain && audioCtx) {
+        masterGain.gain.linearRampToValueAtTime(
+            paused ? 0.0001 : 1,
+            audioCtx.currentTime + 0.3
+        );
+    }
+});
+
+chiText.addEventListener("click", () => {
+
+    gtag('event', 'reset_pressed');
+    
+    progress = 0;
+    chakraIndex = 0;
+    ascension = 0;
+    resonance = 0;
+    tutorialMode = true;
+    tutorialStep = 0;
+    currentRequiredMove = tutorialMoves[0];
+    localStorage.removeItem("formchi_tutorial_complete");
+    localStorage.removeItem("formchi_tutorial_step");
+    localStorage.removeItem("formchi_tutorial_v4_complete");
+    localStorage.removeItem("formchi_tutorial_v4_step");
+    localStorage.removeItem("formchi_tutorial_v5_complete");
+    localStorage.removeItem("formchi_tutorial_v5_step");
+    localStorage.removeItem("formchi_tutorial_v6_complete");
+    localStorage.removeItem("formchi_tutorial_v6_step");
+    localStorage.removeItem("formchi_tutorial_v7_complete");
+    localStorage.removeItem("formchi_tutorial_v7_step");
+    localStorage.removeItem("formchi_tutorial_v8_complete");
+    localStorage.removeItem("formchi_tutorial_v8_step");
+    localStorage.removeItem("formchi_tutorial_v9_complete");
+    localStorage.removeItem("formchi_tutorial_v9_step");
+    localStorage.removeItem("formchi_tutorial_v10_complete");
+    localStorage.removeItem("formchi_tutorial_v10_step");
+    localStorage.removeItem(tutorialCompleteKey);
+    localStorage.removeItem(tutorialStepKey);
+    showTutorialHint();
+
+    resetCycle();
+    saveGame();
+    createShape();
+    createAscensionRings();
+    updateUI();
+});
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    if (!paused) {
+        const influence = gameStarted ? getInfluence() : 0;
+
+        const growthRate = 0.012;
+        const decayRate = 0.004;
+
+        if (influence > 0.12) {
+            
+            if (!cycleActive) {
+
+    cycleActive = true;
+
+    if (!firstResonanceTracked) {
+
+        gtag('event', 'first_resonance');
+
+        firstResonanceTracked = true;
+
+    }
+
+}
+
+            resonance += influence * growthRate;
+        } else {
+            resonance -= decayRate;
+        }
+
+        resonance = Math.max(0, Math.min(1, resonance));
+
+        if (cycleActive && audioCtx) {
+            const beatInterval = Math.max(0.34, 0.78 - resonance * 0.32);
+
+            if (audioCtx.currentTime >= nextHeartbeatTime) {
+                playHeartbeat();
+                nextHeartbeatTime = audioCtx.currentTime + beatInterval;
+            }
+        }
+
+        if (resonance >= 1) {
+            playDeflate();
+            resonance = 0;
+            cycleActive = false;
+            completePuzzle();
+        }
+
+        if (resonance <= 0) {
+            cycleActive = false;
+        }
+
+        let baseScale = 0.28;
+        
+
+const scale = baseScale + resonance * 1.35;
+        formGroup.scale.setScalar(scale);
+        ringGroup.scale.setScalar(scale);
+
+        const isPhone =
+        window.innerWidth <= 768;
+
+        const isTablet =
+        window.innerWidth > 768 &&
+        window.innerWidth <= 1400;
+
+        const isPortrait =
+        window.innerHeight > window.innerWidth;
+
+        const isLandscape =
+        window.innerWidth > window.innerHeight;
+
+        let mobileYOffset = 0;
+
+if (isPhone && isPortrait) {
+    mobileYOffset = 0;
+}
+else if (isPhone && isLandscape) {
+    mobileYOffset = 0;
+}
+else if (isTablet && isPortrait) {
+    mobileYOffset = 0;
+}
+else if (isTablet && isLandscape) {
+    mobileYOffset = -0.25;
+}
+else {
+    // Desktop
+    mobileYOffset = -0;
+}
+
+formGroup.position.y = mobileYOffset;
+ringGroup.position.y = mobileYOffset;
+
+        formGroup.rotation.y += 0.01;
+        formGroup.rotation.x += 0.003;
+
+        ringGroup.rotation.z += 0.0015 + ascension * 0.0004;
+
+        ringGroup.children.forEach((ring, index) => {
+            const pulse =
+            Math.sin(Date.now() * 0.0015 + index) * 0.5 + 0.5;
+
+            const layerScale =
+            1 + pulse * 0.015 + index * 0.01;
+
+            ring.scale.setScalar(layerScale);
+
+            ring.children.forEach(dot => {
+                dot.material.opacity = 0.45 + pulse * 0.35;
+            });
+        });
+
+        material.emissiveIntensity = 0.35 + resonance * 1.1 + ascension * 0.08;
+    }
+
+    renderer.render(scene,camera);
+}
+
+
+function isMobileOrTabletDevice() {
+    const ua = navigator.userAgent || "";
+
+    const isIOSMobileOrTablet =
+        /iPhone|iPad|iPod/i.test(ua) ||
+        (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
+
+    const isAndroidMobileOrTablet =
+        /Android/i.test(ua);
+
+    return isIOSMobileOrTablet || isAndroidMobileOrTablet;
+}
+
+function isPortraitOrientation() {
+    const vv = window.visualViewport;
+    const width = vv ? vv.width : window.innerWidth;
+    const height = vv ? vv.height : window.innerHeight;
+
+    return height >= width;
+}
+
+function checkOrientation() {
+    const rotateScreen = document.getElementById("rotateDevice");
+
+    if (!rotateScreen) return true;
+
+    if (!isMobileOrTabletDevice()) {
+        rotateScreen.style.display = "none";
+        rotateScreen.setAttribute("aria-hidden", "true");
+        return true;
+    }
+
+    if (!isPortraitOrientation()) {
+        rotateScreen.style.display = "flex";
+        rotateScreen.setAttribute("aria-hidden", "false");
+        return false;
+    }
+
+    rotateScreen.style.display = "none";
+    rotateScreen.setAttribute("aria-hidden", "true");
+    return true;
+}
+
+async function waitForPortraitOrientation() {
+    if (checkOrientation()) return;
+
+    await new Promise(resolve => {
+        const interval = setInterval(() => {
+            if (checkOrientation()) {
+                clearInterval(interval);
+                resolve();
+            }
+        }, 250);
+    });
+}
+
+window.addEventListener("resize", checkOrientation);
+
+window.addEventListener("orientationchange", () => {
+    setTimeout(checkOrientation, 300);
+});
+
+if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", checkOrientation);
+    window.visualViewport.addEventListener("scroll", checkOrientation);
+}
+
+initThree();
+
+(async () => {
+    try {
+        await waitForPortraitOrientation();
+
+        gameStarted = true;
+
+        document.body.classList.remove("prelaunch");
+
+        await initAudio();
+
+        try {
+            await startTracking();
+
+            window.dispatchEvent(new Event("resize"));
+
+            setTimeout(() => {
+                window.dispatchEvent(new Event("resize"));
+            }, 500);
+
+            setTimeout(() => {
+                window.dispatchEvent(new Event("resize"));
+            }, 1200);
+
+        } catch (cameraError) {
+            console.error("Camera startup failed:", cameraError);
+        }
+
+        if (tutorialMode) {
+            tutorialStep = Math.max(
+                0,
+                Math.min(
+                    tutorialStep,
+                    tutorialMoves.length - 1
+                )
+            );
+
+            currentRequiredMove = tutorialMoves[tutorialStep];
+
+            setTimeout(() => {
+                showTutorialHint();
+            }, 500);
+
+        } else {
+            chooseRandomMove();
+            hideTutorialHint();
+        }
+
+        gtag('event', 'game_started');
+
+    } catch (error) {
+        console.error(error);
+        document.body.classList.remove("prelaunch");
+    }
+})();
+
+</script>
+
+</body>
+</html>
