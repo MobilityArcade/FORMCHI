@@ -1336,20 +1336,29 @@ function endRun(){
     </div>
 
     <div class="statLine">
-        <span>LEVEL</span>
-        <span>${level}</span>
-    </div>
+    <span>LEVEL</span>
+    <span>${level}</span>
+</div>
 
-    <div class="statLine">
-        <span>BEST DISTANCE</span>
-        <span>${Math.floor(bestDistance)}m ${isNewBestDistance ? "⭐" : ""}</span>
-    </div>
+<div class="statLine">
+    <span>SCORE</span>
+    <span>${score.toLocaleString()}</span>
+</div>
 
-    <div class="statLine">
-        <span>BEST LEVEL</span>
-        <span>${bestLevel}</span>
-    </div>
+<div class="statLine">
+    <span>BEST DISTANCE</span>
+    <span>${Math.floor(bestDistance)}m ${isNewBestDistance ? "⭐" : ""}</span>
+</div>
 
+<div class="statLine">
+    <span>BEST LEVEL</span>
+    <span>${bestLevel}</span>
+</div>
+
+<div class="statLine">
+    <span>BEST SCORE</span>
+    <span>${bestScore.toLocaleString()}</span>
+</div>
 
     <div class="flowSummary">
         BEST FLOW x${bestFlowMultiplier} · ${foundCount} NODES<br>
