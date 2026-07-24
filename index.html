@@ -836,6 +836,7 @@ let completedFlows = Math.max(0,Math.min(FLOW_TOTAL,Number(localStorage.getItem(
 let activeChallenge = null;
 let challengeStart = null;
 let challengeAdvanceTimer = null;
+let archiveWasPaused = false;
 
 function flowStageFor(index){
   const n=index+1;
@@ -844,17 +845,64 @@ function flowStageFor(index){
 function createFlow(index){
   const n=index+1;
   const stage=flowStageFor(index);
-  const difficulty=1+index/45;
-  const type=index%8;
+  const cycle=Math.floor(index/12);
+  const type=index%12;
   const title=flowTitles[index%flowTitles.length];
-  if(type===0){const target=Math.round(4+difficulty*2);return {id:`level_${n}`,name:`${stage.name} · ${title}`,label:`REACH LEVEL ${target}`,target,metric:"level"};}
-  if(type===1){const target=Math.round((70+difficulty*24)/10)*10;return {id:`orbs_${n}`,name:`${stage.name} · ${title}`,label:`COLLECT ${target} ORBS`,target,metric:"orbs"};}
-  if(type===2){const colors=["BLUE","GREEN","PURPLE","ORANGE","RED"];const color=colors[Math.floor(index/8)%colors.length];const base={BLUE:55,GREEN:45,PURPLE:35,ORANGE:25,RED:14}[color];const target=Math.round((base+difficulty*8)/5)*5;return {id:`${color.toLowerCase()}_${n}`,name:`${stage.name} · ${title}`,label:`COLLECT ${target} ${color} ORBS`,target,metric:"color",color};}
-  if(type===3){const target=Math.round((2200+difficulty*700)/100)*100;return {id:`score_${n}`,name:`${stage.name} · ${title}`,label:`SCORE ${target.toLocaleString()} POINTS`,target,metric:"score"};}
-  if(type===4){const target=Math.round(5+difficulty*1.8);const lives=index<120?2:3;return {id:`survive_${n}`,name:`${stage.name} · ${title}`,label:`REACH LEVEL ${target} WITH ${lives} LIVES`,target,metric:"lives",lives};}
-  if(type===5){const target=Math.round((1200+difficulty*450)/100)*100;return {id:`distance_${n}`,name:`${stage.name} · ${title}`,label:`REACH ${target.toLocaleString()}m`,target,metric:"distance"};}
-  if(type===6){const target=Math.round((90+difficulty*32)/10)*10;return {id:`clean_${n}`,name:`${stage.name} · ${title}`,label:`COLLECT ${target} ORBS BEFORE A STRIKE`,target,metric:"clean"};}
-  const target=Math.round((1800+difficulty*600)/100)*100;return {id:`precision_${n}`,name:`${stage.name} · ${title}`,label:`SCORE ${target.toLocaleString()} WITH 2+ LIVES`,target,metric:"precision"};
+  const name=`${stage.name} · ${title}`;
+
+  // Twelve rotating challenge families. Targets deliberately change every cycle,
+  // so all 300 flows are distinct instead of repeating the same objective.
+  if(type===0){
+    const target=4+cycle;
+    return {id:`level_${n}`,name,label:`REACH LEVEL ${target}`,target,metric:"level"};
+  }
+  if(type===1){
+    const target=60+cycle*11;
+    return {id:`orbs_${n}`,name,label:`COLLECT ${target} ORBS`,target,metric:"orbs"};
+  }
+  if(type===2){
+    const colors=["BLUE","GREEN","PURPLE","ORANGE","RED"];
+    const color=colors[cycle%colors.length];
+    const base={BLUE:45,GREEN:36,PURPLE:28,ORANGE:20,RED:10}[color];
+    const target=base+cycle*3;
+    return {id:`${color.toLowerCase()}_${n}`,name,label:`COLLECT ${target} ${color} ORBS`,target,metric:"color",color};
+  }
+  if(type===3){
+    const target=3000+cycle*850;
+    return {id:`score_${n}`,name,label:`SCORE ${target.toLocaleString()} POINTS`,target,metric:"score"};
+  }
+  if(type===4){
+    const target=5+cycle;
+    const lives=cycle<6?2:3;
+    return {id:`survive_${n}`,name,label:`REACH LEVEL ${target} WITH ${lives} LIVES`,target,metric:"lives",lives};
+  }
+  if(type===5){
+    const target=1500+cycle*550;
+    return {id:`distance_${n}`,name,label:`TRAVEL ${target.toLocaleString()}m`,target,metric:"distance"};
+  }
+  if(type===6){
+    const target=75+cycle*13;
+    return {id:`clean_${n}`,name,label:`COLLECT ${target} ORBS BEFORE A STRIKE`,target,metric:"clean"};
+  }
+  if(type===7){
+    const target=2400+cycle*725;
+    return {id:`precision_${n}`,name,label:`SCORE ${target.toLocaleString()} WITH 2+ LIVES`,target,metric:"precision"};
+  }
+  if(type===8){
+    const target=20+cycle*4;
+    return {id:`blue_${n}`,name,label:`COLLECT ${target} BLUE ORBS WITHOUT A STRIKE`,target,metric:"cleanColor",color:"BLUE"};
+  }
+  if(type===9){
+    const target=25+cycle*5;
+    return {id:`green_${n}`,name,label:`COLLECT ${target} GREEN ORBS`,target,metric:"color",color:"GREEN"};
+  }
+  if(type===10){
+    const target=4+cycle;
+    const maxStrikes=cycle<8?1:0;
+    return {id:`controlled_level_${n}`,name,label:`REACH LEVEL ${target} WITH ${maxStrikes===0?"NO STRIKES":"1 STRIKE OR LESS"}`,target,metric:"maxStrikesLevel",maxStrikes};
+  }
+  const target=100+cycle*15;
+  return {id:`mixed_${n}`,name,label:`COLLECT ${target} ORBS WITH 2+ LIVES`,target,metric:"orbsWithLives"};
 }
 function beginCurrentFlow(){
   activeChallenge=createFlow(currentFlowIndex);
@@ -863,14 +911,19 @@ function beginCurrentFlow(){
 }
 function challengeValue(ch){
   if(!challengeStart)return 0;
+  const totalOrbs=Math.max(0,foundCount-challengeStart.found);
+  const colorOrbs=Math.max(0,(tierCounts[ch.color]||0)-(challengeStart.tierCounts[ch.color]||0));
   if(ch.metric==="level")return level;
-  if(ch.metric==="orbs")return foundCount-challengeStart.found;
-  if(ch.metric==="color")return tierCounts[ch.color]-challengeStart.tierCounts[ch.color];
-  if(ch.metric==="score")return score-challengeStart.score;
-  if(ch.metric==="distance")return distance-challengeStart.distance;
-  if(ch.metric==="clean")return strikes===challengeStart.strikes?foundCount-challengeStart.found:0;
+  if(ch.metric==="orbs")return totalOrbs;
+  if(ch.metric==="color")return colorOrbs;
+  if(ch.metric==="score")return Math.max(0,score-challengeStart.score);
+  if(ch.metric==="distance")return Math.max(0,distance-challengeStart.distance);
+  if(ch.metric==="clean")return strikes===challengeStart.strikes?totalOrbs:0;
   if(ch.metric==="lives")return (3-strikes)>=ch.lives?level:0;
-  if(ch.metric==="precision")return (3-strikes)>=2?score-challengeStart.score:0;
+  if(ch.metric==="precision")return (3-strikes)>=2?Math.max(0,score-challengeStart.score):0;
+  if(ch.metric==="cleanColor")return strikes===challengeStart.strikes?colorOrbs:0;
+  if(ch.metric==="maxStrikesLevel")return (strikes-challengeStart.strikes)<=ch.maxStrikes?level:0;
+  if(ch.metric==="orbsWithLives")return (3-strikes)>=2?totalOrbs:0;
   return 0;
 }
 function completeCurrentFlow(){
@@ -880,32 +933,79 @@ function completeCurrentFlow(){
   localStorage.setItem("shiftvixCompletedFlows",String(completedFlows));
   track("current_flow_completed",{flow_number:currentFlowIndex+1,flow_id:finished.id,flow_stage:flowStageFor(currentFlowIndex).name,level,distance:Math.floor(distance),score});
   showModeBanner("CURRENT FLOW COMPLETE");
-  currentFlowIndex=(currentFlowIndex+1)%FLOW_TOTAL;
+
+  // Start the next flow immediately. This prevents orb pickups during the
+  // completion animation from being lost or making the next counter appear stuck.
+  currentFlowIndex=Math.min(FLOW_TOTAL-1,currentFlowIndex+1);
   localStorage.setItem("shiftvixCurrentFlow",String(currentFlowIndex));
-  challengeAdvanceTimer=setTimeout(()=>{challengeAdvanceTimer=null;beginCurrentFlow();showModeBanner("NEXT FLOW");},1150);
+  activeChallenge=createFlow(currentFlowIndex);
+  challengeStart={found:foundCount,score,distance,strikes,tierCounts:{...tierCounts}};
+  challengeAdvanceTimer=setTimeout(()=>{
+    challengeAdvanceTimer=null;
+    updateChallenge();
+    showModeBanner("NEXT FLOW");
+  },650);
 }
 function updateChallenge(){
-  if(!activeChallenge)beginCurrentFlow();
+  if(!activeChallenge){
+    activeChallenge=createFlow(currentFlowIndex);
+    challengeStart={found:foundCount,score,distance,strikes,tierCounts:{...tierCounts}};
+  }
   const raw=challengeValue(activeChallenge);
   const value=Math.max(0,Math.min(activeChallenge.target,raw));
   const pct=Math.max(0,Math.min(100,(value/activeChallenge.target)*100));
   document.getElementById("challengeName").textContent=`CURRENT FLOW ${currentFlowIndex+1}/${FLOW_TOTAL} · ${activeChallenge.name}`;
   document.getElementById("challengeText").textContent=`${activeChallenge.label}  ${Math.floor(value)}/${activeChallenge.target}`;
   document.getElementById("challengeFill").style.width=pct+"%";
-  if(raw>=activeChallenge.target)completeCurrentFlow();
+  if(!challengeAdvanceTimer && raw>=activeChallenge.target)completeCurrentFlow();
 }
 function renderFlowArchive(){
   const list=document.getElementById("archiveList");
-  const first=Math.max(0,currentFlowIndex-8),last=Math.min(FLOW_TOTAL,currentFlowIndex+18);
   let html=`<div class="archiveRow done"><span>FLOWS COMPLETED</span><span>${completedFlows}/${FLOW_TOTAL}</span></div>`;
-  for(let i=first;i<last;i++){
-    const flow=createFlow(i);const cls=i<completedFlows?"done":(i===currentFlowIndex?"current":"locked");const mark=i<completedFlows?"✓":(i===currentFlowIndex?"CURRENT":"LOCKED");
-    html+=`<div class="archiveRow ${cls}"><span>${String(i+1).padStart(3,"0")} · ${flow.name}<br>${flow.label}</span><span>${mark}</span></div>`;
+
+  // Show the entire 300-flow path. The list is scrollable and automatically
+  // positions the current flow in view after opening.
+  for(let i=0;i<FLOW_TOTAL;i++){
+    const flow=createFlow(i);
+    const cls=i<completedFlows?"done":(i===currentFlowIndex?"current":"locked");
+    const mark=i<completedFlows?"✓":(i===currentFlowIndex?"CURRENT":"LOCKED");
+    html+=`<div class="archiveRow ${cls}" data-flow-index="${i}"><span>${String(i+1).padStart(3,"0")} · ${flow.name}<br>${flow.label}</span><span>${mark}</span></div>`;
   }
   list.innerHTML=html;
+  requestAnimationFrame(()=>{
+    const current=list.querySelector(`[data-flow-index="${currentFlowIndex}"]`);
+    if(current)current.scrollIntoView({block:"center"});
+  });
 }
-function openFlowArchive(){renderFlowArchive();document.getElementById("flowArchive").style.display="grid";paused=true;}
-function closeFlowArchive(){document.getElementById("flowArchive").style.display="none";paused=false;}
+function pauseMusicOnly(){
+  if(musicTimer){clearInterval(musicTimer);musicTimer=null;}
+}
+function applyPauseVisuals(isPaused){
+  const center=document.getElementById("center");
+  const pauseText=document.getElementById("pauseText");
+  if(pauseText)pauseText.style.display=isPaused?"block":"none";
+  center.style.borderColor=isPaused?"#ffd36a":"rgba(255,255,255,.95)";
+  center.style.boxShadow=isPaused?"0 0 20px #ffd36a":"0 0 10px rgba(255,255,255,.55)";
+}
+function resumeMusicAfterPause(){
+  musicStarted=false;
+  if(musicTimer){clearInterval(musicTimer);musicTimer=null;}
+  startMusic();
+}
+function openFlowArchive(){
+  archiveWasPaused=paused;
+  renderFlowArchive();
+  document.getElementById("flowArchive").style.display="grid";
+  paused=true;
+  pauseMusicOnly();
+  applyPauseVisuals(true);
+}
+function closeFlowArchive(){
+  document.getElementById("flowArchive").style.display="none";
+  paused=archiveWasPaused;
+  applyPauseVisuals(paused);
+  if(!paused)resumeMusicAfterPause();
+}
 document.getElementById("challengeHud").addEventListener("click",openFlowArchive);
 document.getElementById("archiveClose").addEventListener("click",closeFlowArchive);
 document.getElementById("flowArchive").addEventListener("click",e=>{if(e.target.id==="flowArchive")closeFlowArchive();});
@@ -1405,36 +1505,12 @@ lastLevel = 1;strikes = 0;milestonesReached = {};runStarted=false;gameOver=false
 function togglePause(){
   if(gameOver)return;
   paused=!paused;
-  const center=document.getElementById("center");
-  const pauseText=document.getElementById("pauseText");
+  applyPauseVisuals(paused);
   if(paused){
-
-  clearInterval(musicTimer);
-  musicTimer = null;
-
-  if(pauseText)
-    pauseText.style.display="block";
-
-  center.style.borderColor="#ffd36a";
-  center.style.boxShadow="0 0 20px #ffd36a";
-
-}else{
-
-  if(pauseText)
-    pauseText.style.display="none";
-
-  center.style.borderColor="rgba(255,255,255,.95)";
-  center.style.boxShadow="0 0 10px rgba(255,255,255,.55)";
-
-  musicStarted = false;
-
-if(musicTimer){
-    clearInterval(musicTimer);
-    musicTimer = null;
-}
-
-startMusic();
-}
+    pauseMusicOnly();
+  }else{
+    resumeMusicAfterPause();
+  }
 }
 const title = document.getElementById("gameTitle");
 const shift = document.getElementById("shift");
@@ -1874,4 +1950,3 @@ makeStarField();makeLaneGuides();updateStrikes();updateHUD();startGame();animate
 </script>
 </body>
 </html>
-
