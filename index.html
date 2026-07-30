@@ -1323,6 +1323,7 @@ const FLOW_STAGES = [
   {name:"TRANSCENDENCE",end:300}
 ];
 let currentFlowIndex = Math.max(0,Math.min(FLOW_TOTAL-1,Number(localStorage.getItem("shiftvixCurrentFlow")||0)));
+let highestCompletedFlow = Number(localStorage.getItem("shiftvixHighestCompletedFlow") || 0);
 let completedFlows = Math.max(0,Math.min(FLOW_TOTAL,Number(localStorage.getItem("shiftvixCompletedFlows")||0)));
 let highestUnlockedBlock = Math.max(
     1,
@@ -1343,6 +1344,7 @@ let objectiveOrbsCollected = 0;
 let activeChallenge = null;
 let challengeStart = null;
 let challengeAdvanceTimer = null;
+let archiveWasPaused = false;
 let archiveWasPaused = false;
 
 function blockForFlow(index){
@@ -1536,14 +1538,24 @@ function completeCurrentFlow(){
         currentFlowIndex;
 
     completedFlows = Math.max(
-        completedFlows,
-        finishedFlowIndex + 1
-    );
+    completedFlows,
+    finishedFlowIndex + 1
+);
 
-    localStorage.setItem(
-        "shiftvixCompletedFlows",
-        String(completedFlows)
-    );
+highestCompletedFlow = Math.max(
+    highestCompletedFlow,
+    finishedFlowIndex
+);
+
+localStorage.setItem(
+    "shiftvixHighestCompletedFlow",
+    highestCompletedFlow
+);
+
+localStorage.setItem(
+    "shiftvixCompletedFlows",
+    String(completedFlows)
+);
 
     const blockUnlocked =
         checkForBlockUnlock(
@@ -1586,6 +1598,63 @@ function completeCurrentFlow(){
             : `${environmentEngine.current.name} COMPLETE`
     );
 
+if(replayReturnFlowIndex !== null){
+
+    const restoredFlowIndex =
+        replayReturnFlowIndex;
+
+    replayReturnFlowIndex = null;
+
+    currentFlowIndex =
+        restoredFlowIndex;
+
+    localStorage.setItem(
+        "shiftvixCurrentFlow",
+        String(currentFlowIndex)
+    );
+
+    activeChallenge =
+        createFlow(currentFlowIndex);
+
+    objectiveOrbsCollected = 0;
+
+    challengeStart = {
+        found:foundCount,
+        score,
+        distance,
+        strikes,
+        tierCounts:{...tierCounts}
+    };
+
+    environmentEngine.resetForFlow({
+        announce:false
+    });
+
+    challengeAdvanceTimer =
+        setTimeout(()=>{
+
+            challengeAdvanceTimer = null;
+
+            updateChallenge();
+
+            showModeBanner(
+                `REPLAY COMPLETE · FLOW ${
+                    currentFlowIndex + 1
+                } RESTORED`
+            );
+
+        },650);
+
+    track("flow_replay_completed",{
+        replayed_flow:
+            finishedFlowIndex + 1,
+        restored_flow:
+            currentFlowIndex + 1
+    });
+
+    return;
+}
+    
     const proposedNextIndex =
         Math.min(
             FLOW_TOTAL - 1,
@@ -1758,6 +1827,60 @@ function renderFlowArchive(){
         }
     });
 }
+
+function replayFlowFromArchive(flowIndex){
+
+    // Only completed flows may be replayed.
+    if(
+        !Number.isInteger(flowIndex) ||
+        flowIndex < 0 ||
+        flowIndex >= completedFlows
+    ){
+        showModeBanner("FLOW LOCKED");
+        return;
+    }
+
+    // Remember the player's real progression position.
+    replayReturnFlowIndex = currentFlowIndex;
+
+    currentFlowIndex = flowIndex;
+
+    localStorage.setItem(
+        "shiftvixCurrentFlow",
+        String(currentFlowIndex)
+    );
+
+    objectiveOrbsCollected = 0;
+
+    activeChallenge =
+        createFlow(currentFlowIndex);
+
+    challengeStart = {
+        found:foundCount,
+        score,
+        distance,
+        strikes,
+        tierCounts:{...tierCounts}
+    };
+
+    environmentEngine.resetForFlow({
+        announce:false
+    });
+
+    updateChallenge();
+
+    track("flow_replay_started",{
+        flow_number:currentFlowIndex + 1,
+        environment:environmentEngine.current.id
+    });
+
+    closeFlowArchive();
+
+    showModeBanner(
+        `REPLAY FLOW ${currentFlowIndex + 1}`
+    );
+}
+    
 function pauseMusicOnly(){
   if(musicTimer){clearInterval(musicTimer);musicTimer=null;}
 }
@@ -1790,6 +1913,22 @@ function closeFlowArchive(){
 document.getElementById("challengeHud").addEventListener("click",openFlowArchive);
 document.getElementById("archiveClose").addEventListener("click",closeFlowArchive);
 document.getElementById("flowArchive").addEventListener("click",e=>{if(e.target.id==="flowArchive")closeFlowArchive();});
+document
+    .getElementById("archiveList")
+    .addEventListener("click",e=>{
+
+        const row =
+            e.target.closest(".archiveRow");
+
+        if(!row){
+            return;
+        }
+
+        const flowIndex =
+            Number(row.dataset.flowIndex);
+
+        replayFlowFromArchive(flowIndex);
+    });
 let pendingModeBanner = null;
 function introIsClear(){return distance >= 72;}
 function showModeBanner(text){const el=document.getElementById("modeBanner");if(!el)return;if(!introIsClear()){pendingModeBanner=text;return;}pendingModeBanner=null;el.textContent=text;el.classList.remove("show");void el.offsetWidth;el.classList.add("show");}
