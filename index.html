@@ -294,6 +294,8 @@ canvas{display:block}
 /* SHIFTVIX v2.3 — Gravity / Reverse visual field */
 #flowFx{position:absolute;inset:0;z-index:12;pointer-events:none;opacity:0;transition:opacity .18s ease;mix-blend-mode:screen;background:radial-gradient(circle at 50% 48%,transparent 28%,rgba(120,80,255,.10) 62%,rgba(40,180,255,.16) 100%);box-shadow:inset 0 -18vh 22vh rgba(80,30,255,.08),inset 0 18vh 22vh rgba(0,180,255,.06)}
 #flowFx.gravity{opacity:var(--gravity-fx,0);filter:saturate(calc(1 + var(--gravity-fx,0)*.8)) contrast(calc(1 + var(--gravity-fx,0)*.12))}
+#flowFx.pulse{opacity:.55;animation:pulseFlow 1.1s ease-in-out infinite alternate;background:radial-gradient(circle,#7df9ff22,transparent 60%);}
+@keyframes pulseFlow{from{filter:brightness(.85)}to{filter:brightness(1.35)} }
 #flowFx.reverse{opacity:.62;background:radial-gradient(circle at 50% 50%,transparent 30%,rgba(255,50,40,.08) 64%,rgba(255,0,120,.17) 100%);animation:reverseBreath 1.35s ease-in-out infinite alternate}
 @keyframes reverseBreath{from{filter:hue-rotate(0deg) brightness(.9)}to{filter:hue-rotate(22deg) brightness(1.25)}}
 </style>
@@ -356,7 +358,7 @@ let warpAmount = 0;
 // Normal, Curved, Mirror, Gravity, and Reverse share one interface.
 //
 // Automatic flow rotation (50-flow cycle):
-//   10 CURVED · 20 MIRROR · 30 GRAVITY · 40 REVERSE · 50 NORMAL
+//   10 CURVED · 20 MIRROR · 30 GRAVITY · 40 REVERSE · 50 PULSE
 //
 // Testing override:
 //   ?environment=normal | curved | mirror | gravity | reverse
@@ -366,7 +368,8 @@ const ENVIRONMENT_TYPES = Object.freeze({
   CURVED:"curved",
   MIRROR:"mirror",
   GRAVITY:"gravity",
-  REVERSE:"reverse"
+  REVERSE:"reverse",
+  PULSE:"pulse"
 });
 
 const environmentQuery = new URLSearchParams(window.location.search)
@@ -379,6 +382,7 @@ function environmentTypeForFlow(index){
   if(slot===20)return ENVIRONMENT_TYPES.MIRROR;
   if(slot===30)return ENVIRONMENT_TYPES.GRAVITY;
   if(slot===40)return ENVIRONMENT_TYPES.REVERSE;
+  if(slot===0)return ENVIRONMENT_TYPES.PULSE;
   return ENVIRONMENT_TYPES.NORMAL;
 }
 
