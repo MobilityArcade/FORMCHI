@@ -1307,6 +1307,13 @@ function startMusic(){
 }
 
 const FLOW_TOTAL = 300;
+
+const FLOWS_PER_BLOCK = 30;
+
+const TOTAL_FLOW_BLOCKS = Math.ceil(
+    FLOW_TOTAL / FLOWS_PER_BLOCK
+);
+
 const FLOW_STAGES = [
   {name:"BEGINNING",end:30},
   {name:"EFFICIENCY",end:90},
@@ -1317,12 +1324,109 @@ const FLOW_STAGES = [
 ];
 let currentFlowIndex = Math.max(0,Math.min(FLOW_TOTAL-1,Number(localStorage.getItem("shiftvixCurrentFlow")||0)));
 let completedFlows = Math.max(0,Math.min(FLOW_TOTAL,Number(localStorage.getItem("shiftvixCompletedFlows")||0)));
+let highestUnlockedBlock = Math.max(
+    1,
+    Math.min(
+        TOTAL_FLOW_BLOCKS,
+        Number(
+            localStorage.getItem(
+                "shiftvixHighestUnlockedBlock"
+            )
+        ) ||
+        Math.floor(
+            completedFlows / FLOWS_PER_BLOCK
+        ) + 1
+    )
+);
+    
 let objectiveOrbsCollected = 0;
 let activeChallenge = null;
 let challengeStart = null;
 let challengeAdvanceTimer = null;
 let archiveWasPaused = false;
 
+function blockForFlow(index){
+
+    return Math.floor(
+        index / FLOWS_PER_BLOCK
+    ) + 1;
+}
+
+
+function isBlockUnlocked(blockNumber){
+
+    return (
+        blockNumber >= 1 &&
+        blockNumber <= highestUnlockedBlock
+    );
+}
+
+
+function isFlowUnlocked(index){
+
+    if(index < 0 || index >= FLOW_TOTAL){
+        return false;
+    }
+
+    return isBlockUnlocked(
+        blockForFlow(index)
+    );
+}
+
+
+function saveUnlockProgress(){
+
+    localStorage.setItem(
+        "shiftvixHighestUnlockedBlock",
+        String(highestUnlockedBlock)
+    );
+}
+
+
+function checkForBlockUnlock(completedFlowIndex){
+
+    const completedFlowNumber =
+        completedFlowIndex + 1;
+
+    const finishedWholeBlock =
+        completedFlowNumber %
+        FLOWS_PER_BLOCK === 0;
+
+    if(!finishedWholeBlock){
+        return false;
+    }
+
+    const completedBlock =
+        blockForFlow(completedFlowIndex);
+
+    const nextBlock =
+        completedBlock + 1;
+
+    if(
+        nextBlock > TOTAL_FLOW_BLOCKS ||
+        nextBlock <= highestUnlockedBlock
+    ){
+        return false;
+    }
+
+    highestUnlockedBlock = nextBlock;
+
+    saveUnlockProgress();
+
+    track("flow_block_unlocked",{
+        unlocked_block:nextBlock,
+        first_flow:
+            ((nextBlock - 1) *
+            FLOWS_PER_BLOCK) + 1,
+        last_flow:Math.min(
+            nextBlock * FLOWS_PER_BLOCK,
+            FLOW_TOTAL
+        )
+    });
+
+    return true;
+}
+    
 function flowStageFor(index){
   const n=index+1;
   return FLOW_STAGES.find(stage=>n<=stage.end)||FLOW_STAGES[FLOW_STAGES.length-1];
@@ -1422,27 +1526,115 @@ function challengeValue(ch){
   return 0;
 }
 function completeCurrentFlow(){
-  if(challengeAdvanceTimer)return;
-  const finished=activeChallenge;
-  completedFlows=Math.max(completedFlows,currentFlowIndex+1);
-  localStorage.setItem("shiftvixCompletedFlows",String(completedFlows));
-  track("current_flow_completed",{flow_number:currentFlowIndex+1,flow_id:finished.id,flow_stage:flowStageFor(currentFlowIndex).name,environment:environmentEngine.current.id,level,distance:Math.floor(distance),score});track("highest_flow_reached", {
-    highest_flow: currentFlowIndex + 1
-});
-  showModeBanner(`${environmentEngine.current.name} COMPLETE`);
 
-  // Start the next flow immediately. This prevents orb pickups during the
-  // completion animation from being lost or making the next counter appear stuck.
-  currentFlowIndex=Math.min(FLOW_TOTAL-1,currentFlowIndex+1);
-  localStorage.setItem("shiftvixCurrentFlow",String(currentFlowIndex));
-  activeChallenge=createFlow(currentFlowIndex);
-  challengeStart={found:foundCount,score,distance,strikes,tierCounts:{...tierCounts}};
-  environmentEngine.resetForFlow({announce:false});
-  challengeAdvanceTimer=setTimeout(()=>{
-    challengeAdvanceTimer=null;
-    updateChallenge();
-    showModeBanner(environmentEngine.current.name);
-  },650);
+    if(challengeAdvanceTimer){
+        return;
+    }
+
+    const finished = activeChallenge;
+    const finishedFlowIndex =
+        currentFlowIndex;
+
+    completedFlows = Math.max(
+        completedFlows,
+        finishedFlowIndex + 1
+    );
+
+    localStorage.setItem(
+        "shiftvixCompletedFlows",
+        String(completedFlows)
+    );
+
+    const blockUnlocked =
+        checkForBlockUnlock(
+            finishedFlowIndex
+        );
+
+    track("current_flow_completed",{
+        flow_number:
+            finishedFlowIndex + 1,
+        flow_id:finished.id,
+        flow_stage:
+            flowStageFor(
+                finishedFlowIndex
+            ).name,
+        environment:
+            environmentEngine.current.id,
+        level,
+        distance:Math.floor(distance),
+        score
+    });
+
+    track("highest_flow_reached",{
+        highest_flow:
+            finishedFlowIndex + 1
+    });
+
+    showModeBanner(
+        blockUnlocked
+            ? `FLOWS ${
+                highestUnlockedBlock *
+                FLOWS_PER_BLOCK -
+                FLOWS_PER_BLOCK + 1
+              }–${
+                Math.min(
+                    highestUnlockedBlock *
+                    FLOWS_PER_BLOCK,
+                    FLOW_TOTAL
+                )
+              } UNLOCKED`
+            : `${environmentEngine.current.name} COMPLETE`
+    );
+
+    const proposedNextIndex =
+        Math.min(
+            FLOW_TOTAL - 1,
+            finishedFlowIndex + 1
+        );
+
+    if(isFlowUnlocked(proposedNextIndex)){
+
+        currentFlowIndex =
+            proposedNextIndex;
+
+    }else{
+
+        currentFlowIndex =
+            finishedFlowIndex;
+    }
+
+    localStorage.setItem(
+        "shiftvixCurrentFlow",
+        String(currentFlowIndex)
+    );
+
+    activeChallenge =
+        createFlow(currentFlowIndex);
+
+    challengeStart = {
+        found:foundCount,
+        score,
+        distance,
+        strikes,
+        tierCounts:{...tierCounts}
+    };
+
+    environmentEngine.resetForFlow({
+        announce:false
+    });
+
+    challengeAdvanceTimer =
+        setTimeout(()=>{
+
+            challengeAdvanceTimer = null;
+
+            updateChallenge();
+
+            showModeBanner(
+                environmentEngine.current.name
+            );
+
+        },650);
 }
 function updateChallenge(){
   if(!activeChallenge){
@@ -1465,14 +1657,8 @@ function renderFlowArchive(){
 
     if(!list) return;
 
-    const FLOWS_PER_BLOCK = 30;
-    const TOTAL_BLOCKS = Math.ceil(FLOW_TOTAL / FLOWS_PER_BLOCK);
-
-    // Each fully completed group of 30 unlocks the following group.
-    const highestUnlockedBlock = Math.min(
-        TOTAL_BLOCKS,
-        Math.floor(completedFlows / FLOWS_PER_BLOCK) + 1
-    );
+  const TOTAL_BLOCKS =
+    TOTAL_FLOW_BLOCKS;
 
     let html = `
         <div class="archiveProgress">
@@ -1496,7 +1682,8 @@ function renderFlowArchive(){
             FLOW_TOTAL
         );
 
-        const blockLocked = blockNumber > highestUnlockedBlock;
+       const blockLocked =
+    !isBlockUnlocked(blockNumber);
 
         html += `
             <section class="archiveBlock ${
