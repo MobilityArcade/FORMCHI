@@ -270,11 +270,17 @@ canvas{display:block}
 /* =========================
    SHIFTVIX — CURRENT FLOW SYSTEM
    ========================= */
-#challengeHud{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:22;width:min(560px,90vw);text-align:center;color:rgba(255,255,255,.94);font-size:11px;font-weight:900;letter-spacing:1.5px;text-shadow:0 0 10px #000;cursor:pointer;pointer-events:auto}
-#challengeName{font-size:10px;letter-spacing:3px;color:#ffd36a;margin-bottom:5px}
-#challengeText{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#challengeBar{margin:7px auto 0;width:min(360px,76vw);height:5px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden;border:1px solid rgba(255,255,255,.12)}
-#challengeFill{height:100%;width:0%;background:linear-gradient(90deg,#55ccff,#ff66cc,#ffd36a);box-shadow:0 0 15px rgba(255,102,204,.9);transition:width .2s}
+#challengeHud{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:22;width:min(620px,92vw);text-align:center;color:#fff;font-weight:900;text-shadow:0 0 10px #000;cursor:pointer;pointer-events:auto}
+#challengeName{font-size:15px;letter-spacing:2.4px;color:#ffd36a;margin-bottom:9px;text-shadow:0 0 10px rgba(255,211,106,.5)}
+#challengeText{font-size:clamp(17px,4.5vw,22px);line-height:1.18;letter-spacing:1.6px;color:#fff;white-space:normal;overflow:visible;text-overflow:clip;padding:0 8px}
+#challengeBar{margin:11px auto 0;width:min(430px,82vw);height:7px;border-radius:999px;background:rgba(255,255,255,.11);overflow:hidden;border:1px solid rgba(255,211,106,.28);box-shadow:inset 0 0 8px rgba(0,0,0,.7)}
+#challengeFill{height:100%;width:0%;background:linear-gradient(90deg,#8f6a16 0%,#d6aa38 45%,#ffd36a 100%);box-shadow:0 0 12px rgba(255,211,106,.82);transition:width .2s}
+@media (max-width:768px){
+  #challengeHud{bottom:24px;width:92vw}
+  #challengeName{font-size:15px;margin-bottom:8px}
+  #challengeText{font-size:19px;letter-spacing:1.3px}
+  #challengeBar{width:82vw;height:7px}
+}
 #modeBanner{position:absolute;left:50%;top:31%;transform:translate(-50%,-50%);z-index:65;pointer-events:none;font-size:16px;font-weight:1000;letter-spacing:3px;opacity:0;color:#ffd36a;text-shadow:0 0 14px #ffd36a,0 0 42px #ff8800;white-space:nowrap}
 #modeBanner.show{animation:modeFlash 1.25s ease-out forwards}
 @keyframes modeFlash{0%{opacity:0;transform:translate(-50%,-25%) scale(.8)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-85%) scale(1)}}
@@ -338,6 +344,392 @@ let introCameraZ=48;
 const TARGET_CAMERA_Z=72;
 // ---------- WARP ----------
 let warpAmount = 0;
+
+// =========================
+// SHIFTVIX v2.0 — ENVIRONMENT ENGINE
+// Normal and Curved Space now use one shared interface.
+//
+// Automatic selection:
+//   • Every 10th Current Flow uses CURVED SPACE.
+//   • All other flows use NORMAL SPACE.
+//
+// Testing override:
+//   ?environment=normal
+//   ?environment=curved
+// =========================
+const ENVIRONMENT_TYPES = Object.freeze({
+  NORMAL:"normal",
+  CURVED:"curved"
+});
+
+const environmentQuery = new URLSearchParams(window.location.search)
+  .get("environment")?.toLowerCase();
+
+function easeInOutCubic(t){
+  return t < 0.5
+    ? 4 * t * t * t
+    : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+function rotatePoint(x,y,angle){
+  const c=Math.cos(angle);
+  const s=Math.sin(angle);
+  return {
+    x:x*c-y*s,
+    y:x*s+y*c
+  };
+}
+
+const normalEnvironment = {
+  id:ENVIRONMENT_TYPES.NORMAL,
+  name:"NORMAL SPACE",
+
+  reset(){},
+  start(){},
+  update(){},
+
+  transformPoint(x,y){
+    return {x,y};
+  },
+
+  transformSwipe(dx,dy){
+    return {x:dx,y:dy};
+  },
+
+  getRotation(){
+    return 0;
+  }
+};
+
+const curvedEnvironment = {
+  id:ENVIRONMENT_TYPES.CURVED,
+  name:"CURVED SPACE",
+
+  warningDistance:450,
+  startDistance:500,
+  turnAngle:THREE.MathUtils.degToRad(-30),
+  turnDuration:1.8,
+
+  rotation:0,
+  turnFrom:0,
+  turnTarget:0,
+  elapsed:0,
+  active:false,
+  triggered:false,
+  warningShown:false,
+
+  reset(){
+    this.rotation=0;
+    this.turnFrom=0;
+    this.turnTarget=0;
+    this.elapsed=0;
+    this.active=false;
+    this.triggered=false;
+    this.warningShown=false;
+  },
+
+  start(){
+    // The curved event begins later in the run, so start only resets state.
+    this.reset();
+  },
+
+  beginTurn(){
+    if(this.triggered)return;
+
+    this.triggered=true;
+    this.active=true;
+    this.elapsed=0;
+    this.turnFrom=this.rotation;
+    this.turnTarget=this.turnAngle;
+
+    showModeBanner("CURVED SPACE");
+    track("environment_event_started",{
+      environment:this.id,
+      distance:Math.floor(distance),
+      degrees:30,
+      direction:"clockwise"
+    });
+  },
+
+  update(dt){
+    if(!this.warningShown && distance>=this.warningDistance){
+      this.warningShown=true;
+      showModeBanner("TURN APPROACHING");
+      bankRollVelocity+=THREE.MathUtils.degToRad(1.5);
+      warpCurveVelocityX+=10;
+    }
+
+    if(!this.triggered && distance>=this.startDistance){
+      this.beginTurn();
+    }
+
+    if(this.active){
+      this.elapsed+=dt;
+      const progress=THREE.MathUtils.clamp(
+        this.elapsed/this.turnDuration,
+        0,
+        1
+      );
+
+      this.rotation=THREE.MathUtils.lerp(
+        this.turnFrom,
+        this.turnTarget,
+        easeInOutCubic(progress)
+      );
+
+      bankRollVelocity+=THREE.MathUtils.degToRad(2.0)*dt;
+      warpCurveVelocityX+=12*dt;
+
+      if(progress>=1){
+        this.rotation=this.turnTarget;
+        this.active=false;
+
+        showModeBanner("TURN COMPLETE");
+        track("environment_event_completed",{
+          environment:this.id,
+          distance:Math.floor(distance),
+          degrees:30,
+          direction:"clockwise"
+        });
+      }
+    }
+  },
+
+  transformPoint(x,y){
+    return rotatePoint(x,y,this.rotation);
+  },
+
+  transformSwipe(dx,dy){
+    return rotatePoint(dx,dy,this.rotation);
+  },
+
+  getRotation(){
+    return this.rotation;
+  }
+};
+
+const ENVIRONMENTS = Object.freeze({
+  [ENVIRONMENT_TYPES.NORMAL]:normalEnvironment,
+  [ENVIRONMENT_TYPES.CURVED]:curvedEnvironment
+});
+
+const environmentEngine = {
+  current:normalEnvironment,
+  forcedType:null,
+
+  resolveType(){
+    if(environmentQuery && ENVIRONMENTS[environmentQuery]){
+      this.forcedType=environmentQuery;
+      return environmentQuery;
+    }
+
+    // Curved Space stays rare: flow 10, 20, 30, and so on.
+    return (currentFlowIndex+1)%10===0
+      ? ENVIRONMENT_TYPES.CURVED
+      : ENVIRONMENT_TYPES.NORMAL;
+  },
+
+  set(type,{announce=false}={}){
+    const next=ENVIRONMENTS[type]||normalEnvironment;
+
+    if(this.current && this.current!==next){
+      this.current.reset();
+    }
+
+    this.current=next;
+    this.current.start();
+    this.applyLaneGuides();
+    this.updatePlayerTarget();
+
+    if(announce){
+      showModeBanner(this.current.name);
+    }
+
+    track("environment_selected",{
+      environment:this.current.id,
+      flow_number:currentFlowIndex+1,
+      forced:Boolean(this.forcedType)
+    });
+  },
+
+  resetForRun(){
+    this.set(this.resolveType());
+  },
+
+  update(dt){
+    this.current.update(dt);
+    this.applyLaneGuides();
+    this.updatePlayerTarget();
+  },
+
+  transformPoint(x,y){
+    return this.current.transformPoint(x,y);
+  },
+
+  transformSwipe(dx,dy){
+    return this.current.transformSwipe(dx,dy);
+  },
+
+  updatePlayerTarget(){
+    const p=this.transformPoint(LANE_X[laneX],LANE_Y[laneY]);
+    targetX=p.x;
+    targetY=p.y;
+  },
+
+  applyLaneGuides(){
+    const rotation=this.current.getRotation();
+    laneGuides.forEach(guide=>{
+      guide.rotation.z=rotation;
+    });
+  }
+};
+
+function updateEnvironment(dt){
+  environmentEngine.update(dt);
+}
+
+function resetEnvironmentForRun(){
+  environmentEngine.resetForRun();
+}
+
+function environmentPoint(x,y){
+  return environmentEngine.transformPoint(x,y);
+}
+
+function environmentSwipe(dx,dy){
+  return environmentEngine.transformSwipe(dx,dy);
+}
+
+// =========================
+// SHIFTVIX WARP BANKING 3.0 + WARP CURVATURE 4.0
+// Space momentum, dynamic vanishing point, layered depth, ambient route drift,
+// and restrained gravitational-style curvature. Gameplay coordinates stay unchanged.
+// =========================
+const MAX_BANK_ROLL = THREE.MathUtils.degToRad(5.6);
+const MAX_BANK_PITCH = THREE.MathUtils.degToRad(2.0);
+const MAX_BANK_YAW = THREE.MathUtils.degToRad(1.25);
+
+let bankRoll = 0;
+let bankPitch = 0;
+let bankYaw = 0;
+let bankRollVelocity = 0;
+let bankPitchVelocity = 0;
+let bankYawVelocity = 0;
+
+let warpCurveX = 0;
+let warpCurveY = 0;
+let warpCurveVelocityX = 0;
+let warpCurveVelocityY = 0;
+
+let routePhase = Math.random() * Math.PI * 2;
+let routePhaseSpeed = 0.075 + Math.random() * 0.025;
+let vanishingX = 0;
+let vanishingY = 0;
+let lensPulse = 0;
+
+function addWarpBank(dx,dy){
+  const speedFeel = 0.84 + Math.min(0.24, distance / 19000);
+
+  // Steering impulses carry momentum instead of snapping to a fixed angle.
+  bankRollVelocity += -dx * THREE.MathUtils.degToRad(13.5) * speedFeel;
+  bankPitchVelocity +=  dy * THREE.MathUtils.degToRad(5.0) * speedFeel;
+  bankYawVelocity +=   -dx * THREE.MathUtils.degToRad(3.7) * speedFeel;
+
+  // The deep field receives a longer, softer directional impulse.
+  warpCurveVelocityX += -dx * 58 * speedFeel;
+  warpCurveVelocityY +=  dy * 31 * speedFeel;
+}
+
+function updateWarpBanking(dt){
+  // Spring-damped aircraft-like response.
+  const rollSpring = -bankRoll * 26;
+  const pitchSpring = -bankPitch * 28;
+  const yawSpring = -bankYaw * 24;
+
+  bankRollVelocity += rollSpring * dt;
+  bankPitchVelocity += pitchSpring * dt;
+  bankYawVelocity += yawSpring * dt;
+
+  const angularDrag = Math.exp(-dt * 5.5);
+  bankRollVelocity *= angularDrag;
+  bankPitchVelocity *= angularDrag;
+  bankYawVelocity *= angularDrag;
+
+  bankRoll = THREE.MathUtils.clamp(bankRoll + bankRollVelocity * dt, -MAX_BANK_ROLL, MAX_BANK_ROLL);
+  bankPitch = THREE.MathUtils.clamp(bankPitch + bankPitchVelocity * dt, -MAX_BANK_PITCH, MAX_BANK_PITCH);
+  bankYaw = THREE.MathUtils.clamp(bankYaw + bankYawVelocity * dt, -MAX_BANK_YAW, MAX_BANK_YAW);
+
+  // Long route curvature has more inertia than the camera.
+  warpCurveVelocityX += -warpCurveX * 2.15 * dt;
+  warpCurveVelocityY += -warpCurveY * 2.35 * dt;
+  const curveDrag = Math.exp(-dt * 1.85);
+  warpCurveVelocityX *= curveDrag;
+  warpCurveVelocityY *= curveDrag;
+  warpCurveX = THREE.MathUtils.clamp(warpCurveX + warpCurveVelocityX * dt, -28, 28);
+  warpCurveY = THREE.MathUtils.clamp(warpCurveY + warpCurveVelocityY * dt, -16, 16);
+
+  // Variable route: long graceful curves separated by calmer sections.
+  routePhase += dt * routePhaseSpeed * (0.65 + warpAmount * 0.35);
+  const routeEnvelope = 0.36 + 0.64 * Math.pow(0.5 + 0.5 * Math.sin(routePhase * 0.53 + 0.8), 2);
+  const ambientCurveX = Math.sin(routePhase) * routeEnvelope * warpAmount * 7.5;
+  const ambientCurveY = Math.sin(routePhase * 0.71 + 1.45) * routeEnvelope * warpAmount * 3.6;
+
+  // Dynamic vanishing point follows steering, but remains inside a safe 3–4% window.
+  const targetVanishingX = THREE.MathUtils.clamp(
+    -bankYaw * 285 + (warpCurveX + ambientCurveX) * 0.12,
+    -18, 18
+  );
+  const targetVanishingY = THREE.MathUtils.clamp(
+    bankPitch * 210 + (warpCurveY + ambientCurveY) * 0.10,
+    -10, 10
+  );
+  const vanishEase = 1 - Math.exp(-dt * 2.7);
+  vanishingX += (targetVanishingX - vanishingX) * vanishEase;
+  vanishingY += (targetVanishingY - vanishingY) * vanishEase;
+
+  // 4.0 curvature pulse is deliberately tiny and slow.
+  lensPulse = (0.5 + 0.5 * Math.sin(routePhase * 0.41 + 2.2)) * warpAmount;
+
+  const ambientRoll = Math.sin(routePhase * 0.88) * warpAmount * THREE.MathUtils.degToRad(0.38);
+  const ambientYaw = Math.sin(routePhase * 0.61 + 0.4) * warpAmount * THREE.MathUtils.degToRad(0.20);
+  const ambientPitch = Math.sin(routePhase * 0.47 + 1.2) * warpAmount * THREE.MathUtils.degToRad(0.09);
+
+  camera.rotation.z = bankRoll + ambientRoll;
+  camera.rotation.x += bankPitch + ambientPitch;
+  camera.rotation.y += bankYaw + ambientYaw;
+
+  stars.forEach((s,index)=>{
+    const depthWeight = 0.78 + index * 0.12;
+    s.rotation.z = -(bankRoll + ambientRoll) * (0.18 + depthWeight * 0.08);
+    s.position.x = -vanishingX * (0.42 + depthWeight * 0.12);
+    s.position.y = -vanishingY * (0.34 + depthWeight * 0.10);
+  });
+
+  return {ambientCurveX, ambientCurveY};
+}
+
+function resetWarpBanking(){
+  bankRoll = 0;
+  bankPitch = 0;
+  bankYaw = 0;
+  bankRollVelocity = 0;
+  bankPitchVelocity = 0;
+  bankYawVelocity = 0;
+  warpCurveX = 0;
+  warpCurveY = 0;
+  warpCurveVelocityX = 0;
+  warpCurveVelocityY = 0;
+  vanishingX = 0;
+  vanishingY = 0;
+  lensPulse = 0;
+  camera.rotation.set(0,0,0);
+  stars.forEach(s=>{
+    s.rotation.z = 0;
+    s.position.x = 0;
+    s.position.y = 0;
+  });
+}
+
 let introScale=1.2;
 const clock=new THREE.Clock(), beacons=[], stars=[], laneGuides=[];
 const TIERS=[{name:"WHITE",color:0xffffff,value:10,size:3.8,freq:880},{name:"BLUE",color:0x55ccff,value:25,size:4.3,freq:1046},{name:"GREEN",color:0x66ff66,value:50,size:4.8,freq:1174},{name:"PURPLE",color:0xcc66ff,value:75,size:5.1,freq:1240},{name:"ORANGE",color:0xff8800,value:100,size:5.4,freq:1318},{name:"RED",color:0xff4444,value:200,size:6.1,freq:1568}];
@@ -345,478 +737,369 @@ function initAudio(){if(audioCtx){if(audioCtx.state!=="running")audioCtx.resume(
 function playCoin(tier){if(!audioCtx)return;const now=audioCtx.currentTime,osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type="square";osc.frequency.setValueAtTime(tier.freq,now);osc.frequency.exponentialRampToValueAtTime(tier.freq*1.55,now+.055);gain.gain.setValueAtTime(.0001,now);gain.gain.linearRampToValueAtTime(.018,now+.008);gain.gain.exponentialRampToValueAtTime(.0001,now+.105);osc.connect(gain).connect(audioCtx.destination);osc.start(now);osc.stop(now+.13);if(tier.value>=100){const osc2=audioCtx.createOscillator(),gain2=audioCtx.createGain();osc2.type="sine";osc2.frequency.setValueAtTime(tier.freq*2,now+.035);gain2.gain.setValueAtTime(.0001,now+.035);gain2.gain.linearRampToValueAtTime(.018,now+.045);gain2.gain.exponentialRampToValueAtTime(.0001,now+.16);osc2.connect(gain2).connect(audioCtx.destination);osc2.start(now+.035);osc2.stop(now+.18);}}
 function playStrike(){if(!audioCtx)return;const now=audioCtx.currentTime,osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type="sawtooth";osc.frequency.setValueAtTime(180,now);osc.frequency.exponentialRampToValueAtTime(70,now+.22);gain.gain.setValueAtTime(.0001,now);gain.gain.linearRampToValueAtTime(.05,now+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+.28);osc.connect(gain).connect(audioCtx.destination);osc.start(now);osc.stop(now+.3);}
 // =========================
-// SHIFTVIX MUSIC ENGINE
+// SHIFTVIX MUSIC EVOLUTION 2.0
+// Keeps the original arcade theme while making long runs evolve.
 // =========================
 
-const bassPatternA = [
-  82,82,82,82,
-  98,98,98,98,
-  110,110,110,110,
-  98,98,98,98
-];
+const bassPatternA = [82,82,82,82,98,98,98,98,110,110,110,110,98,98,98,98];
+const bassPatternB = [110,110,110,110,147,147,147,147,131,131,131,131,98,98,98,98];
+const bassPatternC = [147,147,147,147,131,131,131,131,165,165,165,165,110,110,110,110];
+const bassPatternD = [165,165,165,165,196,196,196,196,220,220,220,220,147,147,147,147];
 
-const bassPatternB = [
-  110,110,110,110,
-  147,147,147,147,
-  131,131,131,131,
-  98,98,98,98
-];
+const leadPatternA = [330,392,440,494,330,392,440,587,392,440,494,659,440,494,587,784];
+const leadPatternB = [784,659,587,494,659,587,494,440,587,494,440,392,494,440,392,330];
+const leadPatternC = [587,659,784,659,587,659,880,784,659,784,988,880,784,880,988,1174];
+const leadPatternD = [784,659,784,880,784,659,784,988,880,784,988,1174,988,880,1174,1318];
+const arpPattern = [330,494,392,330,494,392,440,659,523,440,659,523];
 
-const bassPatternC = [
-  147,147,147,147,
-  131,131,131,131,
-  165,165,165,165,
-  110,110,110,110
-];
-
-const bassPatternD = [
-  165,165,165,165,
-  196,196,196,196,
-  220,220,220,220,
-  147,147,147,147
-];
-
-const leadPatternA = [
-  330,392,440,494,
-  330,392,440,587,
-  392,440,494,659,
-  440,494,587,784
-];
-
-const leadPatternB = [
-  784,659,587,494,
-  659,587,494,440,
-  587,494,440,392,
-  494,440,392,330
-];
-
-const leadPatternC = [
-  587,659,784,659,
-  587,659,880,784,
-
-  659,784,988,880,
-  784,880,988,1174
-];
-
-const leadPatternD = [
-  784,659,784,880,
-  784,659,784,988,
-
-  880,784,988,1174,
-  988,880,1174,1318
-];
-
-const arpPattern = [
-  330,494,392,
-  330,494,392,
-
-  440,659,523,
-  440,659,523
-];
+// Small answering phrases. These do not replace the main melody; they appear
+// briefly at higher distances so the soundtrack feels conversational.
+const counterPatterns = {
+  A:[659,0,587,0,523,0,494,0],
+  B:[392,0,440,0,494,0,587,0],
+  C:[784,0,880,0,784,0,659,0],
+  D:[988,0,880,0,784,0,1174,0]
+};
 
 let musicStarted = false;
 let musicTimer = null;
+let musicStep = 0;
+let nextNoteTime = 0;
+let lastStrikeDistance = 0;
 
-function playTone(freq,type,volume,duration){
+// Shared audio path for music only. Coin and strike effects remain direct so
+// they stay crisp and readable even when the soundtrack is filtered.
+let musicInput = null;
+let musicFilter = null;
+let musicCompressor = null;
+let musicMasterGain = null;
 
-  if(!audioCtx) return;
+function ensureMusicBus(){
+  if(!audioCtx || musicInput) return;
 
-  const now = audioCtx.currentTime;
+  musicInput = audioCtx.createGain();
+  musicFilter = audioCtx.createBiquadFilter();
+  musicCompressor = audioCtx.createDynamicsCompressor();
+  musicMasterGain = audioCtx.createGain();
 
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
+  musicFilter.type = "lowpass";
+  musicFilter.frequency.value = 1350;
+  musicFilter.Q.value = 0.7;
 
-  osc.type = type;
-  osc.frequency.value = freq;
+  musicCompressor.threshold.value = -18;
+  musicCompressor.knee.value = 16;
+  musicCompressor.ratio.value = 3;
+  musicCompressor.attack.value = 0.01;
+  musicCompressor.release.value = 0.18;
 
-  gain.gain.setValueAtTime(volume, now);
+  musicMasterGain.gain.value = 0.82;
 
-  gain.gain.exponentialRampToValueAtTime(
-    0.0001,
-    now + duration
-  );
-
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-
-  osc.start(now);
-  osc.stop(now + duration);
+  musicInput.connect(musicFilter);
+  musicFilter.connect(musicCompressor);
+  musicCompressor.connect(musicMasterGain);
+  musicMasterGain.connect(audioCtx.destination);
 }
 
-function playToneAt(freq,type,volume,duration,startTime){
-
+function updateMusicEvolution(time){
   if(!audioCtx) return;
+  ensureMusicBus();
+
+  // The same song gradually opens up instead of simply getting louder.
+  const progress = Math.max(0, Math.min(1, distance / 5000));
+  const cutoff = 1350 + progress * 7600;
+  musicFilter.frequency.setTargetAtTime(cutoff, time, 0.18);
+
+  // A tiny master lift compensates for the extra high-frequency detail.
+  const gain = 0.80 + progress * 0.08;
+  musicMasterGain.gain.setTargetAtTime(gain, time, 0.25);
+}
+
+function playTone(freq,type,volume,duration){
+  if(!audioCtx) return;
+  playToneAt(freq,type,volume,duration,audioCtx.currentTime);
+}
+
+function playToneAt(freq,type,volume,duration,startTime,options={}){
+  if(!audioCtx || !freq || freq <= 0) return;
+  ensureMusicBus();
 
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
+  const destination = options.direct ? audioCtx.destination : musicInput;
 
   osc.type = type;
   osc.frequency.setValueAtTime(freq, startTime);
+  if(options.detune) osc.detune.setValueAtTime(options.detune, startTime);
 
+  const attack = options.attack ?? 0.01;
+  const releaseEnd = startTime + duration;
   gain.gain.setValueAtTime(0.0001, startTime);
-  gain.gain.linearRampToValueAtTime(volume, startTime + 0.01);
-  gain.gain.exponentialRampToValueAtTime(
-    0.0001,
-    startTime + duration
-  );
+  gain.gain.linearRampToValueAtTime(volume, startTime + attack);
+  gain.gain.exponentialRampToValueAtTime(0.0001, releaseEnd);
 
   osc.connect(gain);
-  gain.connect(audioCtx.destination);
-
+  gain.connect(destination);
   osc.start(startTime);
-  osc.stop(startTime + duration + 0.02);
+  osc.stop(releaseEnd + 0.03);
 }
 
-let musicStep = 0;
-let nextNoteTime = 0;
+// =========================
+// HEARTBEAT / EVOLVING PERCUSSION
+// =========================
+let drumStep = 0;
+let nextDrumTime = 0;
+let drumEnabled = true;
+
+function getDrumBPM(){
+  const bpm = 76 + Math.min(46, distance / 115);
+  return Math.max(76, Math.min(122, bpm));
+}
+
+function playNoiseHit(time, volume, duration, highpass=1200){
+  if(!audioCtx || !drumEnabled) return;
+  ensureMusicBus();
+  const length = Math.max(1, Math.floor(audioCtx.sampleRate * duration));
+  const buffer = audioCtx.createBuffer(1,length,audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for(let i=0;i<length;i++) data[i]=(Math.random()*2-1)*(1-i/length);
+
+  const source=audioCtx.createBufferSource();
+  const filter=audioCtx.createBiquadFilter();
+  const gain=audioCtx.createGain();
+  source.buffer=buffer;
+  filter.type="highpass";
+  filter.frequency.value=highpass;
+  gain.gain.setValueAtTime(volume,time);
+  gain.gain.exponentialRampToValueAtTime(0.0001,time+duration);
+  source.connect(filter).connect(gain).connect(musicInput);
+  source.start(time);
+}
+
+function playDrumHit(time, accent = 1){
+  if(!audioCtx || !drumEnabled) return;
+  ensureMusicBus();
+
+  const bodyOsc = audioCtx.createOscillator();
+  const bodyGain = audioCtx.createGain();
+  bodyOsc.type = "sine";
+  bodyOsc.frequency.setValueAtTime(92, time);
+  bodyOsc.frequency.exponentialRampToValueAtTime(48, time + 0.18);
+  bodyGain.gain.setValueAtTime(0.0001, time);
+  bodyGain.gain.linearRampToValueAtTime(0.112 * accent, time + 0.008);
+  bodyGain.gain.exponentialRampToValueAtTime(0.0001, time + 0.34);
+  bodyOsc.connect(bodyGain).connect(musicInput);
+  bodyOsc.start(time);
+  bodyOsc.stop(time + 0.38);
+
+  const knockOsc = audioCtx.createOscillator();
+  const knockGain = audioCtx.createGain();
+  knockOsc.type = "triangle";
+  knockOsc.frequency.setValueAtTime(165, time);
+  knockOsc.frequency.exponentialRampToValueAtTime(82, time + 0.07);
+  knockGain.gain.setValueAtTime(0.0001, time);
+  knockGain.gain.linearRampToValueAtTime(0.040 * accent, time + 0.004);
+  knockGain.gain.exponentialRampToValueAtTime(0.0001, time + 0.13);
+  knockOsc.connect(knockGain).connect(musicInput);
+  knockOsc.start(time);
+  knockOsc.stop(time + 0.15);
+
+  // Extra percussion arrives in stages, preserving the original heartbeat.
+  if(distance > 1100 && drumStep % 2 === 1){
+    playNoiseHit(time,0.010,0.045,2500); // light shaker
+  }
+  if(distance > 2300 && drumStep % 4 === 2){
+    playToneAt(72,"triangle",0.030,0.16,time,{attack:0.004}); // low tom answer
+  }
+  if(distance > 3600 && drumStep % 8 === 6){
+    playNoiseHit(time,0.017,0.09,900); // broader tribal texture
+  }
+}
+
+function drumScheduler(){
+  if(!audioCtx || !musicStarted || paused || gameOver || !drumEnabled) return;
+  const scheduleAheadTime = 0.14;
+  while(nextDrumTime < audioCtx.currentTime + scheduleAheadTime){
+    const beatDuration = 60 / getDrumBPM();
+    const accent = drumStep % 4 === 0 ? 1.18 : (drumStep % 2 === 0 ? 1.05 : 0.82);
+    playDrumHit(nextDrumTime, accent);
+    drumStep++;
+    nextDrumTime += beatDuration;
+  }
+}
+
+function resetDrumPulse(){
+  drumStep = 0;
+  if(audioCtx) nextDrumTime = audioCtx.currentTime + 0.08;
+}
 
 function getMusicArrangement(){
-
-  const arrangementsEasy = [
-    ["A","B"],
-    ["B","A"]
-  ];
-
-  const arrangementsMid = [
-    ["A","B","C"],
-    ["A","C","B"],
-    ["B","A","C"]
-  ];
-
-  const arrangementsHard = [
-    ["A","B","C","D"],
-    ["A","C","D","B"],
-    ["D","A","B","C"],
-    ["B","D","A","C"],
-    ["C","A","D","B"]
-  ];
-
-  if(distance < 500){
-    return arrangementsEasy;
-  }
-  else if(distance < 1000){
-    return arrangementsMid;
-  }
-  else if(distance < 1500){
-    return arrangementsHard;
-  }
-  else if(distance < 2000){
-    return [
-      ["A","B","C","D"],
-      ["B","C","D","A"]
-    ];
-  }
-
-  return [
-
-["A","B","C","D"],
-
-["A","C","D","B"],
-
-["B","D","A","C"],
-
-["C","A","D","B"],
-
-["D","C","B","A"],
-
-["D","A","B","C"],
-
-["B","A","D","C"],
-
-["C","D","B","A"]
-
-];
+  const easy=[["A","B"],["B","A"]];
+  const mid=[["A","B","C"],["A","C","B"],["B","A","C"]];
+  const hard=[["A","B","C","D"],["A","C","D","B"],["D","A","B","C"],["B","D","A","C"],["C","A","D","B"]];
+  if(distance<500) return easy;
+  if(distance<1000) return mid;
+  if(distance<1500) return hard;
+  if(distance<2000) return [["A","B","C","D"],["B","C","D","A"]];
+  return [["A","B","C","D"],["A","C","D","B"],["B","D","A","C"],["C","A","D","B"],["D","C","B","A"],["D","A","B","C"],["B","A","D","C"],["C","D","B","A"]];
 }
+
 let currentArrangement = null;
 let currentPhraseLength = 128;
 let nextPhraseStep = 0;
 let lastArrangement = -1;
-  
+let phraseInstrument = "square";
+
 function getMusicSection(step){
-
-    const arrangements = getMusicArrangement();
-
-    if(step >= nextPhraseStep){
-
-        let index;
-
-        do{
-
-            index = Math.floor(
-                Math.random() *
-                arrangements.length
-            );
-
-        }while(index === lastArrangement);
-
-        lastArrangement = index;
-
-        currentArrangement =
-            arrangements[index];
-
-        // Weighted phrase lengths
-        const phraseChoices = [
-
-            32,
-            32,
-            32,
-            32,
-
-            36,
-            36,
-
-            28,
-
-            39,
-
-            44
-
-        ];
-
-        currentPhraseLength =
-            phraseChoices[
-                Math.floor(
-                    Math.random() *
-                    phraseChoices.length
-                )
-            ];
-
-        nextPhraseStep =
-            step + currentPhraseLength;
-
+  const arrangements=getMusicArrangement();
+  if(step>=nextPhraseStep || !currentArrangement){
+    let index=0;
+    if(arrangements.length>1){
+      do{index=Math.floor(Math.random()*arrangements.length);}while(index===lastArrangement);
     }
+    lastArrangement=index;
+    currentArrangement=arrangements[index];
+    const phraseChoices=[32,32,32,32,36,36,28,39,44];
+    currentPhraseLength=phraseChoices[Math.floor(Math.random()*phraseChoices.length)];
+    nextPhraseStep=step+currentPhraseLength;
 
-    const sectionLength = 12;
-
-    const sectionIndex =
-        Math.floor(
-            (step % currentPhraseLength) /
-            sectionLength
-        ) %
-        currentArrangement.length;
-
-    return currentArrangement[sectionIndex];
-
+    // Subtle instrument rotation: same notes, slightly different character.
+    const instruments=["square","square","triangle","sawtooth"];
+    phraseInstrument=instruments[Math.floor(Math.random()*instruments.length)];
+  }
+  const sectionLength=12;
+  const sectionIndex=Math.floor((step%currentPhraseLength)/sectionLength)%currentArrangement.length;
+  return currentArrangement[sectionIndex];
 }
 
 function getPatternsForSection(section){
+  if(section==="A") return {bass:bassPatternA,lead:leadPatternA};
+  if(section==="B") return {bass:bassPatternB,lead:leadPatternB};
+  if(section==="C") return {bass:bassPatternC,lead:leadPatternC};
+  return {bass:bassPatternD,lead:leadPatternD};
+}
 
-  if(section === "A"){
-    return {bass:bassPatternA, lead:leadPatternA};
+function getCleanFlowAmount(){
+  // Harmony gradually returns after a strike. Fewer remaining lives also reduce it.
+  const cleanDistance=Math.max(0,distance-lastStrikeDistance);
+  const recovery=Math.max(0,Math.min(1,cleanDistance/700));
+  const livesFactor=Math.max(0.22,(3-strikes)/3);
+  return recovery*livesFactor;
+}
+
+function scheduleAmbientPad(section,time,stepDuration,cleanAmount){
+  if(musicStep%16!==0) return;
+  const roots={A:82,B:98,C:110,D:147};
+  const root=roots[section]||82;
+  const evolution=Math.max(0,Math.min(1,distance/4500));
+  const volume=0.0045+evolution*0.004+cleanAmount*0.003;
+  const duration=stepDuration*15;
+  playToneAt(root,"sine",volume,duration,time,{attack:0.18,detune:-5});
+  playToneAt(root*1.5,"sine",volume*0.65,duration,time,{attack:0.22,detune:5});
+}
+
+function scheduleMusicStep(step,time,stepDuration){
+  updateMusicEvolution(time);
+  const section=getMusicSection(step);
+  const patterns=getPatternsForSection(section);
+  const cleanAmount=getCleanFlowAmount();
+  const leadType=phraseInstrument;
+
+  playToneAt(patterns.bass[step%patterns.bass.length],"triangle",0.038,stepDuration*0.9,time);
+  playToneAt(patterns.lead[step%patterns.lead.length],leadType,leadType==="sawtooth"?0.017:0.023,stepDuration*0.8,time);
+  playToneAt(arpPattern[step%arpPattern.length],"square",0.009,stepDuration*0.5,time);
+
+  // Adaptive harmony rewards clean play with warmth rather than extra points.
+  if(cleanAmount>0.10){
+    const lead=patterns.lead[step%patterns.lead.length];
+    playToneAt(lead*0.75,"sine",0.003+cleanAmount*0.007,stepDuration*2.2,time,{attack:0.05});
   }
-  else if(section === "B"){
-    return {bass:bassPatternB, lead:leadPatternB};
+
+  // Counter melody begins quietly, then becomes more present in longer runs.
+  if(distance>950 && step%4===2){
+    const counter=counterPatterns[section][Math.floor(step/2)%counterPatterns[section].length];
+    const counterGrowth=Math.min(1,(distance-950)/2600);
+    playToneAt(counter,"triangle",0.004+counterGrowth*0.006,stepDuration*1.15,time,{attack:0.025});
   }
-  else if(section === "C"){
-    return {bass:bassPatternC, lead:leadPatternC};
+
+  scheduleAmbientPad(section,time,stepDuration,cleanAmount);
+
+  if(distance>500){
+    playToneAt(patterns.lead[step%patterns.lead.length]/2,"sine",0.008,stepDuration*2.5,time);
   }
-
-  return {bass:bassPatternD, lead:leadPatternD};
-}
-
-function scheduleMusicStep(step, time, stepDuration){
-
-  const section = getMusicSection(step);
-  const patterns = getPatternsForSection(section);
-
-  playToneAt(
-    patterns.bass[step % patterns.bass.length],
-    "triangle",
-    0.04,
-    stepDuration * 0.9,
-    time
-  );
-
-  playToneAt(
-    patterns.lead[step % patterns.lead.length],
-    "square",
-    0.025,
-    stepDuration * 0.8,
-    time
-  );
-
-  playToneAt(
-    arpPattern[step % arpPattern.length],
-    "square",
-    0.01,
-    stepDuration * 0.5,
-    time
-  );
-
-  if(distance > 500){
-
-    playToneAt(
-
-        patterns.lead[
-            step % patterns.lead.length
-        ] / 2,
-
-        "sine",
-
-        0.009,
-
-        stepDuration * 2.5,
-
-        time
-
-    );
-
-}
-
-if(distance > 1200){
-
-    playToneAt(
-
-        patterns.lead[
-            step % patterns.lead.length
-        ] * 2,
-
-        "triangle",
-
-        0.006,
-
-        stepDuration,
-
-        time
-
-    );
-
-}
-
-  if(distance > 2200){
-
-    playToneAt(
-
-55,
-
-"sine",
-
-0.012,
-
-0.09,
-
-time
-
-);
-
-}
-
-  if(distance > 3200){
-
-    playToneAt(
-
-        patterns.bass[
-            step % patterns.bass.length
-        ] * 4,
-
-        "triangle",
-
-        0.006,
-
-        stepDuration * 3,
-
-        time
-
-    );
-
-}
-
-if(distance > 4200){
-
-    playToneAt(
-
-        patterns.lead[
-            step % patterns.lead.length
-        ] * 0.5,
-
-        "sine",
-
-        0.004,
-
-        stepDuration * 6,
-
-        time
-
-    );
-
-}
-
+  if(distance>1200){
+    playToneAt(patterns.lead[step%patterns.lead.length]*2,"triangle",0.005,stepDuration,time);
+  }
+  if(distance>2200 && step%4===0){
+    playToneAt(55,"sine",0.011,0.09,time);
+  }
+  if(distance>3200 && step%2===0){
+    playToneAt(patterns.bass[step%patterns.bass.length]*4,"triangle",0.005,stepDuration*3,time);
+  }
+  if(distance>4200 && step%4===0){
+    playToneAt(patterns.lead[step%patterns.lead.length]*0.5,"sine",0.004,stepDuration*6,time,{attack:0.08});
+  }
 }
 
 function musicScheduler(){
-
-  if(!audioCtx || !musicStarted) return;
-
-  const BPM = 148;
-  const STEP = (60 / BPM) / 2;
-  const scheduleAheadTime = 0.12;
-
-  while(nextNoteTime < audioCtx.currentTime + scheduleAheadTime){
-
-    scheduleMusicStep(
-      musicStep,
-      nextNoteTime,
-      STEP
-    );
-
+  if(!audioCtx || !musicStarted || paused || gameOver) return;
+  const BPM=148;
+  const STEP=(60/BPM)/2;
+  const scheduleAheadTime=0.12;
+  while(nextNoteTime<audioCtx.currentTime+scheduleAheadTime){
+    scheduleMusicStep(musicStep,nextNoteTime,STEP);
     musicStep++;
-    nextNoteTime += STEP;
+    nextNoteTime+=STEP;
   }
+  drumScheduler();
+}
+
+function resetMusicEvolution(){
+  musicStep=0;
+  currentArrangement=null;
+  nextPhraseStep=0;
+  lastArrangement=-1;
+  phraseInstrument="square";
+  lastStrikeDistance=0;
+  if(audioCtx){
+    ensureMusicBus();
+    musicFilter.frequency.cancelScheduledValues(audioCtx.currentTime);
+    musicFilter.frequency.setValueAtTime(1350,audioCtx.currentTime);
+    musicMasterGain.gain.cancelScheduledValues(audioCtx.currentTime);
+    musicMasterGain.gain.setValueAtTime(0.82,audioCtx.currentTime);
+  }
+  resetDrumPulse();
 }
 
 function startMusic(){
-
   initAudio();
-
   if(!audioCtx) return;
 
-  const begin = () => {
-
-    // Critical iPhone Safari fix:
-    // Do NOT mark music as started unless the AudioContext is truly running.
-    // If startMusic() was called during page load and Safari kept the context
-    // suspended, we need the first real touch to be able to try again.
-    if(audioCtx.state !== "running"){
-      musicStarted = false;
+  const begin=()=>{
+    if(audioCtx.state!=="running"){
+      musicStarted=false;
       return;
     }
-
     if(musicStarted) return;
 
-    musicStarted = true;
-    musicStep = 0;
-    nextNoteTime = audioCtx.currentTime + 0.035;
+    ensureMusicBus();
+    musicStarted=true;
+    musicStep=0;
+    nextNoteTime=audioCtx.currentTime+0.035;
+    resetMusicEvolution();
 
-    // Instant audible unlock ping. Very short and quiet, but it confirms
-    // Safari has actually opened the audio path.
-    playToneAt(
-      523.25,
-      "triangle",
-      0.012,
-      0.07,
-      audioCtx.currentTime + 0.01
-    );
-
+    // Short confirmation that iOS Safari has opened the audio path.
+    playToneAt(523.25,"triangle",0.012,0.07,audioCtx.currentTime+0.01,{direct:true});
     musicScheduler();
-
-    if(musicTimer){
-      clearInterval(musicTimer);
-    }
-
-    musicTimer = setInterval(musicScheduler, 25);
+    if(musicTimer) clearInterval(musicTimer);
+    musicTimer=setInterval(musicScheduler,25);
   };
 
-  if(audioCtx.state !== "running"){
-    audioCtx.resume().then(()=>{
-      // iOS Safari can resolve resume() before state is immediately visible.
-      // A zero-delay timeout gives it one event-loop turn before we decide.
-      setTimeout(begin, 0);
-    }).catch(()=>{
-      musicStarted = false;
+  if(audioCtx.state!=="running"){
+    audioCtx.resume().then(()=>setTimeout(begin,0)).catch(()=>{
+      musicStarted=false;
       console.log("Music will start after first interaction.");
     });
-  }
-  else{
+  }else{
     begin();
   }
 }
@@ -833,6 +1116,7 @@ const FLOW_STAGES = [
 const flowTitles = ["IGNITION","ALIGNMENT","MOMENTUM","RHYTHM","FOCUS","CONTROL","CADENCE","VELOCITY","RESOLVE","ASCENT","CLARITY","ENDURANCE","PULSE","VECTOR","ORBIT","SURGE","NEXUS","APEX","ZENITH","INFINITY"];
 let currentFlowIndex = Math.max(0,Math.min(FLOW_TOTAL-1,Number(localStorage.getItem("shiftvixCurrentFlow")||0)));
 let completedFlows = Math.max(0,Math.min(FLOW_TOTAL,Number(localStorage.getItem("shiftvixCompletedFlows")||0)));
+let objectiveOrbsCollected = 0;
 let activeChallenge = null;
 let challengeStart = null;
 let challengeAdvanceTimer = null;
@@ -857,18 +1141,19 @@ function createFlow(index){
     return {id:`level_${n}`,name,label:`REACH LEVEL ${target}`,target,metric:"level"};
   }
   if(type===1){
-    const target=60+cycle*11;
+    const target=250+cycle*45;
     return {id:`orbs_${n}`,name,label:`COLLECT ${target} ORBS`,target,metric:"orbs"};
   }
   if(type===2){
     const colors=["BLUE","GREEN","PURPLE","ORANGE","RED"];
     const color=colors[cycle%colors.length];
-    const base={BLUE:45,GREEN:36,PURPLE:28,ORANGE:20,RED:10}[color];
-    const target=base+cycle*3;
+    const base={BLUE:150,GREEN:120,PURPLE:80,ORANGE:40,RED:20}[color];
+    const growth={BLUE:25,GREEN:20,PURPLE:14,ORANGE:8,RED:4}[color];
+    const target=base+cycle*growth;
     return {id:`${color.toLowerCase()}_${n}`,name,label:`COLLECT ${target} ${color} ORBS`,target,metric:"color",color};
   }
   if(type===3){
-    const target=3000+cycle*850;
+    const target=10000+cycle*2500;
     return {id:`score_${n}`,name,label:`SCORE ${target.toLocaleString()} POINTS`,target,metric:"score"};
   }
   if(type===4){
@@ -877,23 +1162,23 @@ function createFlow(index){
     return {id:`survive_${n}`,name,label:`REACH LEVEL ${target} WITH ${lives} LIVES`,target,metric:"lives",lives};
   }
   if(type===5){
-    const target=1500+cycle*550;
+    const target=3000+cycle*900;
     return {id:`distance_${n}`,name,label:`TRAVEL ${target.toLocaleString()}m`,target,metric:"distance"};
   }
   if(type===6){
-    const target=75+cycle*13;
+    const target=200+cycle*30;
     return {id:`clean_${n}`,name,label:`COLLECT ${target} ORBS BEFORE A STRIKE`,target,metric:"clean"};
   }
   if(type===7){
-    const target=2400+cycle*725;
+    const target=9000+cycle*1800;
     return {id:`precision_${n}`,name,label:`SCORE ${target.toLocaleString()} WITH 2+ LIVES`,target,metric:"precision"};
   }
   if(type===8){
-    const target=20+cycle*4;
+    const target=100+cycle*18;
     return {id:`blue_${n}`,name,label:`COLLECT ${target} BLUE ORBS WITHOUT A STRIKE`,target,metric:"cleanColor",color:"BLUE"};
   }
   if(type===9){
-    const target=25+cycle*5;
+    const target=120+cycle*22;
     return {id:`green_${n}`,name,label:`COLLECT ${target} GREEN ORBS`,target,metric:"color",color:"GREEN"};
   }
   if(type===10){
@@ -901,17 +1186,28 @@ function createFlow(index){
     const maxStrikes=cycle<8?1:0;
     return {id:`controlled_level_${n}`,name,label:`REACH LEVEL ${target} WITH ${maxStrikes===0?"NO STRIKES":"1 STRIKE OR LESS"}`,target,metric:"maxStrikesLevel",maxStrikes};
   }
-  const target=100+cycle*15;
+  const target=250+cycle*40;
   return {id:`mixed_${n}`,name,label:`COLLECT ${target} ORBS WITH 2+ LIVES`,target,metric:"orbsWithLives"};
 }
 function beginCurrentFlow(){
-  activeChallenge=createFlow(currentFlowIndex);
-  challengeStart={found:foundCount,score,distance,strikes,tierCounts:{...tierCounts}};
-  updateChallenge();
+
+    activeChallenge = createFlow(currentFlowIndex);
+
+    objectiveOrbsCollected = 0;
+
+    challengeStart = {
+        found: foundCount,
+        score,
+        distance,
+        strikes,
+        tierCounts: {...tierCounts}
+    };
+
+    updateChallenge();
 }
 function challengeValue(ch){
   if(!challengeStart)return 0;
-  const totalOrbs=Math.max(0,foundCount-challengeStart.found);
+  const totalOrbs = objectiveOrbsCollected;
   const colorOrbs=Math.max(0,(tierCounts[ch.color]||0)-(challengeStart.tierCounts[ch.color]||0));
   if(ch.metric==="level")return level;
   if(ch.metric==="orbs")return totalOrbs;
@@ -931,7 +1227,9 @@ function completeCurrentFlow(){
   const finished=activeChallenge;
   completedFlows=Math.max(completedFlows,currentFlowIndex+1);
   localStorage.setItem("shiftvixCompletedFlows",String(completedFlows));
-  track("current_flow_completed",{flow_number:currentFlowIndex+1,flow_id:finished.id,flow_stage:flowStageFor(currentFlowIndex).name,level,distance:Math.floor(distance),score});
+  track("current_flow_completed",{flow_number:currentFlowIndex+1,flow_id:finished.id,flow_stage:flowStageFor(currentFlowIndex).name,environment:environmentEngine.current.id,level,distance:Math.floor(distance),score});track("highest_flow_reached", {
+    highest_flow: currentFlowIndex + 1
+});
   showModeBanner("CURRENT FLOW COMPLETE");
 
   // Start the next flow immediately. This prevents orb pickups during the
@@ -954,8 +1252,10 @@ function updateChallenge(){
   const raw=challengeValue(activeChallenge);
   const value=Math.max(0,Math.min(activeChallenge.target,raw));
   const pct=Math.max(0,Math.min(100,(value/activeChallenge.target)*100));
-  document.getElementById("challengeName").textContent=`CURRENT FLOW ${currentFlowIndex+1}/${FLOW_TOTAL} · ${activeChallenge.name}`;
-  document.getElementById("challengeText").textContent=`${activeChallenge.label}  ${Math.floor(value)}/${activeChallenge.target}`;
+  // Keep the active-play HUD minimal. Full flow number, category, title,
+  // completion history, and exact totals remain available inside FLOW PATH.
+  document.getElementById("challengeName").textContent="CURRENT FLOW";
+  document.getElementById("challengeText").textContent=activeChallenge.label;
   document.getElementById("challengeFill").style.width=pct+"%";
   if(!challengeAdvanceTimer && raw>=activeChallenge.target)completeCurrentFlow();
 }
@@ -1013,7 +1313,7 @@ let pendingModeBanner = null;
 function introIsClear(){return distance >= 72;}
 function showModeBanner(text){const el=document.getElementById("modeBanner");if(!el)return;if(!introIsClear()){pendingModeBanner=text;return;}pendingModeBanner=null;el.textContent=text;el.classList.remove("show");void el.offsetWidth;el.classList.add("show");}
 function releasePendingModeBanner(){if(pendingModeBanner&&introIsClear())showModeBanner(pendingModeBanner);}
-function makeStarField(){const count=850,positions=new Float32Array(count*3),colors=new Float32Array(count*3),palette=[0xffffff,0x777777,0x55ccff,0xff66cc,0x5d3dff,0xff8800].map(c=>new THREE.Color(c));for(let i=0;i<count;i++){positions[i*3]=(Math.random()*2-1)*260;positions[i*3+1]=(Math.random()*2-1)*180;positions[i*3+2]=-50-Math.random()*1200;const c=palette[Math.floor(Math.random()*palette.length)].clone().multiplyScalar(.35+Math.random()*.7);colors[i*3]=c.r;colors[i*3+1]=c.g;colors[i*3+2]=c.b;}const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(positions,3));geo.setAttribute("color",new THREE.BufferAttribute(colors,3));const mat=new THREE.PointsMaterial({size:1.3,sizeAttenuation:true,transparent:true,opacity:.72,vertexColors:true});const pts=new THREE.Points(geo,mat);scene.add(pts);stars.push(pts);}
+function makeStarField(){const count=850,positions=new Float32Array(count*3),colors=new Float32Array(count*3),baseXY=new Float32Array(count*2),palette=[0xffffff,0x777777,0x55ccff,0xff66cc,0x5d3dff,0xff8800].map(c=>new THREE.Color(c));for(let i=0;i<count;i++){const x=(Math.random()*2-1)*260,y=(Math.random()*2-1)*180;positions[i*3]=x;positions[i*3+1]=y;positions[i*3+2]=-50-Math.random()*1200;baseXY[i*2]=x;baseXY[i*2+1]=y;const c=palette[Math.floor(Math.random()*palette.length)].clone().multiplyScalar(.35+Math.random()*.7);colors[i*3]=c.r;colors[i*3+1]=c.g;colors[i*3+2]=c.b;}const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(positions,3));geo.setAttribute("color",new THREE.BufferAttribute(colors,3));const mat=new THREE.PointsMaterial({size:1.3,sizeAttenuation:true,transparent:true,opacity:.72,vertexColors:true});const pts=new THREE.Points(geo,mat);pts.userData.baseXY=baseXY;scene.add(pts);stars.push(pts);}
 function makeLaneGuides(){LANE_X.forEach(x=>{LANE_Y.forEach(y=>{const geo=new THREE.BufferGeometry(),positions=[];for(let i=0;i<52;i++)positions.push(x,y,-80-i*25);geo.setAttribute("position",new THREE.Float32BufferAttribute(positions,3));const mat=new THREE.PointsMaterial({color:0xff66cc,size:.85,transparent:true,opacity:.0,sizeAttenuation:true,depthWrite:false});const pts=new THREE.Points(geo,mat);scene.add(pts);laneGuides.push(pts);});});}
 function chooseTier(){const r=Math.random();if(r<.35)return TIERS[0];if(r<.60)return TIERS[1];if(r<.78)return TIERS[2];if(r<.90)return TIERS[3];if(r<.98)return TIERS[4];return TIERS[5];}
 function makeBeacon(tier,x,y,z,train){
@@ -1021,7 +1321,7 @@ function makeBeacon(tier,x,y,z,train){
  const core=new THREE.Mesh(new THREE.SphereGeometry(tier.size,18,18),new THREE.MeshBasicMaterial({color:tier.color}));
  const glow=new THREE.Mesh(new THREE.SphereGeometry(tier.size*1.9,16,16),new THREE.MeshBasicMaterial({color:tier.color,transparent:true,opacity:.10,blending:THREE.AdditiveBlending,depthWrite:false}));
  group.add(glow);group.add(core);group.position.set(x,y,z);
- group.userData={core,glow,tier,value:tier.value,state:"active",fade:1,train,speedMult:1};
+ group.userData={core,glow,tier,value:tier.value,state:"active",fade:1,train,speedMult:1,roadX:x,roadY:y};
  group.scale.setScalar(introScale);scene.add(group);beacons.push(group);
 }
 function spawnTrain(){
@@ -1036,7 +1336,7 @@ function spawnTrain(){
  document.getElementById("signal").textContent=runStarted?"Signal: stay connected":"Signal: touch first string";
 }
 function spawnWave(){const trains=heroMode?2:(Math.random()<.78?2:3);for(let i=0;i<trains;i++)setTimeout(spawnTrain,i*120);}
-function moveLane(dx,dy){if(!gameStarted||gameOver)return;laneX=Math.max(0,Math.min(2,laneX+dx));laneY=Math.max(0,Math.min(2,laneY+dy));targetX=LANE_X[laneX];targetY=LANE_Y[laneY];const namesY=["UP","CENTER","DOWN"],namesX=["LEFT","CENTER","RIGHT"];document.getElementById("laneLabel").textContent=namesY[laneY]+" "+namesX[laneX];if(navigator.vibrate)navigator.vibrate(10);}
+function moveLane(dx,dy){if(!gameStarted||gameOver)return;laneX=Math.max(0,Math.min(2,laneX+dx));laneY=Math.max(0,Math.min(2,laneY+dy));environmentEngine.updatePlayerTarget();addWarpBank(dx,dy);const namesY=["UP","CENTER","DOWN"],namesX=["LEFT","CENTER","RIGHT"];document.getElementById("laneLabel").textContent=namesY[laneY]+" "+namesX[laneX];if(navigator.vibrate)navigator.vibrate(10);}
 let downX=0,downY=0;
 
 // iPhone Safari audio unlock: capture the earliest touch event possible.
@@ -1061,10 +1361,14 @@ window.addEventListener("pointerup",e=>{
   if(e.target&&e.target.id==="center")return;
   if(paused)return;
 
-  const dx = e.clientX - downX;
-  const dy = e.clientY - downY;
+  const rawDx = e.clientX - downX;
+  const rawDy = e.clientY - downY;
 
-  if (Math.hypot(dx, dy) < 20) return;
+  if (Math.hypot(rawDx, rawDy) < 20) return;
+
+  const roadSwipe = environmentSwipe(rawDx,rawDy);
+  const dx = roadSwipe.x;
+  const dy = roadSwipe.y;
 
   const straightThreshold = 70;
   const diagonalThreshold = 45;
@@ -1130,6 +1434,7 @@ function startGame(){
     heroMode = true;
     heroBannerShown = true;
     runStartStrikes = strikes;
+    resetDrumPulse();
     beginCurrentFlow();
 
     spawnWave();
@@ -1260,6 +1565,7 @@ function takeStrike(){
     }
 
     strikes++;
+    lastStrikeDistance = distance;
 
     track("strike",{
     strike_number: strikes,
@@ -1303,8 +1609,13 @@ function takeStrike(){
  if(!runStarted){runStarted=true;breakTimer=0;document.getElementById("signal").textContent="Signal: run started";}
  lastFoundAt=performance.now();breakTimer=0;
  const gained=b.userData.value;
- score+=gained;foundCount++;
- tierCounts[b.userData.tier.name]=(tierCounts[b.userData.tier.name]||0)+1;
+score += gained;
+foundCount++;
+
+objectiveOrbsCollected++;
+
+tierCounts[b.userData.tier.name] =
+    (tierCounts[b.userData.tier.name] || 0) + 1;
  if(foundCount===1){track("first_source_collected",{tier:b.userData.tier.name});}
  if(score>bestScore){bestScore=score;localStorage.setItem("sourceLaneBestScore",String(bestScore));}
  playCoin(b.userData.tier);
@@ -1324,6 +1635,8 @@ function updateHUD(){
 function endRun(){
 
     gameOver = true;
+    drumStep = 0;
+    if(musicTimer){ clearInterval(musicTimer); musicTimer = null; }
 
     const runSeconds =
         (performance.now() - runStartTime) / 1000;
@@ -1501,7 +1814,7 @@ title.style.transform = "translate(-50%,-50%)";
 
 const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");center.style.borderColor="rgba(255,255,255,.95)";center.style.boxShadow="0 0 10px rgba(255,255,255,.55)";document.getElementById("roundComplete").style.display="none";beacons.forEach(b=>scene.remove(b));beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;beginCurrentFlow();
 
-lastLevel = 1;strikes = 0;milestonesReached = {};runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;updateStrikes();updateHUD();spawnWave();startMusic();}
+lastLevel = 1;strikes = 0;milestonesReached = {};runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;musicStarted=false;resetWarpBanking();resetEnvironmentForRun();resetMusicEvolution();updateStrikes();updateHUD();spawnWave();startMusic();}
 function togglePause(){
   if(gameOver)return;
   paused=!paused;
@@ -1569,7 +1882,7 @@ for(const m of milestones){
 
     }
 
-}updateChallenge();spawnTimer-=dt;if(spawnTimer<=0){spawnTimer=.54+Math.random()*.26;spawnWave();}if(runStarted){breakTimer+=dt;if(breakTimer>BREAK_GRACE)takeStrike();}camera.position.x+=(targetX-camera.position.x)*(1-Math.pow(.0009,dt));camera.position.y+=(targetY-camera.position.y)*(1-Math.pow(.0009,dt));const cycleDistance = distance % 3000;warpAmount = Math.min(cycleDistance / 3000, 1);
+}updateChallenge();updateEnvironment(dt);spawnTimer-=dt;if(spawnTimer<=0){spawnTimer=.54+Math.random()*.26;spawnWave();}if(runStarted){breakTimer+=dt;if(breakTimer>BREAK_GRACE)takeStrike();}camera.position.x+=(targetX-camera.position.x)*(1-Math.pow(.0009,dt));camera.position.y+=(targetY-camera.position.y)*(1-Math.pow(.0009,dt));const cycleDistance = distance % 3000;warpAmount = Math.min(cycleDistance / 3000, 1);
 
 const stage =
 Math.min(
@@ -1621,13 +1934,9 @@ atmosphereColors[stage]
 );
 
 camera.lookAt(
-
-camera.position.x * 0.995,
-
-camera.position.y * 0.995,
-
+camera.position.x * 0.995 + vanishingX,
+camera.position.y * 0.995 + vanishingY,
 -500
-
 );let targetFov =
 70
 +
@@ -1641,20 +1950,53 @@ warpAmount
 
 
 camera.fov = targetFov;
-camera.updateProjectionMatrix();beacons.forEach(b=>{if(b.userData.state==="active"){b.position.z+=speed*dt*b.userData.speedMult;b.lookAt(camera.position);const dz=Math.abs(b.position.z-camera.position.z),dxy=Math.hypot(b.position.x-camera.position.x,b.position.y-camera.position.y);if(dz<42&&dxy<(heroMode?COLLECT_RADIUS*1.45:COLLECT_RADIUS))collectBeacon(b);if(b.position.z>NEAR_Z+60)b.userData.state="missed";}if(b.userData.state==="collected"||b.userData.state==="missed"){b.userData.fade-=dt*2.8;const f=Math.max(0,b.userData.fade);b.userData.core.material.transparent=true;b.userData.core.material.opacity=f;b.userData.glow.material.opacity =
+camera.updateProjectionMatrix();beacons.forEach(b=>{if(b.userData.state==="active"){
+const roadPoint=environmentPoint(b.userData.roadX,b.userData.roadY);
+b.position.x=roadPoint.x;
+b.position.y=roadPoint.y;
+b.position.z+=speed*dt*b.userData.speedMult;
+b.lookAt(camera.position);const dz=Math.abs(b.position.z-camera.position.z),dxy=Math.hypot(b.position.x-camera.position.x,b.position.y-camera.position.y);if(dz<42&&dxy<(heroMode?COLLECT_RADIUS*1.45:COLLECT_RADIUS))collectBeacon(b);if(b.position.z>NEAR_Z+60)b.userData.state="missed";}if(b.userData.state==="collected"||b.userData.state==="missed"){b.userData.fade-=dt*2.8;const f=Math.max(0,b.userData.fade);b.userData.core.material.transparent=true;b.userData.core.material.opacity=f;b.userData.glow.material.opacity =
 f * (
 0.09 +
 warpAmount * 0.18
 );b.scale.setScalar(Math.max(.001,f));}});for(let i=beacons.length-1;i>=0;i--){const b=beacons[i];if((b.userData.state==="collected"||b.userData.state==="missed")&&b.userData.fade<=0){scene.remove(b);beacons.splice(i,1);}};stars.forEach(s=>{const pos = s.geometry.attributes.position;const speedMultiplier =1 + warpAmount * 7;const stretch =1 + warpAmount * 5;for(let i=0;i<pos.count;i++){
 
-    const x = pos.getX(i);
-    const y = pos.getY(i);
+    const baseXY = s.userData.baseXY;
+    const baseX = baseXY ? baseXY[i*2] : pos.getX(i);
+    const baseY = baseXY ? baseXY[i*2+1] : pos.getY(i);
+    const currentZ = pos.getZ(i);
+
+    // Layered depth: far stars bend most, middle stars moderately,
+    // and near decision-space remains almost perfectly stable.
+    const farDepth = THREE.MathUtils.clamp((-currentZ - 70) / 1080, 0, 1);
+    const curveEase = farDepth * farDepth * (3 - 2 * farDepth);
+    const nearLayer = 1 - farDepth;
+    const ambientCurveX = Math.sin(routePhase) * warpAmount * 7.5;
+    const ambientCurveY = Math.sin(routePhase * 0.71 + 1.45) * warpAmount * 3.6;
+
+    let x = baseX + (warpCurveX + ambientCurveX + vanishingX * 0.65) * curveEase;
+    let y = baseY + (warpCurveY + ambientCurveY + vanishingY * 0.55) * curveEase;
+
+    // Warp Curvature 4.0: restrained gravitational-style lensing.
+    // It bends only the peripheral deep field and never the gameplay objects.
+    const radius = Math.max(1, Math.hypot(baseX,baseY));
+    const edgeNorm = THREE.MathUtils.clamp((radius - 85) / 190, 0, 1);
+    const lensStrength = lensPulse * curveEase * edgeNorm * edgeNorm * 0.018;
+    const lensCenterX = vanishingX * 1.8;
+    const lensCenterY = vanishingY * 1.5;
+    x += (baseX - lensCenterX) * lensStrength;
+    y += (baseY - lensCenterY) * lensStrength;
+
+    // Slight counter-parallax gives close particles more steering response
+    // while far stars hold the curved route.
+    x += -bankYaw * 82 * nearLayer * 0.28;
+    y +=  bankPitch * 58 * nearLayer * 0.24;
 
     // Distance from the center of the playfield
     const edge =
         Math.min(
             1,
-            Math.hypot(x,y)/220
+            Math.hypot(baseX,baseY)/220
         );
 
     // Outer stars travel faster than center stars
@@ -1809,12 +2151,11 @@ warpAmount * 0.22;
 
 s.material.size = warpSize * stretch;
 
-s.material.opacity = warpOpacity;camera.rotation.z =
-Math.sin(distance * 0.0015)
-*
-warpAmount
-*
-0.004;});updateHUD();}if(gameStarted&&!gameOver){
+s.material.opacity = warpOpacity;});
+
+// Apply Warp Banking 3.0 + Warp Curvature 4.0 after lookAt() establishes the base view.
+updateWarpBanking(dt);
+updateHUD();}if(gameStarted&&!gameOver){
 introScale += (1-introScale)*dt*0.6;beacons.forEach(b=>{if(b.userData.state==="active") b.scale.lerp(new THREE.Vector3(introScale,introScale,introScale),0.08);});
 introCameraZ += (TARGET_CAMERA_Z-introCameraZ)*dt*0.18;
 camera.position.z=introCameraZ;camera.position.x +=
@@ -1946,7 +2287,7 @@ window.addEventListener("beforeunload",()=>{
 });
 window.addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden && gameStarted && !musicStarted){startMusic();}});
-makeStarField();makeLaneGuides();updateStrikes();updateHUD();startGame();animate();
+makeStarField();makeLaneGuides();resetEnvironmentForRun();updateStrikes();updateHUD();startGame();animate();
 </script>
 </body>
 </html>
