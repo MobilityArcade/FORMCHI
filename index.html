@@ -378,17 +378,186 @@ const ENVIRONMENT_TYPES = Object.freeze({
 const environmentQuery = new URLSearchParams(window.location.search)
   .get("environment")?.toLowerCase();
 
-function environmentTypeForFlow(index){
-  const flowNumber=index+1;
-  const slot=flowNumber%50;
-  if(slot===10)return ENVIRONMENT_TYPES.CURVED;
-  if(slot===20)return ENVIRONMENT_TYPES.MIRROR;
-  if(slot===30)return ENVIRONMENT_TYPES.GRAVITY;
-  if(slot===40)return ENVIRONMENT_TYPES.REVERSE;
-  if(slot===0)return ENVIRONMENT_TYPES.PULSE;
-  return ENVIRONMENT_TYPES.NORMAL;
+// ======================================================
+// SHIFTVIX v2.5 PROGRESSION ENGINE
+// ======================================================
+
+const TOTAL_FLOWS = 300;
+const FLOWS_PER_CHAPTER = 30;
+const TOTAL_CHAPTERS = TOTAL_FLOWS / FLOWS_PER_CHAPTER;
+
+let currentFlowIndex = Number(
+    localStorage.getItem("shiftvixCurrentFlow") || 0
+);
+
+let completedFlows = JSON.parse(
+    localStorage.getItem("shiftvixCompletedFlows") || "[]"
+);
+
+let replayCounts = JSON.parse(
+    localStorage.getItem("shiftvixReplayCounts") || "{}"
+);
+
+let highestUnlockedChapter = Number(
+    localStorage.getItem("shiftvixUnlockedChapter") || 1
+);
+
+function currentChapter(){
+
+    return Math.floor(currentFlowIndex / FLOWS_PER_CHAPTER)+1;
+
 }
 
+function chapterForFlow(flow){
+
+    return Math.floor(flow / FLOWS_PER_CHAPTER)+1;
+
+}
+
+function flowCompleted(flow){
+
+    return completedFlows.includes(flow);
+
+}
+
+function saveProgress(){
+
+    localStorage.setItem(
+        "shiftvixCurrentFlow",
+        currentFlowIndex
+    );
+
+    localStorage.setItem(
+        "shiftvixCompletedFlows",
+        JSON.stringify(completedFlows)
+    );
+
+    localStorage.setItem(
+        "shiftvixReplayCounts",
+        JSON.stringify(replayCounts)
+    );
+
+    localStorage.setItem(
+        "shiftvixUnlockedChapter",
+        highestUnlockedChapter
+    );
+
+}
+
+function completeFlow(flow){
+
+    if(!completedFlows.includes(flow)){
+
+        completedFlows.push(flow);
+
+    }
+
+    replayCounts[flow]=(replayCounts[flow]||0)+1;
+
+    checkChapterUnlock();
+
+    saveProgress();
+
+}
+
+function checkChapterUnlock(){
+
+    const chapter=currentChapter();
+
+    const start=(chapter-1)*FLOWS_PER_CHAPTER;
+
+    const end=start+FLOWS_PER_CHAPTER;
+
+    let complete=true;
+
+    for(let i=start;i<end;i++){
+
+        if(!completedFlows.includes(i)){
+
+            complete=false;
+            break;
+
+        }
+
+    }
+
+    if(
+        complete &&
+        highestUnlockedChapter<TOTAL_CHAPTERS &&
+        highestUnlockedChapter===chapter
+    ){
+
+        highestUnlockedChapter++;
+
+        saveProgress();
+
+        track("chapter_unlocked",{
+
+            chapter:highestUnlockedChapter
+
+        });
+
+    }
+
+}
+
+function nextFlow(){
+
+    currentFlowIndex++;
+
+    if(currentFlowIndex>=TOTAL_FLOWS){
+
+        currentFlowIndex=TOTAL_FLOWS-1;
+
+    }
+
+    saveProgress();
+
+}
+
+function replayFlow(flow){
+
+    currentFlowIndex=flow;
+
+    replayCounts[flow]=(replayCounts[flow]||0)+1;
+
+    saveProgress();
+
+}
+
+function environmentTypeForFlow(index){
+
+    const flowNumber = (index % 30) + 1;
+
+    const specialSlots = [
+        3, 5, 7, 10,
+        13, 15, 17, 20,
+        23, 25, 27, 30
+    ];
+
+    const rotation = [
+        ENVIRONMENT_TYPES.CURVED,
+        ENVIRONMENT_TYPES.MIRROR,
+        ENVIRONMENT_TYPES.GRAVITY,
+        ENVIRONMENT_TYPES.REVERSE,
+        ENVIRONMENT_TYPES.PULSE
+    ];
+
+    const slotIndex = specialSlots.indexOf(flowNumber);
+
+    if(slotIndex === -1){
+        return ENVIRONMENT_TYPES.NORMAL;
+    }
+
+    const blockIndex = Math.floor(index / 30);
+    const globalSpecialIndex =
+        (blockIndex * specialSlots.length) + slotIndex;
+
+    return rotation[
+        globalSpecialIndex % rotation.length
+    ];
+}
+    
 function flowNameForType(type){
   return `${String(type||ENVIRONMENT_TYPES.NORMAL).toUpperCase()} FLOW`;
 }
