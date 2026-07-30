@@ -290,6 +290,12 @@ canvas{display:block}
 .archiveCard{width:min(520px,86vw);max-height:72vh;overflow:hidden;border-radius:24px;padding:24px;background:rgba(0,0,0,.92);border:1px solid rgba(255,255,255,.18);box-shadow:0 0 80px rgba(255,211,106,.12)}
 .archiveHeader{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:14px}.archiveHeader h2{margin:0;font-size:22px;letter-spacing:3px}.archiveClose{font-size:24px;cursor:pointer;padding:6px 10px}
 #archiveList{max-height:56vh;overflow:auto;padding-right:6px}.archiveRow{display:flex;justify-content:space-between;gap:20px;padding:11px 4px;border-top:1px solid rgba(255,255,255,.09);font-size:12px;letter-spacing:1.2px}.archiveRow.done{color:#fff}.archiveRow.current{color:#ffd36a}.archiveRow.locked{color:rgba(255,255,255,.28)}
+
+/* SHIFTVIX v2.3 — Gravity / Reverse visual field */
+#flowFx{position:absolute;inset:0;z-index:12;pointer-events:none;opacity:0;transition:opacity .18s ease;mix-blend-mode:screen;background:radial-gradient(circle at 50% 48%,transparent 28%,rgba(120,80,255,.10) 62%,rgba(40,180,255,.16) 100%);box-shadow:inset 0 -18vh 22vh rgba(80,30,255,.08),inset 0 18vh 22vh rgba(0,180,255,.06)}
+#flowFx.gravity{opacity:var(--gravity-fx,0);filter:saturate(calc(1 + var(--gravity-fx,0)*.8)) contrast(calc(1 + var(--gravity-fx,0)*.12))}
+#flowFx.reverse{opacity:.62;background:radial-gradient(circle at 50% 50%,transparent 30%,rgba(255,50,40,.08) 64%,rgba(255,0,120,.17) 100%);animation:reverseBreath 1.35s ease-in-out infinite alternate}
+@keyframes reverseBreath{from{filter:hue-rotate(0deg) brightness(.9)}to{filter:hue-rotate(22deg) brightness(1.25)}}
 </style>
 </head>
 <body>
@@ -307,7 +313,7 @@ canvas{display:block}
 <span id="found">0</span><span id="score">0</span><span id="bestScore">0</span><span id="combo">1x</span><div id="signal"></div></div></div>
 <div id="center"></div><div id="pauseText">PAUSED</div><div id="laneLabel">CENTER</div><div id="roundComplete"></div>
 <div id="challengeHud"><div id="challengeName">NORMAL FLOW</div><div id="challengeText">LOADING…</div><div id="challengeBar"><div id="challengeFill"></div></div></div>
-<div id="modeBanner"></div>
+<div id="modeBanner"></div><div id="flowFx"></div>
 <div id="flowArchive"><div class="archiveCard"><div class="archiveHeader"><h2>FLOW PATH</h2><div class="archiveClose" id="archiveClose">×</div></div><div id="archiveList"></div></div></div>
 
 <script type="module">
@@ -346,24 +352,21 @@ const TARGET_CAMERA_Z=72;
 let warpAmount = 0;
 
 // =========================
-// SHIFTVIX v2.1 — ENVIRONMENT ENGINE
-// Normal, Curved, and Mirror use one shared interface.
+// SHIFTVIX v2.3 — ENVIRONMENT ENGINE
+// Normal, Curved, Mirror, Gravity, and Reverse share one interface.
 //
-// Automatic flow rotation:
-//   • Flow 10, 30, 50... use CURVED FLOW.
-//   • Flow 20, 40, 60... use MIRROR FLOW.
-//   • All other flows use NORMAL FLOW.
+// Automatic flow rotation (50-flow cycle):
+//   10 CURVED · 20 MIRROR · 30 GRAVITY · 40 REVERSE · 50 NORMAL
 //
 // Testing override:
-//   ?environment=normal
-//   ?environment=curved
-//   ?environment=mirror
+//   ?environment=normal | curved | mirror | gravity | reverse
 // =========================
 const ENVIRONMENT_TYPES = Object.freeze({
   NORMAL:"normal",
   CURVED:"curved",
   MIRROR:"mirror",
-  GRAVITY:"gravity"
+  GRAVITY:"gravity",
+  REVERSE:"reverse"
 });
 
 const environmentQuery = new URLSearchParams(window.location.search)
@@ -371,11 +374,11 @@ const environmentQuery = new URLSearchParams(window.location.search)
 
 function environmentTypeForFlow(index){
   const flowNumber=index+1;
-  if(flowNumber%20===10)return ENVIRONMENT_TYPES.CURVED;
-  if(flowNumber%40===10)return ENVIRONMENT_TYPES.CURVED;
-  if(flowNumber%40===20)return ENVIRONMENT_TYPES.MIRROR;
-  if(flowNumber%40===30)return ENVIRONMENT_TYPES.GRAVITY;
-  if(flowNumber%40===0)return ENVIRONMENT_TYPES.NORMAL;
+  const slot=flowNumber%50;
+  if(slot===10)return ENVIRONMENT_TYPES.CURVED;
+  if(slot===20)return ENVIRONMENT_TYPES.MIRROR;
+  if(slot===30)return ENVIRONMENT_TYPES.GRAVITY;
+  if(slot===40)return ENVIRONMENT_TYPES.REVERSE;
   return ENVIRONMENT_TYPES.NORMAL;
 }
 
@@ -389,150 +392,110 @@ function flowNameForIndex(index){
 }
 
 function easeInOutCubic(t){
-  return t < 0.5
-    ? 4 * t * t * t
-    : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  return t < 0.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
 }
-
 function rotatePoint(x,y,angle){
-  const c=Math.cos(angle);
-  const s=Math.sin(angle);
+  const c=Math.cos(angle),s=Math.sin(angle);
   return {x:x*c-y*s,y:x*s+y*c};
 }
+function setFlowFx(mode,intensity=0){
+  const fx=document.getElementById("flowFx");
+  if(!fx)return;
+  fx.className=mode||"";
+  fx.style.setProperty("--gravity-fx",String(THREE.MathUtils.clamp(intensity,0,1)));
+}
 
-const normalEnvironment = {
-  id:ENVIRONMENT_TYPES.NORMAL,
-  name:"NORMAL FLOW",
-  reset(){}, start(){}, update(){},
+const normalEnvironment={
+  id:ENVIRONMENT_TYPES.NORMAL,name:"NORMAL FLOW",
+  reset(){setFlowFx("",0);},start(){setFlowFx("",0);},update(){},
   transformPoint(x,y){return {x,y};},
   transformSwipe(dx,dy){return {x:dx,y:dy};},
   transformLaneInput(dx,dy){return {x:dx,y:dy};},
   getRotation(){return 0;}
 };
 
-const curvedEnvironment = {
-  id:ENVIRONMENT_TYPES.CURVED,
-  name:"CURVED FLOW",
-  warningDistance:450,
-  startDistance:500,
-  turnAngle:THREE.MathUtils.degToRad(-30),
-  turnDuration:1.8,
-  flowStartDistance:0, rotation:0, turnFrom:0, turnTarget:0, elapsed:0,
-  active:false, triggered:false, warningShown:false,
-
-  reset(){
-    this.flowStartDistance=distance;
-    this.rotation=0; this.turnFrom=0; this.turnTarget=0; this.elapsed=0;
-    this.active=false; this.triggered=false; this.warningShown=false;
-  },
+const curvedEnvironment={
+  id:ENVIRONMENT_TYPES.CURVED,name:"CURVED FLOW",
+  warningDistance:450,startDistance:500,
+  turnAngle:THREE.MathUtils.degToRad(-30),turnDuration:1.8,
+  flowStartDistance:0,rotation:0,turnFrom:0,turnTarget:0,elapsed:0,
+  active:false,triggered:false,warningShown:false,
+  reset(){this.flowStartDistance=distance;this.rotation=0;this.turnFrom=0;this.turnTarget=0;this.elapsed=0;this.active=false;this.triggered=false;this.warningShown=false;setFlowFx("",0);},
   start(){this.reset();},
-  beginTurn(){
-    if(this.triggered)return;
-    this.triggered=true; this.active=true; this.elapsed=0;
-    this.turnFrom=this.rotation; this.turnTarget=this.turnAngle;
-    showModeBanner("CURVED FLOW");
-    track("environment_event_started",{environment:this.id,distance:Math.floor(distance),degrees:30,direction:"clockwise"});
-  },
-  update(dt){
-    const flowDistance=Math.max(0,distance-this.flowStartDistance);
-    if(!this.warningShown&&flowDistance>=this.warningDistance){
-      this.warningShown=true; showModeBanner("TURN APPROACHING");
-      bankRollVelocity+=THREE.MathUtils.degToRad(1.5); warpCurveVelocityX+=10;
-    }
-    if(!this.triggered&&flowDistance>=this.startDistance)this.beginTurn();
-    if(this.active){
-      this.elapsed+=dt;
-      const progress=THREE.MathUtils.clamp(this.elapsed/this.turnDuration,0,1);
-      this.rotation=THREE.MathUtils.lerp(this.turnFrom,this.turnTarget,easeInOutCubic(progress));
-      bankRollVelocity+=THREE.MathUtils.degToRad(2.0)*dt; warpCurveVelocityX+=12*dt;
-      if(progress>=1){
-        this.rotation=this.turnTarget; this.active=false; showModeBanner("TURN COMPLETE");
-        track("environment_event_completed",{environment:this.id,distance:Math.floor(distance),degrees:30,direction:"clockwise"});
-      }
-    }
-  },
+  beginTurn(){if(this.triggered)return;this.triggered=true;this.active=true;this.elapsed=0;this.turnFrom=this.rotation;this.turnTarget=this.turnAngle;showModeBanner("CURVED FLOW");track("environment_event_started",{environment:this.id,distance:Math.floor(distance),degrees:30,direction:"clockwise"});},
+  update(dt){const flowDistance=Math.max(0,distance-this.flowStartDistance);if(!this.warningShown&&flowDistance>=this.warningDistance){this.warningShown=true;showModeBanner("TURN APPROACHING");bankRollVelocity+=THREE.MathUtils.degToRad(1.5);warpCurveVelocityX+=10;}if(!this.triggered&&flowDistance>=this.startDistance)this.beginTurn();if(this.active){this.elapsed+=dt;const p=THREE.MathUtils.clamp(this.elapsed/this.turnDuration,0,1);this.rotation=THREE.MathUtils.lerp(this.turnFrom,this.turnTarget,easeInOutCubic(p));bankRollVelocity+=THREE.MathUtils.degToRad(2)*dt;warpCurveVelocityX+=12*dt;if(p>=1){this.rotation=this.turnTarget;this.active=false;showModeBanner("TURN COMPLETE");track("environment_event_completed",{environment:this.id,distance:Math.floor(distance),degrees:30,direction:"clockwise"});}}},
   transformPoint(x,y){return rotatePoint(x,y,this.rotation);},
   transformSwipe(dx,dy){return rotatePoint(dx,dy,this.rotation);},
   transformLaneInput(dx,dy){return {x:dx,y:dy};},
   getRotation(){return this.rotation;}
 };
 
-const mirrorEnvironment = {
-  id:ENVIRONMENT_TYPES.MIRROR,
-  name:"MIRROR FLOW",
-  swipeCount:0,
-  reset(){this.swipeCount=0;},
-  start(){
-    this.reset();
-    track("environment_event_started",{environment:this.id,distance:Math.floor(distance)});
-  },
-  update(){},
+const mirrorEnvironment={
+  id:ENVIRONMENT_TYPES.MIRROR,name:"MIRROR FLOW",swipeCount:0,
+  reset(){this.swipeCount=0;setFlowFx("",0);},
+  start(){this.reset();track("environment_event_started",{environment:this.id,distance:Math.floor(distance)});},update(){},
   transformPoint(x,y){return {x,y};},
-  transformSwipe(dx,dy){
-    this.swipeCount++;
-    track("mirror_swipe",{flow_number:currentFlowIndex+1,swipe_count:this.swipeCount});
-    return {x:-dx,y:dy};
-  },
-  transformLaneInput(dx,dy){return {x:-dx,y:dy};},
-  getRotation(){return 0;}
+  transformSwipe(dx,dy){this.swipeCount++;track("mirror_swipe",{flow_number:currentFlowIndex+1,swipe_count:this.swipeCount});return {x:-dx,y:dy};},
+  transformLaneInput(dx,dy){return {x:-dx,y:dy};},getRotation(){return 0;}
 };
 
-
-const gravityEnvironment = {
-  id:ENVIRONMENT_TYPES.GRAVITY,
-  name:"GRAVITY FLOW",
-  gravityDirection:1,
-  reset(){this.gravityDirection=Math.random()<0.5?-1:1;},
-  start(){this.reset();showModeBanner("GRAVITY FLOW");track("environment_event_started",{environment:this.id,distance:Math.floor(distance)});},
+const gravityEnvironment={
+  id:ENVIRONMENT_TYPES.GRAVITY,name:"GRAVITY FLOW",
+  warningDistance:120,rampDistance:180,holdDistance:420,releaseDistance:690,endDistance:850,
+  flowStartDistance:0,gravityDirection:1,intensity:0,phase:"idle",warningShown:false,activeTracked:false,recoveryTracked:false,completionTracked:false,
+  reset(){this.flowStartDistance=distance;this.gravityDirection=Math.random()<.5?-1:1;this.intensity=0;this.phase="idle";this.warningShown=false;this.activeTracked=false;this.recoveryTracked=false;this.completionTracked=false;setFlowFx("",0);},
+  start(){this.reset();track("gravity_flow_loaded",{flow_number:currentFlowIndex+1,direction:this.gravityDirection>0?"down":"up",distance:Math.floor(distance)});},
   update(dt){
-    bankPitchVelocity += this.gravityDirection*0.8*dt;
-    warpCurveVelocityY += this.gravityDirection*6*dt;
+    const d=Math.max(0,distance-this.flowStartDistance);
+    if(!this.warningShown&&d>=this.warningDistance){this.warningShown=true;this.phase="warning";showModeBanner("GRAVITY SHIFT");track("gravity_warning_shown",{flow_number:currentFlowIndex+1,direction:this.gravityDirection>0?"down":"up",flow_distance:Math.floor(d)});}
+    let target=0;
+    if(d>=this.rampDistance&&d<this.holdDistance){this.phase="ramp_in";target=THREE.MathUtils.clamp((d-this.rampDistance)/(this.holdDistance-this.rampDistance),0,1);}
+    else if(d>=this.holdDistance&&d<this.releaseDistance){this.phase="full_gravity";target=1;}
+    else if(d>=this.releaseDistance&&d<this.endDistance){this.phase="recovery";target=1-THREE.MathUtils.clamp((d-this.releaseDistance)/(this.endDistance-this.releaseDistance),0,1);}
+    else if(d>=this.endDistance){this.phase="recovered";target=0;}
+    const ease=1-Math.exp(-dt*3.2);this.intensity+=(target-this.intensity)*ease;
+    if(this.intensity>.03){setFlowFx("gravity",this.intensity);bankPitchVelocity+=this.gravityDirection*this.intensity*1.0*dt;bankRollVelocity+=this.gravityDirection*this.intensity*THREE.MathUtils.degToRad(2.2)*dt;warpCurveVelocityY+=this.gravityDirection*this.intensity*9*dt;warpCurveVelocityX+=Math.sin(distance*.018)*this.intensity*2.2*dt;lensPulse=Math.max(lensPulse,this.intensity*.78);}
+    else setFlowFx("",0);
+    if(!this.activeTracked&&this.intensity>=.5){this.activeTracked=true;showModeBanner("GRAVITY ACTIVE");track("gravity_shift_started",{flow_number:currentFlowIndex+1,direction:this.gravityDirection>0?"down":"up",flow_distance:Math.floor(d),ramp_distance:this.holdDistance-this.rampDistance});}
+    if(!this.recoveryTracked&&this.activeTracked&&d>=this.releaseDistance){this.recoveryTracked=true;showModeBanner("GRAVITY RELEASE");track("gravity_recovery_started",{flow_number:currentFlowIndex+1,flow_distance:Math.floor(d)});}
+    if(!this.completionTracked&&this.recoveryTracked&&this.phase==="recovered"&&this.intensity<.02){this.completionTracked=true;this.phase="complete";showModeBanner("GRAVITY NORMALIZED");track("gravity_shift_completed",{flow_number:currentFlowIndex+1,direction:this.gravityDirection>0?"down":"up",flow_distance:Math.floor(d),duration_distance:this.endDistance-this.rampDistance});}
   },
-  transformPoint(x,y){return {x,y};},
-  transformSwipe(dx,dy){return {x:dx,y:-dy};},
-  transformLaneInput(dx,dy){return {x:dx,y:-dy};},
-  getRotation(){return 0;}
+  transformPoint(x,y){const roll=this.getRotation();const p=rotatePoint(x,y,roll);return {x:p.x,y:p.y+this.gravityDirection*this.intensity*7};},
+  transformSwipe(dx,dy){return this.intensity>=.5?{x:dx,y:-dy}:{x:dx,y:dy};},
+  transformLaneInput(dx,dy){return this.intensity>=.5?{x:dx,y:-dy}:{x:dx,y:dy};},
+  getRotation(){return this.gravityDirection*this.intensity*THREE.MathUtils.degToRad(8.5);}
 };
 
-const ENVIRONMENTS = Object.freeze({
+const reverseEnvironment={
+  id:ENVIRONMENT_TYPES.REVERSE,name:"REVERSE FLOW",inputCount:0,
+  reset(){this.inputCount=0;setFlowFx("",0);},
+  start(){this.inputCount=0;setFlowFx("reverse",1);showModeBanner("REVERSE FLOW");track("reverse_flow_started",{flow_number:currentFlowIndex+1,distance:Math.floor(distance)});},
+  update(){setFlowFx("reverse",1);},
+  transformPoint(x,y){return {x,y};},
+  transformSwipe(dx,dy){this.inputCount++;track("reverse_input",{flow_number:currentFlowIndex+1,input_count:this.inputCount});return {x:-dx,y:-dy};},
+  transformLaneInput(dx,dy){return {x:-dx,y:-dy};},getRotation(){return 0;}
+};
+
+const ENVIRONMENTS=Object.freeze({
   [ENVIRONMENT_TYPES.NORMAL]:normalEnvironment,
   [ENVIRONMENT_TYPES.CURVED]:curvedEnvironment,
   [ENVIRONMENT_TYPES.MIRROR]:mirrorEnvironment,
-  [ENVIRONMENT_TYPES.GRAVITY]:gravityEnvironment
+  [ENVIRONMENT_TYPES.GRAVITY]:gravityEnvironment,
+  [ENVIRONMENT_TYPES.REVERSE]:reverseEnvironment
 });
 
-const environmentEngine = {
-  current:normalEnvironment, forcedType:null,
-  resolveType(index=currentFlowIndex){
-    if(environmentQuery&&ENVIRONMENTS[environmentQuery]){this.forcedType=environmentQuery;return environmentQuery;}
-    return environmentTypeForFlow(index);
-  },
-  set(type,{announce=false}={}){
-    const next=ENVIRONMENTS[type]||normalEnvironment;
-    if(this.current&&this.current!==next)this.current.reset();
-    this.current=next; this.current.start(); this.applyLaneGuides(); this.updatePlayerTarget();
-    if(announce)showModeBanner(this.current.name);
-    updateFlowHeading();
-    track("environment_selected",{environment:this.current.id,flow_number:currentFlowIndex+1,forced:Boolean(this.forcedType)});
-  },
-  resetForRun(){this.set(this.resolveType());},
-  resetForFlow({announce=true}={}){this.set(this.resolveType(),{announce});},
+const environmentEngine={
+  current:normalEnvironment,forcedType:null,
+  resolveType(index=currentFlowIndex){if(environmentQuery&&ENVIRONMENTS[environmentQuery]){this.forcedType=environmentQuery;return environmentQuery;}return environmentTypeForFlow(index);},
+  set(type,{announce=false}={}){const next=ENVIRONMENTS[type]||normalEnvironment;if(this.current&&this.current!==next)this.current.reset();this.current=next;this.current.start();this.applyLaneGuides();this.updatePlayerTarget();if(announce)showModeBanner(this.current.name);updateFlowHeading();track("environment_selected",{environment:this.current.id,flow_number:currentFlowIndex+1,forced:Boolean(this.forcedType)});},
+  resetForRun(){this.set(this.resolveType());},resetForFlow({announce=true}={}){this.set(this.resolveType(),{announce});},
   update(dt){this.current.update(dt);this.applyLaneGuides();this.updatePlayerTarget();},
-  transformPoint(x,y){return this.current.transformPoint(x,y);},
-  transformSwipe(dx,dy){return this.current.transformSwipe(dx,dy);},
-  transformLaneInput(dx,dy){return this.current.transformLaneInput(dx,dy);},
-  updatePlayerTarget(){
-    const p=this.transformPoint(LANE_X[laneX],LANE_Y[laneY]); targetX=p.x; targetY=p.y;
-  },
-  applyLaneGuides(){
-    const rotation=this.current.getRotation(); laneGuides.forEach(guide=>{guide.rotation.z=rotation;});
-  }
+  transformPoint(x,y){return this.current.transformPoint(x,y);},transformSwipe(dx,dy){return this.current.transformSwipe(dx,dy);},transformLaneInput(dx,dy){return this.current.transformLaneInput(dx,dy);},
+  updatePlayerTarget(){const p=this.transformPoint(LANE_X[laneX],LANE_Y[laneY]);targetX=p.x;targetY=p.y;},
+  applyLaneGuides(){const rotation=this.current.getRotation();laneGuides.forEach(guide=>{guide.rotation.z=rotation;});}
 };
 
-function updateFlowHeading(){
-  const heading=document.getElementById("challengeName");
-  if(heading)heading.textContent=environmentEngine.current.name;
-}
+function updateFlowHeading(){const heading=document.getElementById("challengeName");if(heading)heading.textContent=environmentEngine.current.name;}
 function updateEnvironment(dt){environmentEngine.update(dt);}
 function resetEnvironmentForRun(){environmentEngine.resetForRun();}
 function environmentPoint(x,y){return environmentEngine.transformPoint(x,y);}
