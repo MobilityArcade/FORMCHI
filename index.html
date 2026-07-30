@@ -362,7 +362,8 @@ let warpAmount = 0;
 const ENVIRONMENT_TYPES = Object.freeze({
   NORMAL:"normal",
   CURVED:"curved",
-  MIRROR:"mirror"
+  MIRROR:"mirror",
+  GRAVITY:"gravity"
 });
 
 const environmentQuery = new URLSearchParams(window.location.search)
@@ -371,7 +372,10 @@ const environmentQuery = new URLSearchParams(window.location.search)
 function environmentTypeForFlow(index){
   const flowNumber=index+1;
   if(flowNumber%20===10)return ENVIRONMENT_TYPES.CURVED;
-  if(flowNumber%20===0)return ENVIRONMENT_TYPES.MIRROR;
+  if(flowNumber%40===10)return ENVIRONMENT_TYPES.CURVED;
+  if(flowNumber%40===20)return ENVIRONMENT_TYPES.MIRROR;
+  if(flowNumber%40===30)return ENVIRONMENT_TYPES.GRAVITY;
+  if(flowNumber%40===0)return ENVIRONMENT_TYPES.NORMAL;
   return ENVIRONMENT_TYPES.NORMAL;
 }
 
@@ -473,10 +477,28 @@ const mirrorEnvironment = {
   getRotation(){return 0;}
 };
 
+
+const gravityEnvironment = {
+  id:ENVIRONMENT_TYPES.GRAVITY,
+  name:"GRAVITY FLOW",
+  gravityDirection:1,
+  reset(){this.gravityDirection=Math.random()<0.5?-1:1;},
+  start(){this.reset();showModeBanner("GRAVITY FLOW");track("environment_event_started",{environment:this.id,distance:Math.floor(distance)});},
+  update(dt){
+    bankPitchVelocity += this.gravityDirection*0.8*dt;
+    warpCurveVelocityY += this.gravityDirection*6*dt;
+  },
+  transformPoint(x,y){return {x,y};},
+  transformSwipe(dx,dy){return {x:dx,y:-dy};},
+  transformLaneInput(dx,dy){return {x:dx,y:-dy};},
+  getRotation(){return 0;}
+};
+
 const ENVIRONMENTS = Object.freeze({
   [ENVIRONMENT_TYPES.NORMAL]:normalEnvironment,
   [ENVIRONMENT_TYPES.CURVED]:curvedEnvironment,
-  [ENVIRONMENT_TYPES.MIRROR]:mirrorEnvironment
+  [ENVIRONMENT_TYPES.MIRROR]:mirrorEnvironment,
+  [ENVIRONMENT_TYPES.GRAVITY]:gravityEnvironment
 });
 
 const environmentEngine = {
