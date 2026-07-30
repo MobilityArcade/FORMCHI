@@ -286,11 +286,182 @@ canvas{display:block}
 @keyframes modeFlash{0%{opacity:0;transform:translate(-50%,-25%) scale(.8)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-85%) scale(1)}}
 .resultsCard{position:relative;z-index:56}
 .flowSummary{margin:16px 0 4px;padding:12px;border-radius:16px;background:rgba(125,249,255,.06);border:1px solid rgba(125,249,255,.18);font-size:12px;line-height:1.6;letter-spacing:1.3px}
-#flowArchive{position:absolute;inset:0;z-index:90;display:none;place-items:center;background:rgba(0,0,0,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-.archiveCard{width:min(520px,86vw);max-height:72vh;overflow:hidden;border-radius:24px;padding:24px;background:rgba(0,0,0,.92);border:1px solid rgba(255,255,255,.18);box-shadow:0 0 80px rgba(255,211,106,.12)}
-.archiveHeader{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:14px}.archiveHeader h2{margin:0;font-size:22px;letter-spacing:3px}.archiveClose{font-size:24px;cursor:pointer;padding:6px 10px}
-#archiveList{max-height:56vh;overflow:auto;padding-right:6px}.archiveRow{display:flex;justify-content:space-between;gap:20px;padding:11px 4px;border-top:1px solid rgba(255,255,255,.09);font-size:12px;letter-spacing:1.2px}.archiveRow.done{color:#fff}.archiveRow.current{color:#ffd36a}.archiveRow.locked{color:rgba(255,255,255,.28)}
+/* =========================
+   SHIFTVIX v2.5 — FLOW ARCHIVE
+   ========================= */
 
+#flowArchive{
+    position:absolute;
+    inset:0;
+    z-index:90;
+    display:none;
+    place-items:center;
+    background:rgba(0,0,0,.86);
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+}
+
+.archiveCard{
+    width:min(620px,88vw);
+    max-height:78vh;
+    overflow:hidden;
+    border-radius:24px;
+    padding:24px;
+    background:rgba(0,0,0,.94);
+    border:1px solid rgba(255,255,255,.18);
+    box-shadow:
+        0 0 80px rgba(255,211,106,.12),
+        inset 0 0 50px rgba(255,255,255,.025);
+}
+
+.archiveHeader{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:20px;
+    margin-bottom:10px;
+}
+
+.archiveHeader h2{
+    margin:0;
+    font-size:22px;
+    letter-spacing:3px;
+    color:#ffd36a;
+}
+
+.archiveClose{
+    font-size:27px;
+    cursor:pointer;
+    padding:6px 10px;
+    color:#ffffff;
+}
+
+.archiveProgress{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px 0 15px;
+    margin-bottom:4px;
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:1.8px;
+    color:rgba(255,255,255,.66);
+}
+
+.archiveLegend{
+    display:flex;
+    gap:18px;
+    flex-wrap:wrap;
+    margin-bottom:18px;
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:1.4px;
+    color:rgba(255,255,255,.48);
+}
+
+#archiveList{
+    max-height:60vh;
+    overflow:auto;
+    padding-right:7px;
+    padding-bottom:20px;
+}
+
+.archiveBlock{
+    margin:0 0 22px;
+    padding-top:15px;
+    border-top:1px solid rgba(255,255,255,.10);
+}
+
+.archiveBlock:first-of-type{
+    border-top:none;
+    padding-top:0;
+}
+
+.archiveBlockLabel{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:2px;
+    color:rgba(255,255,255,.55);
+}
+
+.archiveBlock.lockedBlock .archiveBlockLabel{
+    color:rgba(255,255,255,.22);
+}
+
+.archiveGrid{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:8px;
+}
+
+.archiveRow{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:42px;
+    padding:3px;
+    border-radius:11px;
+    border:1px solid rgba(255,255,255,.10);
+    background:rgba(255,255,255,.035);
+    font-size:12px;
+    font-weight:900;
+    letter-spacing:.5px;
+    color:rgba(255,255,255,.68);
+    box-sizing:border-box;
+}
+
+.archiveRow.done{
+    color:#ffffff;
+    border-color:rgba(125,249,255,.32);
+    background:rgba(125,249,255,.075);
+    box-shadow:inset 0 0 12px rgba(125,249,255,.05);
+}
+
+.archiveRow.current{
+    color:#ffd36a;
+    border-color:#ffd36a;
+    background:rgba(255,211,106,.09);
+    box-shadow:
+        0 0 10px rgba(255,211,106,.18),
+        inset 0 0 12px rgba(255,211,106,.08);
+}
+
+.archiveRow.locked{
+    color:rgba(255,255,255,.20);
+    border-color:rgba(255,255,255,.055);
+    background:rgba(255,255,255,.015);
+}
+
+.archiveStatus{
+    position:absolute;
+    top:2px;
+    right:4px;
+    font-size:8px;
+    line-height:1;
+}
+
+@media(max-width:600px){
+
+    .archiveCard{
+        width:88vw;
+        padding:20px 16px;
+    }
+
+    .archiveGrid{
+        grid-template-columns:repeat(5,1fr);
+        gap:7px;
+    }
+
+    .archiveRow{
+        min-height:39px;
+        font-size:11px;
+    }
+}
 /* SHIFTVIX v2.3 — Gravity / Reverse visual field */
 #flowFx{position:absolute;inset:0;z-index:12;pointer-events:none;opacity:0;transition:opacity .18s ease;mix-blend-mode:screen;background:radial-gradient(circle at 50% 48%,transparent 28%,rgba(120,80,255,.10) 62%,rgba(40,180,255,.16) 100%);box-shadow:inset 0 -18vh 22vh rgba(80,30,255,.08),inset 0 18vh 22vh rgba(0,180,255,.06)}
 #flowFx.gravity{opacity:var(--gravity-fx,0);filter:saturate(calc(1 + var(--gravity-fx,0)*.8)) contrast(calc(1 + var(--gravity-fx,0)*.12))}
@@ -1289,22 +1460,116 @@ function updateChallenge(){
   if(!challengeAdvanceTimer && raw>=activeChallenge.target)completeCurrentFlow();
 }
 function renderFlowArchive(){
-  const list=document.getElementById("archiveList");
-  let html=`<div class="archiveRow done"><span>FLOWS COMPLETED</span><span>${completedFlows}/${FLOW_TOTAL}</span></div>`;
 
-  // Show the entire 300-flow path. The list is scrollable and automatically
-  // positions the current flow in view after opening.
-  for(let i=0;i<FLOW_TOTAL;i++){
-    const flow=createFlow(i);
-    const cls=i<completedFlows?"done":(i===currentFlowIndex?"current":"locked");
-    const mark=i<completedFlows?"✓":(i===currentFlowIndex?"CURRENT":"LOCKED");
-    html+=`<div class="archiveRow ${cls}" data-flow-index="${i}"><span>${String(i+1).padStart(3,"0")} · ${flow.name}<br>${flow.label}</span><span>${mark}</span></div>`;
-  }
-  list.innerHTML=html;
-  requestAnimationFrame(()=>{
-    const current=list.querySelector(`[data-flow-index="${currentFlowIndex}"]`);
-    if(current)current.scrollIntoView({block:"center"});
-  });
+    const list = document.getElementById("archiveList");
+
+    if(!list) return;
+
+    const FLOWS_PER_BLOCK = 30;
+    const TOTAL_BLOCKS = Math.ceil(FLOW_TOTAL / FLOWS_PER_BLOCK);
+
+    // Each fully completed group of 30 unlocks the following group.
+    const highestUnlockedBlock = Math.min(
+        TOTAL_BLOCKS,
+        Math.floor(completedFlows / FLOWS_PER_BLOCK) + 1
+    );
+
+    let html = `
+        <div class="archiveProgress">
+            <span>FLOWS COMPLETED</span>
+            <span>${Math.min(completedFlows,FLOW_TOTAL)} / ${FLOW_TOTAL}</span>
+        </div>
+
+        <div class="archiveLegend">
+            <span>✓ COMPLETED</span>
+            <span>▶ CURRENT</span>
+            <span>🔒 LOCKED</span>
+        </div>
+    `;
+
+    for(let block = 0; block < TOTAL_BLOCKS; block++){
+
+        const blockNumber = block + 1;
+        const blockStart = block * FLOWS_PER_BLOCK;
+        const blockEnd = Math.min(
+            blockStart + FLOWS_PER_BLOCK,
+            FLOW_TOTAL
+        );
+
+        const blockLocked = blockNumber > highestUnlockedBlock;
+
+        html += `
+            <section class="archiveBlock ${
+                blockLocked ? "lockedBlock" : ""
+            }">
+
+                <div class="archiveBlockLabel">
+                    <span>
+                        FLOWS ${blockStart + 1}–${blockEnd}
+                    </span>
+
+                    <span>
+                        ${blockLocked ? "🔒" : ""}
+                    </span>
+                </div>
+
+                <div class="archiveGrid">
+        `;
+
+        for(let i = blockStart; i < blockEnd; i++){
+
+            const flowNumber = i + 1;
+            const isCompleted = i < completedFlows;
+            const isCurrent = i === currentFlowIndex;
+            const isLocked = blockLocked && !isCompleted && !isCurrent;
+
+            let rowClass = "";
+            let status = "";
+
+            if(isCompleted){
+                rowClass = "done";
+                status = "✓";
+            }else if(isCurrent){
+                rowClass = "current";
+                status = "▶";
+            }else if(isLocked){
+                rowClass = "locked";
+                status = "🔒";
+            }
+
+            html += `
+                <div
+                    class="archiveRow ${rowClass}"
+                    data-flow-index="${i}"
+                    aria-label="Flow ${flowNumber}"
+                >
+                    <span>${flowNumber}</span>
+                    <span class="archiveStatus">${status}</span>
+                </div>
+            `;
+        }
+
+        html += `
+                </div>
+            </section>
+        `;
+    }
+
+    list.innerHTML = html;
+
+    requestAnimationFrame(()=>{
+
+        const current = list.querySelector(
+            `[data-flow-index="${currentFlowIndex}"]`
+        );
+
+        if(current){
+            current.scrollIntoView({
+                block:"center",
+                behavior:"instant"
+            });
+        }
+    });
 }
 function pauseMusicOnly(){
   if(musicTimer){clearInterval(musicTimer);musicTimer=null;}
