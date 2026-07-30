@@ -268,16 +268,16 @@ canvas{display:block}
 #pauseText{position:absolute;left:50%;top:calc(50% + 52px);transform:translateX(-50%);z-index:16;font-size:12px;font-weight:900;letter-spacing:4px;color:#ffd36a;text-shadow:0 0 12px rgba(255,211,106,.9);display:none;pointer-events:none}
 
 /* =========================
-   SHIFTVIX — CURRENT FLOW SYSTEM
+   SHIFTVIX — FLOW SYSTEM
    ========================= */
 #challengeHud{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:22;width:min(620px,92vw);text-align:center;color:#fff;font-weight:900;text-shadow:0 0 10px #000;cursor:pointer;pointer-events:auto}
-#challengeName{font-size:15px;letter-spacing:2.4px;color:#ffd36a;margin-bottom:9px;text-shadow:0 0 10px rgba(255,211,106,.5)}
+#challengeName{font-size:20px;letter-spacing:2.8px;color:#ffd36a;margin-bottom:9px;text-shadow:0 0 10px rgba(255,211,106,.5),0 0 24px rgba(255,211,106,.22)}
 #challengeText{font-size:clamp(17px,4.5vw,22px);line-height:1.18;letter-spacing:1.6px;color:#fff;white-space:normal;overflow:visible;text-overflow:clip;padding:0 8px}
 #challengeBar{margin:11px auto 0;width:min(430px,82vw);height:7px;border-radius:999px;background:rgba(255,255,255,.11);overflow:hidden;border:1px solid rgba(255,211,106,.28);box-shadow:inset 0 0 8px rgba(0,0,0,.7)}
 #challengeFill{height:100%;width:0%;background:linear-gradient(90deg,#8f6a16 0%,#d6aa38 45%,#ffd36a 100%);box-shadow:0 0 12px rgba(255,211,106,.82);transition:width .2s}
 @media (max-width:768px){
   #challengeHud{bottom:24px;width:92vw}
-  #challengeName{font-size:15px;margin-bottom:8px}
+  #challengeName{font-size:22px;margin-bottom:8px;letter-spacing:2.5px}
   #challengeText{font-size:19px;letter-spacing:1.3px}
   #challengeBar{width:82vw;height:7px}
 }
@@ -306,7 +306,7 @@ canvas{display:block}
 <div style="display:none"><span id="world">Distance Run</span>
 <span id="found">0</span><span id="score">0</span><span id="bestScore">0</span><span id="combo">1x</span><div id="signal"></div></div></div>
 <div id="center"></div><div id="pauseText">PAUSED</div><div id="laneLabel">CENTER</div><div id="roundComplete"></div>
-<div id="challengeHud"><div id="challengeName">CURRENT FLOW</div><div id="challengeText">LOADING…</div><div id="challengeBar"><div id="challengeFill"></div></div></div>
+<div id="challengeHud"><div id="challengeName">NORMAL FLOW</div><div id="challengeText">LOADING…</div><div id="challengeBar"><div id="challengeFill"></div></div></div>
 <div id="modeBanner"></div>
 <div id="flowArchive"><div class="archiveCard"><div class="archiveHeader"><h2>FLOW PATH</h2><div class="archiveClose" id="archiveClose">×</div></div><div id="archiveList"></div></div></div>
 
@@ -346,24 +346,43 @@ const TARGET_CAMERA_Z=72;
 let warpAmount = 0;
 
 // =========================
-// SHIFTVIX v2.0 — ENVIRONMENT ENGINE
-// Normal and Curved Space now use one shared interface.
+// SHIFTVIX v2.1 — ENVIRONMENT ENGINE
+// Normal, Curved, and Mirror use one shared interface.
 //
-// Automatic selection:
-//   • Every 10th Current Flow uses CURVED SPACE.
-//   • All other flows use NORMAL SPACE.
+// Automatic flow rotation:
+//   • Flow 10, 30, 50... use CURVED FLOW.
+//   • Flow 20, 40, 60... use MIRROR FLOW.
+//   • All other flows use NORMAL FLOW.
 //
 // Testing override:
 //   ?environment=normal
 //   ?environment=curved
+//   ?environment=mirror
 // =========================
 const ENVIRONMENT_TYPES = Object.freeze({
   NORMAL:"normal",
-  CURVED:"curved"
+  CURVED:"curved",
+  MIRROR:"mirror"
 });
 
 const environmentQuery = new URLSearchParams(window.location.search)
   .get("environment")?.toLowerCase();
+
+function environmentTypeForFlow(index){
+  const flowNumber=index+1;
+  if(flowNumber%20===10)return ENVIRONMENT_TYPES.CURVED;
+  if(flowNumber%20===0)return ENVIRONMENT_TYPES.MIRROR;
+  return ENVIRONMENT_TYPES.NORMAL;
+}
+
+function flowNameForType(type){
+  return `${String(type||ENVIRONMENT_TYPES.NORMAL).toUpperCase()} FLOW`;
+}
+
+function flowNameForIndex(index){
+  const forced=(environmentQuery&&ENVIRONMENTS?.[environmentQuery])?environmentQuery:null;
+  return flowNameForType(forced||environmentTypeForFlow(index));
+}
 
 function easeInOutCubic(t){
   return t < 0.5
@@ -374,231 +393,129 @@ function easeInOutCubic(t){
 function rotatePoint(x,y,angle){
   const c=Math.cos(angle);
   const s=Math.sin(angle);
-  return {
-    x:x*c-y*s,
-    y:x*s+y*c
-  };
+  return {x:x*c-y*s,y:x*s+y*c};
 }
 
 const normalEnvironment = {
   id:ENVIRONMENT_TYPES.NORMAL,
-  name:"NORMAL SPACE",
-
-  reset(){},
-  start(){},
-  update(){},
-
-  transformPoint(x,y){
-    return {x,y};
-  },
-
-  transformSwipe(dx,dy){
-    return {x:dx,y:dy};
-  },
-
-  getRotation(){
-    return 0;
-  }
+  name:"NORMAL FLOW",
+  reset(){}, start(){}, update(){},
+  transformPoint(x,y){return {x,y};},
+  transformSwipe(dx,dy){return {x:dx,y:dy};},
+  transformLaneInput(dx,dy){return {x:dx,y:dy};},
+  getRotation(){return 0;}
 };
 
 const curvedEnvironment = {
   id:ENVIRONMENT_TYPES.CURVED,
-  name:"CURVED SPACE",
-
+  name:"CURVED FLOW",
   warningDistance:450,
   startDistance:500,
   turnAngle:THREE.MathUtils.degToRad(-30),
   turnDuration:1.8,
-
-  rotation:0,
-  turnFrom:0,
-  turnTarget:0,
-  elapsed:0,
-  active:false,
-  triggered:false,
-  warningShown:false,
+  flowStartDistance:0, rotation:0, turnFrom:0, turnTarget:0, elapsed:0,
+  active:false, triggered:false, warningShown:false,
 
   reset(){
-    this.rotation=0;
-    this.turnFrom=0;
-    this.turnTarget=0;
-    this.elapsed=0;
-    this.active=false;
-    this.triggered=false;
-    this.warningShown=false;
+    this.flowStartDistance=distance;
+    this.rotation=0; this.turnFrom=0; this.turnTarget=0; this.elapsed=0;
+    this.active=false; this.triggered=false; this.warningShown=false;
   },
-
-  start(){
-    // The curved event begins later in the run, so start only resets state.
-    this.reset();
-  },
-
+  start(){this.reset();},
   beginTurn(){
     if(this.triggered)return;
-
-    this.triggered=true;
-    this.active=true;
-    this.elapsed=0;
-    this.turnFrom=this.rotation;
-    this.turnTarget=this.turnAngle;
-
-    showModeBanner("CURVED SPACE");
-    track("environment_event_started",{
-      environment:this.id,
-      distance:Math.floor(distance),
-      degrees:30,
-      direction:"clockwise"
-    });
+    this.triggered=true; this.active=true; this.elapsed=0;
+    this.turnFrom=this.rotation; this.turnTarget=this.turnAngle;
+    showModeBanner("CURVED FLOW");
+    track("environment_event_started",{environment:this.id,distance:Math.floor(distance),degrees:30,direction:"clockwise"});
   },
-
   update(dt){
-    if(!this.warningShown && distance>=this.warningDistance){
-      this.warningShown=true;
-      showModeBanner("TURN APPROACHING");
-      bankRollVelocity+=THREE.MathUtils.degToRad(1.5);
-      warpCurveVelocityX+=10;
+    const flowDistance=Math.max(0,distance-this.flowStartDistance);
+    if(!this.warningShown&&flowDistance>=this.warningDistance){
+      this.warningShown=true; showModeBanner("TURN APPROACHING");
+      bankRollVelocity+=THREE.MathUtils.degToRad(1.5); warpCurveVelocityX+=10;
     }
-
-    if(!this.triggered && distance>=this.startDistance){
-      this.beginTurn();
-    }
-
+    if(!this.triggered&&flowDistance>=this.startDistance)this.beginTurn();
     if(this.active){
       this.elapsed+=dt;
-      const progress=THREE.MathUtils.clamp(
-        this.elapsed/this.turnDuration,
-        0,
-        1
-      );
-
-      this.rotation=THREE.MathUtils.lerp(
-        this.turnFrom,
-        this.turnTarget,
-        easeInOutCubic(progress)
-      );
-
-      bankRollVelocity+=THREE.MathUtils.degToRad(2.0)*dt;
-      warpCurveVelocityX+=12*dt;
-
+      const progress=THREE.MathUtils.clamp(this.elapsed/this.turnDuration,0,1);
+      this.rotation=THREE.MathUtils.lerp(this.turnFrom,this.turnTarget,easeInOutCubic(progress));
+      bankRollVelocity+=THREE.MathUtils.degToRad(2.0)*dt; warpCurveVelocityX+=12*dt;
       if(progress>=1){
-        this.rotation=this.turnTarget;
-        this.active=false;
-
-        showModeBanner("TURN COMPLETE");
-        track("environment_event_completed",{
-          environment:this.id,
-          distance:Math.floor(distance),
-          degrees:30,
-          direction:"clockwise"
-        });
+        this.rotation=this.turnTarget; this.active=false; showModeBanner("TURN COMPLETE");
+        track("environment_event_completed",{environment:this.id,distance:Math.floor(distance),degrees:30,direction:"clockwise"});
       }
     }
   },
+  transformPoint(x,y){return rotatePoint(x,y,this.rotation);},
+  transformSwipe(dx,dy){return rotatePoint(dx,dy,this.rotation);},
+  transformLaneInput(dx,dy){return {x:dx,y:dy};},
+  getRotation(){return this.rotation;}
+};
 
-  transformPoint(x,y){
-    return rotatePoint(x,y,this.rotation);
+const mirrorEnvironment = {
+  id:ENVIRONMENT_TYPES.MIRROR,
+  name:"MIRROR FLOW",
+  swipeCount:0,
+  reset(){this.swipeCount=0;},
+  start(){
+    this.reset();
+    track("environment_event_started",{environment:this.id,distance:Math.floor(distance)});
   },
-
+  update(){},
+  transformPoint(x,y){return {x,y};},
   transformSwipe(dx,dy){
-    return rotatePoint(dx,dy,this.rotation);
+    this.swipeCount++;
+    track("mirror_swipe",{flow_number:currentFlowIndex+1,swipe_count:this.swipeCount});
+    return {x:-dx,y:dy};
   },
-
-  getRotation(){
-    return this.rotation;
-  }
+  transformLaneInput(dx,dy){return {x:-dx,y:dy};},
+  getRotation(){return 0;}
 };
 
 const ENVIRONMENTS = Object.freeze({
   [ENVIRONMENT_TYPES.NORMAL]:normalEnvironment,
-  [ENVIRONMENT_TYPES.CURVED]:curvedEnvironment
+  [ENVIRONMENT_TYPES.CURVED]:curvedEnvironment,
+  [ENVIRONMENT_TYPES.MIRROR]:mirrorEnvironment
 });
 
 const environmentEngine = {
-  current:normalEnvironment,
-  forcedType:null,
-
-  resolveType(){
-    if(environmentQuery && ENVIRONMENTS[environmentQuery]){
-      this.forcedType=environmentQuery;
-      return environmentQuery;
-    }
-
-    // Curved Space stays rare: flow 10, 20, 30, and so on.
-    return (currentFlowIndex+1)%10===0
-      ? ENVIRONMENT_TYPES.CURVED
-      : ENVIRONMENT_TYPES.NORMAL;
+  current:normalEnvironment, forcedType:null,
+  resolveType(index=currentFlowIndex){
+    if(environmentQuery&&ENVIRONMENTS[environmentQuery]){this.forcedType=environmentQuery;return environmentQuery;}
+    return environmentTypeForFlow(index);
   },
-
   set(type,{announce=false}={}){
     const next=ENVIRONMENTS[type]||normalEnvironment;
-
-    if(this.current && this.current!==next){
-      this.current.reset();
-    }
-
-    this.current=next;
-    this.current.start();
-    this.applyLaneGuides();
-    this.updatePlayerTarget();
-
-    if(announce){
-      showModeBanner(this.current.name);
-    }
-
-    track("environment_selected",{
-      environment:this.current.id,
-      flow_number:currentFlowIndex+1,
-      forced:Boolean(this.forcedType)
-    });
+    if(this.current&&this.current!==next)this.current.reset();
+    this.current=next; this.current.start(); this.applyLaneGuides(); this.updatePlayerTarget();
+    if(announce)showModeBanner(this.current.name);
+    updateFlowHeading();
+    track("environment_selected",{environment:this.current.id,flow_number:currentFlowIndex+1,forced:Boolean(this.forcedType)});
   },
-
-  resetForRun(){
-    this.set(this.resolveType());
-  },
-
-  update(dt){
-    this.current.update(dt);
-    this.applyLaneGuides();
-    this.updatePlayerTarget();
-  },
-
-  transformPoint(x,y){
-    return this.current.transformPoint(x,y);
-  },
-
-  transformSwipe(dx,dy){
-    return this.current.transformSwipe(dx,dy);
-  },
-
+  resetForRun(){this.set(this.resolveType());},
+  resetForFlow({announce=true}={}){this.set(this.resolveType(),{announce});},
+  update(dt){this.current.update(dt);this.applyLaneGuides();this.updatePlayerTarget();},
+  transformPoint(x,y){return this.current.transformPoint(x,y);},
+  transformSwipe(dx,dy){return this.current.transformSwipe(dx,dy);},
+  transformLaneInput(dx,dy){return this.current.transformLaneInput(dx,dy);},
   updatePlayerTarget(){
-    const p=this.transformPoint(LANE_X[laneX],LANE_Y[laneY]);
-    targetX=p.x;
-    targetY=p.y;
+    const p=this.transformPoint(LANE_X[laneX],LANE_Y[laneY]); targetX=p.x; targetY=p.y;
   },
-
   applyLaneGuides(){
-    const rotation=this.current.getRotation();
-    laneGuides.forEach(guide=>{
-      guide.rotation.z=rotation;
-    });
+    const rotation=this.current.getRotation(); laneGuides.forEach(guide=>{guide.rotation.z=rotation;});
   }
 };
 
-function updateEnvironment(dt){
-  environmentEngine.update(dt);
+function updateFlowHeading(){
+  const heading=document.getElementById("challengeName");
+  if(heading)heading.textContent=environmentEngine.current.name;
 }
-
-function resetEnvironmentForRun(){
-  environmentEngine.resetForRun();
-}
-
-function environmentPoint(x,y){
-  return environmentEngine.transformPoint(x,y);
-}
-
-function environmentSwipe(dx,dy){
-  return environmentEngine.transformSwipe(dx,dy);
-}
+function updateEnvironment(dt){environmentEngine.update(dt);}
+function resetEnvironmentForRun(){environmentEngine.resetForRun();}
+function environmentPoint(x,y){return environmentEngine.transformPoint(x,y);}
+function environmentSwipe(dx,dy){return environmentEngine.transformSwipe(dx,dy);}
+function environmentLaneInput(dx,dy){return environmentEngine.transformLaneInput(dx,dy);}
 
 // =========================
 // SHIFTVIX WARP BANKING 3.0 + WARP CURVATURE 4.0
@@ -1113,7 +1030,6 @@ const FLOW_STAGES = [
   {name:"MASTERY",end:270},
   {name:"TRANSCENDENCE",end:300}
 ];
-const flowTitles = ["IGNITION","ALIGNMENT","MOMENTUM","RHYTHM","FOCUS","CONTROL","CADENCE","VELOCITY","RESOLVE","ASCENT","CLARITY","ENDURANCE","PULSE","VECTOR","ORBIT","SURGE","NEXUS","APEX","ZENITH","INFINITY"];
 let currentFlowIndex = Math.max(0,Math.min(FLOW_TOTAL-1,Number(localStorage.getItem("shiftvixCurrentFlow")||0)));
 let completedFlows = Math.max(0,Math.min(FLOW_TOTAL,Number(localStorage.getItem("shiftvixCompletedFlows")||0)));
 let objectiveOrbsCollected = 0;
@@ -1128,11 +1044,9 @@ function flowStageFor(index){
 }
 function createFlow(index){
   const n=index+1;
-  const stage=flowStageFor(index);
   const cycle=Math.floor(index/12);
   const type=index%12;
-  const title=flowTitles[index%flowTitles.length];
-  const name=`${stage.name} · ${title}`;
+  const name=flowNameForIndex(index);
 
   // Twelve rotating challenge families. Targets deliberately change every cycle,
   // so all 300 flows are distinct instead of repeating the same objective.
@@ -1230,7 +1144,7 @@ function completeCurrentFlow(){
   track("current_flow_completed",{flow_number:currentFlowIndex+1,flow_id:finished.id,flow_stage:flowStageFor(currentFlowIndex).name,environment:environmentEngine.current.id,level,distance:Math.floor(distance),score});track("highest_flow_reached", {
     highest_flow: currentFlowIndex + 1
 });
-  showModeBanner("CURRENT FLOW COMPLETE");
+  showModeBanner(`${environmentEngine.current.name} COMPLETE`);
 
   // Start the next flow immediately. This prevents orb pickups during the
   // completion animation from being lost or making the next counter appear stuck.
@@ -1238,10 +1152,11 @@ function completeCurrentFlow(){
   localStorage.setItem("shiftvixCurrentFlow",String(currentFlowIndex));
   activeChallenge=createFlow(currentFlowIndex);
   challengeStart={found:foundCount,score,distance,strikes,tierCounts:{...tierCounts}};
+  environmentEngine.resetForFlow({announce:false});
   challengeAdvanceTimer=setTimeout(()=>{
     challengeAdvanceTimer=null;
     updateChallenge();
-    showModeBanner("NEXT FLOW");
+    showModeBanner(environmentEngine.current.name);
   },650);
 }
 function updateChallenge(){
@@ -1254,7 +1169,7 @@ function updateChallenge(){
   const pct=Math.max(0,Math.min(100,(value/activeChallenge.target)*100));
   // Keep the active-play HUD minimal. Full flow number, category, title,
   // completion history, and exact totals remain available inside FLOW PATH.
-  document.getElementById("challengeName").textContent="CURRENT FLOW";
+  updateFlowHeading();
   document.getElementById("challengeText").textContent=activeChallenge.label;
   document.getElementById("challengeFill").style.width=pct+"%";
   if(!challengeAdvanceTimer && raw>=activeChallenge.target)completeCurrentFlow();
@@ -1337,6 +1252,7 @@ function spawnTrain(){
 }
 function spawnWave(){const trains=heroMode?2:(Math.random()<.78?2:3);for(let i=0;i<trains;i++)setTimeout(spawnTrain,i*120);}
 function moveLane(dx,dy){if(!gameStarted||gameOver)return;laneX=Math.max(0,Math.min(2,laneX+dx));laneY=Math.max(0,Math.min(2,laneY+dy));environmentEngine.updatePlayerTarget();addWarpBank(dx,dy);const namesY=["UP","CENTER","DOWN"],namesX=["LEFT","CENTER","RIGHT"];document.getElementById("laneLabel").textContent=namesY[laneY]+" "+namesX[laneX];if(navigator.vibrate)navigator.vibrate(10);}
+function moveLaneFromInput(dx,dy){const mapped=environmentLaneInput(dx,dy);moveLane(mapped.x,mapped.y);}
 let downX=0,downY=0;
 
 // iPhone Safari audio unlock: capture the earliest touch event possible.
@@ -1401,7 +1317,7 @@ window.addEventListener("pointerup",e=>{
   }
 
 });
-window.addEventListener("keydown",e=>{initAudio();if(!gameStarted)startGame();if(e.key==="ArrowLeft"||e.key==="a")moveLane(-1,0);if(e.key==="ArrowRight"||e.key==="d")moveLane(1,0);if(e.key==="ArrowUp"||e.key==="w")moveLane(0,-1);if(e.key==="ArrowDown"||e.key==="s")moveLane(0,1);});
+window.addEventListener("keydown",e=>{initAudio();if(!gameStarted)startGame();if(e.key==="ArrowLeft"||e.key==="a")moveLaneFromInput(-1,0);if(e.key==="ArrowRight"||e.key==="d")moveLaneFromInput(1,0);if(e.key==="ArrowUp"||e.key==="w")moveLaneFromInput(0,-1);if(e.key==="ArrowDown"||e.key==="s")moveLaneFromInput(0,1);});
 function startGame(){
 
     if(gameStarted) return;
@@ -1812,9 +1728,9 @@ vix.style.transform = "translateY(0)";
 
 title.style.transform = "translate(-50%,-50%)";
 
-const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");center.style.borderColor="rgba(255,255,255,.95)";center.style.boxShadow="0 0 10px rgba(255,255,255,.55)";document.getElementById("roundComplete").style.display="none";beacons.forEach(b=>scene.remove(b));beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;beginCurrentFlow();
+const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");center.style.borderColor="rgba(255,255,255,.95)";center.style.boxShadow="0 0 10px rgba(255,255,255,.55)";document.getElementById("roundComplete").style.display="none";beacons.forEach(b=>scene.remove(b));beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;
 
-lastLevel = 1;strikes = 0;milestonesReached = {};runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;musicStarted=false;resetWarpBanking();resetEnvironmentForRun();resetMusicEvolution();updateStrikes();updateHUD();spawnWave();startMusic();}
+lastLevel = 1;strikes = 0;milestonesReached = {};runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;musicStarted=false;resetWarpBanking();resetEnvironmentForRun();beginCurrentFlow();resetMusicEvolution();updateStrikes();updateHUD();spawnWave();startMusic();}
 function togglePause(){
   if(gameOver)return;
   paused=!paused;
