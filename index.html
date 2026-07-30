@@ -294,8 +294,11 @@ canvas{display:block}
 /* SHIFTVIX v2.3 — Gravity / Reverse visual field */
 #flowFx{position:absolute;inset:0;z-index:12;pointer-events:none;opacity:0;transition:opacity .18s ease;mix-blend-mode:screen;background:radial-gradient(circle at 50% 48%,transparent 28%,rgba(120,80,255,.10) 62%,rgba(40,180,255,.16) 100%);box-shadow:inset 0 -18vh 22vh rgba(80,30,255,.08),inset 0 18vh 22vh rgba(0,180,255,.06)}
 #flowFx.gravity{opacity:var(--gravity-fx,0);filter:saturate(calc(1 + var(--gravity-fx,0)*.8)) contrast(calc(1 + var(--gravity-fx,0)*.12))}
-#flowFx.pulse{opacity:.55;animation:pulseFlow 1.1s ease-in-out infinite alternate;background:radial-gradient(circle,#7df9ff22,transparent 60%);}
-@keyframes pulseFlow{from{filter:brightness(.85)}to{filter:brightness(1.35)} }
+#flowFx.pulse{opacity:var(--pulse-fx,.2);background:radial-gradient(circle at 50% 50%,rgba(125,249,255,.22),rgba(80,120,255,.10) 34%,transparent 68%);filter:brightness(calc(.9 + var(--pulse-fx,.2)*.9)) saturate(calc(1 + var(--pulse-fx,.2)*.75));}
+#pulseWaves{position:absolute;inset:0;z-index:14;pointer-events:none;overflow:hidden;}
+.pulseWave{position:absolute;left:50%;top:50%;width:32px;height:32px;border-radius:50%;border:2px solid rgba(125,249,255,.85);box-shadow:0 0 18px rgba(125,249,255,.75),inset 0 0 16px rgba(125,249,255,.25);transform:translate(-50%,-50%) scale(.2);opacity:0;animation:pulseShockwave .9s cubic-bezier(.1,.55,.2,1) forwards;}
+.pulseWave.secondary{border-color:rgba(255,102,204,.55);animation-delay:.08s;}
+@keyframes pulseShockwave{0%{opacity:.95;transform:translate(-50%,-50%) scale(.25)}65%{opacity:.34}100%{opacity:0;transform:translate(-50%,-50%) scale(18)}}
 #flowFx.reverse{opacity:.62;background:radial-gradient(circle at 50% 50%,transparent 30%,rgba(255,50,40,.08) 64%,rgba(255,0,120,.17) 100%);animation:reverseBreath 1.35s ease-in-out infinite alternate}
 @keyframes reverseBreath{from{filter:hue-rotate(0deg) brightness(.9)}to{filter:hue-rotate(22deg) brightness(1.25)}}
 </style>
@@ -315,7 +318,7 @@ canvas{display:block}
 <span id="found">0</span><span id="score">0</span><span id="bestScore">0</span><span id="combo">1x</span><div id="signal"></div></div></div>
 <div id="center"></div><div id="pauseText">PAUSED</div><div id="laneLabel">CENTER</div><div id="roundComplete"></div>
 <div id="challengeHud"><div id="challengeName">NORMAL FLOW</div><div id="challengeText">LOADING…</div><div id="challengeBar"><div id="challengeFill"></div></div></div>
-<div id="modeBanner"></div><div id="flowFx"></div>
+<div id="modeBanner"></div><div id="flowFx"></div><div id="pulseWaves"></div>
 <div id="flowArchive"><div class="archiveCard"><div class="archiveHeader"><h2>FLOW PATH</h2><div class="archiveClose" id="archiveClose">×</div></div><div id="archiveList"></div></div></div>
 
 <script type="module">
@@ -354,14 +357,14 @@ const TARGET_CAMERA_Z=72;
 let warpAmount = 0;
 
 // =========================
-// SHIFTVIX v2.3 — ENVIRONMENT ENGINE
-// Normal, Curved, Mirror, Gravity, and Reverse share one interface.
+// SHIFTVIX v2.4 — ENVIRONMENT ENGINE
+// Normal, Curved, Mirror, Gravity, Reverse, and Pulse share one interface.
 //
 // Automatic flow rotation (50-flow cycle):
 //   10 CURVED · 20 MIRROR · 30 GRAVITY · 40 REVERSE · 50 PULSE
 //
 // Testing override:
-//   ?environment=normal | curved | mirror | gravity | reverse
+//   ?environment=normal | curved | mirror | gravity | reverse | pulse
 // =========================
 const ENVIRONMENT_TYPES = Object.freeze({
   NORMAL:"normal",
@@ -407,6 +410,7 @@ function setFlowFx(mode,intensity=0){
   if(!fx)return;
   fx.className=mode||"";
   fx.style.setProperty("--gravity-fx",String(THREE.MathUtils.clamp(intensity,0,1)));
+  fx.style.setProperty("--pulse-fx",String(THREE.MathUtils.clamp(intensity,0,1)));
 }
 
 const normalEnvironment={
@@ -480,12 +484,109 @@ const reverseEnvironment={
   transformLaneInput(dx,dy){return {x:-dx,y:-dy};},getRotation(){return 0;}
 };
 
+
+// =========================
+// SHIFTVIX v2.4 — PULSE COMPLETE
+// Heartbeat-synchronized world breathing, lane spacing, camera impulse,
+// audio modulation, shockwaves, and rhythm analytics.
+// =========================
+let pulseCameraOffset=0;
+let pulseFovBoost=0;
+
+function emitPulseShockwave(){
+  const host=document.getElementById("pulseWaves");
+  if(!host)return;
+  ["","secondary"].forEach(cls=>{
+    const ring=document.createElement("div");
+    ring.className=`pulseWave ${cls}`.trim();
+    host.appendChild(ring);
+    ring.addEventListener("animationend",()=>ring.remove(),{once:true});
+  });
+}
+
+const pulseEnvironment={
+  id:ENVIRONMENT_TYPES.PULSE,name:"PULSE FLOW",
+  impulse:0,phase:0,pulseCount:0,collections:0,onBeatCollections:0,strikes:0,
+  lastBeatAt:0,lastBeatPerformance:0,beatIntervals:[],startedAt:0,lastAnalyticsPulse:0,
+  reset(){
+    if(this.startedAt&&this.pulseCount){
+      const avg=this.beatIntervals.length?this.beatIntervals.reduce((a,b)=>a+b,0)/this.beatIntervals.length:0;
+      const variance=this.beatIntervals.length?this.beatIntervals.reduce((a,b)=>a+(b-avg)*(b-avg),0)/this.beatIntervals.length:0;
+      track("pulse_flow_completed",{
+        flow_number:currentFlowIndex+1,pulse_count:this.pulseCount,
+        collections:this.collections,on_beat_collections:this.onBeatCollections,
+        pulse_accuracy:this.collections?Math.round(this.onBeatCollections/this.collections*100):0,
+        rhythm_stability:avg?Math.max(0,Math.round(100-Math.sqrt(variance)/avg*100)):100,
+        pulse_strikes:this.strikes
+      });
+    }
+    this.impulse=0;this.phase=0;this.pulseCount=0;this.collections=0;this.onBeatCollections=0;this.strikes=0;
+    this.lastBeatAt=0;this.lastBeatPerformance=0;this.beatIntervals=[];this.startedAt=0;this.lastAnalyticsPulse=0;
+    pulseCameraOffset=0;pulseFovBoost=0;setFlowFx("",0);
+    stars.forEach(s=>s.scale.set(1,1,1));
+  },
+  start(){
+    this.reset();this.startedAt=performance.now();setFlowFx("pulse",.22);showModeBanner("PULSE FLOW");
+    track("pulse_flow_started",{flow_number:currentFlowIndex+1,distance:Math.floor(distance),bpm:Math.round(getDrumBPM())});
+  },
+  onBeat(time,accent=1){
+    if(this.lastBeatAt){const interval=time-this.lastBeatAt;if(interval>.2&&interval<1.5){this.beatIntervals.push(interval);if(this.beatIntervals.length>24)this.beatIntervals.shift();}}
+    this.lastBeatAt=time;this.lastBeatPerformance=performance.now()/1000;this.pulseCount++;this.impulse=Math.min(1.25,.82+accent*.22);emitPulseShockwave();
+    pulseCameraOffset=Math.max(pulseCameraOffset,1.15+accent*.45);
+    pulseFovBoost=Math.max(pulseFovBoost,1.2+accent*.7);
+    bankPitchVelocity-=THREE.MathUtils.degToRad(.32)*accent;
+    warpCurveVelocityX+=Math.sin(this.pulseCount*.9)*1.8*accent;
+    lensPulse=Math.max(lensPulse,.92);
+    if(audioCtx&&musicFilter&&musicMasterGain){
+      const now=audioCtx.currentTime;
+      const base=1350+Math.max(0,Math.min(1,distance/5000))*7600;
+      musicFilter.frequency.cancelScheduledValues(now);
+      musicFilter.frequency.setValueAtTime(Math.min(12000,base*1.18),now);
+      musicFilter.frequency.exponentialRampToValueAtTime(Math.max(80,base),now+.18);
+      musicMasterGain.gain.cancelScheduledValues(now);
+      musicMasterGain.gain.setValueAtTime(.9,now);
+      musicMasterGain.gain.exponentialRampToValueAtTime(.82,now+.2);
+    }
+    if(this.pulseCount-this.lastAnalyticsPulse>=8){
+      this.lastAnalyticsPulse=this.pulseCount;
+      track("pulse_peak",{flow_number:currentFlowIndex+1,pulse_count:this.pulseCount,bpm:Math.round(getDrumBPM()),distance:Math.floor(distance)});
+    }
+  },
+  update(dt){
+    this.phase+=dt*Math.PI*2*(getDrumBPM()/60);
+    this.impulse*=Math.exp(-dt*5.4);
+    const breath=.5+.5*Math.sin(this.phase-Math.PI/2);
+    const visual=Math.min(1,.18+this.impulse*.72+breath*.12);
+    setFlowFx("pulse",visual);
+    pulseCameraOffset*=Math.exp(-dt*6.2);
+    pulseFovBoost*=Math.exp(-dt*6.4);
+    const starScale=1+this.impulse*.028+breath*.012;
+    stars.forEach(s=>s.scale.set(starScale,starScale,1));
+  },
+  onCollect(){
+    this.collections++;
+    const age=performance.now()/1000-this.lastBeatPerformance;
+    if(age>=0&&age<=.24)this.onBeatCollections++;
+    if(this.collections%25===0)track("pulse_accuracy",{flow_number:currentFlowIndex+1,collections:this.collections,on_beat_collections:this.onBeatCollections,accuracy:this.collections?Math.round(this.onBeatCollections/this.collections*100):0});
+  },
+  onStrike(){this.strikes++;track("pulse_collision",{flow_number:currentFlowIndex+1,pulse_count:this.pulseCount,distance:Math.floor(distance)});},
+  transformPoint(x,y){
+    const breath=.5+.5*Math.sin(this.phase-Math.PI/2);
+    const spacing=1+(breath-.5)*.055+this.impulse*.035;
+    return {x:x*spacing,y:y*spacing};
+  },
+  transformSwipe(dx,dy){return {x:dx,y:dy};},
+  transformLaneInput(dx,dy){return {x:dx,y:dy};},
+  getRotation(){return Math.sin(this.phase*.5)*THREE.MathUtils.degToRad(.45)*this.impulse;}
+};
+
 const ENVIRONMENTS=Object.freeze({
   [ENVIRONMENT_TYPES.NORMAL]:normalEnvironment,
   [ENVIRONMENT_TYPES.CURVED]:curvedEnvironment,
   [ENVIRONMENT_TYPES.MIRROR]:mirrorEnvironment,
   [ENVIRONMENT_TYPES.GRAVITY]:gravityEnvironment,
-  [ENVIRONMENT_TYPES.REVERSE]:reverseEnvironment
+  [ENVIRONMENT_TYPES.REVERSE]:reverseEnvironment,
+  [ENVIRONMENT_TYPES.PULSE]:pulseEnvironment
 });
 
 const environmentEngine={
@@ -783,6 +884,7 @@ function playNoiseHit(time, volume, duration, highpass=1200){
 
 function playDrumHit(time, accent = 1){
   if(!audioCtx || !drumEnabled) return;
+  if(environmentEngine?.current?.id===ENVIRONMENT_TYPES.PULSE) pulseEnvironment.onBeat(time,accent);
   ensureMusicBus();
 
   const bodyOsc = audioCtx.createOscillator();
@@ -1471,6 +1573,7 @@ function takeStrike(){
 
     strikes++;
     lastStrikeDistance = distance;
+    if(environmentEngine?.current?.onStrike)environmentEngine.current.onStrike();
 
     track("strike",{
     strike_number: strikes,
@@ -1518,6 +1621,7 @@ score += gained;
 foundCount++;
 
 objectiveOrbsCollected++;
+if(environmentEngine?.current?.onCollect)environmentEngine.current.onCollect();
 
 tierCounts[b.userData.tier.name] =
     (tierCounts[b.userData.tier.name] || 0) + 1;
@@ -1847,6 +1951,8 @@ camera.position.y * 0.995 + vanishingY,
 +
 warpAmount*11
 +
+pulseFovBoost
++
 Math.sin(distance*0.004)
 *
 warpAmount
@@ -2082,7 +2188,9 @@ introCameraZ
 -
 Math.pow(warpAmount,1.6)
 *
-5;
+5
+-
+pulseCameraOffset;
 
 const title = document.getElementById("gameTitle");
 
