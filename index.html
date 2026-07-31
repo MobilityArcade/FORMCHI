@@ -514,6 +514,45 @@ canvas{display:block}
         font-size:11px;
     }
 }
+
+/* =========================
+   SHIFTVIX v2.5 — PATCH 10 POLISH
+   ========================= */
+:root{--shift-gold:#ffd36a;--shift-cyan:#7df9ff}
+button,.archiveRow{-webkit-tap-highlight-color:transparent}
+#pauseMenu,#flowArchive{opacity:0;visibility:hidden;pointer-events:none;display:grid;transition:opacity .18s ease,visibility 0s linear .18s}
+#pauseMenu.show,#flowArchive.show{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .18s ease}
+#pauseMenu.show{animation:none}
+.pausePanel,.archiveCard{transform:translateY(8px) scale(.985);transition:transform .2s ease}
+#pauseMenu.show .pausePanel,#flowArchive.show .archiveCard{transform:translateY(0) scale(1)}
+.pauseButton{transition:transform .12s ease,border-color .15s ease,background .15s ease,box-shadow .15s ease}
+.pauseButton:hover,.pauseButton:focus-visible{outline:none;border-color:rgba(255,211,106,.72);background:rgba(255,211,106,.10);box-shadow:0 0 18px rgba(255,211,106,.14)}
+.pauseButton:focus-visible,.archiveClose:focus-visible,.archiveRow:focus-visible{outline:2px solid var(--shift-gold);outline-offset:2px}
+.archiveClose{border-radius:10px;transition:background .14s ease,color .14s ease}
+.archiveClose:hover,.archiveClose:focus-visible{background:rgba(255,255,255,.08);color:var(--shift-gold);outline:none}
+.archiveBlockLabel .blockProgress{font-size:9px;letter-spacing:1px;color:rgba(255,255,255,.36)}
+.archiveRow{overflow:hidden}
+.archiveFlowType{position:absolute;left:4px;bottom:3px;max-width:calc(100% - 8px);font-size:6px;line-height:1;letter-spacing:.45px;color:rgba(255,255,255,.34);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.archiveRow.current .archiveFlowType{color:rgba(255,211,106,.75)}
+.archiveRow.done .archiveFlowType{color:rgba(125,249,255,.52)}
+.archiveRow.locked .archiveFlowType{display:none}
+.archiveRow.selectedFlash{animation:selectedFlowFlash .42s ease-out}
+@keyframes selectedFlowFlash{0%{transform:scale(1)}45%{transform:scale(1.10);box-shadow:0 0 24px rgba(255,211,106,.45)}100%{transform:scale(1)}}
+#challengeHud{transition:opacity .18s ease,transform .18s ease}
+body.uiModalOpen #challengeHud{opacity:.22;pointer-events:none}
+body.uiModalOpen #center{pointer-events:none}
+@media(max-width:600px){
+  .pausePanel{width:min(390px,86vw);padding:24px 18px 20px}
+  .pauseButton{min-height:52px;font-size:14px}
+  .archiveCard{max-height:84vh;padding:18px 14px}
+  #archiveList{max-height:66vh}
+  .archiveRow{min-height:44px}
+  .archiveFlowType{font-size:5.5px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+}
+
 /* SHIFTVIX v2.3 — Gravity / Reverse visual field */
 #flowFx{position:absolute;inset:0;z-index:12;pointer-events:none;opacity:0;transition:opacity .18s ease;mix-blend-mode:screen;background:radial-gradient(circle at 50% 48%,transparent 28%,rgba(120,80,255,.10) 62%,rgba(40,180,255,.16) 100%);box-shadow:inset 0 -18vh 22vh rgba(80,30,255,.08),inset 0 18vh 22vh rgba(0,180,255,.06)}
 #flowFx.gravity{opacity:var(--gravity-fx,0);filter:saturate(calc(1 + var(--gravity-fx,0)*.8)) contrast(calc(1 + var(--gravity-fx,0)*.12))}
@@ -556,8 +595,9 @@ canvas{display:block}
 </div>
 <div id="challengeHud"><div id="challengeName">NORMAL FLOW</div><div id="challengeText">LOADING…</div><div id="challengeBar"><div id="challengeFill"></div></div></div>
 <div id="modeBanner"></div><div id="flowFx"></div><div id="pulseWaves"></div>
-<div id="flowArchive"><div class="archiveCard"><div class="archiveHeader"><h2>FLOW PATH</h2><div class="archiveClose" id="archiveClose">×</div></div><div id="archiveList"></div></div></div>
+<div id="flowArchive" aria-hidden="true"><div class="archiveCard" role="dialog" aria-modal="true" aria-labelledby="flowPathTitle"><div class="archiveHeader"><h2 id="flowPathTitle">FLOW PATH</h2><button class="archiveClose" id="archiveClose" type="button" aria-label="Close Flow Path">×</button></div><div id="archiveList"></div></div></div>
 
+<!-- SHIFTVIX v2.5 PATCH 10 POLISH -->
 <script type="module">
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x000000,0.0011);
@@ -2187,11 +2227,7 @@ function updateChallenge(){
 function renderFlowArchive(){
 
     const list = document.getElementById("archiveList");
-
     if(!list) return;
-
-  const TOTAL_BLOCKS =
-    TOTAL_FLOW_BLOCKS;
 
     let html = `
         <div class="archiveProgress">
@@ -2207,65 +2243,35 @@ function renderFlowArchive(){
         </div>
     `;
 
-    for(let block = 0; block < TOTAL_BLOCKS; block++){
-
+    for(let block = 0; block < TOTAL_FLOW_BLOCKS; block++){
         const blockNumber = block + 1;
         const blockStart = block * FLOWS_PER_BLOCK;
-        const blockEnd = Math.min(
-            blockStart + FLOWS_PER_BLOCK,
-            FLOW_TOTAL
-        );
-
-       const blockLocked =
-    !isBlockUnlocked(blockNumber);
+        const blockEnd = Math.min(blockStart + FLOWS_PER_BLOCK,FLOW_TOTAL);
+        const blockLocked = !isBlockUnlocked(blockNumber);
+        let blockDone = 0;
+        for(let i=blockStart;i<blockEnd;i++) if(isFlowCompleted(i)) blockDone++;
 
         html += `
-            <section class="archiveBlock ${
-                blockLocked ? "lockedBlock" : ""
-            }">
-
+            <section class="archiveBlock ${blockLocked ? "lockedBlock" : ""}" data-block="${blockNumber}">
                 <div class="archiveBlockLabel">
-                    <span>
-                        FLOWS ${blockStart + 1}–${blockEnd}
-                    </span>
-
-                    <span>
-                        ${blockLocked ? "🔒" : ""}
-                    </span>
+                    <span>FLOWS ${blockStart + 1}–${blockEnd}</span>
+                    <span class="blockProgress">${blockLocked ? "🔒" : `${blockDone}/${blockEnd-blockStart}`}</span>
                 </div>
-
                 <div class="archiveGrid">
         `;
 
         for(let i = blockStart; i < blockEnd; i++){
-
             const flowNumber = i + 1;
-            const isCompleted =
-                isFlowCompleted(i);
-            const isCurrent =
-                i === currentFlowIndex;
-            const isLocked =
-                !isFlowUnlocked(i);
+            const isCompleted = isFlowCompleted(i);
+            const isCurrent = i === currentFlowIndex;
+            const isLocked = !isFlowUnlocked(i);
+            const flowType = flowNameForIndex(i).replace(" FLOW","");
+            let rowClass = "available selectable";
+            let status = "•";
 
-            let rowClass = "";
-            let status = "";
-
-            if(isLocked){
-                rowClass = "locked";
-                status = "🔒";
-            }else if(isCurrent){
-                rowClass =
-                    "current selectable";
-                status = "▶";
-            }else if(isCompleted){
-                rowClass =
-                    "done selectable";
-                status = "✓";
-            }else{
-                rowClass =
-                    "available selectable";
-                status = "•";
-            }
+            if(isLocked){rowClass="locked";status="🔒";}
+            else if(isCurrent){rowClass="current selectable";status="▶";}
+            else if(isCompleted){rowClass="done selectable";status="✓";}
 
             html += `
                 <div
@@ -2274,37 +2280,30 @@ function renderFlowArchive(){
                     role="button"
                     tabindex="${isLocked ? -1 : 0}"
                     aria-disabled="${isLocked}"
-                    aria-label="Flow ${flowNumber}"
+                    aria-current="${isCurrent ? "true" : "false"}"
+                    aria-label="Flow ${flowNumber}, ${flowType.toLowerCase()} flow${isCompleted ? ", completed" : isLocked ? ", locked" : ", available"}"
+                    title="Flow ${flowNumber} · ${flowType} FLOW"
                 >
                     <span>${flowNumber}</span>
                     <span class="archiveStatus">${status}</span>
+                    <span class="archiveFlowType">${flowType}</span>
                 </div>
             `;
         }
-
-        html += `
-                </div>
-            </section>
-        `;
+        html += `</div></section>`;
     }
 
     list.innerHTML = html;
 
     requestAnimationFrame(()=>{
-
-        const current = list.querySelector(
-            `[data-flow-index="${currentFlowIndex}"]`
-        );
-
-        if(current){
-            current.scrollIntoView({
-                block:"center",
-                behavior:"instant"
-            });
+        if(archiveScrollTop > 0){
+            list.scrollTop = archiveScrollTop;
+            return;
         }
+        const current = list.querySelector(`[data-flow-index="${currentFlowIndex}"]`);
+        if(current) current.scrollIntoView({block:"center",behavior:"auto"});
     });
 }
-
 function loadSelectedFlow(
     flowIndex,
     {
@@ -2417,6 +2416,17 @@ function loadSelectedFlow(
 
 function selectFlowFromArchive(flowIndex){
 
+    const now = performance.now();
+    if(now < flowSelectionLockedUntil) return false;
+    flowSelectionLockedUntil = now + 320;
+
+    const row = document.querySelector(`.archiveRow[data-flow-index="${flowIndex}"]`);
+    if(row){
+        row.classList.remove("selectedFlash");
+        void row.offsetWidth;
+        row.classList.add("selectedFlash");
+    }
+
     if(
         !Number.isInteger(flowIndex) ||
         !isFlowUnlocked(flowIndex)
@@ -2442,6 +2452,9 @@ function selectFlowFromArchive(flowIndex){
 let pauseStartedAt = 0;
 let archiveOpenedFromPause = false;
 let pauseToggleLockedUntil = 0;
+let archiveScrollTop = 0;
+let flowSelectionLockedUntil = 0;
+let pausePreviouslyFocused = null;
 
 function pauseMusicOnly(){
   if(musicTimer){clearInterval(musicTimer);musicTimer=null;}
@@ -2466,9 +2479,9 @@ function applyPauseVisuals(isPaused){
     menu.classList.toggle("show",Boolean(isPaused));
     menu.setAttribute("aria-hidden",isPaused?"false":"true");
   }
+  document.body.classList.toggle("uiModalOpen",Boolean(isPaused));
   if(isPaused)updatePauseSelection();
 }
-
 function resumeMusicAfterPause(){
   musicStarted=false;
   if(musicTimer){clearInterval(musicTimer);musicTimer=null;}
@@ -2479,20 +2492,26 @@ function pauseGame(source="center"){
   if(gameOver||paused)return;
   paused=true;
   pauseStartedAt=performance.now();
+  pausePreviouslyFocused=document.activeElement;
   pauseMusicOnly();
   applyPauseVisuals(true);
+  requestAnimationFrame(()=>document.getElementById("pauseResume")?.focus());
   trackGame("game_paused",{source,flow_number:currentFlowIndex+1});
 }
 
 function resumeGame(source="resume"){
   if(gameOver||!paused)return;
   const archive=document.getElementById("flowArchive");
-  if(archive&&archive.style.display==="grid")return;
+  if(archive&&archive.classList.contains("show"))return;
   const pauseSeconds=pauseStartedAt?Math.round((performance.now()-pauseStartedAt)/1000):0;
   paused=false;
   pauseStartedAt=0;
   applyPauseVisuals(false);
   resumeMusicAfterPause();
+  if(pausePreviouslyFocused&&typeof pausePreviouslyFocused.focus==="function"){
+    pausePreviouslyFocused.focus({preventScroll:true});
+  }
+  pausePreviouslyFocused=null;
   trackGame("game_resumed",{source,pause_seconds:pauseSeconds,flow_number:currentFlowIndex+1});
 }
 
@@ -2505,33 +2524,45 @@ function togglePause(source="center"){
 
 function openFlowArchive(source="hud"){
   const archive=document.getElementById("flowArchive");
-  if(!archive||archive.style.display==="grid")return;
+  if(!archive||archive.classList.contains("show"))return;
   archiveOpenedFromPause=paused;
   archiveWasPaused=paused;
   if(!paused)pauseGame("flow_path");
+  archiveScrollTop=0;
   renderFlowArchive();
-  archive.style.display="grid";
+  archive.classList.add("show");
+  archive.setAttribute("aria-hidden","false");
   document.getElementById("pauseMenu")?.classList.remove("show");
+  document.body.classList.add("uiModalOpen");
+  requestAnimationFrame(()=>{
+    const current=archive.querySelector(`[data-flow-index="${currentFlowIndex}"]`);
+    (current||document.getElementById("archiveClose"))?.focus();
+  });
   trackGame("pause_flow_path_opened",{source,opened_while_paused:archiveOpenedFromPause,flow_number:currentFlowIndex+1});
 }
 
 function closeFlowArchive(){
   const archive=document.getElementById("flowArchive");
-  if(!archive||archive.style.display!=="grid")return;
-  archive.style.display="none";
+  if(!archive||!archive.classList.contains("show"))return;
+  const list=document.getElementById("archiveList");
+  archiveScrollTop=list?.scrollTop||0;
+  archive.classList.remove("show");
+  archive.setAttribute("aria-hidden","true");
   if(paused){
     applyPauseVisuals(true);
     updatePauseSelection();
+    requestAnimationFrame(()=>document.getElementById("pauseFlowPath")?.focus());
+  }else{
+    document.body.classList.remove("uiModalOpen");
   }
   archiveOpenedFromPause=false;
 }
-
 document.getElementById("challengeHud").addEventListener("click",()=>openFlowArchive("hud"));
 document.getElementById("archiveClose").addEventListener("click",closeFlowArchive);
 document.getElementById("flowArchive").addEventListener("click",e=>{if(e.target.id==="flowArchive")closeFlowArchive();});
 document.getElementById("pauseResume").addEventListener("click",()=>resumeGame("pause_button"));
 document.getElementById("pauseFlowPath").addEventListener("click",()=>openFlowArchive("pause_menu"));
-document.getElementById("pauseMenu").addEventListener("click",e=>{if(e.target.id==="pauseMenu")resumeGame("pause_backdrop");});
+document.getElementById("pauseMenu").addEventListener("click",e=>{if(e.target.id==="pauseMenu")document.getElementById("pauseResume")?.focus();});
 
 document
     .getElementById("archiveList")
@@ -2560,6 +2591,18 @@ document
         selectFlowFromArchive(Number(row.dataset.flowIndex));
         if(wasPaused){paused=true;applyPauseVisuals(true);updatePauseSelection();}
     });
+
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Tab"||!paused)return;
+  const archive=document.getElementById("flowArchive");
+  const root=archive?.classList.contains("show")?archive:document.getElementById("pauseMenu");
+  if(!root)return;
+  const focusable=[...root.querySelectorAll('button,[role="button"][tabindex="0"]')].filter(el=>!el.hasAttribute("disabled"));
+  if(!focusable.length)return;
+  const first=focusable[0],last=focusable[focusable.length-1];
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+});
 
 let pendingModeBanner = null;
 function introIsClear(){return distance >= 72;}
@@ -2657,7 +2700,7 @@ window.addEventListener("pointerup",e=>{
 window.addEventListener("keydown",e=>{
   if(e.key==="Escape"){
     const archive=document.getElementById("flowArchive");
-    if(archive&&archive.style.display==="grid"){closeFlowArchive();return;}
+    if(archive&&archive.classList.contains("show")){closeFlowArchive();return;}
     togglePause("keyboard");
     return;
   }
@@ -3539,7 +3582,7 @@ centerButton.addEventListener("pointerdown",e=>{
   e.preventDefault();
   e.stopPropagation();
   const archive=document.getElementById("flowArchive");
-  if(archive&&archive.style.display==="grid")return;
+  if(archive&&archive.classList.contains("show"))return;
   togglePause("center");
 },{passive:false});
 
@@ -3548,15 +3591,14 @@ window.addEventListener(
     saveFlowProgress
 );
 
-document.addEventListener(
-    "visibilitychange",
-    ()=>{
-
-        if(document.hidden){
-            saveFlowProgress();
-        }
-    }
-);
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden){
+    saveFlowProgress();
+    if(gameStarted&&!gameOver&&!paused)pauseGame("visibility_hidden");
+  }else if(gameStarted&&!musicStarted&&!paused){
+    startMusic();
+  }
+});
     
 window.addEventListener("beforeunload",()=>{
 
@@ -3570,7 +3612,7 @@ window.addEventListener("beforeunload",()=>{
 
 });
 window.addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
-document.addEventListener("visibilitychange",()=>{if(!document.hidden && gameStarted && !musicStarted){startMusic();}});
+
 makeStarField();makeLaneGuides();resetEnvironmentForRun();updateStrikes();updateHUD();startGame();animate();
 </script>
 </body>
