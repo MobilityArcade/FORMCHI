@@ -265,7 +265,31 @@ canvas{display:block}
 }
 .scorePopup{position:absolute;left:50%;top:43%;transform:translate(-50%,-50%);z-index:60;pointer-events:none;font-size:26px;font-weight:900;letter-spacing:2px;color:#ffd36a;text-shadow:0 0 12px rgba(255,211,106,.95),0 0 38px rgba(255,120,0,.6);animation:scoreRise .9s ease-out forwards}
 @keyframes scoreRise{0%{opacity:0;transform:translate(-50%,-10%) scale(.8)}18%{opacity:1}100%{opacity:0;transform:translate(-50%,-145%) scale(1.08)}}
-#pauseText{position:absolute;left:50%;top:calc(50% + 52px);transform:translateX(-50%);z-index:16;font-size:12px;font-weight:900;letter-spacing:4px;color:#ffd36a;text-shadow:0 0 12px rgba(255,211,106,.9);display:none;pointer-events:none}
+#pauseText{display:none!important}
+
+/* =========================
+   SHIFTVIX v2.5 — PATCH 9 PAUSE INTEGRATION
+   ========================= */
+#pauseMenu{
+  position:absolute;inset:0;z-index:85;display:none;place-items:center;
+  background:rgba(0,0,0,.48);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+#pauseMenu.show{display:grid;animation:pauseFadeIn .18s ease-out both}
+.pausePanel{
+  width:min(390px,84vw);padding:28px 24px 24px;border-radius:24px;text-align:center;
+  background:rgba(0,0,0,.86);border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 0 70px rgba(255,211,106,.12),inset 0 0 40px rgba(255,255,255,.025);
+}
+.pauseTitle{font-size:24px;font-weight:1000;letter-spacing:5px;color:#ffd36a;text-shadow:0 0 18px rgba(255,211,106,.72)}
+.pauseSelection{margin:18px 0 20px;padding:14px 12px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09)}
+.pauseFlowName{font-size:13px;font-weight:1000;letter-spacing:2px;color:#fff}
+.pauseFlowObjective{margin-top:7px;font-size:12px;line-height:1.35;letter-spacing:1px;color:rgba(255,255,255,.68)}
+.pauseActions{display:grid;gap:10px}
+.pauseButton{min-height:48px;border-radius:14px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.045);color:#fff;font:900 13px Arial;letter-spacing:2.5px;cursor:pointer}
+.pauseButton.primary{border-color:rgba(255,211,106,.55);color:#ffd36a;background:rgba(255,211,106,.08);box-shadow:0 0 16px rgba(255,211,106,.10)}
+.pauseButton:active{transform:scale(.985)}
+.pauseHint{margin-top:15px;font-size:9px;letter-spacing:1.4px;color:rgba(255,255,255,.34)}
+@keyframes pauseFadeIn{from{opacity:0}to{opacity:1}}
 
 /* =========================
    SHIFTVIX — FLOW SYSTEM
@@ -516,6 +540,20 @@ canvas{display:block}
 <div style="display:none"><span id="world">Distance Run</span>
 <span id="found">0</span><span id="score">0</span><span id="bestScore">0</span><span id="combo">1x</span><div id="signal"></div></div></div>
 <div id="center"></div><div id="pauseText">PAUSED</div><div id="laneLabel">CENTER</div><div id="roundComplete"></div>
+<div id="pauseMenu" aria-hidden="true">
+  <div class="pausePanel" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
+    <div class="pauseTitle" id="pauseTitle">PAUSED</div>
+    <div class="pauseSelection">
+      <div class="pauseFlowName" id="pauseFlowName">FLOW 1 · NORMAL FLOW</div>
+      <div class="pauseFlowObjective" id="pauseFlowObjective">LOADING…</div>
+    </div>
+    <div class="pauseActions">
+      <button class="pauseButton primary" id="pauseResume" type="button">RESUME</button>
+      <button class="pauseButton" id="pauseFlowPath" type="button">FLOW PATH</button>
+    </div>
+    <div class="pauseHint">CENTER EYE OR ESC TO RESUME</div>
+  </div>
+</div>
 <div id="challengeHud"><div id="challengeName">NORMAL FLOW</div><div id="challengeText">LOADING…</div><div id="challengeBar"><div id="challengeFill"></div></div></div>
 <div id="modeBanner"></div><div id="flowFx"></div><div id="pulseWaves"></div>
 <div id="flowArchive"><div class="archiveCard"><div class="archiveHeader"><h2>FLOW PATH</h2><div class="archiveClose" id="archiveClose">×</div></div><div id="archiveList"></div></div></div>
@@ -2398,80 +2436,129 @@ function selectFlowFromArchive(flowIndex){
     );
 }
 
+// =========================
+// SHIFTVIX v2.5 — PATCH 9 PAUSE INTEGRATION
+// =========================
+let pauseStartedAt = 0;
+let archiveOpenedFromPause = false;
+let pauseToggleLockedUntil = 0;
+
 function pauseMusicOnly(){
   if(musicTimer){clearInterval(musicTimer);musicTimer=null;}
 }
+
+function updatePauseSelection(){
+  const name=document.getElementById("pauseFlowName");
+  const objective=document.getElementById("pauseFlowObjective");
+  const flow=activeChallenge||createFlow(currentFlowIndex);
+  if(name)name.textContent=`FLOW ${currentFlowIndex+1} · ${environmentEngine.current.name}`;
+  if(objective)objective.textContent=flow.label;
+}
+
 function applyPauseVisuals(isPaused){
   const center=document.getElementById("center");
-  const pauseText=document.getElementById("pauseText");
-  if(pauseText)pauseText.style.display=isPaused?"block":"none";
-  center.style.borderColor=isPaused?"#ffd36a":"rgba(255,255,255,.95)";
-  center.style.boxShadow=isPaused?"0 0 20px #ffd36a":"0 0 10px rgba(255,255,255,.55)";
+  const menu=document.getElementById("pauseMenu");
+  if(center){
+    center.style.borderColor=isPaused?"#ffd36a":"rgba(255,255,255,.95)";
+    center.style.boxShadow=isPaused?"0 0 20px #ffd36a":"0 0 10px rgba(255,255,255,.55)";
+  }
+  if(menu){
+    menu.classList.toggle("show",Boolean(isPaused));
+    menu.setAttribute("aria-hidden",isPaused?"false":"true");
+  }
+  if(isPaused)updatePauseSelection();
 }
+
 function resumeMusicAfterPause(){
   musicStarted=false;
   if(musicTimer){clearInterval(musicTimer);musicTimer=null;}
   startMusic();
 }
-function openFlowArchive(){
-  archiveWasPaused=paused;
-  renderFlowArchive();
-  document.getElementById("flowArchive").style.display="grid";
+
+function pauseGame(source="center"){
+  if(gameOver||paused)return;
   paused=true;
+  pauseStartedAt=performance.now();
   pauseMusicOnly();
   applyPauseVisuals(true);
+  trackGame("game_paused",{source,flow_number:currentFlowIndex+1});
 }
+
+function resumeGame(source="resume"){
+  if(gameOver||!paused)return;
+  const archive=document.getElementById("flowArchive");
+  if(archive&&archive.style.display==="grid")return;
+  const pauseSeconds=pauseStartedAt?Math.round((performance.now()-pauseStartedAt)/1000):0;
+  paused=false;
+  pauseStartedAt=0;
+  applyPauseVisuals(false);
+  resumeMusicAfterPause();
+  trackGame("game_resumed",{source,pause_seconds:pauseSeconds,flow_number:currentFlowIndex+1});
+}
+
+function togglePause(source="center"){
+  const now=performance.now();
+  if(now<pauseToggleLockedUntil||gameOver)return;
+  pauseToggleLockedUntil=now+240;
+  if(paused)resumeGame(source);else pauseGame(source);
+}
+
+function openFlowArchive(source="hud"){
+  const archive=document.getElementById("flowArchive");
+  if(!archive||archive.style.display==="grid")return;
+  archiveOpenedFromPause=paused;
+  archiveWasPaused=paused;
+  if(!paused)pauseGame("flow_path");
+  renderFlowArchive();
+  archive.style.display="grid";
+  document.getElementById("pauseMenu")?.classList.remove("show");
+  trackGame("pause_flow_path_opened",{source,opened_while_paused:archiveOpenedFromPause,flow_number:currentFlowIndex+1});
+}
+
 function closeFlowArchive(){
-  document.getElementById("flowArchive").style.display="none";
-  paused=archiveWasPaused;
-  applyPauseVisuals(paused);
-  if(!paused)resumeMusicAfterPause();
+  const archive=document.getElementById("flowArchive");
+  if(!archive||archive.style.display!=="grid")return;
+  archive.style.display="none";
+  if(paused){
+    applyPauseVisuals(true);
+    updatePauseSelection();
+  }
+  archiveOpenedFromPause=false;
 }
-document.getElementById("challengeHud").addEventListener("click",openFlowArchive);
+
+document.getElementById("challengeHud").addEventListener("click",()=>openFlowArchive("hud"));
 document.getElementById("archiveClose").addEventListener("click",closeFlowArchive);
 document.getElementById("flowArchive").addEventListener("click",e=>{if(e.target.id==="flowArchive")closeFlowArchive();});
+document.getElementById("pauseResume").addEventListener("click",()=>resumeGame("pause_button"));
+document.getElementById("pauseFlowPath").addEventListener("click",()=>openFlowArchive("pause_menu"));
+document.getElementById("pauseMenu").addEventListener("click",e=>{if(e.target.id==="pauseMenu")resumeGame("pause_backdrop");});
+
 document
     .getElementById("archiveList")
     .addEventListener("click",e=>{
-
-        const row =
-            e.target.closest(".archiveRow");
-
-        if(!row){
-            return;
-        }
-
-        const flowIndex =
-            Number(row.dataset.flowIndex);
-
+        const row=e.target.closest(".archiveRow");
+        if(!row)return;
+        const flowIndex=Number(row.dataset.flowIndex);
+        const wasPaused=paused;
         selectFlowFromArchive(flowIndex);
+        if(wasPaused){
+          paused=true;
+          applyPauseVisuals(true);
+          updatePauseSelection();
+          trackGame("flow_selected_while_paused",{selected_flow:currentFlowIndex+1,replay_active:replayReturnFlowIndex!==null});
+        }
     });
 
 document
     .getElementById("archiveList")
     .addEventListener("keydown",e=>{
-
-        if(
-            e.key !== "Enter" &&
-            e.key !== " "
-        ){
-            return;
-        }
-
-        const row =
-            e.target.closest(".archiveRow");
-
-        if(!row){
-            return;
-        }
-
+        if(e.key!=="Enter"&&e.key!==" ")return;
+        const row=e.target.closest(".archiveRow");
+        if(!row)return;
         e.preventDefault();
-
-        selectFlowFromArchive(
-            Number(
-                row.dataset.flowIndex
-            )
-        );
+        const wasPaused=paused;
+        selectFlowFromArchive(Number(row.dataset.flowIndex));
+        if(wasPaused){paused=true;applyPauseVisuals(true);updatePauseSelection();}
     });
 
 let pendingModeBanner = null;
@@ -2501,7 +2588,7 @@ function spawnTrain(){
  document.getElementById("signal").textContent=runStarted?"Signal: stay connected":"Signal: touch first string";
 }
 function spawnWave(){const trains=heroMode?2:(Math.random()<.78?2:3);for(let i=0;i<trains;i++)setTimeout(spawnTrain,i*120);}
-function moveLane(dx,dy){if(!gameStarted||gameOver)return;laneX=Math.max(0,Math.min(2,laneX+dx));laneY=Math.max(0,Math.min(2,laneY+dy));environmentEngine.updatePlayerTarget();addWarpBank(dx,dy);const namesY=["UP","CENTER","DOWN"],namesX=["LEFT","CENTER","RIGHT"];document.getElementById("laneLabel").textContent=namesY[laneY]+" "+namesX[laneX];if(navigator.vibrate)navigator.vibrate(10);}
+function moveLane(dx,dy){if(!gameStarted||gameOver||paused)return;laneX=Math.max(0,Math.min(2,laneX+dx));laneY=Math.max(0,Math.min(2,laneY+dy));environmentEngine.updatePlayerTarget();addWarpBank(dx,dy);const namesY=["UP","CENTER","DOWN"],namesX=["LEFT","CENTER","RIGHT"];document.getElementById("laneLabel").textContent=namesY[laneY]+" "+namesX[laneX];if(navigator.vibrate)navigator.vibrate(10);}
 function moveLaneFromInput(dx,dy){const mapped=environmentLaneInput(dx,dy);moveLane(mapped.x,mapped.y);}
 let downX=0,downY=0;
 
@@ -2567,7 +2654,21 @@ window.addEventListener("pointerup",e=>{
   }
 
 });
-window.addEventListener("keydown",e=>{initAudio();if(!gameStarted)startGame();if(e.key==="ArrowLeft"||e.key==="a")moveLaneFromInput(-1,0);if(e.key==="ArrowRight"||e.key==="d")moveLaneFromInput(1,0);if(e.key==="ArrowUp"||e.key==="w")moveLaneFromInput(0,-1);if(e.key==="ArrowDown"||e.key==="s")moveLaneFromInput(0,1);});
+window.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){
+    const archive=document.getElementById("flowArchive");
+    if(archive&&archive.style.display==="grid"){closeFlowArchive();return;}
+    togglePause("keyboard");
+    return;
+  }
+  if(paused)return;
+  initAudio();
+  if(!gameStarted)startGame();
+  if(e.key==="ArrowLeft"||e.key==="a")moveLaneFromInput(-1,0);
+  if(e.key==="ArrowRight"||e.key==="d")moveLaneFromInput(1,0);
+  if(e.key==="ArrowUp"||e.key==="w")moveLaneFromInput(0,-1);
+  if(e.key==="ArrowDown"||e.key==="s")moveLaneFromInput(0,1);
+});
 function startGame(){
 
     if(gameStarted) return;
@@ -2967,6 +3068,7 @@ function resetRun(){
     });
 
     paused = false;
+    applyPauseVisuals(false);
 
     const title = document.getElementById("gameTitle");
 
@@ -2983,16 +3085,6 @@ title.style.transform = "translate(-50%,-50%)";
 const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");center.style.borderColor="rgba(255,255,255,.95)";center.style.boxShadow="0 0 10px rgba(255,255,255,.55)";document.getElementById("roundComplete").style.display="none";beacons.forEach(b=>scene.remove(b));beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;
 
 lastLevel = 1;strikes = 0;milestonesReached = {};runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;musicStarted=false;resetWarpBanking();resetEnvironmentForRun();beginCurrentFlow();resetMusicEvolution();updateStrikes();updateHUD();spawnWave();startMusic();}
-function togglePause(){
-  if(gameOver)return;
-  paused=!paused;
-  applyPauseVisuals(paused);
-  if(paused){
-    pauseMusicOnly();
-  }else{
-    resumeMusicAfterPause();
-  }
-}
 const title = document.getElementById("gameTitle");
 const shift = document.getElementById("shift");
 const vix = document.getElementById("vix");
@@ -3390,6 +3482,7 @@ renderer.render(scene,camera);
 // ---------------------------
 
 let lastPadMove = 0;
+let lastPadPausePressed = false;
 
 function updateGamepad(){
 
@@ -3433,20 +3526,21 @@ function updateGamepad(){
 
     }
 
-    // Pause button
-
-    if(pad.buttons[9]?.pressed){
-
-        togglePause();
-
+    // Pause button — edge-triggered so holding it cannot toggle every frame.
+    const pausePressed=Boolean(pad.buttons[9]?.pressed);
+    if(pausePressed&&!lastPadPausePressed){
+        togglePause("gamepad");
     }
+    lastPadPausePressed=pausePressed;
 
 }
 const centerButton=document.getElementById("center");
 centerButton.addEventListener("pointerdown",e=>{
   e.preventDefault();
   e.stopPropagation();
-  togglePause();
+  const archive=document.getElementById("flowArchive");
+  if(archive&&archive.style.display==="grid")return;
+  togglePause("center");
 },{passive:false});
 
 window.addEventListener(
