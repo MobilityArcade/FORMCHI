@@ -415,6 +415,34 @@ canvas{display:block}
     box-sizing:border-box;
 }
 
+.archiveRow.selectable{
+    cursor:pointer;
+    transition:
+        transform .14s ease,
+        border-color .14s ease,
+        background .14s ease,
+        box-shadow .14s ease;
+}
+
+.archiveRow.selectable:hover,
+.archiveRow.selectable:focus-visible{
+    transform:translateY(-1px) scale(1.025);
+    border-color:rgba(255,211,106,.62);
+    background:rgba(255,211,106,.08);
+    box-shadow:0 0 14px rgba(255,211,106,.16);
+    outline:none;
+}
+
+.archiveRow.available{
+    color:rgba(255,255,255,.88);
+    border-color:rgba(255,255,255,.18);
+    background:rgba(255,255,255,.055);
+}
+
+.archiveRow.available .archiveStatus{
+    color:#ffd36a;
+}
+
 .archiveRow.done{
     color:#ffffff;
     border-color:rgba(125,249,255,.32);
@@ -1335,6 +1363,40 @@ const FLOW_STAGES = [
 let currentFlowIndex = Math.max(0,Math.min(FLOW_TOTAL-1,Number(localStorage.getItem("shiftvixCurrentFlow")||0)));
 let highestCompletedFlow = Number(localStorage.getItem("shiftvixHighestCompletedFlow") || 0);
 let completedFlows = Math.max(0,Math.min(FLOW_TOTAL,Number(localStorage.getItem("shiftvixCompletedFlows")||0)));
+let completedFlowIndexes = new Set(
+    (() => {
+        try{
+            const saved = JSON.parse(
+                localStorage.getItem(
+                    "shiftvixCompletedFlowIndexes"
+                ) || "[]"
+            );
+
+            if(Array.isArray(saved)){
+                return saved
+                    .map(Number)
+                    .filter(index=>
+                        Number.isInteger(index) &&
+                        index >= 0 &&
+                        index < FLOW_TOTAL
+                    );
+            }
+        }catch(error){
+            console.warn(
+                "SHIFTVIX completed Flow list could not be read.",
+                error
+            );
+        }
+
+        // Migration for players coming from the older
+        // consecutive-completion save format.
+        return Array.from(
+            {length:completedFlows},
+            (_,index)=>index
+        );
+    })()
+);
+completedFlows = completedFlowIndexes.size;
 let highestUnlockedBlock = Math.max(
     1,
     Math.min(
@@ -1380,6 +1442,19 @@ function persistentFlowIndex(){
 
 function normalizeFlowProgress(){
 
+    completedFlowIndexes = new Set(
+        [...completedFlowIndexes]
+            .map(Number)
+            .filter(index=>
+                Number.isInteger(index) &&
+                index >= 0 &&
+                index < FLOW_TOTAL
+            )
+    );
+
+    completedFlows =
+        completedFlowIndexes.size;
+
     completedFlows = Math.max(
         0,
         Math.min(
@@ -1412,14 +1487,42 @@ function normalizeFlowProgress(){
         )
     );
 
-    // Completion history must always unlock the
-    // appropriate 30-Flow block.
-    const requiredUnlockedBlock = Math.min(
-        TOTAL_FLOW_BLOCKS,
-        Math.floor(
-            completedFlows / FLOWS_PER_BLOCK
-        ) + 1
-    );
+    // Restore every fully completed 30-Flow block.
+    let requiredUnlockedBlock = 1;
+
+    for(
+        let blockNumber = 1;
+        blockNumber <= TOTAL_FLOW_BLOCKS;
+        blockNumber++
+    ){
+        const start =
+            (blockNumber - 1) *
+            FLOWS_PER_BLOCK;
+
+        const end = Math.min(
+            start + FLOWS_PER_BLOCK,
+            FLOW_TOTAL
+        );
+
+        let blockComplete = true;
+
+        for(let index=start;index<end;index++){
+            if(!completedFlowIndexes.has(index)){
+                blockComplete = false;
+                break;
+            }
+        }
+
+        if(!blockComplete){
+            break;
+        }
+
+        requiredUnlockedBlock =
+            Math.min(
+                TOTAL_FLOW_BLOCKS,
+                blockNumber + 1
+            );
+    }
 
     highestUnlockedBlock = Math.max(
         highestUnlockedBlock,
@@ -1445,6 +1548,9 @@ function saveFlowProgress(){
         version:1,
         currentFlowIndex:savedCurrentFlow,
         completedFlows,
+        completedFlowIndexes:
+            [...completedFlowIndexes]
+                .sort((a,b)=>a-b),
         highestCompletedFlow,
         highestUnlockedBlock,
         savedAt:Date.now()
@@ -1460,6 +1566,14 @@ function saveFlowProgress(){
     localStorage.setItem(
         "shiftvixCompletedFlows",
         String(completedFlows)
+    );
+
+    localStorage.setItem(
+        "shiftvixCompletedFlowIndexes",
+        JSON.stringify(
+            [...completedFlowIndexes]
+                .sort((a,b)=>a-b)
+        )
     );
 
     localStorage.setItem(
@@ -1502,12 +1616,57 @@ function repairFlowProgressFromBackup(){
             saveData.version === 1
         ){
 
+            if(
+                Array.isArray(
+                    saveData.completedFlowIndexes
+                )
+            ){
+                for(
+                    const index of
+                    saveData.completedFlowIndexes
+                ){
+                    const parsedIndex =
+                        Number(index);
+
+                    if(
+                        Number.isInteger(parsedIndex) &&
+                        parsedIndex >= 0 &&
+                        parsedIndex < FLOW_TOTAL
+                    ){
+                        completedFlowIndexes.add(
+                            parsedIndex
+                        );
+                    }
+                }
+            }
+
             completedFlows = Math.max(
                 completedFlows,
                 Number(
                     saveData.completedFlows
                 ) || 0
             );
+
+            // Older backups only stored a consecutive count.
+            if(
+                !Array.isArray(
+                    saveData.completedFlowIndexes
+                )
+            ){
+                for(
+                    let index=0;
+                    index<Math.min(
+                        completedFlows,
+                        FLOW_TOTAL
+                    );
+                    index++
+                ){
+                    completedFlowIndexes.add(index);
+                }
+            }
+
+            completedFlows =
+                completedFlowIndexes.size;
 
             highestCompletedFlow = Math.max(
                 highestCompletedFlow,
@@ -1581,6 +1740,86 @@ function isFlowUnlocked(index){
 }
 
 
+function isFlowCompleted(index){
+
+    return completedFlowIndexes.has(index);
+}
+
+
+function blockIsComplete(blockNumber){
+
+    if(
+        blockNumber < 1 ||
+        blockNumber > TOTAL_FLOW_BLOCKS
+    ){
+        return false;
+    }
+
+    const start =
+        (blockNumber - 1) *
+        FLOWS_PER_BLOCK;
+
+    const end = Math.min(
+        start + FLOWS_PER_BLOCK,
+        FLOW_TOTAL
+    );
+
+    for(let index=start;index<end;index++){
+
+        if(!isFlowCompleted(index)){
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+function nextUnfinishedUnlockedFlow(
+    afterIndex=currentFlowIndex
+){
+
+    // Search forward first so normal Flow 1 → Flow 2
+    // progression remains seamless.
+    for(
+        let index=afterIndex+1;
+        index<FLOW_TOTAL;
+        index++
+    ){
+        if(
+            isFlowUnlocked(index) &&
+            !isFlowCompleted(index)
+        ){
+            return index;
+        }
+    }
+
+    // Then wrap through earlier unfinished choices
+    // inside the player's unlocked Flow blocks.
+    for(
+        let index=0;
+        index<=afterIndex &&
+        index<FLOW_TOTAL;
+        index++
+    ){
+        if(
+            isFlowUnlocked(index) &&
+            !isFlowCompleted(index)
+        ){
+            return index;
+        }
+    }
+
+    return Math.max(
+        0,
+        Math.min(
+            FLOW_TOTAL-1,
+            afterIndex
+        )
+    );
+}
+
+
 function saveUnlockProgress(){
 
     localStorage.setItem(
@@ -1592,19 +1831,12 @@ function saveUnlockProgress(){
 
 function checkForBlockUnlock(completedFlowIndex){
 
-    const completedFlowNumber =
-        completedFlowIndex + 1;
-
-    const finishedWholeBlock =
-        completedFlowNumber %
-        FLOWS_PER_BLOCK === 0;
-
-    if(!finishedWholeBlock){
-        return false;
-    }
-
     const completedBlock =
         blockForFlow(completedFlowIndex);
+
+    if(!blockIsComplete(completedBlock)){
+        return false;
+    }
 
     const nextBlock =
         completedBlock + 1;
@@ -1618,9 +1850,9 @@ function checkForBlockUnlock(completedFlowIndex){
 
     highestUnlockedBlock = nextBlock;
 
-    saveUnlockProgress();
+    saveFlowProgress();
 
-    track("flow_block_unlocked",{
+    trackGame("flow_block_unlocked",{
         unlocked_block:nextBlock,
         first_flow:
             ((nextBlock - 1) *
@@ -1633,7 +1865,7 @@ function checkForBlockUnlock(completedFlowIndex){
 
     return true;
 }
-    
+
 function flowStageFor(index){
   const n=index+1;
   return FLOW_STAGES.find(stage=>n<=stage.end)||FLOW_STAGES[FLOW_STAGES.length-1];
@@ -1742,17 +1974,24 @@ function completeCurrentFlow(){
     const finishedFlowIndex =
         currentFlowIndex;
 
-    completedFlows = Math.max(
-    completedFlows,
-    finishedFlowIndex + 1
-);
+    const wasAlreadyCompleted =
+        isFlowCompleted(
+            finishedFlowIndex
+        );
 
-highestCompletedFlow = Math.max(
-    highestCompletedFlow,
-    finishedFlowIndex
-);
+    completedFlowIndexes.add(
+        finishedFlowIndex
+    );
 
-saveFlowProgress();
+    completedFlows =
+        completedFlowIndexes.size;
+
+    highestCompletedFlow = Math.max(
+        highestCompletedFlow,
+        finishedFlowIndex
+    );
+
+    saveFlowProgress();
 
     const blockUnlocked =
         checkForBlockUnlock(
@@ -1771,7 +2010,11 @@ saveFlowProgress();
             environmentEngine.current.id,
         level,
         distance:Math.floor(distance),
-        score
+        score,
+        first_completion:
+            !wasAlreadyCompleted,
+        completed_flows_total:
+            completedFlows
     });
 
     track("highest_flow_reached",{
@@ -1850,21 +2093,12 @@ if(replayReturnFlowIndex !== null){
 }
     
     const proposedNextIndex =
-        Math.min(
-            FLOW_TOTAL - 1,
-            finishedFlowIndex + 1
+        nextUnfinishedUnlockedFlow(
+            finishedFlowIndex
         );
 
-    if(isFlowUnlocked(proposedNextIndex)){
-
-        currentFlowIndex =
-            proposedNextIndex;
-
-    }else{
-
-        currentFlowIndex =
-            finishedFlowIndex;
-    }
+    currentFlowIndex =
+        proposedNextIndex;
 
     saveFlowProgress();
 
@@ -1911,6 +2145,7 @@ function updateChallenge(){
   document.getElementById("challengeFill").style.width=pct+"%";
   if(!challengeAdvanceTimer && raw>=activeChallenge.target)completeCurrentFlow();
 }
+// SHIFTVIX v2.5 PATCH 8 — FLOW SELECTION
 function renderFlowArchive(){
 
     const list = document.getElementById("archiveList");
@@ -1929,6 +2164,7 @@ function renderFlowArchive(){
         <div class="archiveLegend">
             <span>✓ COMPLETED</span>
             <span>▶ CURRENT</span>
+            <span>• AVAILABLE</span>
             <span>🔒 LOCKED</span>
         </div>
     `;
@@ -1966,28 +2202,40 @@ function renderFlowArchive(){
         for(let i = blockStart; i < blockEnd; i++){
 
             const flowNumber = i + 1;
-            const isCompleted = i < completedFlows;
-            const isCurrent = i === currentFlowIndex;
-            const isLocked = blockLocked && !isCompleted && !isCurrent;
+            const isCompleted =
+                isFlowCompleted(i);
+            const isCurrent =
+                i === currentFlowIndex;
+            const isLocked =
+                !isFlowUnlocked(i);
 
             let rowClass = "";
             let status = "";
 
-            if(isCompleted){
-                rowClass = "done";
-                status = "✓";
-            }else if(isCurrent){
-                rowClass = "current";
-                status = "▶";
-            }else if(isLocked){
+            if(isLocked){
                 rowClass = "locked";
                 status = "🔒";
+            }else if(isCurrent){
+                rowClass =
+                    "current selectable";
+                status = "▶";
+            }else if(isCompleted){
+                rowClass =
+                    "done selectable";
+                status = "✓";
+            }else{
+                rowClass =
+                    "available selectable";
+                status = "•";
             }
 
             html += `
                 <div
                     class="archiveRow ${rowClass}"
                     data-flow-index="${i}"
+                    role="button"
+                    tabindex="${isLocked ? -1 : 0}"
+                    aria-disabled="${isLocked}"
                     aria-label="Flow ${flowNumber}"
                 >
                     <span>${flowNumber}</span>
@@ -2019,24 +2267,56 @@ function renderFlowArchive(){
     });
 }
 
-function replayFlowFromArchive(flowIndex){
+function loadSelectedFlow(
+    flowIndex,
+    {
+        replay=false,
+        announce=true
+    }={}
+){
 
-    // Only completed flows may be replayed.
     if(
         !Number.isInteger(flowIndex) ||
         flowIndex < 0 ||
-        flowIndex >= completedFlows
+        flowIndex >= FLOW_TOTAL ||
+        !isFlowUnlocked(flowIndex)
     ){
+        trackGame("locked_flow_selected",{
+            selected_flow:
+                Number.isFinite(flowIndex)
+                    ? flowIndex + 1
+                    : -1,
+            completed_flows:
+                completedFlows,
+            unlocked_block:
+                highestUnlockedBlock
+        });
+
         showModeBanner("FLOW LOCKED");
-        return;
+        return false;
     }
 
-    // Remember the player's real progression position.
-    replayReturnFlowIndex = currentFlowIndex;
+    if(challengeAdvanceTimer){
+        clearTimeout(
+            challengeAdvanceTimer
+        );
+        challengeAdvanceTimer = null;
+    }
+
+    if(replay){
+        // A completed Flow is practice. Return to the
+        // player's real active Flow when practice ends.
+        if(replayReturnFlowIndex === null){
+            replayReturnFlowIndex =
+                currentFlowIndex;
+        }
+    }else{
+        // Selecting an unfinished unlocked Flow becomes
+        // the player's real active progression choice.
+        replayReturnFlowIndex = null;
+    }
 
     currentFlowIndex = flowIndex;
-
-    saveFlowProgress();
 
     objectiveOrbsCollected = 0;
 
@@ -2055,20 +2335,69 @@ function replayFlowFromArchive(flowIndex){
         announce:false
     });
 
+    saveFlowProgress();
     updateChallenge();
 
-    track("flow_replay_started",{
-        flow_number:currentFlowIndex + 1,
-        environment:environmentEngine.current.id
-    });
+    trackGame(
+        replay
+            ? "flow_replay_started"
+            : "flow_selected",
+        {
+            selected_flow:
+                currentFlowIndex + 1,
+            return_flow:
+                replay &&
+                replayReturnFlowIndex !== null
+                    ? replayReturnFlowIndex + 1
+                    : null,
+            environment:
+                environmentEngine.current.id,
+            flow_stage:
+                flowStageFor(
+                    currentFlowIndex
+                ).name
+        }
+    );
 
     closeFlowArchive();
 
-    showModeBanner(
-        `REPLAY FLOW ${currentFlowIndex + 1}`
+    if(announce){
+        showModeBanner(
+            replay
+                ? `REPLAY FLOW ${
+                    currentFlowIndex + 1
+                  }`
+                : `FLOW ${
+                    currentFlowIndex + 1
+                  } SELECTED`
+        );
+    }
+
+    return true;
+}
+
+
+function selectFlowFromArchive(flowIndex){
+
+    if(
+        !Number.isInteger(flowIndex) ||
+        !isFlowUnlocked(flowIndex)
+    ){
+        loadSelectedFlow(flowIndex);
+        return;
+    }
+
+    // Completed Flows automatically enter replay mode.
+    // Unfinished Flows become the player's active choice.
+    loadSelectedFlow(
+        flowIndex,
+        {
+            replay:
+                isFlowCompleted(flowIndex)
+        }
     );
 }
-    
+
 function pauseMusicOnly(){
   if(musicTimer){clearInterval(musicTimer);musicTimer=null;}
 }
@@ -2115,8 +2444,36 @@ document
         const flowIndex =
             Number(row.dataset.flowIndex);
 
-        replayFlowFromArchive(flowIndex);
+        selectFlowFromArchive(flowIndex);
     });
+
+document
+    .getElementById("archiveList")
+    .addEventListener("keydown",e=>{
+
+        if(
+            e.key !== "Enter" &&
+            e.key !== " "
+        ){
+            return;
+        }
+
+        const row =
+            e.target.closest(".archiveRow");
+
+        if(!row){
+            return;
+        }
+
+        e.preventDefault();
+
+        selectFlowFromArchive(
+            Number(
+                row.dataset.flowIndex
+            )
+        );
+    });
+
 let pendingModeBanner = null;
 function introIsClear(){return distance >= 72;}
 function showModeBanner(text){const el=document.getElementById("modeBanner");if(!el)return;if(!introIsClear()){pendingModeBanner=text;return;}pendingModeBanner=null;el.textContent=text;el.classList.remove("show");void el.offsetWidth;el.classList.add("show");}
