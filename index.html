@@ -1345,7 +1345,203 @@ let activeChallenge = null;
 let challengeStart = null;
 let challengeAdvanceTimer = null;
 let archiveWasPaused = false;
+let replayReturnFlowIndex = null;
+    
+// =========================
+// SHIFTVIX v2.5 — FLOW SAVING
+// =========================
 
+const FLOW_SAVE_KEY =
+    "shiftvixFlowProgressV1";
+
+
+function persistentFlowIndex(){
+
+    // During a replay, save the player's real progression
+    // position rather than the older replayed Flow.
+    if(replayReturnFlowIndex !== null){
+
+        return replayReturnFlowIndex;
+    }
+
+    return currentFlowIndex;
+}
+
+
+function normalizeFlowProgress(){
+
+    completedFlows = Math.max(
+        0,
+        Math.min(
+            FLOW_TOTAL,
+            Number(completedFlows) || 0
+        )
+    );
+
+    highestCompletedFlow = Math.max(
+        0,
+        Math.min(
+            FLOW_TOTAL - 1,
+            Number(highestCompletedFlow) || 0
+        )
+    );
+
+    highestUnlockedBlock = Math.max(
+        1,
+        Math.min(
+            TOTAL_FLOW_BLOCKS,
+            Number(highestUnlockedBlock) || 1
+        )
+    );
+
+    currentFlowIndex = Math.max(
+        0,
+        Math.min(
+            FLOW_TOTAL - 1,
+            Number(currentFlowIndex) || 0
+        )
+    );
+
+    // Completion history must always unlock the
+    // appropriate 30-Flow block.
+    const requiredUnlockedBlock = Math.min(
+        TOTAL_FLOW_BLOCKS,
+        Math.floor(
+            completedFlows / FLOWS_PER_BLOCK
+        ) + 1
+    );
+
+    highestUnlockedBlock = Math.max(
+        highestUnlockedBlock,
+        requiredUnlockedBlock
+    );
+}
+
+
+function saveFlowProgress(){
+
+    normalizeFlowProgress();
+
+    const savedCurrentFlow =
+        Math.max(
+            0,
+            Math.min(
+                FLOW_TOTAL - 1,
+                persistentFlowIndex()
+            )
+        );
+
+    const saveData = {
+        version:1,
+        currentFlowIndex:savedCurrentFlow,
+        completedFlows,
+        highestCompletedFlow,
+        highestUnlockedBlock,
+        savedAt:Date.now()
+    };
+
+    // Individual keys remain for compatibility with
+    // the progression system already in the game.
+    localStorage.setItem(
+        "shiftvixCurrentFlow",
+        String(savedCurrentFlow)
+    );
+
+    localStorage.setItem(
+        "shiftvixCompletedFlows",
+        String(completedFlows)
+    );
+
+    localStorage.setItem(
+        "shiftvixHighestCompletedFlow",
+        String(highestCompletedFlow)
+    );
+
+    localStorage.setItem(
+        "shiftvixHighestUnlockedBlock",
+        String(highestUnlockedBlock)
+    );
+
+    // Complete backup snapshot.
+    localStorage.setItem(
+        FLOW_SAVE_KEY,
+        JSON.stringify(saveData)
+    );
+}
+
+
+function repairFlowProgressFromBackup(){
+
+    const rawSave =
+        localStorage.getItem(FLOW_SAVE_KEY);
+
+    if(!rawSave){
+
+        normalizeFlowProgress();
+        saveFlowProgress();
+        return;
+    }
+
+    try{
+
+        const saveData =
+            JSON.parse(rawSave);
+
+        if(
+            saveData &&
+            saveData.version === 1
+        ){
+
+            completedFlows = Math.max(
+                completedFlows,
+                Number(
+                    saveData.completedFlows
+                ) || 0
+            );
+
+            highestCompletedFlow = Math.max(
+                highestCompletedFlow,
+                Number(
+                    saveData.highestCompletedFlow
+                ) || 0
+            );
+
+            highestUnlockedBlock = Math.max(
+                highestUnlockedBlock,
+                Number(
+                    saveData.highestUnlockedBlock
+                ) || 1
+            );
+
+            const individualCurrent =
+                localStorage.getItem(
+                    "shiftvixCurrentFlow"
+                );
+
+            if(individualCurrent === null){
+
+                currentFlowIndex =
+                    Number(
+                        saveData.currentFlowIndex
+                    ) || 0;
+            }
+        }
+
+    }catch(error){
+
+        console.warn(
+            "SHIFTVIX save backup could not be read.",
+            error
+        );
+    }
+
+    normalizeFlowProgress();
+    saveFlowProgress();
+}
+
+
+repairFlowProgressFromBackup();
+    
 function blockForFlow(index){
 
     return Math.floor(
@@ -1546,15 +1742,7 @@ highestCompletedFlow = Math.max(
     finishedFlowIndex
 );
 
-localStorage.setItem(
-    "shiftvixHighestCompletedFlow",
-    highestCompletedFlow
-);
-
-localStorage.setItem(
-    "shiftvixCompletedFlows",
-    String(completedFlows)
-);
+saveFlowProgress();
 
     const blockUnlocked =
         checkForBlockUnlock(
@@ -1607,10 +1795,7 @@ if(replayReturnFlowIndex !== null){
     currentFlowIndex =
         restoredFlowIndex;
 
-    localStorage.setItem(
-        "shiftvixCurrentFlow",
-        String(currentFlowIndex)
-    );
+    saveFlowProgress();
 
     activeChallenge =
         createFlow(currentFlowIndex);
@@ -1671,10 +1856,7 @@ if(replayReturnFlowIndex !== null){
             finishedFlowIndex;
     }
 
-    localStorage.setItem(
-        "shiftvixCurrentFlow",
-        String(currentFlowIndex)
-    );
+    saveFlowProgress();
 
     activeChallenge =
         createFlow(currentFlowIndex);
@@ -1844,10 +2026,7 @@ function replayFlowFromArchive(flowIndex){
 
     currentFlowIndex = flowIndex;
 
-    localStorage.setItem(
-        "shiftvixCurrentFlow",
-        String(currentFlowIndex)
-    );
+    saveFlowProgress();
 
     objectiveOrbsCollected = 0;
 
@@ -2902,7 +3081,25 @@ centerButton.addEventListener("pointerdown",e=>{
   e.stopPropagation();
   togglePause();
 },{passive:false});
+
+window.addEventListener(
+    "pagehide",
+    saveFlowProgress
+);
+
+document.addEventListener(
+    "visibilitychange",
+    ()=>{
+
+        if(document.hidden){
+            saveFlowProgress();
+        }
+    }
+);
+    
 window.addEventListener("beforeunload",()=>{
+
+    saveFlowProgress();
 
     track("session_finished",{
 
