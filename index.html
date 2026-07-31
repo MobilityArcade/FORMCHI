@@ -519,6 +519,16 @@ let runStartTime = 0;
 // Stores the completed run time for restart analytics
 let lastRunDuration = 0;
 
+// =========================
+// SHIFTVIX v2.5 ANALYTICS (Patch 7 scaffold)
+// =========================
+const ANALYTICS_VERSION="2.5";
+const analyticsSessionId=`${Date.now()}-${Math.random().toString(36).slice(2,10)}`;
+let analyticsRunId=null,analyticsRunStartedAt=0,analyticsFlowStartedAt=0;
+function analyticsBaseData(){return {analytics_version:ANALYTICS_VERSION,analytics_session_id:analyticsSessionId,analytics_run_id:analyticsRunId||"not_started"};}
+function trackGame(eventName,data={}){track(eventName,{...analyticsBaseData(),...data});}
+
+
 // Remembers whether this browser has ever started SHIFTVIX before
 let hasPlayedBefore =
     localStorage.getItem("shiftvixHasPlayed") === "true";
