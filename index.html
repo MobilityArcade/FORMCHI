@@ -311,6 +311,30 @@ canvas{display:block}
 .resultsCard{position:relative;z-index:56}
 .flowSummary{margin:16px 0 4px;padding:12px;border-radius:16px;background:rgba(125,249,255,.06);border:1px solid rgba(125,249,255,.18);font-size:12px;line-height:1.6;letter-spacing:1.3px}
 /* =========================
+   SHIFTVIX CORE FLOW REFINEMENT 2.2 — RUN COMPLETE
+   ========================= */
+.resultsCard.flowResults{width:min(420px,82vw);min-width:0;padding:30px 30px 26px;text-shadow:none}
+.flowResults .big{margin-bottom:18px;font-size:31px;letter-spacing:4px;text-shadow:0 0 16px rgba(255,255,255,.46)}
+.runSnapshot{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.runMetric{padding:11px 7px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09)}
+.runMetricLabel{font-size:8px;font-weight:900;letter-spacing:1.4px;color:rgba(255,255,255,.48)}
+.runMetricValue{margin-top:5px;font-size:18px;font-weight:1000;letter-spacing:.5px;color:#fff}
+.runFlowPanel{margin:0 0 14px;padding:16px 14px;border-radius:17px;background:rgba(125,249,255,.055);border:1px solid rgba(125,249,255,.18);box-shadow:inset 0 0 24px rgba(125,249,255,.025)}
+.runFlowTop{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.runFlowNumber{font-size:11px;font-weight:1000;letter-spacing:1.8px;color:#fff}
+.runFlowCategory{font-size:11px;font-weight:1000;letter-spacing:1.8px;color:#ffd36a}
+.runFlowObjective{margin-top:9px;font-size:13px;font-weight:900;line-height:1.35;letter-spacing:.7px;color:rgba(255,255,255,.88)}
+.runFlowProgressText{margin-top:10px;font-size:10px;font-weight:900;letter-spacing:1.1px;color:rgba(255,255,255,.56)}
+.runFlowBar{height:6px;margin-top:9px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.10);border:1px solid rgba(255,211,106,.20)}
+.runFlowFill{height:100%;border-radius:inherit;background:linear-gradient(90deg,#8f6a16,#ffd36a);box-shadow:0 0 10px rgba(255,211,106,.65)}
+.runArchiveProgress{margin:12px 0 16px;font-size:10px;font-weight:900;letter-spacing:1.4px;color:rgba(255,255,255,.48)}
+.runActions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.runAction{min-height:48px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.045);color:#fff;font:900 12px Arial;letter-spacing:2px;cursor:pointer;transition:transform .12s ease,border-color .15s ease,background .15s ease,box-shadow .15s ease}
+.runAction.primary{border-color:rgba(255,211,106,.58);background:rgba(255,211,106,.09);color:#ffd36a;box-shadow:0 0 17px rgba(255,211,106,.10)}
+.runAction:hover,.runAction:focus-visible{outline:none;transform:translateY(-1px);border-color:rgba(255,211,106,.72);background:rgba(255,211,106,.10);box-shadow:0 0 18px rgba(255,211,106,.14)}
+.runAction:active{transform:scale(.985)}
+@media(max-width:600px){.resultsCard.flowResults{width:min(390px,84vw);padding:26px 20px 22px}.flowResults .big{font-size:27px}.runMetricValue{font-size:16px}.runActions{grid-template-columns:1fr}.runAction{min-height:52px}}
+/* =========================
    SHIFTVIX v2.5 — FLOW ARCHIVE
    ========================= */
 
@@ -601,7 +625,7 @@ body.uiModalOpen #center{pointer-events:none}
 <div id="modeBanner"></div><div id="flowFx"></div><div id="pulseWaves"></div>
 <div id="flowArchive" aria-hidden="true"><div class="archiveCard" role="dialog" aria-modal="true" aria-labelledby="flowPathTitle"><div class="archiveHeader"><h2 id="flowPathTitle">FLOW PATH</h2><button class="archiveClose" id="archiveClose" type="button" aria-label="Close Flow Path">×</button></div><div id="archiveList"></div></div></div>
 
-<!-- SHIFTVIX CORE FLOW REFINEMENT 2.1 -->
+<!-- SHIFTVIX CORE FLOW REFINEMENT 2.2 -->
 <script type="module">
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x000000,0.0011);
@@ -2946,6 +2970,16 @@ function updateHUD(){
         level;
 
 }
+function formatRunFlowProgress(flow,value){
+  const current=Math.max(0,Math.min(flow.target,value));
+  const whole=Math.floor(current);
+  const target=Math.floor(flow.target);
+  if(flow.metric==="distance")return `${whole.toLocaleString()} / ${target.toLocaleString()}m`;
+  if(flow.metric==="score"||flow.metric==="precision")return `${whole.toLocaleString()} / ${target.toLocaleString()} POINTS`;
+  if(flow.metric==="level"||flow.metric==="lives"||flow.metric==="maxStrikesLevel")return `LEVEL ${whole} / ${target}`;
+  return `${whole.toLocaleString()} / ${target.toLocaleString()} ORBS`;
+}
+
 function endRun(){
 
     gameOver = true;
@@ -3048,56 +3082,65 @@ function endRun(){
     const card =
         document.getElementById("roundComplete");
 
+    const runFlow = activeChallenge || createFlow(currentFlowIndex);
+    const runFlowRaw = challengeValue(runFlow);
+    const runFlowValue = Math.max(0,Math.min(runFlow.target,runFlowRaw));
+    const runFlowPct = Math.max(0,Math.min(100,(runFlowValue/runFlow.target)*100));
+    const runFlowProgress = formatRunFlowProgress(runFlow,runFlowValue);
+
     card.innerHTML = `
-<div class="resultsCard">
+<div class="resultsCard flowResults">
 
     <div class="big">RUN COMPLETE</div>
 
-    <div class="statLine">
-        <span>DISTANCE</span>
-        <span>${Math.floor(distance)}m</span>
+    <div class="runSnapshot">
+        <div class="runMetric">
+            <div class="runMetricLabel">DISTANCE</div>
+            <div class="runMetricValue">${Math.floor(distance).toLocaleString()}m</div>
+        </div>
+        <div class="runMetric">
+            <div class="runMetricLabel">LEVEL</div>
+            <div class="runMetricValue">${level}</div>
+        </div>
+        <div class="runMetric">
+            <div class="runMetricLabel">SCORE</div>
+            <div class="runMetricValue">${score.toLocaleString()}</div>
+        </div>
     </div>
 
-    <div class="statLine">
-    <span>LEVEL</span>
-    <span>${level}</span>
-</div>
-
-<div class="statLine">
-    <span>SCORE</span>
-    <span>${score.toLocaleString()}</span>
-</div>
-
-<div class="statLine">
-    <span>BEST DISTANCE</span>
-    <span>${Math.floor(bestDistance)}m ${isNewBestDistance ? "⭐" : ""}</span>
-</div>
-
-<div class="statLine">
-    <span>BEST LEVEL</span>
-    <span>${bestLevel}</span>
-</div>
-
-<div class="statLine">
-    <span>BEST SCORE</span>
-    <span>${bestScore.toLocaleString()}</span>
-</div>
-
-    <div class="flowSummary">
-        CURRENT FLOW ${currentFlowIndex+1}/${FLOW_TOTAL}<br>
-        ${activeChallenge ? activeChallenge.label : "FLOW PATH COMPLETE"}<br>
-        FLOWS COMPLETED ${completedFlows}/${FLOW_TOTAL}
+    <div class="runFlowPanel">
+        <div class="runFlowTop">
+            <span class="runFlowNumber">FLOW ${currentFlowIndex+1}</span>
+            <span class="runFlowCategory">${runFlow.category}</span>
+        </div>
+        <div class="runFlowObjective">${runFlow.label}</div>
+        <div class="runFlowProgressText">${runFlowProgress}</div>
+        <div class="runFlowBar" aria-label="Flow progress">
+            <div class="runFlowFill" style="width:${runFlowPct}%"></div>
+        </div>
     </div>
 
-    <div class="tapContinue">
-        TAP TO RESTART
+    <div class="runArchiveProgress">
+        ${completedFlows.toLocaleString()} / ${FLOW_TOTAL.toLocaleString()} FLOWS COMPLETE
+    </div>
+
+    <div class="runActions">
+        <button class="runAction primary" id="runPlayAgain" type="button">PLAY AGAIN</button>
+        <button class="runAction" id="runFlowPath" type="button">FLOW PATH</button>
     </div>
 
 </div>
 `;
-
     card.style.display = "grid";
-    card.onclick = resetRun;
+    card.onclick = null;
+    document.getElementById("runPlayAgain")?.addEventListener("click",event=>{
+        event.stopPropagation();
+        resetRun();
+    });
+    document.getElementById("runFlowPath")?.addEventListener("click",event=>{
+        event.stopPropagation();
+        openFlowArchive("run_complete");
+    });
 
 }
 function resetRun(){
