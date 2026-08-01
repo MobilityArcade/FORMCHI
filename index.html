@@ -938,13 +938,13 @@ function environmentSwipe(dx,dy){return environmentEngine.transformSwipe(dx,dy);
 function environmentLaneInput(dx,dy){return environmentEngine.transformLaneInput(dx,dy);}
 
 // =========================
-// SHIFTVIX WARP BANKING 3.0 + WARP CURVATURE 4.0
-// Space momentum, dynamic vanishing point, layered depth, ambient route drift,
-// and restrained gravitational-style curvature. Gameplay coordinates stay unchanged.
+// SHIFTVIX — SPACE TUNNEL CURVATURE SYSTEM
+// Long organic left/right turns bend the deep space field while gameplay
+// coordinates and swipe controls remain unchanged.
 // =========================
-const MAX_BANK_ROLL = THREE.MathUtils.degToRad(8.0);
+const MAX_BANK_ROLL = THREE.MathUtils.degToRad(10.5);
 const MAX_BANK_PITCH = THREE.MathUtils.degToRad(2.0);
-const MAX_BANK_YAW = THREE.MathUtils.degToRad(1.25);
+const MAX_BANK_YAW = THREE.MathUtils.degToRad(2.4);
 
 let bankRoll = 0;
 let bankPitch = 0;
@@ -959,26 +959,97 @@ let warpCurveVelocityX = 0;
 let warpCurveVelocityY = 0;
 
 let routePhase = Math.random() * Math.PI * 2;
-let routePhaseSpeed = 0.075 + Math.random() * 0.025;
+let routePhaseSpeed = 0.055 + Math.random() * 0.018;
 let vanishingX = 0;
 let vanishingY = 0;
 let lensPulse = 0;
 
+// Space-tunnel route state.
+// The route uses distance, so turns naturally become long sections measured
+// in hundreds of meters instead of short timed camera effects.
+let tunnelPhase = "straight";
+let tunnelDirection = Math.random() < 0.5 ? -1 : 1;
+let tunnelStrength = 0;
+let tunnelCurve = 0;
+let tunnelRoll = 0;
+let tunnelYaw = 0;
+let tunnelSegmentStart = 0;
+let tunnelRampMeters = 260;
+let tunnelHoldMeters = 700;
+let tunnelRecoverMeters = 260;
+let tunnelNextTurnDistance = 260 + Math.random() * 340;
+
+function smoothstep01(value){
+  const t = THREE.MathUtils.clamp(value,0,1);
+  return t*t*(3-2*t);
+}
+
+function scheduleNextTunnelTurn(){
+  // Avoid a mechanical left-right-left-right pattern.
+  if(Math.random() < 0.64) tunnelDirection *= -1;
+  else tunnelDirection = Math.random() < 0.5 ? -1 : 1;
+
+  const pace = THREE.MathUtils.clamp(distance / 7000,0,1);
+  tunnelStrength = THREE.MathUtils.lerp(0.68,1.0,pace) * (0.88 + Math.random() * 0.16);
+  tunnelRampMeters = 190 + Math.random() * 170;
+  tunnelHoldMeters = 480 + Math.random() * 620;
+  tunnelRecoverMeters = 210 + Math.random() * 190;
+  tunnelSegmentStart = distance;
+  tunnelPhase = "ramp";
+}
+
+function updateTunnelRoute(){
+  if(tunnelPhase === "straight" && distance >= tunnelNextTurnDistance){
+    scheduleNextTunnelTurn();
+  }
+
+  let target = 0;
+
+  if(tunnelPhase === "ramp"){
+    const p = smoothstep01((distance - tunnelSegmentStart) / tunnelRampMeters);
+    target = tunnelDirection * tunnelStrength * p;
+
+    if(p >= 1){
+      tunnelPhase = "hold";
+      tunnelSegmentStart = distance;
+    }
+  }else if(tunnelPhase === "hold"){
+    target = tunnelDirection * tunnelStrength;
+
+    if(distance - tunnelSegmentStart >= tunnelHoldMeters){
+      tunnelPhase = "recover";
+      tunnelSegmentStart = distance;
+    }
+  }else if(tunnelPhase === "recover"){
+    const p = smoothstep01((distance - tunnelSegmentStart) / tunnelRecoverMeters);
+    target = tunnelDirection * tunnelStrength * (1-p);
+
+    if(p >= 1){
+      tunnelPhase = "straight";
+      tunnelSegmentStart = distance;
+      tunnelNextTurnDistance = distance + 220 + Math.random() * 520;
+      target = 0;
+    }
+  }
+
+  // Smooth enough to feel like a massive route, but strong enough to read.
+  tunnelCurve += (target - tunnelCurve) * 0.035;
+}
+
 function addWarpBank(dx,dy){
   const speedFeel = 0.84 + Math.min(0.24, distance / 19000);
 
-  // Steering impulses carry momentum instead of snapping to a fixed angle.
   bankRollVelocity += -dx * THREE.MathUtils.degToRad(13.5) * speedFeel;
   bankPitchVelocity +=  dy * THREE.MathUtils.degToRad(5.0) * speedFeel;
   bankYawVelocity +=   -dx * THREE.MathUtils.degToRad(3.7) * speedFeel;
 
-  // The deep field receives a longer, softer directional impulse.
   warpCurveVelocityX += -dx * 58 * speedFeel;
   warpCurveVelocityY +=  dy * 31 * speedFeel;
 }
 
 function updateWarpBanking(dt){
-  // Spring-damped aircraft-like response.
+  updateTunnelRoute();
+
   const rollSpring = -bankRoll * 26;
   const pitchSpring = -bankPitch * 28;
   const yawSpring = -bankYaw * 24;
@@ -996,7 +1067,6 @@ function updateWarpBanking(dt){
   bankPitch = THREE.MathUtils.clamp(bankPitch + bankPitchVelocity * dt, -MAX_BANK_PITCH, MAX_BANK_PITCH);
   bankYaw = THREE.MathUtils.clamp(bankYaw + bankYawVelocity * dt, -MAX_BANK_YAW, MAX_BANK_YAW);
 
-  // Long route curvature has more inertia than the camera.
   warpCurveVelocityX += -warpCurveX * 2.15 * dt;
   warpCurveVelocityY += -warpCurveY * 2.35 * dt;
   const curveDrag = Math.exp(-dt * 1.85);
@@ -1005,41 +1075,60 @@ function updateWarpBanking(dt){
   warpCurveX = THREE.MathUtils.clamp(warpCurveX + warpCurveVelocityX * dt, -40, 40);
   warpCurveY = THREE.MathUtils.clamp(warpCurveY + warpCurveVelocityY * dt, -16, 16);
 
-  // Variable route: long graceful curves separated by calmer sections.
-  routePhase += dt * routePhaseSpeed * (0.65 + warpAmount * 0.35);
-  const routeEnvelope = 0.36 + 0.64 * Math.pow(0.5 + 0.5 * Math.sin(routePhase * 0.53 + 0.8), 2);
-  const ambientCurveX = Math.sin(routePhase) * routeEnvelope * warpAmount * 11.5;
-  const ambientCurveY = Math.sin(routePhase * 0.71 + 1.45) * routeEnvelope * warpAmount * 3.6;
+  routePhase += dt * routePhaseSpeed * (0.72 + warpAmount * 0.28);
 
-  // Dynamic vanishing point follows steering, but remains inside a safe 3–4% window.
+  const speedPresence = 0.40 + warpAmount * 0.60;
+  const tunnelVisibility = speedPresence * (0.82 + Math.min(0.18,distance/9000));
+
+  // These values are shared with the deep-star deformation loop below.
+  tunnelRoll = tunnelCurve * tunnelVisibility * THREE.MathUtils.degToRad(8.2);
+  tunnelYaw = tunnelCurve * tunnelVisibility * THREE.MathUtils.degToRad(2.1);
+
+  const ambientCurveX =
+    tunnelCurve * tunnelVisibility * 54 +
+    Math.sin(routePhase * 0.43) * warpAmount * 4.5;
+
+  const ambientCurveY =
+    Math.sin(routePhase * 0.31 + 1.45) * warpAmount * 3.0;
+
   const targetVanishingX = THREE.MathUtils.clamp(
-    -bankYaw * 285 + (warpCurveX + ambientCurveX) * 0.12,
-    -23, 23
+    -bankYaw * 320 + ambientCurveX * 0.56,
+    -54, 54
   );
+
   const targetVanishingY = THREE.MathUtils.clamp(
-    bankPitch * 210 + (warpCurveY + ambientCurveY) * 0.10,
-    -10, 10
+    bankPitch * 220 + ambientCurveY * 0.16,
+    -12, 12
   );
-  const vanishEase = 1 - Math.exp(-dt * 2.7);
+
+  const vanishEase = 1 - Math.exp(-dt * 2.25);
   vanishingX += (targetVanishingX - vanishingX) * vanishEase;
   vanishingY += (targetVanishingY - vanishingY) * vanishEase;
 
-  // 4.0 curvature pulse is deliberately tiny and slow.
-  lensPulse = (0.5 + 0.5 * Math.sin(routePhase * 0.41 + 2.2)) * warpAmount;
+  lensPulse = (0.5 + 0.5 * Math.sin(routePhase * 0.34 + 2.2)) * warpAmount;
 
-  const ambientRoll = Math.sin(routePhase * 0.88) * warpAmount * THREE.MathUtils.degToRad(1.45);
-  const ambientYaw = Math.sin(routePhase * 0.61 + 0.4) * warpAmount * THREE.MathUtils.degToRad(0.20);
-  const ambientPitch = Math.sin(routePhase * 0.47 + 1.2) * warpAmount * THREE.MathUtils.degToRad(0.09);
+  const ambientPitch =
+    Math.sin(routePhase * 0.47 + 1.2) *
+    warpAmount *
+    THREE.MathUtils.degToRad(0.09);
 
-  camera.rotation.z = bankRoll + ambientRoll;
+  // Roll and yaw occur after lookAt(), preserving the base aim while making
+  // the route visually legible.
+  camera.rotation.z = bankRoll + tunnelRoll;
   camera.rotation.x += bankPitch + ambientPitch;
-  camera.rotation.y += bankYaw + ambientYaw;
+  camera.rotation.y += bankYaw + tunnelYaw;
 
   stars.forEach((s,index)=>{
     const depthWeight = 0.78 + index * 0.12;
-    s.rotation.z = -(bankRoll + ambientRoll) * (0.18 + depthWeight * 0.08);
-    s.position.x = -vanishingX * (0.42 + depthWeight * 0.12);
-    s.position.y = -vanishingY * (0.34 + depthWeight * 0.10);
+    s.rotation.z = -(bankRoll + tunnelRoll) * (0.34 + depthWeight * 0.13);
+    s.position.x = -vanishingX * (0.78 + depthWeight * 0.24);
+    s.position.y = -vanishingY * (0.38 + depthWeight * 0.11);
+  });
+
+  // A small visible roll in the lane guides gives the eye a reference line.
+  // It does not alter the actual lane positions or controls.
+  laneGuides.forEach(guide=>{
+    guide.rotation.z = tunnelRoll * 0.72;
   });
 
   return {ambientCurveX, ambientCurveY};
@@ -1059,11 +1148,24 @@ function resetWarpBanking(){
   vanishingX = 0;
   vanishingY = 0;
   lensPulse = 0;
+
+  tunnelPhase = "straight";
+  tunnelDirection = Math.random() < 0.5 ? -1 : 1;
+  tunnelStrength = 0;
+  tunnelCurve = 0;
+  tunnelRoll = 0;
+  tunnelYaw = 0;
+  tunnelSegmentStart = 0;
+  tunnelNextTurnDistance = 260 + Math.random() * 340;
+
   camera.rotation.set(0,0,0);
   stars.forEach(s=>{
     s.rotation.z = 0;
     s.position.x = 0;
     s.position.y = 0;
+  });
+  laneGuides.forEach(guide=>{
+    guide.rotation.z = 0;
   });
 }
 
@@ -3282,8 +3384,8 @@ atmosphereColors[stage]
 );
 
 camera.lookAt(
-camera.position.x * 0.995 + vanishingX,
-camera.position.y * 0.995 + vanishingY,
+camera.position.x * 0.985 + vanishingX * 1.35,
+camera.position.y * 0.992 + vanishingY,
 -500
 );let targetFov =
 70
@@ -3321,11 +3423,28 @@ warpAmount * 0.18
     const farDepth = THREE.MathUtils.clamp((-currentZ - 70) / 1080, 0, 1);
     const curveEase = farDepth * farDepth * (3 - 2 * farDepth);
     const nearLayer = 1 - farDepth;
-    const ambientCurveX = Math.sin(routePhase) * warpAmount * 7.5;
-    const ambientCurveY = Math.sin(routePhase * 0.71 + 1.45) * warpAmount * 3.6;
+    // Space Tunnel Curvature: far particles arc strongly into the route,
+    // while the central decision-space remains stable.
+    const tunnelDepthCurve = tunnelCurve * (48 + farDepth * 58);
+    const tunnelLift = Math.sin(routePhase * 0.31 + 1.45) * warpAmount * 3.0;
 
-    let x = baseX + (warpCurveX + ambientCurveX + vanishingX * 0.65) * curveEase;
-    let y = baseY + (warpCurveY + ambientCurveY + vanishingY * 0.55) * curveEase;
+    let x = baseX + (
+        warpCurveX +
+        tunnelDepthCurve +
+        vanishingX * 1.10
+    ) * curveEase;
+
+    let y = baseY + (
+        warpCurveY +
+        tunnelLift +
+        vanishingY * 0.62
+    ) * curveEase;
+
+    // The bend increases farther down the tunnel, creating an actual arc
+    // instead of a flat sideways translation.
+    const tunnelArc = tunnelCurve * curveEase * curveEase;
+    x += tunnelArc * (22 + farDepth * 44);
+    y += Math.abs(tunnelArc) * (baseY / 220) * 8;
 
     // Warp Curvature 4.0: restrained gravitational-style lensing.
     // It bends only the peripheral deep field and never the gameplay objects.
