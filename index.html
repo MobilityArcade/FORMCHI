@@ -583,7 +583,7 @@ body.uiModalOpen #center{pointer-events:none}
   <div class="pausePanel" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
     <div class="pauseTitle" id="pauseTitle">PAUSED</div>
     <div class="pauseSelection">
-      <div class="pauseFlowName" id="pauseFlowName">FLOW 1 · NORMAL FLOW</div>
+      <div class="pauseFlowName" id="pauseFlowName">FLOW 1 · CURRENT FLOW</div>
       <div class="pauseFlowObjective" id="pauseFlowObjective">LOADING…</div>
     </div>
     <div class="pauseActions">
@@ -593,7 +593,7 @@ body.uiModalOpen #center{pointer-events:none}
     <div class="pauseHint">CENTER EYE OR ESC TO RESUME</div>
   </div>
 </div>
-<div id="challengeHud"><div id="challengeName">NORMAL FLOW</div><div id="challengeText">LOADING…</div><div id="challengeBar"><div id="challengeFill"></div></div></div>
+<div id="challengeHud"><div id="challengeName">CURRENT FLOW</div><div id="challengeText">LOADING…</div><div id="challengeBar"><div id="challengeFill"></div></div></div>
 <div id="modeBanner"></div><div id="flowFx"></div><div id="pulseWaves"></div>
 <div id="flowArchive" aria-hidden="true"><div class="archiveCard" role="dialog" aria-modal="true" aria-labelledby="flowPathTitle"><div class="archiveHeader"><h2 id="flowPathTitle">FLOW PATH</h2><button class="archiveClose" id="archiveClose" type="button" aria-label="Close Flow Path">×</button></div><div id="archiveList"></div></div></div>
 
@@ -724,7 +724,7 @@ function setFlowFx(mode,intensity=0){
 }
 
 const normalEnvironment={
-  id:ENVIRONMENT_TYPES.NORMAL,name:"NORMAL FLOW",
+  id:ENVIRONMENT_TYPES.NORMAL,name:"CURRENT FLOW",
   reset(){setFlowFx("",0);},start(){setFlowFx("",0);},update(){},
   transformPoint(x,y){return {x,y};},
   transformSwipe(dx,dy){return {x:dx,y:dy};},
@@ -733,14 +733,14 @@ const normalEnvironment={
 };
 
 const curvedEnvironment={
-  id:ENVIRONMENT_TYPES.CURVED,name:"CURVED FLOW",
+  id:ENVIRONMENT_TYPES.CURVED,name:"CURRENT FLOW",
   warningDistance:450,startDistance:500,
   turnAngle:THREE.MathUtils.degToRad(-30),turnDuration:1.8,
   flowStartDistance:0,rotation:0,turnFrom:0,turnTarget:0,elapsed:0,
   active:false,triggered:false,warningShown:false,
   reset(){this.flowStartDistance=distance;this.rotation=0;this.turnFrom=0;this.turnTarget=0;this.elapsed=0;this.active=false;this.triggered=false;this.warningShown=false;setFlowFx("",0);},
   start(){this.reset();},
-  beginTurn(){if(this.triggered)return;this.triggered=true;this.active=true;this.elapsed=0;this.turnFrom=this.rotation;this.turnTarget=this.turnAngle;showModeBanner("CURVED FLOW");track("environment_event_started",{environment:this.id,distance:Math.floor(distance),degrees:30,direction:"clockwise"});},
+  beginTurn(){if(this.triggered)return;this.triggered=true;this.active=true;this.elapsed=0;this.turnFrom=this.rotation;this.turnTarget=this.turnAngle;showModeBanner("CURRENT FLOW");track("environment_event_started",{environment:this.id,distance:Math.floor(distance),degrees:30,direction:"clockwise"});},
   update(dt){const flowDistance=Math.max(0,distance-this.flowStartDistance);if(!this.warningShown&&flowDistance>=this.warningDistance){this.warningShown=true;showModeBanner("TURN APPROACHING");bankRollVelocity+=THREE.MathUtils.degToRad(1.5);warpCurveVelocityX+=10;}if(!this.triggered&&flowDistance>=this.startDistance)this.beginTurn();if(this.active){this.elapsed+=dt;const p=THREE.MathUtils.clamp(this.elapsed/this.turnDuration,0,1);this.rotation=THREE.MathUtils.lerp(this.turnFrom,this.turnTarget,easeInOutCubic(p));bankRollVelocity+=THREE.MathUtils.degToRad(2)*dt;warpCurveVelocityX+=12*dt;if(p>=1){this.rotation=this.turnTarget;this.active=false;showModeBanner("TURN COMPLETE");track("environment_event_completed",{environment:this.id,distance:Math.floor(distance),degrees:30,direction:"clockwise"});}}},
   transformPoint(x,y){return rotatePoint(x,y,this.rotation);},
   transformSwipe(dx,dy){return rotatePoint(dx,dy,this.rotation);},
@@ -749,7 +749,7 @@ const curvedEnvironment={
 };
 
 const mirrorEnvironment={
-  id:ENVIRONMENT_TYPES.MIRROR,name:"MIRROR FLOW",swipeCount:0,
+  id:ENVIRONMENT_TYPES.MIRROR,name:"CURRENT FLOW",swipeCount:0,
   reset(){this.swipeCount=0;setFlowFx("",0);},
   start(){this.reset();track("environment_event_started",{environment:this.id,distance:Math.floor(distance)});},update(){},
   transformPoint(x,y){return {x,y};},
@@ -758,7 +758,7 @@ const mirrorEnvironment={
 };
 
 const gravityEnvironment={
-  id:ENVIRONMENT_TYPES.GRAVITY,name:"GRAVITY FLOW",
+  id:ENVIRONMENT_TYPES.GRAVITY,name:"CURRENT FLOW",
   warningDistance:120,rampDistance:180,holdDistance:420,releaseDistance:690,endDistance:850,
   flowStartDistance:0,gravityDirection:1,intensity:0,phase:"idle",warningShown:false,activeTracked:false,recoveryTracked:false,completionTracked:false,
   reset(){this.flowStartDistance=distance;this.gravityDirection=Math.random()<.5?-1:1;this.intensity=0;this.phase="idle";this.warningShown=false;this.activeTracked=false;this.recoveryTracked=false;this.completionTracked=false;setFlowFx("",0);},
@@ -785,9 +785,9 @@ const gravityEnvironment={
 };
 
 const reverseEnvironment={
-  id:ENVIRONMENT_TYPES.REVERSE,name:"REVERSE FLOW",inputCount:0,
+  id:ENVIRONMENT_TYPES.REVERSE,name:"CURRENT FLOW",inputCount:0,
   reset(){this.inputCount=0;setFlowFx("",0);},
-  start(){this.inputCount=0;setFlowFx("reverse",1);showModeBanner("REVERSE FLOW");track("reverse_flow_started",{flow_number:currentFlowIndex+1,distance:Math.floor(distance)});},
+  start(){this.inputCount=0;setFlowFx("reverse",1);showModeBanner("CURRENT FLOW");track("reverse_flow_started",{flow_number:currentFlowIndex+1,distance:Math.floor(distance)});},
   update(){setFlowFx("reverse",1);},
   transformPoint(x,y){return {x,y};},
   transformSwipe(dx,dy){this.inputCount++;track("reverse_input",{flow_number:currentFlowIndex+1,input_count:this.inputCount});return {x:-dx,y:-dy};},
@@ -815,7 +815,7 @@ function emitPulseShockwave(){
 }
 
 const pulseEnvironment={
-  id:ENVIRONMENT_TYPES.PULSE,name:"PULSE FLOW",
+  id:ENVIRONMENT_TYPES.PULSE,name:"CURRENT FLOW",
   impulse:0,phase:0,pulseCount:0,collections:0,onBeatCollections:0,strikes:0,
   lastBeatAt:0,lastBeatPerformance:0,beatIntervals:[],startedAt:0,lastAnalyticsPulse:0,
   reset(){
@@ -836,7 +836,7 @@ const pulseEnvironment={
     stars.forEach(s=>s.scale.set(1,1,1));
   },
   start(){
-    this.reset();this.startedAt=performance.now();setFlowFx("pulse",.22);showModeBanner("PULSE FLOW");
+    this.reset();this.startedAt=performance.now();setFlowFx("pulse",.22);showModeBanner("CURRENT FLOW");
     track("pulse_flow_started",{flow_number:currentFlowIndex+1,distance:Math.floor(distance),bpm:Math.round(getDrumBPM())});
   },
   onBeat(time,accent=1){
