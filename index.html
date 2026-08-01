@@ -942,7 +942,7 @@ function environmentLaneInput(dx,dy){return environmentEngine.transformLaneInput
 // Space momentum, dynamic vanishing point, layered depth, ambient route drift,
 // and restrained gravitational-style curvature. Gameplay coordinates stay unchanged.
 // =========================
-const MAX_BANK_ROLL = THREE.MathUtils.degToRad(5.6);
+const MAX_BANK_ROLL = THREE.MathUtils.degToRad(8.0);
 const MAX_BANK_PITCH = THREE.MathUtils.degToRad(2.0);
 const MAX_BANK_YAW = THREE.MathUtils.degToRad(1.25);
 
@@ -1002,19 +1002,19 @@ function updateWarpBanking(dt){
   const curveDrag = Math.exp(-dt * 1.85);
   warpCurveVelocityX *= curveDrag;
   warpCurveVelocityY *= curveDrag;
-  warpCurveX = THREE.MathUtils.clamp(warpCurveX + warpCurveVelocityX * dt, -28, 28);
+  warpCurveX = THREE.MathUtils.clamp(warpCurveX + warpCurveVelocityX * dt, -40, 40);
   warpCurveY = THREE.MathUtils.clamp(warpCurveY + warpCurveVelocityY * dt, -16, 16);
 
   // Variable route: long graceful curves separated by calmer sections.
   routePhase += dt * routePhaseSpeed * (0.65 + warpAmount * 0.35);
   const routeEnvelope = 0.36 + 0.64 * Math.pow(0.5 + 0.5 * Math.sin(routePhase * 0.53 + 0.8), 2);
-  const ambientCurveX = Math.sin(routePhase) * routeEnvelope * warpAmount * 7.5;
+  const ambientCurveX = Math.sin(routePhase) * routeEnvelope * warpAmount * 11.5;
   const ambientCurveY = Math.sin(routePhase * 0.71 + 1.45) * routeEnvelope * warpAmount * 3.6;
 
   // Dynamic vanishing point follows steering, but remains inside a safe 3–4% window.
   const targetVanishingX = THREE.MathUtils.clamp(
     -bankYaw * 285 + (warpCurveX + ambientCurveX) * 0.12,
-    -18, 18
+    -23, 23
   );
   const targetVanishingY = THREE.MathUtils.clamp(
     bankPitch * 210 + (warpCurveY + ambientCurveY) * 0.10,
@@ -1027,7 +1027,7 @@ function updateWarpBanking(dt){
   // 4.0 curvature pulse is deliberately tiny and slow.
   lensPulse = (0.5 + 0.5 * Math.sin(routePhase * 0.41 + 2.2)) * warpAmount;
 
-  const ambientRoll = Math.sin(routePhase * 0.88) * warpAmount * THREE.MathUtils.degToRad(0.38);
+  const ambientRoll = Math.sin(routePhase * 0.88) * warpAmount * THREE.MathUtils.degToRad(1.45);
   const ambientYaw = Math.sin(routePhase * 0.61 + 0.4) * warpAmount * THREE.MathUtils.degToRad(0.20);
   const ambientPitch = Math.sin(routePhase * 0.47 + 1.2) * warpAmount * THREE.MathUtils.degToRad(0.09);
 
