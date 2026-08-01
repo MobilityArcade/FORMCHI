@@ -647,7 +647,7 @@ let warpAmount = 0;
 // SHIFTVIX v2.4 — ENVIRONMENT ENGINE
 // Normal, Curved, Mirror, Gravity, Reverse, and Pulse share one interface.
 //
-// Automatic flow rotation (50-flow cycle):
+// Core Flow Refinement 2.0:
 //   10 CURVED · 20 MIRROR · 30 GRAVITY · 40 REVERSE · 50 PULSE
 //
 // Testing override:
@@ -676,13 +676,7 @@ function environmentTypeForFlow(index){
         23, 25, 27, 30
     ];
 
-    const rotation = [
-        ENVIRONMENT_TYPES.CURVED,
-        ENVIRONMENT_TYPES.MIRROR,
-        ENVIRONMENT_TYPES.GRAVITY,
-        ENVIRONMENT_TYPES.REVERSE,
-        ENVIRONMENT_TYPES.PULSE
-    ];
+    const rotation = [ENVIRONMENT_TYPES.NORMAL];
 
     const slotIndex = specialSlots.indexOf(flowNumber);
 
@@ -694,9 +688,7 @@ function environmentTypeForFlow(index){
     const globalSpecialIndex =
         (blockIndex * specialSlots.length) + slotIndex;
 
-    return rotation[
-        globalSpecialIndex % rotation.length
-    ];
+    return ENVIRONMENT_TYPES.NORMAL;
 }
     
 function flowNameForType(type){
