@@ -531,8 +531,12 @@ button,.archiveRow{-webkit-tap-highlight-color:transparent}
 .archiveClose{border-radius:10px;transition:background .14s ease,color .14s ease}
 .archiveClose:hover,.archiveClose:focus-visible{background:rgba(255,255,255,.08);color:var(--shift-gold);outline:none}
 .archiveBlockLabel .blockProgress{font-size:9px;letter-spacing:1px;color:rgba(255,255,255,.36)}
-.archiveRow{overflow:hidden}
-.archiveFlowType{position:absolute;left:4px;bottom:3px;max-width:calc(100% - 8px);font-size:6px;line-height:1;letter-spacing:.45px;color:rgba(255,255,255,.34);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.archiveRow{overflow:hidden;padding:4px 4px 17px}
+.archiveFlowType{position:absolute;left:5px;right:5px;bottom:5px;font-size:10px;line-height:1;font-weight:1000;letter-spacing:1px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:rgba(255,255,255,.62)}
+.archiveFlowType.category-reach{color:#ffd36a;text-shadow:0 0 8px rgba(255,211,106,.32)}
+.archiveFlowType.category-collect{color:#7df9ff;text-shadow:0 0 8px rgba(125,249,255,.30)}
+.archiveFlowType.category-travel{color:#69a9ff;text-shadow:0 0 8px rgba(105,169,255,.30)}
+.archiveFlowType.category-score{color:#ce7dff;text-shadow:0 0 8px rgba(206,125,255,.30)}
 .archiveRow.current .archiveFlowType{color:rgba(255,211,106,.75)}
 .archiveRow.done .archiveFlowType{color:rgba(125,249,255,.52)}
 .archiveRow.locked .archiveFlowType{display:none}
@@ -547,7 +551,7 @@ body.uiModalOpen #center{pointer-events:none}
   .archiveCard{max-height:84vh;padding:18px 14px}
   #archiveList{max-height:66vh}
   .archiveRow{min-height:44px}
-  .archiveFlowType{font-size:5.5px}
+  .archiveFlowType{font-size:8.5px;bottom:5px;letter-spacing:.8px}
 }
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
@@ -583,7 +587,7 @@ body.uiModalOpen #center{pointer-events:none}
   <div class="pausePanel" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
     <div class="pauseTitle" id="pauseTitle">PAUSED</div>
     <div class="pauseSelection">
-      <div class="pauseFlowName" id="pauseFlowName">FLOW 1 · CURRENT FLOW</div>
+      <div class="pauseFlowName" id="pauseFlowName">FLOW 1 · REACH</div>
       <div class="pauseFlowObjective" id="pauseFlowObjective">LOADING…</div>
     </div>
     <div class="pauseActions">
@@ -597,7 +601,7 @@ body.uiModalOpen #center{pointer-events:none}
 <div id="modeBanner"></div><div id="flowFx"></div><div id="pulseWaves"></div>
 <div id="flowArchive" aria-hidden="true"><div class="archiveCard" role="dialog" aria-modal="true" aria-labelledby="flowPathTitle"><div class="archiveHeader"><h2 id="flowPathTitle">FLOW PATH</h2><button class="archiveClose" id="archiveClose" type="button" aria-label="Close Flow Path">×</button></div><div id="archiveList"></div></div></div>
 
-<!-- SHIFTVIX v2.5 PATCH 10 POLISH -->
+<!-- SHIFTVIX CORE FLOW REFINEMENT 2.1 -->
 <script type="module">
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x000000,0.0011);
@@ -1940,66 +1944,72 @@ function flowStageFor(index){
   const n=index+1;
   return FLOW_STAGES.find(stage=>n<=stage.end)||FLOW_STAGES[FLOW_STAGES.length-1];
 }
+function flowCategoryForIndex(index){
+  return ["REACH","COLLECT","TRAVEL","SCORE"][index%4];
+}
+
 function createFlow(index){
   const n=index+1;
-  const cycle=Math.floor(index/12);
-  const type=index%12;
-  const name=flowNameForIndex(index);
+  const group=Math.floor(index/4);
+  const category=flowCategoryForIndex(index);
+  const name="CURRENT FLOW";
 
-  // Twelve rotating challenge families. Targets deliberately change every cycle,
-  // so all 300 flows are distinct instead of repeating the same objective.
-  if(type===0){
-    const target=4+cycle;
-    return {id:`level_${n}`,name,label:`REACH LEVEL ${target}`,target,metric:"level"};
+  // Core Flow Refinement 2.1: a clear four-part rhythm across all 300 Flows.
+  // REACH → COLLECT → TRAVEL → SCORE, then repeat.
+  if(category==="REACH"){
+    const variant=group%3;
+    const target=4+Math.floor(group/3);
+
+    if(variant===1){
+      const lives=group<18?2:3;
+      return {id:`reach_lives_${n}`,name,category,label:`REACH LEVEL ${target} WITH ${lives} LIVES`,target,metric:"lives",lives};
+    }
+
+    if(variant===2){
+      const maxStrikes=group<24?1:0;
+      return {id:`reach_control_${n}`,name,category,label:`REACH LEVEL ${target} WITH ${maxStrikes===0?"NO STRIKES":"1 STRIKE OR LESS"}`,target,metric:"maxStrikesLevel",maxStrikes};
+    }
+
+    return {id:`reach_${n}`,name,category,label:`REACH LEVEL ${target}`,target,metric:"level"};
   }
-  if(type===1){
-    const target=250+cycle*45;
-    return {id:`orbs_${n}`,name,label:`COLLECT ${target} ORBS`,target,metric:"orbs"};
-  }
-  if(type===2){
+
+  if(category==="COLLECT"){
+    const variant=group%4;
+
+    if(variant===0){
+      const target=600+group*55;
+      return {id:`collect_${n}`,name,category,label:`COLLECT ${target.toLocaleString()} ORBS`,target,metric:"orbs"};
+    }
+
     const colors=["BLUE","GREEN","PURPLE","ORANGE","RED"];
-    const color=colors[cycle%colors.length];
-    const base={BLUE:150,GREEN:120,PURPLE:80,ORANGE:40,RED:20}[color];
-    const growth={BLUE:25,GREEN:20,PURPLE:14,ORANGE:8,RED:4}[color];
-    const target=base+cycle*growth;
-    return {id:`${color.toLowerCase()}_${n}`,name,label:`COLLECT ${target} ${color} ORBS`,target,metric:"color",color};
+    const color=colors[group%colors.length];
+    const base={BLUE:500,GREEN:450,PURPLE:320,ORANGE:200,RED:120}[color];
+    const growth={BLUE:28,GREEN:25,PURPLE:18,ORANGE:12,RED:8}[color];
+    const target=base+group*growth;
+
+    if(variant===2){
+      return {id:`collect_clean_${color.toLowerCase()}_${n}`,name,category,label:`COLLECT ${target.toLocaleString()} ${color} ORBS WITHOUT A STRIKE`,target,metric:"cleanColor",color};
+    }
+
+    if(variant===3){
+      const totalTarget=700+group*60;
+      return {id:`collect_lives_${n}`,name,category,label:`COLLECT ${totalTarget.toLocaleString()} ORBS WITH 2+ LIVES`,target:totalTarget,metric:"orbsWithLives"};
+    }
+
+    return {id:`collect_${color.toLowerCase()}_${n}`,name,category,label:`COLLECT ${target.toLocaleString()} ${color} ORBS`,target,metric:"color",color};
   }
-  if(type===3){
-    const target=10000+cycle*2500;
-    return {id:`score_${n}`,name,label:`SCORE ${target.toLocaleString()} POINTS`,target,metric:"score"};
+
+  if(category==="TRAVEL"){
+    const target=1500+group*275;
+    return {id:`travel_${n}`,name,category,label:`TRAVEL ${target.toLocaleString()}m`,target,metric:"distance"};
   }
-  if(type===4){
-    const target=5+cycle;
-    const lives=cycle<6?2:3;
-    return {id:`survive_${n}`,name,label:`REACH LEVEL ${target} WITH ${lives} LIVES`,target,metric:"lives",lives};
+
+  const variant=group%2;
+  const target=15000+group*4200;
+  if(variant===1){
+    return {id:`score_precision_${n}`,name,category,label:`SCORE ${target.toLocaleString()} POINTS WITH 2+ LIVES`,target,metric:"precision"};
   }
-  if(type===5){
-    const target=3000+cycle*900;
-    return {id:`distance_${n}`,name,label:`TRAVEL ${target.toLocaleString()}m`,target,metric:"distance"};
-  }
-  if(type===6){
-    const target=200+cycle*30;
-    return {id:`clean_${n}`,name,label:`COLLECT ${target} ORBS BEFORE A STRIKE`,target,metric:"clean"};
-  }
-  if(type===7){
-    const target=9000+cycle*1800;
-    return {id:`precision_${n}`,name,label:`SCORE ${target.toLocaleString()} WITH 2+ LIVES`,target,metric:"precision"};
-  }
-  if(type===8){
-    const target=100+cycle*18;
-    return {id:`blue_${n}`,name,label:`COLLECT ${target} BLUE ORBS WITHOUT A STRIKE`,target,metric:"cleanColor",color:"BLUE"};
-  }
-  if(type===9){
-    const target=120+cycle*22;
-    return {id:`green_${n}`,name,label:`COLLECT ${target} GREEN ORBS`,target,metric:"color",color:"GREEN"};
-  }
-  if(type===10){
-    const target=4+cycle;
-    const maxStrikes=cycle<8?1:0;
-    return {id:`controlled_level_${n}`,name,label:`REACH LEVEL ${target} WITH ${maxStrikes===0?"NO STRIKES":"1 STRIKE OR LESS"}`,target,metric:"maxStrikesLevel",maxStrikes};
-  }
-  const target=250+cycle*40;
-  return {id:`mixed_${n}`,name,label:`COLLECT ${target} ORBS WITH 2+ LIVES`,target,metric:"orbsWithLives"};
+  return {id:`score_${n}`,name,category,label:`SCORE ${target.toLocaleString()} POINTS`,target,metric:"score"};
 }
 function beginCurrentFlow(){
 
@@ -2257,7 +2267,7 @@ function renderFlowArchive(){
             const isCompleted = isFlowCompleted(i);
             const isCurrent = i === currentFlowIndex;
             const isLocked = !isFlowUnlocked(i);
-            const flowType = flowNameForIndex(i).replace(" FLOW","");
+            const flowType = createFlow(i).category;
             let rowClass = "available selectable";
             let status = "•";
 
@@ -2273,12 +2283,12 @@ function renderFlowArchive(){
                     tabindex="${isLocked ? -1 : 0}"
                     aria-disabled="${isLocked}"
                     aria-current="${isCurrent ? "true" : "false"}"
-                    aria-label="Flow ${flowNumber}, ${flowType.toLowerCase()} flow${isCompleted ? ", completed" : isLocked ? ", locked" : ", available"}"
-                    title="Flow ${flowNumber} · ${flowType} FLOW"
+                    aria-label="Flow ${flowNumber}, ${flowType.toLowerCase()} objective${isCompleted ? ", completed" : isLocked ? ", locked" : ", available"}"
+                    title="Flow ${flowNumber} · ${flowType}"
                 >
                     <span>${flowNumber}</span>
                     <span class="archiveStatus">${status}</span>
-                    <span class="archiveFlowType">${flowType}</span>
+                    <span class="archiveFlowType category-${flowType.toLowerCase()}">${flowType}</span>
                 </div>
             `;
         }
@@ -2456,7 +2466,7 @@ function updatePauseSelection(){
   const name=document.getElementById("pauseFlowName");
   const objective=document.getElementById("pauseFlowObjective");
   const flow=activeChallenge||createFlow(currentFlowIndex);
-  if(name)name.textContent=`FLOW ${currentFlowIndex+1} · ${environmentEngine.current.name}`;
+  if(name)name.textContent=`FLOW ${currentFlowIndex+1} · ${flow.category}`;
   if(objective)objective.textContent=flow.label;
 }
 
