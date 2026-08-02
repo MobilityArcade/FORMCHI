@@ -938,9 +938,9 @@ function environmentSwipe(dx,dy){return environmentEngine.transformSwipe(dx,dy);
 function environmentLaneInput(dx,dy){return environmentEngine.transformLaneInput(dx,dy);}
 
 // =========================
-// SHIFTVIX — SPACE TUNNEL CURVATURE 5.2
-// STARFIELD + WARP DEFORMATION
-// Eight-direction route engine with starfield-only deformation. Warp trail rendering removed.
+// SHIFTVIX — SPACE TUNNEL CURVATURE 5.1
+// ROUTE ENGINE CORE
+// Strong eight-direction visual routes: left, right, up, down, and diagonals.
 // Gameplay lanes, collision coordinates, and swipe controls remain unchanged.
 // =========================
 const MAX_BANK_ROLL = THREE.MathUtils.degToRad(14);
@@ -1229,9 +1229,6 @@ function resetWarpBanking(){
     guide.rotation.set(0,0,0);
   });
 }
-
-
-// Warp streak deformation removed in 5.2A.
 
 let introScale=1.2;
 const clock=new THREE.Clock(), beacons=[], stars=[], laneGuides=[];
@@ -3489,29 +3486,34 @@ warpAmount * 0.18
     const nearLayer = 1 - farDepth;
     // Space Tunnel Curvature: far particles arc strongly into the route,
     // while the central decision-space remains stable.
-    // 5.2: every star samples the same curved route used by the warp trails.
-    // This creates layered depth, tangential flow, and strong X/Y deformation.
-    const routePoint = routeVisualPoint(baseX,baseY,currentZ,1.0);
+    const tunnelDepthCurveX = tunnelCurveX * (70 + farDepth * 110);
+    const tunnelDepthCurveY = tunnelCurveY * (48 + farDepth * 78);
 
-    let x = routePoint.x + warpCurveX*curveEase;
-    let y = routePoint.y + warpCurveY*curveEase;
+    let x = baseX + (
+        warpCurveX +
+        tunnelDepthCurveX +
+        vanishingX * 1.18
+    ) * curveEase;
 
-    const routeArcX = tunnelCurveX*curveEase*curveEase;
-    const routeArcY = tunnelCurveY*curveEase*curveEase;
+    let y = baseY + (
+        warpCurveY +
+        tunnelDepthCurveY +
+        vanishingY * 1.02
+    ) * curveEase;
 
-    // Deep stars fan outward along the route tangent, making bends remain
-    // visible even when speed becomes very high.
-    const tangentFan = farDepth*farDepth*warpAmount;
-    x += routeArcX*(34+farDepth*74)+
-         (-tunnelCurveY)*baseY*tangentFan*0.12;
-    y += routeArcY*(26+farDepth*58)+
-         ( tunnelCurveX)*baseX*tangentFan*0.09;
+    // Quadratic depth creates the visual impression of a true corner,
+    // climb, dive, or diagonal route instead of a flat screen translation.
+    const routeArcX = tunnelCurveX * curveEase * curveEase;
+    const routeArcY = tunnelCurveY * curveEase * curveEase;
 
-    // Slight depth-dependent corkscrew keeps diagonal climbs and dives from
-    // reading as a flat screen translation.
-    const twist = (tunnelCurveX*tunnelCurveY)*curveEase*0.16;
-    x += -baseY*twist;
-    y +=  baseX*twist;
+    x += routeArcX * (42 + farDepth * 88);
+    y += routeArcY * (32 + farDepth * 66);
+
+    // Peripheral compression exaggerates a 60–90 degree turning sensation.
+    const sideCompression = 1 - Math.min(0.30,Math.abs(routeArcX)*0.16);
+    const verticalCompression = 1 - Math.min(0.22,Math.abs(routeArcY)*0.14);
+    x *= sideCompression;
+    y *= verticalCompression;
 
     // Warp Curvature 4.0: restrained gravitational-style lensing.
     // It bends only the peripheral deep field and never the gameplay objects.
