@@ -938,10 +938,10 @@ function environmentSwipe(dx,dy){return environmentEngine.transformSwipe(dx,dy);
 function environmentLaneInput(dx,dy){return environmentEngine.transformLaneInput(dx,dy);}
 
 // =========================
-// SHIFTVIX — SPACE TUNNEL CURVATURE 5.1
-// ROUTE ENGINE CORE
-// Strong eight-direction visual routes: left, right, up, down, and diagonals.
-// Gameplay lanes, collision coordinates, and swipe controls remain unchanged.
+// SHIFTVIX — SPACE TUNNEL CURVATURE 5.2
+// STARFIELD CURVATURE UPGRADE — NO WARP TRAILS
+// Existing stars and dust follow left, right, up, down, and diagonal routes.
+// Gameplay lanes, collision coordinates, swipe controls, and spawning remain unchanged.
 // =========================
 const MAX_BANK_ROLL = THREE.MathUtils.degToRad(14);
 const MAX_BANK_PITCH = THREE.MathUtils.degToRad(3.5);
@@ -3479,56 +3479,99 @@ warpAmount * 0.18
     const baseY = baseXY ? baseXY[i*2+1] : pos.getY(i);
     const currentZ = pos.getZ(i);
 
-    // Layered depth: far stars bend most, middle stars moderately,
-    // and near decision-space remains almost perfectly stable.
+    // 5.2 STARFIELD-ONLY CURVATURE
+    // Far particles follow the route strongly. Near particles remain stable
+    // so the center gameplay area and nine-grid controls stay readable.
     const farDepth = THREE.MathUtils.clamp((-currentZ - 70) / 1080, 0, 1);
-    const curveEase = farDepth * farDepth * (3 - 2 * farDepth);
+    const depthEase = farDepth * farDepth * (3 - 2 * farDepth);
+    const deepArc = depthEase * depthEase;
     const nearLayer = 1 - farDepth;
-    // Space Tunnel Curvature: far particles arc strongly into the route,
-    // while the central decision-space remains stable.
-    const tunnelDepthCurveX = tunnelCurveX * (70 + farDepth * 110);
-    const tunnelDepthCurveY = tunnelCurveY * (48 + farDepth * 78);
 
-    let x = baseX + (
-        warpCurveX +
-        tunnelDepthCurveX +
-        vanishingX * 1.18
-    ) * curveEase;
+    // Primary route bend. This moves the visual star tunnel toward the same
+    // vanishing point used by the Route Engine without creating extra objects.
+    const bendX =
+        tunnelCurveX *
+        (82 + farDepth * 152) *
+        deepArc;
 
-    let y = baseY + (
-        warpCurveY +
-        tunnelDepthCurveY +
-        vanishingY * 1.02
-    ) * curveEase;
+    const bendY =
+        tunnelCurveY *
+        (58 + farDepth * 108) *
+        deepArc;
 
-    // Quadratic depth creates the visual impression of a true corner,
-    // climb, dive, or diagonal route instead of a flat screen translation.
-    const routeArcX = tunnelCurveX * curveEase * curveEase;
-    const routeArcY = tunnelCurveY * curveEase * curveEase;
+    let x =
+        baseX +
+        (warpCurveX * 0.62 + vanishingX * 1.16) * depthEase +
+        bendX;
 
-    x += routeArcX * (42 + farDepth * 88);
-    y += routeArcY * (32 + farDepth * 66);
+    let y =
+        baseY +
+        (warpCurveY * 0.62 + vanishingY * 1.08) * depthEase +
+        bendY;
 
-    // Peripheral compression exaggerates a 60–90 degree turning sensation.
-    const sideCompression = 1 - Math.min(0.30,Math.abs(routeArcX)*0.16);
-    const verticalCompression = 1 - Math.min(0.22,Math.abs(routeArcY)*0.14);
-    x *= sideCompression;
-    y *= verticalCompression;
+    // Tangential flow makes the stars wrap around the corner instead of
+    // sliding sideways as one flat sheet.
+    const tangentStrength = depthEase * farDepth;
+    x += -tunnelCurveY * baseY * tangentStrength * 0.22;
+    y +=  tunnelCurveX * baseX * tangentStrength * 0.15;
 
-    // Warp Curvature 4.0: restrained gravitational-style lensing.
-    // It bends only the peripheral deep field and never the gameplay objects.
-    const radius = Math.max(1, Math.hypot(baseX,baseY));
-    const edgeNorm = THREE.MathUtils.clamp((radius - 85) / 190, 0, 1);
-    const lensStrength = lensPulse * curveEase * edgeNorm * edgeNorm * 0.018;
-    const lensCenterX = vanishingX * 1.8;
-    const lensCenterY = vanishingY * 1.5;
-    x += (baseX - lensCenterX) * lensStrength;
-    y += (baseY - lensCenterY) * lensStrength;
+    // Inner-side compression and outer-side expansion strengthen the feeling
+    // of taking a real corner while preserving the original particle system.
+    const horizontalTurn = THREE.MathUtils.clamp(tunnelCurveX, -1.25, 1.25);
+    const verticalTurn = THREE.MathUtils.clamp(tunnelCurveY, -1.00, 1.00);
 
-    // Slight counter-parallax gives close particles more steering response
-    // while far stars hold the curved route.
-    x += -bankYaw * 82 * nearLayer * 0.28;
-    y +=  bankPitch * 58 * nearLayer * 0.24;
+    const horizontalSide =
+        THREE.MathUtils.clamp(baseX / 260, -1, 1);
+
+    const verticalSide =
+        THREE.MathUtils.clamp(baseY / 180, -1, 1);
+
+    const horizontalWarp =
+        1 +
+        horizontalTurn *
+        horizontalSide *
+        depthEase *
+        0.28;
+
+    const verticalWarp =
+        1 +
+        verticalTurn *
+        verticalSide *
+        depthEase *
+        0.22;
+
+    x *= THREE.MathUtils.clamp(horizontalWarp, 0.70, 1.32);
+    y *= THREE.MathUtils.clamp(verticalWarp, 0.76, 1.26);
+
+    // A gentle route twist improves diagonal climbs and dives, but remains
+    // entirely inside the existing star/dust calculation.
+    const diagonalTwist =
+        tunnelCurveX *
+        tunnelCurveY *
+        deepArc *
+        0.13;
+
+    const twistedX = x - y * diagonalTwist;
+    const twistedY = y + x * diagonalTwist;
+    x = twistedX;
+    y = twistedY;
+
+    // Restrained lensing adds depth only at the outer edge of the starfield.
+    const radius = Math.max(1, Math.hypot(baseX, baseY));
+    const edgeNorm = THREE.MathUtils.clamp((radius - 90) / 180, 0, 1);
+    const lensStrength =
+        lensPulse *
+        depthEase *
+        edgeNorm *
+        edgeNorm *
+        0.010;
+
+    x += (baseX - vanishingX * 1.4) * lensStrength;
+    y += (baseY - vanishingY * 1.25) * lensStrength;
+
+    // Near-particle parallax keeps swipes responsive without moving gameplay.
+    x += -bankYaw * 82 * nearLayer * 0.22;
+    y +=  bankPitch * 58 * nearLayer * 0.19;
 
     // Distance from the center of the playfield
     const edge =
