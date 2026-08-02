@@ -175,7 +175,7 @@ canvas{display:block}
 .strikeDot.lifeLostPulse{
     animation:lifeLostPulse .55s ease-out forwards;
 }
-#center{position:absolute;left:50%;top:50%;width:20px;height:20px;border-radius:50%;transform:translate(-50%,-50%);background:transparent;border:2px solid rgba(255,255,255,.95);box-shadow:0 0 10px rgba(255,255,255,.55);z-index:13;pointer-events:auto;cursor:pointer}
+#center{position:absolute;left:50%;top:50%;width:20px;height:20px;border-radius:50%;transform:translate(-50%,-50%);background:transparent;border:2px solid rgba(255,255,255,.95);box-shadow:0 0 10px rgba(255,255,255,.55);z-index:13;pointer-events:auto;cursor:pointer;will-change:left,top;transition:left .045s linear,top .045s linear}
 #center::after{content:"";position:absolute;left:50%;top:50%;width:42px;height:42px;border-radius:50%;transform:translate(-50%,-50%);border:1px solid rgba(255,255,255,.45);box-shadow:none;animation:pulse 1.05s ease-in-out infinite alternate}
 @keyframes pulse{from{transform:translate(-50%,-50%) scale(.92);opacity:.65}to{transform:translate(-50%,-50%) scale(1.25);opacity:1}}
 #laneLabel{display:none}
@@ -938,10 +938,10 @@ function environmentSwipe(dx,dy){return environmentEngine.transformSwipe(dx,dy);
 function environmentLaneInput(dx,dy){return environmentEngine.transformLaneInput(dx,dy);}
 
 // =========================
-// SHIFTVIX — SPACE TUNNEL CURVATURE 5.2
-// STARFIELD CURVATURE UPGRADE — NO WARP TRAILS
-// Existing stars and dust follow left, right, up, down, and diagonal routes.
-// Gameplay lanes, collision coordinates, swipe controls, and spawning remain unchanged.
+// SHIFTVIX — SPACE TUNNEL CURVATURE 5.3
+// CURVED LANE PRESENTATION — NO WARP TRAILS
+// Starfield corridor, projected center iris, and curved visual lane guides.
+// Invisible gameplay lanes, collisions, swipe controls, and spawning remain unchanged.
 // =========================
 const MAX_BANK_ROLL = THREE.MathUtils.degToRad(14);
 const MAX_BANK_PITCH = THREE.MathUtils.degToRad(3.5);
@@ -1228,6 +1228,124 @@ function resetWarpBanking(){
   laneGuides.forEach(guide=>{
     guide.rotation.set(0,0,0);
   });
+}
+
+// =========================
+// SHIFTVIX 5.3 — CURVED LANE PRESENTATION
+// These helpers alter presentation only. Gameplay coordinates remain untouched.
+// =========================
+const LANE_GUIDE_POINT_COUNT = 56;
+const LANE_GUIDE_START_Z = -78;
+const LANE_GUIDE_STEP_Z = 24;
+const irisProjectionPoint = new THREE.Vector3();
+let irisScreenX = innerWidth * 0.5;
+let irisScreenY = innerHeight * 0.5;
+
+function routePresentationAtDepth(z){
+  const depth = THREE.MathUtils.clamp((-z - 70) / 1250, 0, 1);
+  const eased = depth * depth * (3 - 2 * depth);
+  const arc = eased * eased;
+
+  return {
+    depth,
+    eased,
+    x:
+      vanishingX * eased * 0.92 +
+      tunnelCurveX * (44 + depth * 142) * arc,
+    y:
+      vanishingY * eased * 0.80 +
+      tunnelCurveY * (32 + depth * 104) * arc
+  };
+}
+
+function updateCurvedLaneGuides(){
+  laneGuides.forEach(guide=>{
+    const positions = guide.geometry.attributes.position;
+    const laneXValue = guide.userData.laneX;
+    const laneYValue = guide.userData.laneY;
+
+    for(let i=0;i<positions.count;i++){
+      const z = LANE_GUIDE_START_Z - i * LANE_GUIDE_STEP_Z;
+      const route = routePresentationAtDepth(z);
+
+      // Near points remain tied to the original grid. Distant points converge
+      // toward the route and arc around the current turn.
+      const convergence = route.eased * 0.76;
+      const spread = 1 - convergence;
+
+      const tangentX =
+        -tunnelCurveY *
+        laneYValue *
+        route.eased *
+        0.18;
+
+      const tangentY =
+        tunnelCurveX *
+        laneXValue *
+        route.eased *
+        0.13;
+
+      const x =
+        laneXValue * spread +
+        route.x +
+        tangentX;
+
+      const y =
+        laneYValue * spread +
+        route.y +
+        tangentY;
+
+      positions.setXYZ(i, x, y, z);
+    }
+
+    positions.needsUpdate = true;
+
+    const routeEnergy = Math.min(
+      1,
+      Math.hypot(tunnelCurveX, tunnelCurveY)
+    );
+
+    guide.material.opacity =
+      0.08 +
+      warpAmount * 0.13 +
+      routeEnergy * 0.11;
+  });
+}
+
+function updateCenterIris(){
+  const center = document.getElementById("center");
+  if(!center)return;
+
+  // Project the near visual center of the selected lane through the current
+  // camera. This keeps the iris centered over the lane even while banking.
+  irisProjectionPoint.set(targetX, targetY, -78);
+  irisProjectionPoint.project(camera);
+
+  const rawX = (irisProjectionPoint.x * 0.5 + 0.5) * innerWidth;
+  const rawY = (-irisProjectionPoint.y * 0.5 + 0.5) * innerHeight;
+
+  const safeX = THREE.MathUtils.clamp(rawX, 24, innerWidth - 24);
+  const safeY = THREE.MathUtils.clamp(rawY, 24, innerHeight - 24);
+
+  const follow = 0.34;
+  irisScreenX += (safeX - irisScreenX) * follow;
+  irisScreenY += (safeY - irisScreenY) * follow;
+
+  center.style.left = `${irisScreenX}px`;
+  center.style.top = `${irisScreenY}px`;
+}
+
+function resetPresentation53(){
+  irisScreenX = innerWidth * 0.5;
+  irisScreenY = innerHeight * 0.5;
+
+  const center = document.getElementById("center");
+  if(center){
+    center.style.left = "50%";
+    center.style.top = "50%";
+  }
+
+  updateCurvedLaneGuides();
 }
 
 let introScale=1.2;
@@ -2798,7 +2916,39 @@ function introIsClear(){return distance >= 72;}
 function showModeBanner(text){const el=document.getElementById("modeBanner");if(!el)return;if(!introIsClear()){pendingModeBanner=text;return;}pendingModeBanner=null;el.textContent=text;el.classList.remove("show");void el.offsetWidth;el.classList.add("show");}
 function releasePendingModeBanner(){if(pendingModeBanner&&introIsClear())showModeBanner(pendingModeBanner);}
 function makeStarField(){const count=850,positions=new Float32Array(count*3),colors=new Float32Array(count*3),baseXY=new Float32Array(count*2),palette=[0xffffff,0x777777,0x55ccff,0xff66cc,0x5d3dff,0xff8800].map(c=>new THREE.Color(c));for(let i=0;i<count;i++){const x=(Math.random()*2-1)*260,y=(Math.random()*2-1)*180;positions[i*3]=x;positions[i*3+1]=y;positions[i*3+2]=-50-Math.random()*1200;baseXY[i*2]=x;baseXY[i*2+1]=y;const c=palette[Math.floor(Math.random()*palette.length)].clone().multiplyScalar(.35+Math.random()*.7);colors[i*3]=c.r;colors[i*3+1]=c.g;colors[i*3+2]=c.b;}const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(positions,3));geo.setAttribute("color",new THREE.BufferAttribute(colors,3));const mat=new THREE.PointsMaterial({size:1.3,sizeAttenuation:true,transparent:true,opacity:.72,vertexColors:true});const pts=new THREE.Points(geo,mat);pts.userData.baseXY=baseXY;scene.add(pts);stars.push(pts);}
-function makeLaneGuides(){LANE_X.forEach(x=>{LANE_Y.forEach(y=>{const geo=new THREE.BufferGeometry(),positions=[];for(let i=0;i<52;i++)positions.push(x,y,-80-i*25);geo.setAttribute("position",new THREE.Float32BufferAttribute(positions,3));const mat=new THREE.PointsMaterial({color:0xff66cc,size:.85,transparent:true,opacity:.0,sizeAttenuation:true,depthWrite:false});const pts=new THREE.Points(geo,mat);scene.add(pts);laneGuides.push(pts);});});}
+function makeLaneGuides(){
+  LANE_X.forEach(x=>{
+    LANE_Y.forEach(y=>{
+      const geo=new THREE.BufferGeometry();
+      const positions=new Float32Array(LANE_GUIDE_POINT_COUNT*3);
+
+      for(let i=0;i<LANE_GUIDE_POINT_COUNT;i++){
+        positions[i*3]=x;
+        positions[i*3+1]=y;
+        positions[i*3+2]=LANE_GUIDE_START_Z-i*LANE_GUIDE_STEP_Z;
+      }
+
+      geo.setAttribute("position",new THREE.BufferAttribute(positions,3));
+
+      const mat=new THREE.PointsMaterial({
+        color:0xff66cc,
+        size:1.05,
+        transparent:true,
+        opacity:.08,
+        sizeAttenuation:true,
+        depthWrite:false,
+        blending:THREE.AdditiveBlending
+      });
+
+      const pts=new THREE.Points(geo,mat);
+      pts.frustumCulled=false;
+      pts.userData.laneX=x;
+      pts.userData.laneY=y;
+      scene.add(pts);
+      laneGuides.push(pts);
+    });
+  });
+}
 function chooseTier(){const r=Math.random();if(r<.35)return TIERS[0];if(r<.60)return TIERS[1];if(r<.78)return TIERS[2];if(r<.90)return TIERS[3];if(r<.98)return TIERS[4];return TIERS[5];}
 function makeBeacon(tier,x,y,z,train){
  const group=new THREE.Group();
@@ -3335,7 +3485,7 @@ title.style.transform = "translate(-50%,-50%)";
 
 const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");center.style.borderColor="rgba(255,255,255,.95)";center.style.boxShadow="0 0 10px rgba(255,255,255,.55)";document.getElementById("roundComplete").style.display="none";beacons.forEach(b=>scene.remove(b));beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;
 
-lastLevel = 1;strikes = 0;milestonesReached = {};runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;musicStarted=false;resetWarpBanking();resetEnvironmentForRun();beginCurrentFlow();resetMusicEvolution();updateStrikes();updateHUD();spawnWave();startMusic();}
+lastLevel = 1;strikes = 0;milestonesReached = {};runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;musicStarted=false;resetWarpBanking();resetPresentation53();resetEnvironmentForRun();beginCurrentFlow();resetMusicEvolution();updateStrikes();updateHUD();spawnWave();startMusic();}
 const title = document.getElementById("gameTitle");
 const shift = document.getElementById("shift");
 const vix = document.getElementById("vix");
@@ -3573,6 +3723,33 @@ warpAmount * 0.18
     x += -bankYaw * 82 * nearLayer * 0.22;
     y +=  bankPitch * 58 * nearLayer * 0.19;
 
+    // 5.3 TUNNEL CORRIDOR
+    // Push only visual dust away from the route center. This creates a clear
+    // opening without adding a solid tunnel mesh or another particle system.
+    const routeCenter = routePresentationAtDepth(currentZ);
+    let corridorDX = x - routeCenter.x;
+    let corridorDY = y - routeCenter.y;
+    let corridorDistance = Math.hypot(corridorDX, corridorDY);
+
+    const corridorRadius =
+        THREE.MathUtils.lerp(28, 58, depthEase) *
+        (0.90 + warpAmount * 0.18);
+
+    if(corridorDistance < corridorRadius){
+      if(corridorDistance < 0.001){
+        corridorDX = 1;
+        corridorDY = 0;
+        corridorDistance = 1;
+      }
+
+      const push =
+        (corridorRadius - corridorDistance) *
+        (0.78 + depthEase * 0.34);
+
+      x += corridorDX / corridorDistance * push;
+      y += corridorDY / corridorDistance * push;
+    }
+
     // Distance from the center of the playfield
     const edge =
         Math.min(
@@ -3734,8 +3911,13 @@ s.material.size = warpSize * stretch;
 
 s.material.opacity = warpOpacity;});
 
-// Apply Warp Banking 3.0 + Warp Curvature 4.0 after lookAt() establishes the base view.
+// Apply route banking after lookAt() establishes the base view.
 updateWarpBanking(dt);
+
+// 5.3 presentation follows the finished camera and route state.
+updateCurvedLaneGuides();
+updateCenterIris();
+
 updateHUD();}if(gameStarted&&!gameOver){
 introScale += (1-introScale)*dt*0.6;beacons.forEach(b=>{if(b.userData.state==="active") b.scale.lerp(new THREE.Vector3(introScale,introScale,introScale),0.08);});
 introCameraZ += (TARGET_CAMERA_Z-introCameraZ)*dt*0.18;
@@ -3887,7 +4069,7 @@ window.addEventListener("beforeunload",()=>{
     });
 
 });
-window.addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+window.addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);irisScreenX=innerWidth*.5;irisScreenY=innerHeight*.5;});
 
 makeStarField();makeLaneGuides();resetEnvironmentForRun();updateStrikes();updateHUD();startGame();animate();
 </script>
