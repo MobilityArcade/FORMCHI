@@ -263,12 +263,9 @@ canvas{display:block}
         font-size:58px;
     }
 }
-.qualityPopup{position:absolute;left:50%;top:27%;transform:translate(-50%,-50%);z-index:60;pointer-events:none;max-width:92vw;padding:5px 14px;font-size:clamp(31px,7.2vw,58px);line-height:1;font-weight:1000;letter-spacing:clamp(2px,.72vw,6px);white-space:nowrap;text-align:center;opacity:0;color:#ffd36a;text-shadow:0 0 10px currentColor,0 0 28px currentColor,0 0 54px rgba(255,255,255,.30);will-change:opacity,transform}
+.qualityPopup{position:absolute;left:50%;top:27%;transform:translate(-50%,-50%);z-index:60;pointer-events:none;max-width:92vw;padding:6px 16px;font-size:clamp(33px,7.6vw,62px);line-height:1;font-weight:1000;letter-spacing:clamp(2px,.72vw,6px);white-space:nowrap;text-align:center;opacity:0;color:#ffd36a;-webkit-text-stroke:.35px rgba(255,255,255,.72);text-shadow:0 0 4px rgba(255,255,255,.95),0 0 12px #ffd36a,0 0 30px rgba(255,179,0,.92),0 0 62px rgba(255,120,0,.56);will-change:opacity,transform;filter:brightness(1.08) saturate(1.04)}
 .qualityPopup.show{animation:qualityHold 1.15s cubic-bezier(.16,.72,.24,1) forwards}
-.qualityPopup.quality-reach{color:#ffd36a}
-.qualityPopup.quality-collect{color:#7df9ff}
-.qualityPopup.quality-travel{color:#69a9ff}
-.qualityPopup.quality-score{color:#ce7dff}
+.qualityPopup.quality-reach,.qualityPopup.quality-collect,.qualityPopup.quality-travel,.qualityPopup.quality-score{color:#ffd36a}
 .pointPopup{position:absolute;left:50%;top:calc(50% - 54px);transform:translate(-50%,-50%);z-index:61;pointer-events:none;font-size:clamp(18px,4.5vw,28px);line-height:1;font-weight:1000;letter-spacing:2px;white-space:nowrap;color:#fff;text-shadow:0 0 9px rgba(255,255,255,.95),0 0 24px rgba(125,249,255,.65);animation:pointRise .62s ease-out forwards}
 @keyframes qualityHold{0%{opacity:0;transform:translate(-50%,-35%) scale(.82)}13%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}72%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-67%) scale(.96)}}
 @keyframes pointRise{0%{opacity:0;transform:translate(-50%,-20%) scale(.78)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}65%{opacity:1}100%{opacity:0;transform:translate(-50%,-105%) scale(.94)}}
@@ -636,7 +633,7 @@ body.uiModalOpen #center{pointer-events:none}
 <div id="modeBanner"></div><div id="flowFx"></div><div id="pulseWaves"></div>
 <div id="flowArchive" aria-hidden="true"><div class="archiveCard" role="dialog" aria-modal="true" aria-labelledby="flowPathTitle"><div class="archiveHeader"><h2 id="flowPathTitle">FLOW PATH</h2><button class="archiveClose" id="archiveClose" type="button" aria-label="Close Flow Path">×</button></div><div id="archiveList"></div></div></div>
 
-<!-- SHIFTVIX QUALITY FLOW — shuffled per-Flow 3x3 lane qualities + restored point rewards -->
+<!-- SHIFTVIX 5.4 — unified gold quality words + shuffled per-Flow lane maps -->
 <script type="module">
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x000000,0.0011);
@@ -2899,6 +2896,11 @@ function startGame(){
     startMusic();
 }
 
+// =========================
+// SHIFTVIX 5.4 — GOLD QUALITY WORDS
+// Every collected quality uses one consistent gold reward treatment.
+// Category remains defined by the active Flow, not by popup color.
+// =========================
 let qualityPopupTimer=null;
 
 function showQualityPopup(text,category="COLLECT"){
