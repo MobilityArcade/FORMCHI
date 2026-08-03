@@ -263,13 +263,18 @@ canvas{display:block}
         font-size:58px;
     }
 }
-.scorePopup{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);z-index:60;pointer-events:none;max-width:90vw;padding:4px 12px;font-size:clamp(34px,8vw,66px);line-height:1;font-weight:1000;letter-spacing:clamp(2px,.8vw,7px);white-space:nowrap;text-align:center;color:#ffd36a;text-shadow:0 0 10px currentColor,0 0 28px currentColor,0 0 58px rgba(255,255,255,.34);animation:qualityRise .82s cubic-bezier(.16,.72,.24,1) forwards}
-.scorePopup.quality-reach{color:#ffd36a}
-.scorePopup.quality-collect{color:#7df9ff}
-.scorePopup.quality-travel{color:#69a9ff}
-.scorePopup.quality-score{color:#ce7dff}
-@keyframes qualityRise{0%{opacity:0;transform:translate(-50%,-18%) scale(.72)}16%{opacity:1;transform:translate(-50%,-50%) scale(1.10)}55%{opacity:1;transform:translate(-50%,-58%) scale(1)}100%{opacity:0;transform:translate(-50%,-118%) scale(.94)}}
-@keyframes scoreRise{0%{opacity:0;transform:translate(-50%,-10%) scale(.8)}18%{opacity:1}100%{opacity:0;transform:translate(-50%,-145%) scale(1.08)}}
+.qualityPopup{position:absolute;left:50%;top:27%;transform:translate(-50%,-50%);z-index:60;pointer-events:none;max-width:92vw;padding:5px 14px;font-size:clamp(31px,7.2vw,58px);line-height:1;font-weight:1000;letter-spacing:clamp(2px,.72vw,6px);white-space:nowrap;text-align:center;opacity:0;color:#ffd36a;text-shadow:0 0 10px currentColor,0 0 28px currentColor,0 0 54px rgba(255,255,255,.30);will-change:opacity,transform}
+.qualityPopup.show{animation:qualityHold 1.15s cubic-bezier(.16,.72,.24,1) forwards}
+.qualityPopup.quality-reach{color:#ffd36a}
+.qualityPopup.quality-collect{color:#7df9ff}
+.qualityPopup.quality-travel{color:#69a9ff}
+.qualityPopup.quality-score{color:#ce7dff}
+.pointPopup{position:absolute;left:50%;top:calc(50% - 54px);transform:translate(-50%,-50%);z-index:61;pointer-events:none;font-size:clamp(18px,4.5vw,28px);line-height:1;font-weight:1000;letter-spacing:2px;white-space:nowrap;color:#fff;text-shadow:0 0 9px rgba(255,255,255,.95),0 0 24px rgba(125,249,255,.65);animation:pointRise .62s ease-out forwards}
+@keyframes qualityHold{0%{opacity:0;transform:translate(-50%,-35%) scale(.82)}13%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}72%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-67%) scale(.96)}}
+@keyframes pointRise{0%{opacity:0;transform:translate(-50%,-20%) scale(.78)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}65%{opacity:1}100%{opacity:0;transform:translate(-50%,-105%) scale(.94)}}
+.pauseQualityMap{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:13px}
+.pauseQualityCell{min-height:30px;display:grid;place-items:center;padding:5px 3px;border-radius:8px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);font-size:8px;font-weight:1000;letter-spacing:.7px;color:rgba(255,255,255,.76);overflow:hidden}
+@media(max-width:600px){.qualityPopup{top:26%;font-size:clamp(28px,8.5vw,46px)}.pointPopup{top:calc(50% - 48px)}.pauseQualityCell{font-size:7px;letter-spacing:.45px}}
 #pauseText{display:none!important}
 
 /* =========================
@@ -618,6 +623,7 @@ body.uiModalOpen #center{pointer-events:none}
     <div class="pauseSelection">
       <div class="pauseFlowName" id="pauseFlowName">FLOW 1 · REACH</div>
       <div class="pauseFlowObjective" id="pauseFlowObjective">LOADING…</div>
+      <div class="pauseQualityMap" id="pauseQualityMap" aria-label="Quality lane map"></div>
     </div>
     <div class="pauseActions">
       <button class="pauseButton primary" id="pauseResume" type="button">RESUME</button>
@@ -630,7 +636,7 @@ body.uiModalOpen #center{pointer-events:none}
 <div id="modeBanner"></div><div id="flowFx"></div><div id="pulseWaves"></div>
 <div id="flowArchive" aria-hidden="true"><div class="archiveCard" role="dialog" aria-modal="true" aria-labelledby="flowPathTitle"><div class="archiveHeader"><h2 id="flowPathTitle">FLOW PATH</h2><button class="archiveClose" id="archiveClose" type="button" aria-label="Close Flow Path">×</button></div><div id="archiveList"></div></div></div>
 
-<!-- SHIFTVIX QUALITIES FLOW — meaningful words replace numeric collection popups -->
+<!-- SHIFTVIX QUALITY FLOW — shuffled per-Flow 3x3 lane qualities + restored point rewards -->
 <script type="module">
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x000000,0.0011);
@@ -1985,46 +1991,69 @@ function flowCategoryForIndex(index){
 // =========================
 const FLOW_QUALITY_GROUPS = Object.freeze({
   REACH:[
-    "PURPOSE","COURAGE","VISION","BELIEVE",
-    "ACHIEVE","ASCEND","DISCOVER","CONFIDENCE"
+    "PURPOSE","COURAGE","VISION",
+    "BELIEVE","ACHIEVE","ASCEND",
+    "DISCOVER","FOCUS","CONFIDENCE"
   ],
   COLLECT:[
-    "ABUNDANCE","GRATITUDE","JOY","LOVE",
-    "WEALTH","VALUE","RECEIVE","BLESSING"
+    "ABUNDANCE","GRATITUDE","JOY",
+    "LOVE","WEALTH","RECEIVE",
+    "VALUE","PROSPERITY","BLESSING"
   ],
   TRAVEL:[
-    "GROWTH","FREEDOM","FLOW","PROGRESS",
-    "EVOLVE","ADAPT","JOURNEY","EXPLORE"
+    "GROWTH","FREEDOM","FLOW",
+    "PROGRESS","EVOLVE","ADAPT",
+    "JOURNEY","EXPLORE","MOMENTUM"
   ],
   SCORE:[
-    "FOCUS","CLARITY","DISCIPLINE","PRECISION",
-    "MASTERY","CONSISTENCY","EXCELLENCE","CREATIVITY"
+    "FOCUS","CLARITY","DISCIPLINE",
+    "PRECISION","MASTERY","CONSISTENCY",
+    "EXCELLENCE","CREATIVITY","RESILIENCE"
   ]
 });
 
-function flowQualityForIndex(index){
+function seededFlowRandom(seed){
+  let state=(seed>>>0)||1;
+  return function(){
+    state=(Math.imul(state,1664525)+1013904223)>>>0;
+    return state/4294967296;
+  };
+}
+
+function shuffledQualityMapForFlow(index){
   const category=flowCategoryForIndex(index);
-  const words=FLOW_QUALITY_GROUPS[category];
-  const categorySequence=Math.floor(index/4);
-  return words[categorySequence%words.length];
+  const words=[...FLOW_QUALITY_GROUPS[category]];
+
+  // Stable for a specific Flow, different across other Flows.
+  // Replaying the same Flow lets the player learn and master its map.
+  const categoryCode={REACH:17,COLLECT:31,TRAVEL:47,SCORE:61}[category];
+  const random=seededFlowRandom(
+    Math.imul(index+1,2654435761)^Math.imul(categoryCode,2246822519)
+  );
+
+  for(let i=words.length-1;i>0;i--){
+    const j=Math.floor(random()*(i+1));
+    [words[i],words[j]]=[words[j],words[i]];
+  }
+
+  return words;
+}
+
+function qualityWordForLane(index,xIndex,yIndex){
+  const map=shuffledQualityMapForFlow(index);
+  const safeX=THREE.MathUtils.clamp(Math.round(xIndex),0,2);
+  const safeY=THREE.MathUtils.clamp(Math.round(yIndex),0,2);
+  return map[safeY*3+safeX];
+}
+
+function flowQualityForIndex(index){
+  // The center lane is used as the Flow's headline quality in the archive,
+  // pause screen, analytics, and completion message.
+  return qualityWordForLane(index,1,1);
 }
 
 function qualityWordsForFlow(index){
-  const category=flowCategoryForIndex(index);
-  const words=FLOW_QUALITY_GROUPS[category];
-  const core=flowQualityForIndex(index);
-  return [core,...words.filter(word=>word!==core)];
-}
-
-function chooseQualityWord(index=currentFlowIndex){
-  const words=qualityWordsForFlow(index);
-
-  // Reinforce the central quality without making every collection identical:
-  // 58% core quality, 27% next three related qualities, 15% wider variety.
-  const roll=Math.random();
-  if(roll<.58)return words[0];
-  if(roll<.85)return words[1+Math.floor(Math.random()*Math.min(3,words.length-1))];
-  return words[1+Math.floor(Math.random()*(words.length-1))];
+  return shuffledQualityMapForFlow(index);
 }
 
 function createFlowBase(index){
@@ -2559,9 +2588,22 @@ function pauseMusicOnly(){
 function updatePauseSelection(){
   const name=document.getElementById("pauseFlowName");
   const objective=document.getElementById("pauseFlowObjective");
+  const mapHost=document.getElementById("pauseQualityMap");
   const flow=activeChallenge||createFlow(currentFlowIndex);
-  if(name)name.textContent=`FLOW ${currentFlowIndex+1} · ${flow.category} · ${flow.quality}`;
+
+  if(name)name.textContent=`FLOW ${currentFlowIndex+1} · ${flow.category}`;
   if(objective)objective.textContent=flow.label;
+
+  if(mapHost){
+    mapHost.innerHTML=flow.qualityWords
+      .map((word,index)=>{
+        const x=index%3;
+        const y=Math.floor(index/3);
+        const current=x===laneX&&y===laneY;
+        return `<div class="pauseQualityCell"${current?' style="border-color:#ffd36a;color:#ffd36a;box-shadow:0 0 9px rgba(255,211,106,.18)"':''}>${word}</div>`;
+      })
+      .join("");
+  }
 }
 
 function applyPauseVisuals(isPaused){
@@ -2716,12 +2758,12 @@ function releasePendingModeBanner(){if(pendingModeBanner&&introIsClear())showMod
 function makeStarField(){const count=850,positions=new Float32Array(count*3),colors=new Float32Array(count*3),baseXY=new Float32Array(count*2),palette=[0xffffff,0x777777,0x55ccff,0xff66cc,0x5d3dff,0xff8800].map(c=>new THREE.Color(c));for(let i=0;i<count;i++){const x=(Math.random()*2-1)*260,y=(Math.random()*2-1)*180;positions[i*3]=x;positions[i*3+1]=y;positions[i*3+2]=-50-Math.random()*1200;baseXY[i*2]=x;baseXY[i*2+1]=y;const c=palette[Math.floor(Math.random()*palette.length)].clone().multiplyScalar(.35+Math.random()*.7);colors[i*3]=c.r;colors[i*3+1]=c.g;colors[i*3+2]=c.b;}const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(positions,3));geo.setAttribute("color",new THREE.BufferAttribute(colors,3));const mat=new THREE.PointsMaterial({size:1.3,sizeAttenuation:true,transparent:true,opacity:.72,vertexColors:true});const pts=new THREE.Points(geo,mat);pts.userData.baseXY=baseXY;scene.add(pts);stars.push(pts);}
 function makeLaneGuides(){LANE_X.forEach(x=>{LANE_Y.forEach(y=>{const geo=new THREE.BufferGeometry(),positions=[];for(let i=0;i<52;i++)positions.push(x,y,-80-i*25);geo.setAttribute("position",new THREE.Float32BufferAttribute(positions,3));const mat=new THREE.PointsMaterial({color:0xff66cc,size:.85,transparent:true,opacity:.0,sizeAttenuation:true,depthWrite:false});const pts=new THREE.Points(geo,mat);scene.add(pts);laneGuides.push(pts);});});}
 function chooseTier(){const r=Math.random();if(r<.35)return TIERS[0];if(r<.60)return TIERS[1];if(r<.78)return TIERS[2];if(r<.90)return TIERS[3];if(r<.98)return TIERS[4];return TIERS[5];}
-function makeBeacon(tier,x,y,z,train){
+function makeBeacon(tier,x,y,z,train,xIndex,yIndex){
  const group=new THREE.Group();
  const core=new THREE.Mesh(new THREE.SphereGeometry(tier.size,18,18),new THREE.MeshBasicMaterial({color:tier.color}));
  const glow=new THREE.Mesh(new THREE.SphereGeometry(tier.size*1.9,16,16),new THREE.MeshBasicMaterial({color:tier.color,transparent:true,opacity:.10,blending:THREE.AdditiveBlending,depthWrite:false}));
  group.add(glow);group.add(core);group.position.set(x,y,z);
- group.userData={core,glow,tier,value:tier.value,state:"active",fade:1,train,speedMult:1,roadX:x,roadY:y};
+ group.userData={core,glow,tier,value:tier.value,state:"active",fade:1,train,speedMult:1,roadX:x,roadY:y,laneXIndex:xIndex,laneYIndex:yIndex};
  group.scale.setScalar(introScale);scene.add(group);beacons.push(group);
 }
 function spawnTrain(){
@@ -2732,7 +2774,7 @@ function spawnTrain(){
  else if(tier.value>=100)length=5+Math.floor(Math.random()*6);
  else if(tier.value>=50)length=8+Math.floor(Math.random()*8);
  else length=12+Math.floor(Math.random()*14);
- for(let i=0;i<length;i++)makeBeacon(tier,x,y,FAR_Z-i*TRAIN_GAP,trainId);
+ for(let i=0;i<length;i++)makeBeacon(tier,x,y,FAR_Z-i*TRAIN_GAP,trainId,xIndex,yIndex);
  document.getElementById("signal").textContent=runStarted?"Signal: stay connected":"Signal: touch first string";
 }
 function spawnWave(){const trains=heroMode?2:(Math.random()<.78?2:3);for(let i=0;i<trains;i++)setTimeout(spawnTrain,i*120);}
@@ -2857,15 +2899,38 @@ function startGame(){
     startMusic();
 }
 
-function showScorePopup(text,category="COLLECT"){
-  const existing=document.querySelector(".scorePopup");
+let qualityPopupTimer=null;
+
+function showQualityPopup(text,category="COLLECT"){
+  let el=document.getElementById("qualityPopup");
+
+  if(!el){
+    el=document.createElement("div");
+    el.id="qualityPopup";
+    document.body.appendChild(el);
+  }
+
+  el.className=`qualityPopup quality-${String(category).toLowerCase()}`;
+  el.textContent=text;
+  el.classList.remove("show");
+  void el.offsetWidth;
+  el.classList.add("show");
+
+  if(qualityPopupTimer)clearTimeout(qualityPopupTimer);
+  qualityPopupTimer=setTimeout(()=>{
+    el.classList.remove("show");
+  },1160);
+}
+
+function showPointPopup(value){
+  const existing=document.querySelector(".pointPopup");
   if(existing)existing.remove();
 
   const el=document.createElement("div");
-  el.className=`scorePopup quality-${String(category).toLowerCase()}`;
-  el.textContent=text;
+  el.className="pointPopup";
+  el.textContent=`+${Number(value).toLocaleString()}`;
   document.body.appendChild(el);
-  setTimeout(()=>el.remove(),840);
+  setTimeout(()=>el.remove(),650);
 }
 function showMultiplierPopup(multiplier){
 
@@ -3045,14 +3110,39 @@ tierCounts[b.userData.tier.name] =
  if(foundCount===1){track("first_source_collected",{tier:b.userData.tier.name});}
  if(score>bestScore){bestScore=score;localStorage.setItem("sourceLaneBestScore",String(bestScore));}
  playCoin(b.userData.tier);
- const qualityWord=chooseQualityWord(currentFlowIndex);
- showScorePopup(qualityWord,activeChallenge?.category||flowCategoryForIndex(currentFlowIndex));
+ const collectedLaneX=
+   Number.isInteger(b.userData.laneXIndex)
+     ? b.userData.laneXIndex
+     : laneX;
+
+ const collectedLaneY=
+   Number.isInteger(b.userData.laneYIndex)
+     ? b.userData.laneYIndex
+     : laneY;
+
+ const qualityWord=qualityWordForLane(
+   currentFlowIndex,
+   collectedLaneX,
+   collectedLaneY
+ );
+
+ const qualityCategory=
+   activeChallenge?.category||
+   flowCategoryForIndex(currentFlowIndex);
+
+ // Arcade feedback and emotional reinforcement now have separate positions.
+ showPointPopup(gained);
+ showQualityPopup(qualityWord,qualityCategory);
+
  trackGame("quality_collected",{
    flow_number:currentFlowIndex+1,
-   category:activeChallenge?.category||flowCategoryForIndex(currentFlowIndex),
+   category:qualityCategory,
    core_quality:activeChallenge?.quality||flowQualityForIndex(currentFlowIndex),
    quality_word:qualityWord,
-   tier:b.userData.tier.name
+   lane_x:collectedLaneX,
+   lane_y:collectedLaneY,
+   tier:b.userData.tier.name,
+   points:gained
  });
  updateHUD();updateChallenge();
  if(navigator.vibrate)navigator.vibrate(4);
