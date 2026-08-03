@@ -175,7 +175,7 @@ canvas{display:block}
 .strikeDot.lifeLostPulse{
     animation:lifeLostPulse .55s ease-out forwards;
 }
-#center{position:absolute;left:50%;top:50%;width:20px;height:20px;border-radius:50%;transform:translate(-50%,-50%);background:transparent;border:2px solid rgba(255,255,255,.95);box-shadow:0 0 10px rgba(255,255,255,.55);z-index:13;pointer-events:auto;cursor:pointer;will-change:left,top;transition:left .045s linear,top .045s linear}
+#center{position:absolute;left:50%;top:50%;width:20px;height:20px;border-radius:50%;transform:translate(-50%,-50%);background:transparent;border:2px solid rgba(255,255,255,.95);box-shadow:0 0 10px rgba(255,255,255,.55);z-index:13;pointer-events:auto;cursor:pointer}
 #center::after{content:"";position:absolute;left:50%;top:50%;width:42px;height:42px;border-radius:50%;transform:translate(-50%,-50%);border:1px solid rgba(255,255,255,.45);box-shadow:none;animation:pulse 1.05s ease-in-out infinite alternate}
 @keyframes pulse{from{transform:translate(-50%,-50%) scale(.92);opacity:.65}to{transform:translate(-50%,-50%) scale(1.25);opacity:1}}
 #laneLabel{display:none}
@@ -263,7 +263,12 @@ canvas{display:block}
         font-size:58px;
     }
 }
-.scorePopup{position:absolute;left:50%;top:43%;transform:translate(-50%,-50%);z-index:60;pointer-events:none;font-size:26px;font-weight:900;letter-spacing:2px;color:#ffd36a;text-shadow:0 0 12px rgba(255,211,106,.95),0 0 38px rgba(255,120,0,.6);animation:scoreRise .9s ease-out forwards}
+.scorePopup{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);z-index:60;pointer-events:none;max-width:90vw;padding:4px 12px;font-size:clamp(34px,8vw,66px);line-height:1;font-weight:1000;letter-spacing:clamp(2px,.8vw,7px);white-space:nowrap;text-align:center;color:#ffd36a;text-shadow:0 0 10px currentColor,0 0 28px currentColor,0 0 58px rgba(255,255,255,.34);animation:qualityRise .82s cubic-bezier(.16,.72,.24,1) forwards}
+.scorePopup.quality-reach{color:#ffd36a}
+.scorePopup.quality-collect{color:#7df9ff}
+.scorePopup.quality-travel{color:#69a9ff}
+.scorePopup.quality-score{color:#ce7dff}
+@keyframes qualityRise{0%{opacity:0;transform:translate(-50%,-18%) scale(.72)}16%{opacity:1;transform:translate(-50%,-50%) scale(1.10)}55%{opacity:1;transform:translate(-50%,-58%) scale(1)}100%{opacity:0;transform:translate(-50%,-118%) scale(.94)}}
 @keyframes scoreRise{0%{opacity:0;transform:translate(-50%,-10%) scale(.8)}18%{opacity:1}100%{opacity:0;transform:translate(-50%,-145%) scale(1.08)}}
 #pauseText{display:none!important}
 
@@ -625,7 +630,7 @@ body.uiModalOpen #center{pointer-events:none}
 <div id="modeBanner"></div><div id="flowFx"></div><div id="pulseWaves"></div>
 <div id="flowArchive" aria-hidden="true"><div class="archiveCard" role="dialog" aria-modal="true" aria-labelledby="flowPathTitle"><div class="archiveHeader"><h2 id="flowPathTitle">FLOW PATH</h2><button class="archiveClose" id="archiveClose" type="button" aria-label="Close Flow Path">×</button></div><div id="archiveList"></div></div></div>
 
-<!-- SHIFTVIX CORE FLOW REFINEMENT 2.2 -->
+<!-- SHIFTVIX QUALITIES FLOW — meaningful words replace numeric collection popups -->
 <script type="module">
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x000000,0.0011);
@@ -669,6 +674,7 @@ let hasPlayedBefore =
 let introCameraZ=48;
 const TARGET_CAMERA_Z=72;
 // ---------- WARP ----------
+// SHIFTVIX 5.3.2: extended visual build + continuous session music.
 let warpAmount = 0;
 
 // =========================
@@ -938,14 +944,13 @@ function environmentSwipe(dx,dy){return environmentEngine.transformSwipe(dx,dy);
 function environmentLaneInput(dx,dy){return environmentEngine.transformLaneInput(dx,dy);}
 
 // =========================
-// SHIFTVIX — SPACE TUNNEL CURVATURE 5.3
-// CURVED LANE PRESENTATION — NO WARP TRAILS
-// Starfield corridor, projected center iris, and curved visual lane guides.
-// Invisible gameplay lanes, collisions, swipe controls, and spawning remain unchanged.
+// SHIFTVIX WARP BANKING 3.0 + WARP CURVATURE 4.0
+// Space momentum, dynamic vanishing point, layered depth, ambient route drift,
+// and restrained gravitational-style curvature. Gameplay coordinates stay unchanged.
 // =========================
-const MAX_BANK_ROLL = THREE.MathUtils.degToRad(14);
-const MAX_BANK_PITCH = THREE.MathUtils.degToRad(3.5);
-const MAX_BANK_YAW = THREE.MathUtils.degToRad(3.5);
+const MAX_BANK_ROLL = THREE.MathUtils.degToRad(5.6);
+const MAX_BANK_PITCH = THREE.MathUtils.degToRad(2.0);
+const MAX_BANK_YAW = THREE.MathUtils.degToRad(1.25);
 
 let bankRoll = 0;
 let bankPitch = 0;
@@ -960,230 +965,90 @@ let warpCurveVelocityX = 0;
 let warpCurveVelocityY = 0;
 
 let routePhase = Math.random() * Math.PI * 2;
-let routePhaseSpeed = 0.05 + Math.random() * 0.016;
+let routePhaseSpeed = 0.075 + Math.random() * 0.025;
 let vanishingX = 0;
 let vanishingY = 0;
 let lensPulse = 0;
 
-// Route Engine 5.1 state.
-// tunnelCurve is retained as a compatibility alias for older visual code.
-let tunnelCurve = 0;
-let tunnelCurveX = 0;
-let tunnelCurveY = 0;
-let tunnelTargetX = 0;
-let tunnelTargetY = 0;
-let tunnelRoll = 0;
-let tunnelYaw = 0;
-let tunnelPitch = 0;
-
-let tunnelPhase = "straight";
-let tunnelSegmentStart = 0;
-let tunnelRampMeters = 180;
-let tunnelHoldMeters = 650;
-let tunnelRecoverMeters = 220;
-let tunnelNextTurnDistance = 180 + Math.random() * 260;
-let tunnelRouteName = "STRAIGHT";
-let previousRouteVector = {x:0,y:0};
-
-const ROUTE_DIRECTIONS = Object.freeze([
-  {name:"LEFT",       x:-1.00,y: 0.00,weight:1.30},
-  {name:"RIGHT",      x: 1.00,y: 0.00,weight:1.30},
-  {name:"UP",         x: 0.00,y: 0.72,weight:0.75},
-  {name:"DOWN",       x: 0.00,y:-0.72,weight:0.75},
-  {name:"UP LEFT",    x:-0.88,y: 0.58,weight:1.00},
-  {name:"UP RIGHT",   x: 0.88,y: 0.58,weight:1.00},
-  {name:"DOWN LEFT",  x:-0.88,y:-0.58,weight:1.00},
-  {name:"DOWN RIGHT", x: 0.88,y:-0.58,weight:1.00}
-]);
-
-function smoothstep01(value){
-  const t = THREE.MathUtils.clamp(value,0,1);
-  return t*t*(3-2*t);
-}
-
-function weightedRouteChoice(){
-  const candidates = ROUTE_DIRECTIONS.filter(route=>{
-    // Avoid immediate violent reversal across both axes.
-    const dot = route.x*previousRouteVector.x + route.y*previousRouteVector.y;
-    return dot > -0.72;
-  });
-
-  const pool = candidates.length ? candidates : ROUTE_DIRECTIONS;
-  const total = pool.reduce((sum,item)=>sum+item.weight,0);
-  let roll = Math.random()*total;
-
-  for(const item of pool){
-    roll -= item.weight;
-    if(roll<=0)return item;
-  }
-  return pool[pool.length-1];
-}
-
-function scheduleNextTunnelTurn(){
-  const route = weightedRouteChoice();
-  previousRouteVector = {x:route.x,y:route.y};
-  tunnelRouteName = route.name;
-
-  const pace = THREE.MathUtils.clamp(distance/8000,0,1);
-  const baseStrength = THREE.MathUtils.lerp(0.88,1.18,pace);
-  const variation = 0.92 + Math.random()*0.20;
-
-  tunnelTargetX = route.x*baseStrength*variation;
-  tunnelTargetY = route.y*baseStrength*variation;
-
-  // Long, readable route sections rather than short wobbling.
-  tunnelRampMeters = 130 + Math.random()*170;
-  tunnelHoldMeters = 420 + Math.random()*780;
-  tunnelRecoverMeters = 160 + Math.random()*220;
-  tunnelSegmentStart = distance;
-  tunnelPhase = "ramp";
-}
-
-function updateTunnelRoute(dt){
-  if(tunnelPhase==="straight" && distance>=tunnelNextTurnDistance){
-    scheduleNextTunnelTurn();
-  }
-
-  let targetX = 0;
-  let targetY = 0;
-
-  if(tunnelPhase==="ramp"){
-    const p = smoothstep01((distance-tunnelSegmentStart)/tunnelRampMeters);
-    targetX = tunnelTargetX*p;
-    targetY = tunnelTargetY*p;
-
-    if(p>=1){
-      tunnelPhase = "hold";
-      tunnelSegmentStart = distance;
-    }
-  }else if(tunnelPhase==="hold"){
-    targetX = tunnelTargetX;
-    targetY = tunnelTargetY;
-
-    if(distance-tunnelSegmentStart>=tunnelHoldMeters){
-      tunnelPhase = "recover";
-      tunnelSegmentStart = distance;
-    }
-  }else if(tunnelPhase==="recover"){
-    const p = smoothstep01((distance-tunnelSegmentStart)/tunnelRecoverMeters);
-    targetX = tunnelTargetX*(1-p);
-    targetY = tunnelTargetY*(1-p);
-
-    if(p>=1){
-      tunnelPhase = "straight";
-      tunnelSegmentStart = distance;
-      tunnelNextTurnDistance = distance + 170 + Math.random()*430;
-      targetX = 0;
-      targetY = 0;
-    }
-  }
-
-  // Frame-rate-independent route smoothing.
-  const follow = 1-Math.exp(-dt*4.6);
-  tunnelCurveX += (targetX-tunnelCurveX)*follow;
-  tunnelCurveY += (targetY-tunnelCurveY)*follow;
-  tunnelCurve = tunnelCurveX;
-}
-
 function addWarpBank(dx,dy){
-  const speedFeel = 0.84 + Math.min(0.24,distance/19000);
+  const speedFeel = 0.84 + Math.min(0.24, distance / 19000);
 
-  bankRollVelocity += -dx*THREE.MathUtils.degToRad(13.5)*speedFeel;
-  bankPitchVelocity += dy*THREE.MathUtils.degToRad(5.0)*speedFeel;
-  bankYawVelocity += -dx*THREE.MathUtils.degToRad(3.7)*speedFeel;
+  // Steering impulses carry momentum instead of snapping to a fixed angle.
+  bankRollVelocity += -dx * THREE.MathUtils.degToRad(13.5) * speedFeel;
+  bankPitchVelocity +=  dy * THREE.MathUtils.degToRad(5.0) * speedFeel;
+  bankYawVelocity +=   -dx * THREE.MathUtils.degToRad(3.7) * speedFeel;
 
-  warpCurveVelocityX += -dx*58*speedFeel;
-  warpCurveVelocityY += dy*31*speedFeel;
+  // The deep field receives a longer, softer directional impulse.
+  warpCurveVelocityX += -dx * 58 * speedFeel;
+  warpCurveVelocityY +=  dy * 31 * speedFeel;
 }
 
 function updateWarpBanking(dt){
-  updateTunnelRoute(dt);
+  // Spring-damped aircraft-like response.
+  const rollSpring = -bankRoll * 26;
+  const pitchSpring = -bankPitch * 28;
+  const yawSpring = -bankYaw * 24;
 
-  const rollSpring = -bankRoll*26;
-  const pitchSpring = -bankPitch*28;
-  const yawSpring = -bankYaw*24;
+  bankRollVelocity += rollSpring * dt;
+  bankPitchVelocity += pitchSpring * dt;
+  bankYawVelocity += yawSpring * dt;
 
-  bankRollVelocity += rollSpring*dt;
-  bankPitchVelocity += pitchSpring*dt;
-  bankYawVelocity += yawSpring*dt;
-
-  const angularDrag = Math.exp(-dt*5.5);
+  const angularDrag = Math.exp(-dt * 5.5);
   bankRollVelocity *= angularDrag;
   bankPitchVelocity *= angularDrag;
   bankYawVelocity *= angularDrag;
 
-  bankRoll = THREE.MathUtils.clamp(bankRoll+bankRollVelocity*dt,-MAX_BANK_ROLL,MAX_BANK_ROLL);
-  bankPitch = THREE.MathUtils.clamp(bankPitch+bankPitchVelocity*dt,-MAX_BANK_PITCH,MAX_BANK_PITCH);
-  bankYaw = THREE.MathUtils.clamp(bankYaw+bankYawVelocity*dt,-MAX_BANK_YAW,MAX_BANK_YAW);
+  bankRoll = THREE.MathUtils.clamp(bankRoll + bankRollVelocity * dt, -MAX_BANK_ROLL, MAX_BANK_ROLL);
+  bankPitch = THREE.MathUtils.clamp(bankPitch + bankPitchVelocity * dt, -MAX_BANK_PITCH, MAX_BANK_PITCH);
+  bankYaw = THREE.MathUtils.clamp(bankYaw + bankYawVelocity * dt, -MAX_BANK_YAW, MAX_BANK_YAW);
 
-  warpCurveVelocityX += -warpCurveX*2.15*dt;
-  warpCurveVelocityY += -warpCurveY*2.35*dt;
-  const curveDrag = Math.exp(-dt*1.85);
+  // Long route curvature has more inertia than the camera.
+  warpCurveVelocityX += -warpCurveX * 2.15 * dt;
+  warpCurveVelocityY += -warpCurveY * 2.35 * dt;
+  const curveDrag = Math.exp(-dt * 1.85);
   warpCurveVelocityX *= curveDrag;
   warpCurveVelocityY *= curveDrag;
-  warpCurveX = THREE.MathUtils.clamp(warpCurveX+warpCurveVelocityX*dt,-42,42);
-  warpCurveY = THREE.MathUtils.clamp(warpCurveY+warpCurveVelocityY*dt,-26,26);
+  warpCurveX = THREE.MathUtils.clamp(warpCurveX + warpCurveVelocityX * dt, -28, 28);
+  warpCurveY = THREE.MathUtils.clamp(warpCurveY + warpCurveVelocityY * dt, -16, 16);
 
-  routePhase += dt*routePhaseSpeed*(0.72+warpAmount*0.28);
+  // Variable route: long graceful curves separated by calmer sections.
+  routePhase += dt * routePhaseSpeed * (0.65 + warpAmount * 0.35);
+  const routeEnvelope = 0.36 + 0.64 * Math.pow(0.5 + 0.5 * Math.sin(routePhase * 0.53 + 0.8), 2);
+  const ambientCurveX = Math.sin(routePhase) * routeEnvelope * warpAmount * 7.5;
+  const ambientCurveY = Math.sin(routePhase * 0.71 + 1.45) * routeEnvelope * warpAmount * 3.6;
 
-  const speedPresence = 0.48+warpAmount*0.52;
-  const routeVisibility = speedPresence*(0.90+Math.min(0.20,distance/9000));
-
-  tunnelRoll = -tunnelCurveX*routeVisibility*THREE.MathUtils.degToRad(12.5);
-  tunnelYaw = tunnelCurveX*routeVisibility*THREE.MathUtils.degToRad(4.8);
-  tunnelPitch = -tunnelCurveY*routeVisibility*THREE.MathUtils.degToRad(4.2);
-
-  const routeVanishingX =
-    tunnelCurveX*routeVisibility*118 +
-    Math.sin(routePhase*0.43)*warpAmount*3.5;
-
-  const routeVanishingY =
-    tunnelCurveY*routeVisibility*74 +
-    Math.sin(routePhase*0.31+1.45)*warpAmount*2.5;
-
+  // Dynamic vanishing point follows steering, but remains inside a safe 3–4% window.
   const targetVanishingX = THREE.MathUtils.clamp(
-    -bankYaw*310 + routeVanishingX,
-    -122,122
+    -bankYaw * 285 + (warpCurveX + ambientCurveX) * 0.12,
+    -18, 18
   );
-
   const targetVanishingY = THREE.MathUtils.clamp(
-    bankPitch*210 + routeVanishingY,
-    -78,78
+    bankPitch * 210 + (warpCurveY + ambientCurveY) * 0.10,
+    -10, 10
   );
+  const vanishEase = 1 - Math.exp(-dt * 2.7);
+  vanishingX += (targetVanishingX - vanishingX) * vanishEase;
+  vanishingY += (targetVanishingY - vanishingY) * vanishEase;
 
-  const vanishEase = 1-Math.exp(-dt*3.0);
-  vanishingX += (targetVanishingX-vanishingX)*vanishEase;
-  vanishingY += (targetVanishingY-vanishingY)*vanishEase;
+  // 4.0 curvature pulse is deliberately tiny and slow.
+  lensPulse = (0.5 + 0.5 * Math.sin(routePhase * 0.41 + 2.2)) * warpAmount;
 
-  lensPulse = (0.5+0.5*Math.sin(routePhase*0.34+2.2))*warpAmount;
+  const ambientRoll = Math.sin(routePhase * 0.88) * warpAmount * THREE.MathUtils.degToRad(0.38);
+  const ambientYaw = Math.sin(routePhase * 0.61 + 0.4) * warpAmount * THREE.MathUtils.degToRad(0.20);
+  const ambientPitch = Math.sin(routePhase * 0.47 + 1.2) * warpAmount * THREE.MathUtils.degToRad(0.09);
 
-  const ambientPitch =
-    Math.sin(routePhase*0.47+1.2)*
-    warpAmount*
-    THREE.MathUtils.degToRad(0.08);
-
-  camera.rotation.z = bankRoll+tunnelRoll;
-  camera.rotation.x += bankPitch+tunnelPitch+ambientPitch;
-  camera.rotation.y += bankYaw+tunnelYaw;
+  camera.rotation.z = bankRoll + ambientRoll;
+  camera.rotation.x += bankPitch + ambientPitch;
+  camera.rotation.y += bankYaw + ambientYaw;
 
   stars.forEach((s,index)=>{
-    const depthWeight = 0.78+index*0.12;
-    s.rotation.z = -(bankRoll+tunnelRoll)*(0.38+depthWeight*0.15);
-    s.position.x = -vanishingX*(0.92+depthWeight*0.30);
-    s.position.y = -vanishingY*(0.70+depthWeight*0.24);
+    const depthWeight = 0.78 + index * 0.12;
+    s.rotation.z = -(bankRoll + ambientRoll) * (0.18 + depthWeight * 0.08);
+    s.position.x = -vanishingX * (0.42 + depthWeight * 0.12);
+    s.position.y = -vanishingY * (0.34 + depthWeight * 0.10);
   });
 
-  // Visible lane-reference tilt only; lane coordinates remain unchanged.
-  laneGuides.forEach(guide=>{
-    guide.rotation.z = tunnelRoll*0.88;
-    guide.rotation.x = tunnelPitch*0.42;
-    guide.rotation.y = tunnelYaw*0.42;
-  });
-
-  return {
-    ambientCurveX:routeVanishingX,
-    ambientCurveY:routeVanishingY
-  };
+  return {ambientCurveX, ambientCurveY};
 }
 
 function resetWarpBanking(){
@@ -1193,159 +1058,19 @@ function resetWarpBanking(){
   bankRollVelocity = 0;
   bankPitchVelocity = 0;
   bankYawVelocity = 0;
-
   warpCurveX = 0;
   warpCurveY = 0;
   warpCurveVelocityX = 0;
   warpCurveVelocityY = 0;
-
   vanishingX = 0;
   vanishingY = 0;
   lensPulse = 0;
-
-  tunnelCurve = 0;
-  tunnelCurveX = 0;
-  tunnelCurveY = 0;
-  tunnelTargetX = 0;
-  tunnelTargetY = 0;
-  tunnelRoll = 0;
-  tunnelYaw = 0;
-  tunnelPitch = 0;
-  tunnelPhase = "straight";
-  tunnelSegmentStart = 0;
-  tunnelNextTurnDistance = 180+Math.random()*260;
-  tunnelRouteName = "STRAIGHT";
-  previousRouteVector = {x:0,y:0};
-
   camera.rotation.set(0,0,0);
-
   stars.forEach(s=>{
     s.rotation.z = 0;
     s.position.x = 0;
     s.position.y = 0;
   });
-
-  laneGuides.forEach(guide=>{
-    guide.rotation.set(0,0,0);
-  });
-}
-
-// =========================
-// SHIFTVIX 5.3 — CURVED LANE PRESENTATION
-// These helpers alter presentation only. Gameplay coordinates remain untouched.
-// =========================
-const LANE_GUIDE_POINT_COUNT = 56;
-const LANE_GUIDE_START_Z = -78;
-const LANE_GUIDE_STEP_Z = 24;
-const irisProjectionPoint = new THREE.Vector3();
-let irisScreenX = innerWidth * 0.5;
-let irisScreenY = innerHeight * 0.5;
-
-function routePresentationAtDepth(z){
-  const depth = THREE.MathUtils.clamp((-z - 70) / 1250, 0, 1);
-  const eased = depth * depth * (3 - 2 * depth);
-  const arc = eased * eased;
-
-  return {
-    depth,
-    eased,
-    x:
-      vanishingX * eased * 0.92 +
-      tunnelCurveX * (44 + depth * 142) * arc,
-    y:
-      vanishingY * eased * 0.80 +
-      tunnelCurveY * (32 + depth * 104) * arc
-  };
-}
-
-function updateCurvedLaneGuides(){
-  laneGuides.forEach(guide=>{
-    const positions = guide.geometry.attributes.position;
-    const laneXValue = guide.userData.laneX;
-    const laneYValue = guide.userData.laneY;
-
-    for(let i=0;i<positions.count;i++){
-      const z = LANE_GUIDE_START_Z - i * LANE_GUIDE_STEP_Z;
-      const route = routePresentationAtDepth(z);
-
-      // Near points remain tied to the original grid. Distant points converge
-      // toward the route and arc around the current turn.
-      const convergence = route.eased * 0.76;
-      const spread = 1 - convergence;
-
-      const tangentX =
-        -tunnelCurveY *
-        laneYValue *
-        route.eased *
-        0.18;
-
-      const tangentY =
-        tunnelCurveX *
-        laneXValue *
-        route.eased *
-        0.13;
-
-      const x =
-        laneXValue * spread +
-        route.x +
-        tangentX;
-
-      const y =
-        laneYValue * spread +
-        route.y +
-        tangentY;
-
-      positions.setXYZ(i, x, y, z);
-    }
-
-    positions.needsUpdate = true;
-
-    const routeEnergy = Math.min(
-      1,
-      Math.hypot(tunnelCurveX, tunnelCurveY)
-    );
-
-    guide.material.opacity =
-      0.08 +
-      warpAmount * 0.13 +
-      routeEnergy * 0.11;
-  });
-}
-
-function updateCenterIris(){
-  const center = document.getElementById("center");
-  if(!center)return;
-
-  // Project the near visual center of the selected lane through the current
-  // camera. This keeps the iris centered over the lane even while banking.
-  irisProjectionPoint.set(targetX, targetY, -78);
-  irisProjectionPoint.project(camera);
-
-  const rawX = (irisProjectionPoint.x * 0.5 + 0.5) * innerWidth;
-  const rawY = (-irisProjectionPoint.y * 0.5 + 0.5) * innerHeight;
-
-  const safeX = THREE.MathUtils.clamp(rawX, 24, innerWidth - 24);
-  const safeY = THREE.MathUtils.clamp(rawY, 24, innerHeight - 24);
-
-  const follow = 0.34;
-  irisScreenX += (safeX - irisScreenX) * follow;
-  irisScreenY += (safeY - irisScreenY) * follow;
-
-  center.style.left = `${irisScreenX}px`;
-  center.style.top = `${irisScreenY}px`;
-}
-
-function resetPresentation53(){
-  irisScreenX = innerWidth * 0.5;
-  irisScreenY = innerHeight * 0.5;
-
-  const center = document.getElementById("center");
-  if(center){
-    center.style.left = "50%";
-    center.style.top = "50%";
-  }
-
-  updateCurvedLaneGuides();
 }
 
 let introScale=1.2;
@@ -1535,7 +1260,7 @@ function playDrumHit(time, accent = 1){
 }
 
 function drumScheduler(){
-  if(!audioCtx || !musicStarted || paused || gameOver || !drumEnabled) return;
+  if(!audioCtx || !musicStarted || !drumEnabled) return;
   const scheduleAheadTime = 0.14;
   while(nextDrumTime < audioCtx.currentTime + scheduleAheadTime){
     const beatDuration = 60 / getDrumBPM();
@@ -1660,7 +1385,7 @@ function scheduleMusicStep(step,time,stepDuration){
 }
 
 function musicScheduler(){
-  if(!audioCtx || !musicStarted || paused || gameOver) return;
+  if(!audioCtx || !musicStarted) return;
   const BPM=148;
   const STEP=(60/BPM)/2;
   const scheduleAheadTime=0.12;
@@ -2253,7 +1978,56 @@ function flowCategoryForIndex(index){
   return ["REACH","COLLECT","TRAVEL","SCORE"][index%4];
 }
 
-function createFlow(index){
+// =========================
+// SHIFTVIX — QUALITIES FLOW
+// Every objective category reinforces a related family of life qualities.
+// The first word is the Flow's core quality and appears most often.
+// =========================
+const FLOW_QUALITY_GROUPS = Object.freeze({
+  REACH:[
+    "PURPOSE","COURAGE","VISION","BELIEVE",
+    "ACHIEVE","ASCEND","DISCOVER","CONFIDENCE"
+  ],
+  COLLECT:[
+    "ABUNDANCE","GRATITUDE","JOY","LOVE",
+    "WEALTH","VALUE","RECEIVE","BLESSING"
+  ],
+  TRAVEL:[
+    "GROWTH","FREEDOM","FLOW","PROGRESS",
+    "EVOLVE","ADAPT","JOURNEY","EXPLORE"
+  ],
+  SCORE:[
+    "FOCUS","CLARITY","DISCIPLINE","PRECISION",
+    "MASTERY","CONSISTENCY","EXCELLENCE","CREATIVITY"
+  ]
+});
+
+function flowQualityForIndex(index){
+  const category=flowCategoryForIndex(index);
+  const words=FLOW_QUALITY_GROUPS[category];
+  const categorySequence=Math.floor(index/4);
+  return words[categorySequence%words.length];
+}
+
+function qualityWordsForFlow(index){
+  const category=flowCategoryForIndex(index);
+  const words=FLOW_QUALITY_GROUPS[category];
+  const core=flowQualityForIndex(index);
+  return [core,...words.filter(word=>word!==core)];
+}
+
+function chooseQualityWord(index=currentFlowIndex){
+  const words=qualityWordsForFlow(index);
+
+  // Reinforce the central quality without making every collection identical:
+  // 58% core quality, 27% next three related qualities, 15% wider variety.
+  const roll=Math.random();
+  if(roll<.58)return words[0];
+  if(roll<.85)return words[1+Math.floor(Math.random()*Math.min(3,words.length-1))];
+  return words[1+Math.floor(Math.random()*(words.length-1))];
+}
+
+function createFlowBase(index){
   const n=index+1;
   const group=Math.floor(index/4);
   const category=flowCategoryForIndex(index);
@@ -2316,6 +2090,16 @@ function createFlow(index){
   }
   return {id:`score_${n}`,name,category,label:`SCORE ${target.toLocaleString()} POINTS`,target,metric:"score"};
 }
+function createFlow(index){
+  const flow=createFlowBase(index);
+  const quality=flowQualityForIndex(index);
+  return {
+    ...flow,
+    quality,
+    qualityWords:qualityWordsForFlow(index)
+  };
+}
+
 function beginCurrentFlow(){
 
     activeChallenge = createFlow(currentFlowIndex);
@@ -2387,6 +2171,8 @@ function completeCurrentFlow(){
         flow_number:
             finishedFlowIndex + 1,
         flow_id:finished.id,
+        flow_category:finished.category,
+        flow_quality:finished.quality,
         flow_stage:
             flowStageFor(
                 finishedFlowIndex
@@ -2420,7 +2206,7 @@ function completeCurrentFlow(){
                     FLOW_TOTAL
                 )
               } UNLOCKED`
-            : `${environmentEngine.current.name} COMPLETE`
+            : `${finished.quality} CULTIVATED`
     );
 
 if(replayReturnFlowIndex !== null){
@@ -2572,7 +2358,9 @@ function renderFlowArchive(){
             const isCompleted = isFlowCompleted(i);
             const isCurrent = i === currentFlowIndex;
             const isLocked = !isFlowUnlocked(i);
-            const flowType = createFlow(i).category;
+            const flowData = createFlow(i);
+            const flowType = flowData.category;
+            const flowQuality = flowData.quality;
             let rowClass = "available selectable";
             let status = "•";
 
@@ -2588,12 +2376,12 @@ function renderFlowArchive(){
                     tabindex="${isLocked ? -1 : 0}"
                     aria-disabled="${isLocked}"
                     aria-current="${isCurrent ? "true" : "false"}"
-                    aria-label="Flow ${flowNumber}, ${flowType.toLowerCase()} objective${isCompleted ? ", completed" : isLocked ? ", locked" : ", available"}"
-                    title="Flow ${flowNumber} · ${flowType}"
+                    aria-label="Flow ${flowNumber}, ${flowType.toLowerCase()} objective, quality ${flowQuality.toLowerCase()}${isCompleted ? ", completed" : isLocked ? ", locked" : ", available"}"
+                    title="Flow ${flowNumber} · ${flowType} · ${flowQuality}"
                 >
                     <span>${flowNumber}</span>
                     <span class="archiveStatus">${status}</span>
-                    <span class="archiveFlowType category-${flowType.toLowerCase()}">${flowType}</span>
+                    <span class="archiveFlowType category-${flowType.toLowerCase()}">${flowQuality}</span>
                 </div>
             `;
         }
@@ -2764,14 +2552,15 @@ let flowSelectionLockedUntil = 0;
 let pausePreviouslyFocused = null;
 
 function pauseMusicOnly(){
-  if(musicTimer){clearInterval(musicTimer);musicTimer=null;}
+  // SHIFTVIX 5.3.2: gameplay pauses, but session music continues.
+  // The function remains for compatibility with the pause system.
 }
 
 function updatePauseSelection(){
   const name=document.getElementById("pauseFlowName");
   const objective=document.getElementById("pauseFlowObjective");
   const flow=activeChallenge||createFlow(currentFlowIndex);
-  if(name)name.textContent=`FLOW ${currentFlowIndex+1} · ${flow.category}`;
+  if(name)name.textContent=`FLOW ${currentFlowIndex+1} · ${flow.category} · ${flow.quality}`;
   if(objective)objective.textContent=flow.label;
 }
 
@@ -2790,9 +2579,18 @@ function applyPauseVisuals(isPaused){
   if(isPaused)updatePauseSelection();
 }
 function resumeMusicAfterPause(){
-  musicStarted=false;
-  if(musicTimer){clearInterval(musicTimer);musicTimer=null;}
-  startMusic();
+  // Music should already be continuing. Recover only if the browser suspended
+  // audio or the scheduler was unexpectedly lost.
+  if(audioCtx && audioCtx.state==="suspended"){
+    audioCtx.resume().catch(()=>{});
+  }
+  if(musicStarted && !musicTimer){
+    nextNoteTime = Math.max(nextNoteTime, audioCtx.currentTime + 0.035);
+    nextDrumTime = Math.max(nextDrumTime, audioCtx.currentTime + 0.05);
+    musicTimer = setInterval(musicScheduler,25);
+  }else if(!musicStarted){
+    startMusic();
+  }
 }
 
 function pauseGame(source="center"){
@@ -2916,39 +2714,7 @@ function introIsClear(){return distance >= 72;}
 function showModeBanner(text){const el=document.getElementById("modeBanner");if(!el)return;if(!introIsClear()){pendingModeBanner=text;return;}pendingModeBanner=null;el.textContent=text;el.classList.remove("show");void el.offsetWidth;el.classList.add("show");}
 function releasePendingModeBanner(){if(pendingModeBanner&&introIsClear())showModeBanner(pendingModeBanner);}
 function makeStarField(){const count=850,positions=new Float32Array(count*3),colors=new Float32Array(count*3),baseXY=new Float32Array(count*2),palette=[0xffffff,0x777777,0x55ccff,0xff66cc,0x5d3dff,0xff8800].map(c=>new THREE.Color(c));for(let i=0;i<count;i++){const x=(Math.random()*2-1)*260,y=(Math.random()*2-1)*180;positions[i*3]=x;positions[i*3+1]=y;positions[i*3+2]=-50-Math.random()*1200;baseXY[i*2]=x;baseXY[i*2+1]=y;const c=palette[Math.floor(Math.random()*palette.length)].clone().multiplyScalar(.35+Math.random()*.7);colors[i*3]=c.r;colors[i*3+1]=c.g;colors[i*3+2]=c.b;}const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(positions,3));geo.setAttribute("color",new THREE.BufferAttribute(colors,3));const mat=new THREE.PointsMaterial({size:1.3,sizeAttenuation:true,transparent:true,opacity:.72,vertexColors:true});const pts=new THREE.Points(geo,mat);pts.userData.baseXY=baseXY;scene.add(pts);stars.push(pts);}
-function makeLaneGuides(){
-  LANE_X.forEach(x=>{
-    LANE_Y.forEach(y=>{
-      const geo=new THREE.BufferGeometry();
-      const positions=new Float32Array(LANE_GUIDE_POINT_COUNT*3);
-
-      for(let i=0;i<LANE_GUIDE_POINT_COUNT;i++){
-        positions[i*3]=x;
-        positions[i*3+1]=y;
-        positions[i*3+2]=LANE_GUIDE_START_Z-i*LANE_GUIDE_STEP_Z;
-      }
-
-      geo.setAttribute("position",new THREE.BufferAttribute(positions,3));
-
-      const mat=new THREE.PointsMaterial({
-        color:0xff66cc,
-        size:1.05,
-        transparent:true,
-        opacity:.08,
-        sizeAttenuation:true,
-        depthWrite:false,
-        blending:THREE.AdditiveBlending
-      });
-
-      const pts=new THREE.Points(geo,mat);
-      pts.frustumCulled=false;
-      pts.userData.laneX=x;
-      pts.userData.laneY=y;
-      scene.add(pts);
-      laneGuides.push(pts);
-    });
-  });
-}
+function makeLaneGuides(){LANE_X.forEach(x=>{LANE_Y.forEach(y=>{const geo=new THREE.BufferGeometry(),positions=[];for(let i=0;i<52;i++)positions.push(x,y,-80-i*25);geo.setAttribute("position",new THREE.Float32BufferAttribute(positions,3));const mat=new THREE.PointsMaterial({color:0xff66cc,size:.85,transparent:true,opacity:.0,sizeAttenuation:true,depthWrite:false});const pts=new THREE.Points(geo,mat);scene.add(pts);laneGuides.push(pts);});});}
 function chooseTier(){const r=Math.random();if(r<.35)return TIERS[0];if(r<.60)return TIERS[1];if(r<.78)return TIERS[2];if(r<.90)return TIERS[3];if(r<.98)return TIERS[4];return TIERS[5];}
 function makeBeacon(tier,x,y,z,train){
  const group=new THREE.Group();
@@ -3091,7 +2857,16 @@ function startGame(){
     startMusic();
 }
 
-function showScorePopup(text){const el=document.createElement("div");el.className="scorePopup";el.textContent=text;document.body.appendChild(el);setTimeout(()=>el.remove(),900);}
+function showScorePopup(text,category="COLLECT"){
+  const existing=document.querySelector(".scorePopup");
+  if(existing)existing.remove();
+
+  const el=document.createElement("div");
+  el.className=`scorePopup quality-${String(category).toLowerCase()}`;
+  el.textContent=text;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),840);
+}
 function showMultiplierPopup(multiplier){
 
     const existing =
@@ -3270,7 +3045,15 @@ tierCounts[b.userData.tier.name] =
  if(foundCount===1){track("first_source_collected",{tier:b.userData.tier.name});}
  if(score>bestScore){bestScore=score;localStorage.setItem("sourceLaneBestScore",String(bestScore));}
  playCoin(b.userData.tier);
- showScorePopup("+"+gained);
+ const qualityWord=chooseQualityWord(currentFlowIndex);
+ showScorePopup(qualityWord,activeChallenge?.category||flowCategoryForIndex(currentFlowIndex));
+ trackGame("quality_collected",{
+   flow_number:currentFlowIndex+1,
+   category:activeChallenge?.category||flowCategoryForIndex(currentFlowIndex),
+   core_quality:activeChallenge?.quality||flowQualityForIndex(currentFlowIndex),
+   quality_word:qualityWord,
+   tier:b.userData.tier.name
+ });
  updateHUD();updateChallenge();
  if(navigator.vibrate)navigator.vibrate(4);
 }
@@ -3296,8 +3079,14 @@ function formatRunFlowProgress(flow,value){
 function endRun(){
 
     gameOver = true;
-    drumStep = 0;
-    if(musicTimer){ clearInterval(musicTimer); musicTimer = null; }
+
+    // SHIFTVIX 5.3.2: keep the same song and percussion sequence playing
+    // through Run Complete and Flow Path instead of creating a silent screen.
+    if(musicStarted && !musicTimer && audioCtx){
+        nextNoteTime = Math.max(nextNoteTime, audioCtx.currentTime + 0.035);
+        nextDrumTime = Math.max(nextDrumTime, audioCtx.currentTime + 0.05);
+        musicTimer = setInterval(musicScheduler,25);
+    }
 
     const runSeconds =
         (performance.now() - runStartTime) / 1000;
@@ -3424,7 +3213,7 @@ function endRun(){
     <div class="runFlowPanel">
         <div class="runFlowTop">
             <span class="runFlowNumber">FLOW ${currentFlowIndex+1}</span>
-            <span class="runFlowCategory">${runFlow.category}</span>
+            <span class="runFlowCategory">${runFlow.category} · ${runFlow.quality}</span>
         </div>
         <div class="runFlowObjective">${runFlow.label}</div>
         <div class="runFlowProgressText">${runFlowProgress}</div>
@@ -3485,7 +3274,7 @@ title.style.transform = "translate(-50%,-50%)";
 
 const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");center.style.borderColor="rgba(255,255,255,.95)";center.style.boxShadow="0 0 10px rgba(255,255,255,.55)";document.getElementById("roundComplete").style.display="none";beacons.forEach(b=>scene.remove(b));beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;
 
-lastLevel = 1;strikes = 0;milestonesReached = {};runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;musicStarted=false;resetWarpBanking();resetPresentation53();resetEnvironmentForRun();beginCurrentFlow();resetMusicEvolution();updateStrikes();updateHUD();spawnWave();startMusic();}
+lastLevel = 1;strikes = 0;milestonesReached = {};runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;resetWarpBanking();resetEnvironmentForRun();beginCurrentFlow();updateStrikes();updateHUD();spawnWave();if(!musicStarted){startMusic();}else if(!musicTimer&&audioCtx){nextNoteTime=Math.max(nextNoteTime,audioCtx.currentTime+0.035);nextDrumTime=Math.max(nextDrumTime,audioCtx.currentTime+0.05);musicTimer=setInterval(musicScheduler,25);}}
 const title = document.getElementById("gameTitle");
 const shift = document.getElementById("shift");
 const vix = document.getElementById("vix");
@@ -3543,12 +3332,58 @@ for(const m of milestones){
 
     }
 
-}updateChallenge();updateEnvironment(dt);spawnTimer-=dt;if(spawnTimer<=0){spawnTimer=.54+Math.random()*.26;spawnWave();}if(runStarted){breakTimer+=dt;if(breakTimer>BREAK_GRACE)takeStrike();}camera.position.x+=(targetX-camera.position.x)*(1-Math.pow(.0009,dt));camera.position.y+=(targetY-camera.position.y)*(1-Math.pow(.0009,dt));const cycleDistance = distance % 3000;warpAmount = Math.min(cycleDistance / 3000, 1);
+}updateChallenge();updateEnvironment(dt);spawnTimer-=dt;if(spawnTimer<=0){spawnTimer=.54+Math.random()*.26;spawnWave();}if(runStarted){breakTimer+=dt;if(breakTimer>BREAK_GRACE)takeStrike();}camera.position.x+=(targetX-camera.position.x)*(1-Math.pow(.0009,dt));camera.position.y+=(targetY-camera.position.y)*(1-Math.pow(.0009,dt));// =========================
+// SHIFTVIX 5.3.2 — EXTENDED WARP BUILD
+// The visual intensity that previously appeared near 1050m is now the cap.
+// 0–2500m: stretch that same visual buildup across a longer flight.
+// 2500–3000m: hold the capped maximum before the next warp cycle.
+// =========================
+const cycleDistance = distance % 3000;
+const WARP_BUILD_END = 2500;
+const WARP_REFERENCE_MAX_DISTANCE = 1050;
 
+// Convert the longer 0–2500m cycle back into the old 0–1050m visual range.
+// This preserves the preferred visual aesthetic without allowing later,
+// more chaotic intensity values to appear.
+const pacedVisualDistance =
+  Math.min(
+    WARP_REFERENCE_MAX_DISTANCE,
+    (cycleDistance / WARP_BUILD_END) * WARP_REFERENCE_MAX_DISTANCE
+  );
+
+if(pacedVisualDistance < 700){
+  warpAmount = (pacedVisualDistance / 700) * 0.35;
+}else{
+  const buildProgress =
+    THREE.MathUtils.clamp(
+      (pacedVisualDistance - 700) / 800,
+      0,
+      1
+    );
+
+  const easedBuild =
+    buildProgress * buildProgress * (3 - 2 * buildProgress);
+
+  warpAmount = 0.35 + easedBuild * 0.65;
+}
+
+// Hold the exact capped appearance from 2500m until the 3000m transition.
+if(cycleDistance >= WARP_BUILD_END){
+  const capProgress =
+    (WARP_REFERENCE_MAX_DISTANCE - 700) / 800;
+
+  const easedCap =
+    capProgress * capProgress * (3 - 2 * capProgress);
+
+  warpAmount = 0.35 + easedCap * 0.65;
+}
+
+// Atmosphere pacing follows the same capped visual distance so fog and color
+// do not keep escalating after the preferred 1050m-quality appearance.
 const stage =
 Math.min(
     6,
-    Math.floor(cycleDistance / 700)
+    Math.floor(pacedVisualDistance / 700)
 );
 
 const fogLevels = [
@@ -3595,8 +3430,8 @@ atmosphereColors[stage]
 );
 
 camera.lookAt(
-camera.position.x * 0.975 + vanishingX * 1.65,
-camera.position.y * 0.982 + vanishingY * 1.48,
+camera.position.x * 0.995 + vanishingX,
+camera.position.y * 0.995 + vanishingY,
 -500
 );let targetFov =
 70
@@ -3629,126 +3464,31 @@ warpAmount * 0.18
     const baseY = baseXY ? baseXY[i*2+1] : pos.getY(i);
     const currentZ = pos.getZ(i);
 
-    // 5.2 STARFIELD-ONLY CURVATURE
-    // Far particles follow the route strongly. Near particles remain stable
-    // so the center gameplay area and nine-grid controls stay readable.
+    // Layered depth: far stars bend most, middle stars moderately,
+    // and near decision-space remains almost perfectly stable.
     const farDepth = THREE.MathUtils.clamp((-currentZ - 70) / 1080, 0, 1);
-    const depthEase = farDepth * farDepth * (3 - 2 * farDepth);
-    const deepArc = depthEase * depthEase;
+    const curveEase = farDepth * farDepth * (3 - 2 * farDepth);
     const nearLayer = 1 - farDepth;
+    const ambientCurveX = Math.sin(routePhase) * warpAmount * 7.5;
+    const ambientCurveY = Math.sin(routePhase * 0.71 + 1.45) * warpAmount * 3.6;
 
-    // Primary route bend. This moves the visual star tunnel toward the same
-    // vanishing point used by the Route Engine without creating extra objects.
-    const bendX =
-        tunnelCurveX *
-        (82 + farDepth * 152) *
-        deepArc;
+    let x = baseX + (warpCurveX + ambientCurveX + vanishingX * 0.65) * curveEase;
+    let y = baseY + (warpCurveY + ambientCurveY + vanishingY * 0.55) * curveEase;
 
-    const bendY =
-        tunnelCurveY *
-        (58 + farDepth * 108) *
-        deepArc;
+    // Warp Curvature 4.0: restrained gravitational-style lensing.
+    // It bends only the peripheral deep field and never the gameplay objects.
+    const radius = Math.max(1, Math.hypot(baseX,baseY));
+    const edgeNorm = THREE.MathUtils.clamp((radius - 85) / 190, 0, 1);
+    const lensStrength = lensPulse * curveEase * edgeNorm * edgeNorm * 0.018;
+    const lensCenterX = vanishingX * 1.8;
+    const lensCenterY = vanishingY * 1.5;
+    x += (baseX - lensCenterX) * lensStrength;
+    y += (baseY - lensCenterY) * lensStrength;
 
-    let x =
-        baseX +
-        (warpCurveX * 0.62 + vanishingX * 1.16) * depthEase +
-        bendX;
-
-    let y =
-        baseY +
-        (warpCurveY * 0.62 + vanishingY * 1.08) * depthEase +
-        bendY;
-
-    // Tangential flow makes the stars wrap around the corner instead of
-    // sliding sideways as one flat sheet.
-    const tangentStrength = depthEase * farDepth;
-    x += -tunnelCurveY * baseY * tangentStrength * 0.22;
-    y +=  tunnelCurveX * baseX * tangentStrength * 0.15;
-
-    // Inner-side compression and outer-side expansion strengthen the feeling
-    // of taking a real corner while preserving the original particle system.
-    const horizontalTurn = THREE.MathUtils.clamp(tunnelCurveX, -1.25, 1.25);
-    const verticalTurn = THREE.MathUtils.clamp(tunnelCurveY, -1.00, 1.00);
-
-    const horizontalSide =
-        THREE.MathUtils.clamp(baseX / 260, -1, 1);
-
-    const verticalSide =
-        THREE.MathUtils.clamp(baseY / 180, -1, 1);
-
-    const horizontalWarp =
-        1 +
-        horizontalTurn *
-        horizontalSide *
-        depthEase *
-        0.28;
-
-    const verticalWarp =
-        1 +
-        verticalTurn *
-        verticalSide *
-        depthEase *
-        0.22;
-
-    x *= THREE.MathUtils.clamp(horizontalWarp, 0.70, 1.32);
-    y *= THREE.MathUtils.clamp(verticalWarp, 0.76, 1.26);
-
-    // A gentle route twist improves diagonal climbs and dives, but remains
-    // entirely inside the existing star/dust calculation.
-    const diagonalTwist =
-        tunnelCurveX *
-        tunnelCurveY *
-        deepArc *
-        0.13;
-
-    const twistedX = x - y * diagonalTwist;
-    const twistedY = y + x * diagonalTwist;
-    x = twistedX;
-    y = twistedY;
-
-    // Restrained lensing adds depth only at the outer edge of the starfield.
-    const radius = Math.max(1, Math.hypot(baseX, baseY));
-    const edgeNorm = THREE.MathUtils.clamp((radius - 90) / 180, 0, 1);
-    const lensStrength =
-        lensPulse *
-        depthEase *
-        edgeNorm *
-        edgeNorm *
-        0.010;
-
-    x += (baseX - vanishingX * 1.4) * lensStrength;
-    y += (baseY - vanishingY * 1.25) * lensStrength;
-
-    // Near-particle parallax keeps swipes responsive without moving gameplay.
-    x += -bankYaw * 82 * nearLayer * 0.22;
-    y +=  bankPitch * 58 * nearLayer * 0.19;
-
-    // 5.3 TUNNEL CORRIDOR
-    // Push only visual dust away from the route center. This creates a clear
-    // opening without adding a solid tunnel mesh or another particle system.
-    const routeCenter = routePresentationAtDepth(currentZ);
-    let corridorDX = x - routeCenter.x;
-    let corridorDY = y - routeCenter.y;
-    let corridorDistance = Math.hypot(corridorDX, corridorDY);
-
-    const corridorRadius =
-        THREE.MathUtils.lerp(28, 58, depthEase) *
-        (0.90 + warpAmount * 0.18);
-
-    if(corridorDistance < corridorRadius){
-      if(corridorDistance < 0.001){
-        corridorDX = 1;
-        corridorDY = 0;
-        corridorDistance = 1;
-      }
-
-      const push =
-        (corridorRadius - corridorDistance) *
-        (0.78 + depthEase * 0.34);
-
-      x += corridorDX / corridorDistance * push;
-      y += corridorDY / corridorDistance * push;
-    }
+    // Slight counter-parallax gives close particles more steering response
+    // while far stars hold the curved route.
+    x += -bankYaw * 82 * nearLayer * 0.28;
+    y +=  bankPitch * 58 * nearLayer * 0.24;
 
     // Distance from the center of the playfield
     const edge =
@@ -3911,13 +3651,8 @@ s.material.size = warpSize * stretch;
 
 s.material.opacity = warpOpacity;});
 
-// Apply route banking after lookAt() establishes the base view.
+// Apply Warp Banking 3.0 + Warp Curvature 4.0 after lookAt() establishes the base view.
 updateWarpBanking(dt);
-
-// 5.3 presentation follows the finished camera and route state.
-updateCurvedLaneGuides();
-updateCenterIris();
-
 updateHUD();}if(gameStarted&&!gameOver){
 introScale += (1-introScale)*dt*0.6;beacons.forEach(b=>{if(b.userData.state==="active") b.scale.lerp(new THREE.Vector3(introScale,introScale,introScale),0.08);});
 introCameraZ += (TARGET_CAMERA_Z-introCameraZ)*dt*0.18;
@@ -4069,7 +3804,7 @@ window.addEventListener("beforeunload",()=>{
     });
 
 });
-window.addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);irisScreenX=innerWidth*.5;irisScreenY=innerHeight*.5;});
+window.addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 
 makeStarField();makeLaneGuides();resetEnvironmentForRun();updateStrikes();updateHUD();startGame();animate();
 </script>
