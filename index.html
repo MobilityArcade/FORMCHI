@@ -317,10 +317,13 @@ canvas{display:block}
 /* SHIFTVIX 5.7 — Midas Orb. Warm gold collection state. */
 #midasFx{position:absolute;inset:0;z-index:9;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 50%,rgba(255,255,225,.13) 0%,rgba(255,211,106,.085) 24%,rgba(255,145,0,.055) 48%,transparent 74%);mix-blend-mode:screen;transition:opacity .16s ease;box-shadow:inset 0 0 18vh rgba(255,184,0,.055)}
 #midasFx.active{opacity:var(--midas-power,0)}
-/* SHIFTVIX 5.9 — Prism visual layer. */
-#prismFx{position:absolute;inset:0;z-index:8;pointer-events:none;opacity:0;background:conic-gradient(from 0deg at 50% 50%,rgba(255,80,180,.07),rgba(70,220,255,.08),rgba(255,220,90,.06),rgba(130,80,255,.08),rgba(255,80,180,.07));mix-blend-mode:screen;transition:opacity .22s ease;filter:blur(18px) saturate(1.35);transform:scale(1.08)}
-#prismFx.active{opacity:var(--prism-power,0);animation:prismDrift 2.8s linear infinite}
-@keyframes prismDrift{from{transform:scale(1.08) rotate(0deg)}to{transform:scale(1.08) rotate(360deg)}}
+/* SHIFTVIX Chrono 2.0 — crystal refraction belongs to Chrono itself. */
+#prismFx{position:absolute;inset:0;z-index:8;pointer-events:none;opacity:0;background:conic-gradient(from 0deg at 50% 50%,rgba(255,80,180,.065),rgba(70,220,255,.085),rgba(255,240,155,.055),rgba(130,80,255,.08),rgba(255,80,180,.065));mix-blend-mode:screen;transition:opacity .22s ease;filter:blur(18px) saturate(1.30);transform:scale(1.08)}
+#prismFx.active{opacity:var(--chrono-prism-power,0);animation:chronoPrismDrift 3.4s linear infinite}
+@keyframes chronoPrismDrift{from{transform:scale(1.08) rotate(0deg)}to{transform:scale(1.08) rotate(360deg)}}
+#chronoMultiplier{position:absolute;left:50%;top:27%;transform:translate(-50%,-50%) scale(.92);z-index:64;pointer-events:none;opacity:0;color:#c9f7ff;font-size:clamp(19px,4.6vw,30px);font-weight:1000;letter-spacing:4px;white-space:nowrap;text-shadow:0 0 8px rgba(255,255,255,.96),0 0 22px rgba(70,207,255,.95),0 0 52px rgba(150,90,255,.55);transition:opacity .18s ease,transform .18s ease}
+#chronoMultiplier.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.scorePopup.chronoScore{color:#c9f7ff;text-shadow:0 0 10px rgba(255,255,255,1),0 0 28px rgba(70,207,255,.98),0 0 58px rgba(160,85,255,.72)}
 .resultsCard{position:relative;z-index:56}
 .flowSummary{margin:16px 0 4px;padding:12px;border-radius:16px;background:rgba(125,249,255,.06);border:1px solid rgba(125,249,255,.18);font-size:12px;line-height:1.6;letter-spacing:1.3px}
 /* =========================
@@ -635,10 +638,10 @@ body.uiModalOpen #center{pointer-events:none}
   </div>
 </div>
 <div id="challengeHud"><div id="challengeName">CURRENT FLOW</div><div id="challengeText">LOADING…</div><div id="challengeBar"><div id="challengeFill"></div></div></div>
-<div id="modeBanner"></div><div id="flowFx"></div><div id="fluxFx"></div><div id="chronoFx"></div><div id="midasFx"></div><div id="prismFx"></div><div id="pulseWaves"></div>
+<div id="modeBanner"></div><div id="chronoMultiplier">×2 SCORE</div><div id="flowFx"></div><div id="fluxFx"></div><div id="chronoFx"></div><div id="midasFx"></div><div id="prismFx"></div><div id="pulseWaves"></div>
 <div id="flowArchive" aria-hidden="true"><div class="archiveCard" role="dialog" aria-modal="true" aria-labelledby="flowPathTitle"><div class="archiveHeader"><h2 id="flowPathTitle">FLOW PATH</h2><button class="archiveClose" id="archiveClose" type="button" aria-label="Close Flow Path">×</button></div><div id="archiveList"></div></div></div>
 
-<!-- SHIFTVIX 5.9 — OBSERVER + PRISM ORBS -->
+<!-- SHIFTVIX CHRONO 2.0 — SLOW TIME + PRISM VISION + 2X SCORE -->
 <script type="module">
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x000000,0.0011);
@@ -718,55 +721,14 @@ function scheduleNextLegendaryWindow(){
 }
 
 // =========================
-// SHIFTVIX 5.9 — PERSPECTIVE + VISUAL LAYERS
-// Observer changes only the camera. Prism changes only presentation.
-// Both may stack with Flux, Chrono, Midas, and with each other.
+// SHIFTVIX CHRONO 2.0
+// Chrono now combines three related rewards:
+// 1) ten-second time dilation,
+// 2) crystal/prismatic perception,
+// 3) double score for manually or Midas-collected normal orbs.
+// Orb count, distance, lives, and Flow collection totals remain unchanged.
 // =========================
-const OBSERVER_DURATION_SECONDS=8;
-const PRISM_DURATION_SECONDS=8;
-let observerOrbActive=false,observerTime=0,observerAmount=0,observerCollectedThisRun=0;
-let prismOrbActive=false,prismTime=0,prismAmount=0,prismCollectedThisRun=0;
-
-function updateObserverState(dt){
-  if(observerTime>0)observerTime=Math.max(0,observerTime-dt);
-  const target=observerTime>0?1:0;
-  observerAmount+=(target-observerAmount)*(1-Math.exp(-dt*(target?3.8:3.0)));
-}
-
-function updatePrismState(dt){
-  if(prismTime>0)prismTime=Math.max(0,prismTime-dt);
-  const target=prismTime>0?1:0;
-  prismAmount+=(target-prismAmount)*(1-Math.exp(-dt*(target?5.5:2.8)));
-  const fx=document.getElementById("prismFx");
-  if(fx){
-    fx.classList.toggle("active",prismAmount>.012);
-    fx.style.setProperty("--prism-power",String(Math.min(.42,prismAmount*.42)));
-  }
-  renderer.domElement.style.filter=prismAmount>.01
-    ? `saturate(${1+prismAmount*.72}) brightness(${1+prismAmount*.14}) contrast(${1+prismAmount*.10}) hue-rotate(${Math.sin(performance.now()*.0017)*prismAmount*10}deg)`
-    : "none";
-}
-
-function playObserverSound(){
-  initAudio(); if(!audioCtx)return;
-  const now=audioCtx.currentTime,osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
-  osc.type="sine";osc.frequency.setValueAtTime(330,now);osc.frequency.exponentialRampToValueAtTime(880,now+.52);
-  gain.gain.setValueAtTime(.0001,now);gain.gain.linearRampToValueAtTime(.026,now+.08);gain.gain.exponentialRampToValueAtTime(.0001,now+.72);
-  osc.connect(gain).connect(audioCtx.destination);osc.start(now);osc.stop(now+.75);
-}
-function playPrismSound(){
-  initAudio(); if(!audioCtx)return;
-  const now=audioCtx.currentTime;
-  [740,988,1318].forEach((f,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type="sine";o.frequency.setValueAtTime(f,now+i*.045);g.gain.setValueAtTime(.0001,now+i*.045);g.gain.linearRampToValueAtTime(.015,now+.07+i*.045);g.gain.exponentialRampToValueAtTime(.0001,now+.55+i*.045);o.connect(g).connect(audioCtx.destination);o.start(now+i*.045);o.stop(now+.6+i*.045);});
-}
-function activateObserver(reason){
-  observerTime=OBSERVER_DURATION_SECONDS;observerCollectedThisRun++;playObserverSound();showModeBanner("OBSERVE");
-  trackGame("observer_orb_collected",{trigger_reason:reason||"unknown",distance:Math.floor(distance),flow_number:currentFlowIndex+1,duration_seconds:OBSERVER_DURATION_SECONDS,observer_count_run:observerCollectedThisRun});
-}
-function activatePrism(reason){
-  prismTime=PRISM_DURATION_SECONDS;prismCollectedThisRun++;playPrismSound();showModeBanner("REFRACTION");
-  trackGame("prism_orb_collected",{trigger_reason:reason||"unknown",distance:Math.floor(distance),flow_number:currentFlowIndex+1,duration_seconds:PRISM_DURATION_SECONDS,prism_count_run:prismCollectedThisRun});
-}
+const CHRONO_SCORE_MULTIPLIER=2;
 
 // =========================
 // SHIFTVIX 5.5 — FLUX ORB
@@ -858,9 +820,9 @@ function activateFluxBoost(reason){
 
 
 // =========================
-// SHIFTVIX 5.6 — CHRONO ORB
-// Appears only after the run is already fast. It slows world simulation while
-// keeping lane input fully responsive, then eases back into the prior warp.
+// SHIFTVIX CHRONO 2.0
+// Slows world simulation, refracts the universe, and doubles score earned from
+// normal orb collections while keeping steering fully responsive.
 // =========================
 const CHRONO_DURATION_SECONDS=10;
 const CHRONO_MIN_DISTANCE=1800;
@@ -916,6 +878,25 @@ function updateChronoState(dt){
       String(Math.min(.78,chronoAmount*.78))
     );
   }
+
+  // Prism is no longer a separate orb. It is Chrono's visual identity.
+  const prismFx=document.getElementById("prismFx");
+  if(prismFx){
+    prismFx.classList.toggle("active",chronoAmount>.012);
+    prismFx.style.setProperty(
+      "--chrono-prism-power",
+      String(Math.min(.38,chronoAmount*.38))
+    );
+  }
+
+  const multiplier=document.getElementById("chronoMultiplier");
+  if(multiplier){
+    multiplier.classList.toggle("show",chronoTime>0);
+  }
+
+  renderer.domElement.style.filter=chronoAmount>.01
+    ? `saturate(${1+chronoAmount*.62}) brightness(${1+chronoAmount*.13}) contrast(${1+chronoAmount*.09}) hue-rotate(${Math.sin(performance.now()*.00135)*chronoAmount*7}deg)`
+    : "none";
 }
 
 function playChronoSound(){
@@ -965,7 +946,7 @@ function activateChrono(reason){
   chronoPendingReasons.length=0;
 
   playChronoSound();
-  showModeBanner("CHRONO STATE");
+  showModeBanner("CHRONO ×2 SCORE");
 
   if(navigator.vibrate)navigator.vibrate([22,45,22]);
 
@@ -975,7 +956,9 @@ function activateChrono(reason){
     flow_number:currentFlowIndex+1,
     chrono_count_run:chronoCollectedThisRun,
     duration_seconds:CHRONO_DURATION_SECONDS,
-    world_scale:CHRONO_WORLD_SCALE
+    world_scale:CHRONO_WORLD_SCALE,
+    score_multiplier:CHRONO_SCORE_MULTIPLIER,
+    prism_visual:true
   });
 }
 
@@ -3315,36 +3298,6 @@ function makeMidasOrb(reason="random"){
   return true;
 }
 
-function makeObserverOrb(reason="random_wave"){
-  if(observerOrbActive)return false;
-  trainId++;
-  const xIndex=Math.floor(Math.random()*3),yIndex=Math.floor(Math.random()*3),x=LANE_X[xIndex],y=LANE_Y[yIndex];
-  const group=new THREE.Group();
-  const core=new THREE.Mesh(new THREE.SphereGeometry(7.5,24,24),new THREE.MeshBasicMaterial({color:0xf4fbff}));
-  const shell=new THREE.Mesh(new THREE.SphereGeometry(9.0,20,20),new THREE.MeshBasicMaterial({color:0x9fb8cc,wireframe:true,transparent:true,opacity:.72,blending:THREE.AdditiveBlending,depthWrite:false}));
-  const glow=new THREE.Mesh(new THREE.SphereGeometry(14.2,20,20),new THREE.MeshBasicMaterial({color:0xcdeeff,transparent:true,opacity:.18,blending:THREE.AdditiveBlending,depthWrite:false}));
-  group.add(glow);group.add(shell);group.add(core);group.position.set(x,y,FAR_Z+90);
-  group.userData={core,shell,glow,state:"active",fade:1,train:trainId,speedMult:1,roadX:x,roadY:y,isObserver:true,observerReason:reason};
-  group.scale.setScalar(introScale);scene.add(group);beacons.push(group);observerOrbActive=true;
-  trackGame("observer_orb_spawned",{trigger_reason:reason,distance:Math.floor(distance),flow_number:currentFlowIndex+1,lane_x:xIndex,lane_y:yIndex});
-  return true;
-}
-
-function makePrismOrb(reason="random_wave"){
-  if(prismOrbActive)return false;
-  trainId++;
-  const xIndex=Math.floor(Math.random()*3),yIndex=Math.floor(Math.random()*3),x=LANE_X[xIndex],y=LANE_Y[yIndex];
-  const group=new THREE.Group();
-  const core=new THREE.Mesh(new THREE.IcosahedronGeometry(7.8,1),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.78,wireframe:true}));
-  const shell=new THREE.Mesh(new THREE.IcosahedronGeometry(9.7,1),new THREE.MeshBasicMaterial({color:0x8ff7ff,transparent:true,opacity:.42,wireframe:true,blending:THREE.AdditiveBlending,depthWrite:false}));
-  const glow=new THREE.Mesh(new THREE.SphereGeometry(14.5,20,20),new THREE.MeshBasicMaterial({color:0xff78e8,transparent:true,opacity:.17,blending:THREE.AdditiveBlending,depthWrite:false}));
-  group.add(glow);group.add(shell);group.add(core);group.position.set(x,y,FAR_Z+90);
-  group.userData={core,shell,glow,state:"active",fade:1,train:trainId,speedMult:1,roadX:x,roadY:y,isPrism:true,prismReason:reason};
-  group.scale.setScalar(introScale);scene.add(group);beacons.push(group);prismOrbActive=true;
-  trackGame("prism_orb_spawned",{trigger_reason:reason,distance:Math.floor(distance),flow_number:currentFlowIndex+1,lane_x:xIndex,lane_y:yIndex});
-  return true;
-}
-
 function makeLegendaryOrb(){
   const available=[];
 
@@ -3364,8 +3317,6 @@ function makeLegendaryOrb(){
     type:"midas",
     spawn:()=>makeMidasOrb("random_wave")
   });
-  if(!observerOrbActive)available.push({type:"observer",spawn:()=>makeObserverOrb("random_wave")});
-  if(!prismOrbActive)available.push({type:"prism",spawn:()=>makePrismOrb("random_wave")});
 
   if(!available.length)return false;
 
@@ -3549,7 +3500,7 @@ function startGame(){
     startMusic();
 }
 
-function showScorePopup(text){const el=document.createElement("div");el.className="scorePopup";el.textContent=text;document.body.appendChild(el);setTimeout(()=>el.remove(),900);}
+function showScorePopup(text,isChrono=false){const el=document.createElement("div");el.className="scorePopup"+(isChrono?" chronoScore":"");el.textContent=isChrono?text+"  ×2":text;document.body.appendChild(el);setTimeout(()=>el.remove(),900);}
 function showMultiplierPopup(multiplier){
 
     const existing =
@@ -3721,30 +3672,16 @@ function takeStrike(){
  if(
    b.userData.isFlux||
    b.userData.isChrono||
-   b.userData.isMidas||
-   b.userData.isObserver||
-   b.userData.isPrism
+   b.userData.isMidas
  ){
    const collectedType=
      b.userData.isFlux?"flux":
      b.userData.isChrono?"chrono":
-     b.userData.isMidas?"midas":
-     b.userData.isObserver?"observer":"prism";
+     "midas";
 
    if(b.userData.isFlux)fluxOrbActive=false;
    if(b.userData.isChrono)chronoOrbActive=false;
    if(b.userData.isMidas)midasOrbActive=false;
-   if(b.userData.isObserver)observerOrbActive=false;
-   if(b.userData.isPrism)prismOrbActive=false;
-
-   if(collectedType==="observer"){
-     activateObserver(b.userData.observerReason);
-     return;
-   }
-   if(collectedType==="prism"){
-     activatePrism(b.userData.prismReason);
-     return;
-   }
 
    const activeEffect=currentLegendaryEffect();
 
@@ -3773,7 +3710,12 @@ function takeStrike(){
    return;
  }
 
- const gained=b.userData.value;
+ const baseGained=b.userData.value;
+ const chronoScoring=chronoTime>0;
+ const gained=
+   baseGained*
+   (chronoScoring?CHRONO_SCORE_MULTIPLIER:1);
+
 score += gained;
 foundCount++;
 if(midasTime>0)midasAbsorbedThisState++;
@@ -3791,7 +3733,7 @@ tierCounts[b.userData.tier.name] =
  if(foundCount===1){track("first_source_collected",{tier:b.userData.tier.name});}
  if(score>bestScore){bestScore=score;localStorage.setItem("sourceLaneBestScore",String(bestScore));}
  playCoin(b.userData.tier);
- showScorePopup("+"+gained);
+ showScorePopup("+"+gained,chronoScoring);
  updateHUD();updateChallenge();
  if(navigator.vibrate)navigator.vibrate(4);
 }
@@ -3820,8 +3762,6 @@ function endRun(){
     fluxBoostTime=0;
     chronoTime=0;
     midasTime=0;
-    observerTime=0;
-    prismTime=0;
     fluxPendingReasons.length=0;
     chronoPendingReasons.length=0;
     midasPendingReasons.length=0;
@@ -4018,13 +3958,13 @@ vix.style.transform = "translateY(0)";
 
 title.style.transform = "translate(-50%,-50%)";
 
-const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");center.style.borderColor="rgba(255,255,255,.95)";center.style.boxShadow="0 0 10px rgba(255,255,255,.55)";document.getElementById("roundComplete").style.display="none";beacons.forEach(b=>scene.remove(b));beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;observerOrbActive=false;observerTime=0;observerAmount=0;observerCollectedThisRun=0;prismOrbActive=false;prismTime=0;prismAmount=0;prismCollectedThisRun=0;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--prism-power","0");}renderer.domElement.style.filter="none";playerX=0;playerY=0;
+const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");center.style.borderColor="rgba(255,255,255,.95)";center.style.boxShadow="0 0 10px rgba(255,255,255,.55)";document.getElementById("roundComplete").style.display="none";beacons.forEach(b=>scene.remove(b));beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");renderer.domElement.style.filter="none";playerX=0;playerY=0;
 
 lastLevel = 1;strikes = 0;milestonesReached = {};runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;resetWarpBanking();resetEnvironmentForRun();beginCurrentFlow();updateStrikes();updateHUD();spawnWave();if(!musicStarted){startMusic();}else if(!musicTimer&&audioCtx){nextNoteTime=Math.max(nextNoteTime,audioCtx.currentTime+0.035);nextDrumTime=Math.max(nextDrumTime,audioCtx.currentTime+0.05);musicTimer=setInterval(musicScheduler,25);}}
 const title = document.getElementById("gameTitle");
 const shift = document.getElementById("shift");
 const vix = document.getElementById("vix");
-function animate(){requestAnimationFrame(animate);updateGamepad();const dt = Math.min(clock.getDelta(), .05);if(gameStarted&&!gameOver&&!paused){updateFluxBoost(dt);updateChronoState(dt);updateMidasState(dt);updateObserverState(dt);updatePrismState(dt);const worldTimeScale=THREE.MathUtils.lerp(1,CHRONO_WORLD_SCALE,chronoAmount);const worldDt=dt*worldTimeScale;const baseRunSpeed=SPEED_START+Math.min(150,distance*.018);speed=baseRunSpeed*(1+fluxBoostAmount*FLUX_SPEED_BOOST);distance+=speed*worldDt*.08;
+function animate(){requestAnimationFrame(animate);updateGamepad();const dt = Math.min(clock.getDelta(), .05);if(gameStarted&&!gameOver&&!paused){updateFluxBoost(dt);updateChronoState(dt);updateMidasState(dt);const worldTimeScale=THREE.MathUtils.lerp(1,CHRONO_WORLD_SCALE,chronoAmount);const worldDt=dt*worldTimeScale;const baseRunSpeed=SPEED_START+Math.min(150,distance*.018);speed=baseRunSpeed*(1+fluxBoostAmount*FLUX_SPEED_BOOST);distance+=speed*worldDt*.08;
 level = Math.floor(distance / 500) + 1;
 heroMode = ((performance.now()-runStartTime)/1000) < HERO_SECONDS;
 if(!heroMode && heroBannerShown){heroBannerShown=false;}
@@ -4079,10 +4019,8 @@ for(const m of milestones){
     }
 
 }updateChallenge();updateEnvironment(worldDt);spawnTimer-=worldDt;if(spawnTimer<=0){spawnTimer=.54+Math.random()*.26;spawnWave();}if(runStarted){breakTimer+=worldDt;if(breakTimer>BREAK_GRACE)takeStrike();}playerX+=(targetX-playerX)*(1-Math.pow(.0009,dt));playerY+=(targetY-playerY)*(1-Math.pow(.0009,dt));
-const observerBack=observerAmount*46;
-const observerLift=observerAmount*20;
-camera.position.x=playerX-observerAmount*7;
-camera.position.y=playerY+observerLift;
+camera.position.x=playerX;
+camera.position.y=playerY;
 // Camera Z is finalized below after warp offsets.
 // =========================
 // SHIFTVIX 5.3.2 — EXTENDED WARP BUILD
@@ -4187,7 +4125,7 @@ atmosphereColors[stage]
 
 camera.lookAt(
 playerX * 0.995 + vanishingX,
-playerY * 0.995 + vanishingY-observerAmount*5,
+playerY * 0.995 + vanishingY,
 -500
 );let targetFov =
 70
@@ -4199,8 +4137,6 @@ pulseFovBoost
 fluxBoostAmount*5
 -
 chronoAmount*4.5
-+
-observerAmount*7
 +
 Math.sin(distance*0.004)
 *
@@ -4215,9 +4151,7 @@ const roadPoint=environmentPoint(b.userData.roadX,b.userData.roadY);
 const isRegularCollectible=
   !b.userData.isFlux&&
   !b.userData.isChrono&&
-  !b.userData.isMidas&&
-  !b.userData.isObserver&&
-  !b.userData.isPrism;
+  !b.userData.isMidas;
 
 if(midasTime>0&&isRegularCollectible){
   // Golden Touch bends every normal coin from all nine lanes toward the player.
@@ -4277,20 +4211,6 @@ if(b.userData.isMidas){
   b.userData.glow.material.opacity=.17+shimmer*.22;
   const pulse=.98+blink*.12;b.scale.setScalar(introScale*pulse);
 }
-if(b.userData.isObserver){
-  const breath=.5+.5*Math.sin(performance.now()*.006);
-  b.userData.shell.rotation.x+=dt*.8;b.userData.shell.rotation.y+=dt*1.15;
-  b.userData.glow.material.opacity=.12+breath*.14;
-  b.scale.setScalar(introScale*(.97+breath*.08));
-}
-if(b.userData.isPrism){
-  const t=performance.now()*.006;
-  const c=new THREE.Color().setHSL((t%6.283)/6.283,.88,.68);
-  b.userData.shell.material.color.copy(c);b.userData.glow.material.color.copy(c);
-  b.userData.shell.rotation.x+=dt*1.3;b.userData.shell.rotation.y+=dt*1.8;
-  b.userData.glow.material.opacity=.14+.12*(.5+.5*Math.sin(t*2.1));
-  b.scale.setScalar(introScale*(1+.08*Math.sin(t*1.7)));
-}
 
 b.lookAt(playerX,playerY,PLAYER_Z);const dz=Math.abs(b.position.z-PLAYER_Z),dxy=Math.hypot(b.position.x-playerX,b.position.y-playerY);const midasAutoCollect=midasTime>0&&isRegularCollectible&&dz<58;if(midasAutoCollect||(dz<42&&dxy<(heroMode?COLLECT_RADIUS*1.45:COLLECT_RADIUS)))collectBeacon(b);if(b.position.z>NEAR_Z+60){
   if(b.userData.isFlux){
@@ -4315,8 +4235,6 @@ b.lookAt(playerX,playerY,PLAYER_Z);const dz=Math.abs(b.position.z-PLAYER_Z),dxy=
     midasOrbActive=false;
     trackGame("midas_orb_missed",{trigger_reason:b.userData.midasReason,distance:Math.floor(distance),flow_number:currentFlowIndex+1,midas_count_run:midasCollectedThisRun});
   }
-  if(b.userData.isObserver){observerOrbActive=false;trackGame("observer_orb_missed",{distance:Math.floor(distance),flow_number:currentFlowIndex+1});}
-  if(b.userData.isPrism){prismOrbActive=false;trackGame("prism_orb_missed",{distance:Math.floor(distance),flow_number:currentFlowIndex+1});}
 
   b.userData.state="missed";
 }}if(b.userData.state==="collected"||b.userData.state==="missed"){b.userData.fade-=dt*2.8;const f=Math.max(0,b.userData.fade);b.userData.core.material.transparent=true;b.userData.core.material.opacity=f;if(b.userData.shell)b.userData.shell.material.opacity=f*.58;b.userData.glow.material.opacity =
@@ -4543,9 +4461,7 @@ Math.pow(warpAmount,1.6)
 *
 5
 -
-pulseCameraOffset
-+
-observerAmount*46;
+pulseCameraOffset;
 
 const title = document.getElementById("gameTitle");
 
