@@ -309,8 +309,13 @@ canvas{display:block}
 #modeBanner.show{animation:modeFlash 1.25s ease-out forwards}
 @keyframes modeFlash{0%{opacity:0;transform:translate(-50%,-25%) scale(.8)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-85%) scale(1)}}
 /* SHIFTVIX 5.5 — Flux Orb boost. No orbiting particles or trail objects. */
-#fluxFx{position:absolute;inset:0;z-index:11;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.11) 0%,rgba(80,220,255,.07) 26%,rgba(210,70,255,.045) 48%,transparent 72%);mix-blend-mode:screen;transition:opacity .16s ease;box-shadow:inset 0 0 16vh rgba(255,255,255,.035)}
-#fluxFx.active{opacity:var(--flux-power,0)}
+#fluxFx{position:absolute;inset:0;z-index:11;pointer-events:none;opacity:0;background:transparent;box-shadow:none}
+#fluxFx.active{opacity:0}
+/* Clean, brief breakthrough flash used by Flux and each 3,000m warp boundary. */
+#warpBurstFx{position:absolute;inset:0;z-index:63;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.95) 0%,rgba(165,235,255,.58) 17%,rgba(85,160,255,.16) 42%,transparent 72%);mix-blend-mode:screen;transform:scale(.72)}
+#warpBurstFx.fire{animation:warpBurstFlash .48s cubic-bezier(.12,.65,.2,1) forwards}
+#warpBurstFx.flux{background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.92) 0%,rgba(85,234,255,.48) 16%,rgba(255,102,221,.12) 42%,transparent 72%)}
+@keyframes warpBurstFlash{0%{opacity:0;transform:scale(.68)}12%{opacity:.92;transform:scale(.88)}38%{opacity:.34;transform:scale(1.16)}100%{opacity:0;transform:scale(1.45)}}
 /* SHIFTVIX 5.6 — Chrono Orb. Calm ice-blue time dilation. */
 /* SHIFTVIX 5.6 — Chrono Orb. No blue fog overlay. */
 #chronoFx{
@@ -729,7 +734,7 @@ body.uiModalOpen #center{pointer-events:none}
   </div>
 </div>
 <div id="challengeHud"><div id="challengeName">CURRENT FLOW</div><div id="challengeText">LOADING…</div><div id="challengeBar"><div id="challengeFill"></div></div></div>
-<div id="modeBanner"></div><div id="chronoMultiplier">×2 SCORE</div><div id="flowFx"></div><div id="fluxFx"></div><div id="chronoFx"></div><div id="midasFx"></div><div id="prismFx"></div><div id="pulseWaves"></div>
+<div id="modeBanner"></div><div id="chronoMultiplier">×2 SCORE</div><div id="warpBurstFx"></div><div id="flowFx"></div><div id="fluxFx"></div><div id="chronoFx"></div><div id="midasFx"></div><div id="prismFx"></div><div id="pulseWaves"></div>
 <div id="flowArchive" aria-hidden="true"><div class="archiveCard" role="dialog" aria-modal="true" aria-labelledby="flowPathTitle"><div class="archiveHeader"><h2 id="flowPathTitle">FLOW PATH</h2><button class="archiveClose" id="archiveClose" type="button" aria-label="Close Flow Path">×</button></div><div id="archiveList"></div></div></div>
 
 <!-- SHIFTVIX CHRONO 2.0 — SLOW TIME + PRISM VISION + 2X SCORE -->
@@ -780,6 +785,8 @@ const TARGET_CAMERA_Z=72;
 // ---------- WARP ----------
 // SHIFTVIX 5.3.2: extended visual build + continuous session music.
 let warpAmount = 0;
+let launchSurge = 0;
+let lastWarpBreakthrough = 0;
 
 // =========================
 // SHIFTVIX 5.8 — LEGENDARY ORB ENGINE
@@ -857,11 +864,47 @@ function updateFluxBoost(dt){
   const target=fluxBoostTime>0?1:0;
   const response=1-Math.exp(-dt*(target?8.5:2.7));
   fluxBoostAmount+=(target-fluxBoostAmount)*response;
+  // Flux now changes pacing rather than adding particle or fog intensity.
   const fx=document.getElementById("fluxFx");
-  if(fx){
-    fx.classList.toggle("active",fluxBoostAmount>.015);
-    fx.style.setProperty("--flux-power",String(Math.min(.72,fluxBoostAmount*.72)));
-  }
+  if(fx)fx.classList.remove("active");
+}
+
+function fireWarpBurst(kind="warp"){
+  const fx=document.getElementById("warpBurstFx");
+  if(!fx)return;
+  fx.classList.remove("fire","flux");
+  if(kind==="flux")fx.classList.add("flux");
+  void fx.offsetWidth;
+  fx.classList.add("fire");
+}
+
+function playWarpBoom(strength=1){
+  initAudio();
+  if(!audioCtx)return;
+  const now=audioCtx.currentTime;
+  const osc=audioCtx.createOscillator();
+  const gain=audioCtx.createGain();
+  const filter=audioCtx.createBiquadFilter();
+  osc.type="sine";
+  osc.frequency.setValueAtTime(105*strength,now);
+  osc.frequency.exponentialRampToValueAtTime(38,now+.42);
+  filter.type="lowpass";
+  filter.frequency.setValueAtTime(520,now);
+  gain.gain.setValueAtTime(.0001,now);
+  gain.gain.linearRampToValueAtTime(.075*strength,now+.018);
+  gain.gain.exponentialRampToValueAtTime(.0001,now+.58);
+  osc.connect(filter).connect(gain).connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now+.62);
+}
+
+function triggerWarpBreakthrough(kind="warp"){
+  fireWarpBurst(kind);
+  playWarpBoom(kind==="flux"?.82:1);
+  launchSurge=Math.max(launchSurge,kind==="flux"?7:10);
+  warpCurveVelocityX+=(Math.random()-.5)*5;
+  warpCurveVelocityY+=(Math.random()-.5)*3;
+  if(navigator.vibrate)navigator.vibrate(kind==="flux"?[18,24,34]:[28,36,52]);
 }
 
 function playFluxSound(){
@@ -897,6 +940,7 @@ function activateFluxBoost(reason){
   fluxCooldownUntilDistance=distance+800+Math.random()*200;
   fluxPendingReasons.length=0;
   playFluxSound();
+  triggerWarpBreakthrough("flux");
   showModeBanner("FLUX DRIVE");
   if(navigator.vibrate)navigator.vibrate([18,22,35]);
   trackGame("flux_orb_collected",{
@@ -4125,7 +4169,7 @@ title.style.transform = "translate(-50%,-50%)";
 
 const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");center.style.borderColor="rgba(255,255,255,.95)";center.style.boxShadow="0 0 10px rgba(255,255,255,.55)";document.getElementById("roundComplete").style.display="none";beacons.forEach(b=>scene.remove(b));beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");renderer.domElement.style.filter="none";playerX=0;playerY=0;
 
-lastLevel = 1;strikes = 0;milestonesReached = {};runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;resetWarpBanking();resetEnvironmentForRun();beginCurrentFlow();updateStrikes();updateHUD();spawnWave();if(!musicStarted){startMusic();}else if(!musicTimer&&audioCtx){nextNoteTime=Math.max(nextNoteTime,audioCtx.currentTime+0.035);nextDrumTime=Math.max(nextDrumTime,audioCtx.currentTime+0.05);musicTimer=setInterval(musicScheduler,25);}}
+lastLevel = 1;strikes = 0;milestonesReached = {};lastWarpBreakthrough=0;launchSurge=0;runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;resetWarpBanking();resetEnvironmentForRun();beginCurrentFlow();updateStrikes();updateHUD();spawnWave();if(!musicStarted){startMusic();}else if(!musicTimer&&audioCtx){nextNoteTime=Math.max(nextNoteTime,audioCtx.currentTime+0.035);nextDrumTime=Math.max(nextDrumTime,audioCtx.currentTime+0.05);musicTimer=setInterval(musicScheduler,25);}}
 const title = document.getElementById("gameTitle");
 const shift = document.getElementById("shift");
 const vix = document.getElementById("vix");
@@ -4161,6 +4205,8 @@ const milestones = [
 
 2500,
 
+3000,
+
 5000,
 
 7500,
@@ -4183,7 +4229,25 @@ for(const m of milestones){
 
     }
 
-}updateChallenge();updateEnvironment(worldDt);spawnTimer-=worldDt;if(spawnTimer<=0){spawnTimer=.54+Math.random()*.26;spawnWave();}if(runStarted){breakTimer+=worldDt;if(breakTimer>BREAK_GRACE)takeStrike();}playerX+=(targetX-playerX)*(1-Math.pow(.0009,dt));playerY+=(targetY-playerY)*(1-Math.pow(.0009,dt));
+}
+
+const warpBoundary=Math.floor(distance/3000);
+if(warpBoundary>lastWarpBreakthrough){
+    lastWarpBreakthrough=warpBoundary;
+    triggerWarpBreakthrough("warp");
+    showModeBanner("WARP BREAKTHROUGH");
+}
+
+updateChallenge();
+updateEnvironment(worldDt);
+spawnTimer-=worldDt;
+if(spawnTimer<=0){
+    // Flux increases incoming train frequency instead of increasing dust/stars.
+    const normalInterval=.54+Math.random()*.26;
+    const fluxInterval=.32+Math.random()*.16;
+    spawnTimer=THREE.MathUtils.lerp(normalInterval,fluxInterval,fluxBoostAmount);
+    spawnWave();
+}if(runStarted){breakTimer+=worldDt;if(breakTimer>BREAK_GRACE)takeStrike();}playerX+=(targetX-playerX)*(1-Math.pow(.0009,dt));playerY+=(targetY-playerY)*(1-Math.pow(.0009,dt));
 camera.position.x=playerX;
 camera.position.y=playerY;
 // Camera Z is finalized below after warp offsets.
@@ -4235,7 +4299,7 @@ if(cycleDistance >= WARP_BUILD_END){
 
 // Flux Drive temporarily intensifies the existing warp without changing lanes,
 // controls, collision radius, or obstacle logic.
-warpAmount=Math.min(1,warpAmount+fluxBoostAmount*.30);
+// Flux no longer adds warp particles or visual density.
 
 // Atmosphere pacing follows the same capped visual distance so fog and color
 // do not keep escalating after the preferred 1050m-quality appearance.
@@ -4406,7 +4470,7 @@ b.lookAt(playerX,playerY,PLAYER_Z);const dz=Math.abs(b.position.z-PLAYER_Z),dxy=
 f * (
 0.09 +
 warpAmount * 0.18
-);b.scale.setScalar(Math.max(.001,f));}});for(let i=beacons.length-1;i>=0;i--){const b=beacons[i];if((b.userData.state==="collected"||b.userData.state==="missed")&&b.userData.fade<=0){scene.remove(b);beacons.splice(i,1);}};stars.forEach(s=>{const pos = s.geometry.attributes.position;const speedMultiplier =1 + warpAmount * 7 + fluxBoostAmount * 4.5;const stretch =1 + warpAmount * 5 * (1-chronoAmount*.72);for(let i=0;i<pos.count;i++){
+);b.scale.setScalar(Math.max(.001,f));}});for(let i=beacons.length-1;i>=0;i--){const b=beacons[i];if((b.userData.state==="collected"||b.userData.state==="missed")&&b.userData.fade<=0){scene.remove(b);beacons.splice(i,1);}};stars.forEach(s=>{const pos = s.geometry.attributes.position;const speedMultiplier =1 + warpAmount * 7;const stretch =1 + warpAmount * 5 * (1-chronoAmount*.72);for(let i=0;i<pos.count;i++){
 
     const baseXY = s.userData.baseXY;
     const baseX = baseXY ? baseXY[i*2] : pos.getX(i);
@@ -4605,7 +4669,8 @@ updateWarpBanking(dt);
 updateHUD();}if(gameStarted&&!gameOver){
 introScale += (1-introScale)*dt*0.6;beacons.forEach(b=>{if(b.userData.state==="active") b.scale.lerp(new THREE.Vector3(introScale,introScale,introScale),0.08);});
 introCameraZ += (TARGET_CAMERA_Z-introCameraZ)*dt*0.18;
-camera.position.z=introCameraZ;camera.position.x +=
+launchSurge*=Math.exp(-dt*7.5);
+camera.position.z=introCameraZ-launchSurge;camera.position.x +=
 (Math.random()-0.5)
 *
 warpAmount
