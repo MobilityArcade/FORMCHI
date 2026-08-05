@@ -833,9 +833,9 @@ const CHRONO_SCORE_MULTIPLIER=2;
 // A rare, rapidly iridescent orb earned through skill, distance, Flow
 // completion, or a very small lucky chance. No surrounding particles.
 // =========================
-const FLUX_DURATION_SECONDS = 4.5;
+const FLUX_DURATION_SECONDS = 8;
 const FLUX_COLLECTION_STREAK_TARGET = 120;
-const FLUX_SPEED_BOOST = 0.13;
+const FLUX_SPEED_BOOST = 0.24;
 const FLUX_PALETTE = [0xffffff,0x55eaff,0xff66dd,0xa866ff,0xffd36a];
 let fluxCollectionStreak = 0;
 let fluxPendingReasons = [];
@@ -901,7 +901,7 @@ function playWarpBoom(strength=1){
 function triggerWarpBreakthrough(kind="warp"){
   fireWarpBurst(kind);
   playWarpBoom(kind==="flux"?.82:1);
-  launchSurge=Math.max(launchSurge,kind==="flux"?7:10);
+  launchSurge=Math.max(launchSurge,kind==="flux"?13:10);
   warpCurveVelocityX+=(Math.random()-.5)*5;
   warpCurveVelocityY+=(Math.random()-.5)*3;
   if(navigator.vibrate)navigator.vibrate(kind==="flux"?[18,24,34]:[28,36,52]);
@@ -4244,7 +4244,7 @@ spawnTimer-=worldDt;
 if(spawnTimer<=0){
     // Flux increases incoming train frequency instead of increasing dust/stars.
     const normalInterval=.54+Math.random()*.26;
-    const fluxInterval=.32+Math.random()*.16;
+    const fluxInterval=.22+Math.random()*.12;
     spawnTimer=THREE.MathUtils.lerp(normalInterval,fluxInterval,fluxBoostAmount);
     spawnWave();
 }if(runStarted){breakTimer+=worldDt;if(breakTimer>BREAK_GRACE)takeStrike();}playerX+=(targetX-playerX)*(1-Math.pow(.0009,dt));playerY+=(targetY-playerY)*(1-Math.pow(.0009,dt));
