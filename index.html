@@ -175,9 +175,111 @@ canvas{display:block}
 .strikeDot.lifeLostPulse{
     animation:lifeLostPulse .55s ease-out forwards;
 }
-#center{position:absolute;left:50%;top:50%;width:20px;height:20px;border-radius:50%;transform:translate(-50%,-50%);background:transparent;border:2px solid rgba(255,255,255,.95);box-shadow:0 0 10px rgba(255,255,255,.55);z-index:13;pointer-events:auto;cursor:pointer}
-#center::after{content:"";position:absolute;left:50%;top:50%;width:42px;height:42px;border-radius:50%;transform:translate(-50%,-50%);border:1px solid rgba(255,255,255,.45);box-shadow:none;animation:pulse 1.05s ease-in-out infinite alternate}
-@keyframes pulse{from{transform:translate(-50%,-50%) scale(.92);opacity:.65}to{transform:translate(-50%,-50%) scale(1.25);opacity:1}}
+/* SHIFTVIX CENTER REACTOR RING — minimal three-ring flight reticle */
+#center{
+    --reactor-color:255,255,255;
+    --reactor-scale:1;
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    transform:translate(-50%,-50%) scale(var(--reactor-scale));
+    background:rgba(0,0,0,.72);
+    border:2px solid rgba(255,255,255,.98);
+    box-shadow:0 0 8px rgba(255,255,255,.72),inset 0 0 7px rgba(255,255,255,.24);
+    z-index:13;
+    pointer-events:auto;
+    cursor:pointer;
+    transition:transform .28s ease,border-color .24s ease,box-shadow .24s ease;
+}
+#center .reactorMiddle,
+#center .reactorOuter{
+    position:absolute;
+    left:50%;
+    top:50%;
+    border-radius:50%;
+    pointer-events:none;
+    box-sizing:border-box;
+    transition:width .3s ease,height .3s ease,border-color .24s ease,box-shadow .24s ease,opacity .24s ease;
+}
+#center .reactorMiddle{
+    width:43px;
+    height:43px;
+    transform:translate(-50%,-50%);
+    border:1px solid rgba(255,255,255,.48);
+    box-shadow:0 0 7px rgba(255,255,255,.12);
+}
+#center .reactorOuter{
+    width:64px;
+    height:64px;
+    transform:translate(-50%,-50%);
+    border:2px solid rgba(var(--reactor-color),.88);
+    box-shadow:0 0 10px rgba(var(--reactor-color),.48),inset 0 0 8px rgba(var(--reactor-color),.12);
+    animation:reactorBreathe 1.8s ease-in-out infinite;
+}
+@keyframes reactorBreathe{
+    0%,100%{transform:translate(-50%,-50%) scale(.97);opacity:.72}
+    50%{transform:translate(-50%,-50%) scale(1.04);opacity:1}
+}
+#center.reactorFlux{
+    --reactor-color:85,234,255;
+    --reactor-scale:1.08;
+    border-color:#eaffff;
+    box-shadow:0 0 12px rgba(255,255,255,.92),0 0 22px rgba(85,234,255,.55);
+}
+#center.reactorFlux .reactorOuter{
+    width:78px;
+    height:78px;
+    border-color:rgba(85,234,255,.98);
+    box-shadow:0 0 12px rgba(85,234,255,.9),0 0 28px rgba(255,102,221,.38),inset 0 0 10px rgba(85,234,255,.18);
+    animation-duration:.72s;
+}
+#center.reactorChrono{
+    --reactor-color:174,139,255;
+    --reactor-scale:.96;
+}
+#center.reactorChrono .reactorOuter{
+    width:56px;
+    height:56px;
+    border-color:rgba(174,139,255,.95);
+    box-shadow:0 0 11px rgba(174,139,255,.7),inset 0 0 8px rgba(70,207,255,.14);
+    animation-duration:2.45s;
+}
+#center.reactorMidas{
+    --reactor-color:255,195,65;
+    --reactor-scale:1.03;
+}
+#center.reactorMidas .reactorOuter{
+    width:70px;
+    height:70px;
+    border-color:rgba(255,195,65,.98);
+    box-shadow:0 0 12px rgba(255,195,65,.88),0 0 25px rgba(255,130,0,.3),inset 0 0 9px rgba(255,211,106,.18);
+    animation-duration:1.35s;
+}
+#center.reactorDamage{
+    --reactor-color:255,55,55;
+    --reactor-scale:1.14;
+    border-color:#fff;
+    animation:reactorHit .42s ease-out;
+}
+#center.reactorDamage .reactorOuter{
+    width:76px;
+    height:76px;
+    border-color:rgba(255,55,55,1);
+    box-shadow:0 0 14px rgba(255,55,55,1),0 0 30px rgba(255,35,35,.6);
+    animation:none;
+}
+@keyframes reactorHit{
+    0%{transform:translate(-50%,-50%) scale(.82)}
+    35%{transform:translate(-50%,-50%) scale(1.24)}
+    100%{transform:translate(-50%,-50%) scale(1.14)}
+}
+@media(prefers-reduced-motion:reduce){
+    #center .reactorOuter{animation:none}
+    #center.reactorDamage{animation:none}
+}
 #laneLabel{display:none}
 #startOverlay{position:absolute;inset:0;display:grid;place-items:center;text-align:center;z-index:80;background:radial-gradient(circle,rgba(255,102,204,.10),rgba(0,0,0,.92))}
 .startCard{width:min(430px,82vw);padding:34px 28px;border-radius:26px;background:rgba(0,0,0,.72);border:1px solid rgba(255,255,255,.16);box-shadow:0 0 70px rgba(255,102,204,.18)}
@@ -718,7 +820,7 @@ body.uiModalOpen #center{pointer-events:none}
 </div></div>
 <div style="display:none"><span id="world">Distance Run</span>
 <span id="found">0</span><span id="score">0</span><span id="bestScore">0</span><span id="combo">1x</span><div id="signal"></div></div></div>
-<div id="center"></div><div id="pauseText">PAUSED</div><div id="laneLabel">CENTER</div><div id="roundComplete"></div>
+<div id="center" aria-label="Pause"><span class="reactorMiddle"></span><span class="reactorOuter"></span></div><div id="pauseText">PAUSED</div><div id="laneLabel">CENTER</div><div id="roundComplete"></div>
 <div id="pauseMenu" aria-hidden="true">
   <div class="pausePanel" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
     <div class="pauseTitle" id="pauseTitle">PAUSED</div>
@@ -810,6 +912,25 @@ function currentLegendaryEffect(){
   return null;
 }
 
+let reactorDamageUntil=0;
+function updateCenterReactor(){
+  const center=document.getElementById("center");
+  if(!center)return;
+  const damageActive=performance.now()<reactorDamageUntil;
+  center.classList.toggle("reactorDamage",damageActive);
+  center.classList.toggle("reactorFlux",!damageActive&&fluxBoostTime>0);
+  center.classList.toggle("reactorChrono",!damageActive&&chronoTime>0);
+  center.classList.toggle("reactorMidas",!damageActive&&midasTime>0);
+}
+function pulseCenterReactorDamage(){
+  reactorDamageUntil=performance.now()+430;
+  const center=document.getElementById("center");
+  if(!center)return;
+  center.classList.remove("reactorDamage");
+  void center.offsetWidth;
+  updateCenterReactor();
+}
+
 function scheduleNextLegendaryWindow(){
   legendaryNextAllowedAt=
     performance.now()+
@@ -867,6 +988,7 @@ function updateFluxBoost(dt){
   // Flux now changes pacing rather than adding particle or fog intensity.
   const fx=document.getElementById("fluxFx");
   if(fx)fx.classList.remove("active");
+  updateCenterReactor();
 }
 
 function fireWarpBurst(kind="warp"){
@@ -1032,6 +1154,7 @@ function updateChronoState(dt){
   renderer.domElement.style.filter=chronoAmount>.01
     ? `saturate(${1+chronoAmount*.62}) brightness(${1+chronoAmount*.13}) contrast(${1+chronoAmount*.09}) hue-rotate(${Math.sin(performance.now()*.00135)*chronoAmount*7}deg)`
     : "none";
+  updateCenterReactor();
 }
 
 function playChronoSound(){
@@ -1193,6 +1316,7 @@ function updateMidasState(dt){
     });
     midasAbsorbedThisState=0;
   }
+  updateCenterReactor();
 }
 
 function playMidasSound(){
@@ -3847,6 +3971,7 @@ function takeStrike(){
     combo = 1;
 
     playStrike();
+    pulseCenterReactorDamage();
 
     if(navigator.vibrate){
         navigator.vibrate([30,40,30]);
@@ -4167,7 +4292,7 @@ vix.style.transform = "translateY(0)";
 
 title.style.transform = "translate(-50%,-50%)";
 
-const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");center.style.borderColor="rgba(255,255,255,.95)";center.style.boxShadow="0 0 10px rgba(255,255,255,.55)";document.getElementById("roundComplete").style.display="none";beacons.forEach(b=>scene.remove(b));beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");renderer.domElement.style.filter="none";playerX=0;playerY=0;
+const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center)center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");reactorDamageUntil=0;document.getElementById("roundComplete").style.display="none";beacons.forEach(b=>scene.remove(b));beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");renderer.domElement.style.filter="none";playerX=0;playerY=0;
 
 lastLevel = 1;strikes = 0;milestonesReached = {};lastWarpBreakthrough=0;launchSurge=0;runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;resetWarpBanking();resetEnvironmentForRun();beginCurrentFlow();updateStrikes();updateHUD();spawnWave();if(!musicStarted){startMusic();}else if(!musicTimer&&audioCtx){nextNoteTime=Math.max(nextNoteTime,audioCtx.currentTime+0.035);nextDrumTime=Math.max(nextDrumTime,audioCtx.currentTime+0.05);musicTimer=setInterval(musicScheduler,25);}}
 const title = document.getElementById("gameTitle");
