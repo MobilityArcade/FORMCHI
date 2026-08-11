@@ -51,15 +51,62 @@ function track(eventName, data = {}) {
 <meta name="apple-mobile-web-app-title" content="SHIFTVIX">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<!-- SHIFTVIX 2.4 — SURVIVE THE FLOW + VOID HAZARDS + SILENT FIRST-RUN TUTORIAL -->
 <title>SHIFTVIX</title>
 <style>
-html,body{margin:0;height:100%;overflow:hidden;background:#000;color:white;font-family:Arial,Helvetica,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-canvas{display:block}
+html,body{
+  margin:0;
+  overflow:hidden;
+  background:#000;
+  color:white;
+  font-family:Arial,Helvetica,sans-serif;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-touch-callout:none;
+}
+html{
+  width:100%;
+  height:100%;
+  background:#000;
+}
+body{
+  position:fixed;
+  left:0;
+  top:0;
+  width:var(--shiftvix-app-width,100vw);
+  height:var(--shiftvix-app-height,100vh);
+  min-width:var(--shiftvix-app-width,100vw);
+  min-height:var(--shiftvix-app-height,100vh);
+  max-width:var(--shiftvix-app-width,100vw);
+  max-height:var(--shiftvix-app-height,100vh);
+}
+canvas{
+  display:block;
+  position:fixed !important;
+  left:0;
+  top:0;
+  width:100%;
+  height:100%;
+  max-width:none !important;
+  max-height:none !important;
+}
 #gameTitle{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:20;pointer-events:none;text-align:center;line-height:.78;font-family:Arial Black,sans-serif;filter:none;}
 #shift{display:block;color:transparent;font-size:clamp(96px,13vw,132px);font-weight:900;letter-spacing:4px;-webkit-text-stroke:4px #ffd36a;}
 #vix{display:block;margin-top:-0001px;color:transparent;-webkit-text-fill-color:transparent;-webkit-text-stroke:4px #ffd36a;font-size:clamp(112px,16vw,160px);font-weight:900;letter-spacing:4px;}
 @media (max-width:768px){#shift{font-size:clamp(76px,11vw,108px);}#vix{font-size:clamp(88px,13vw,128px);margin-top:14px;}}
-#hud{position:absolute;top:108px;left:50%;transform:translateX(-50%);display:flex;gap:110px;z-index:20;pointer-events:none;}
+#hud{
+    position:absolute;
+    top:108px;
+    left:50%;
+    transform:translateX(-50%);
+    width:min(620px,82vw);
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    align-items:start;
+    z-index:20;
+    pointer-events:none;
+}
     .hudBlock{
     display:flex;
     flex-direction:column;
@@ -175,10 +222,17 @@ canvas{display:block}
 .strikeDot.lifeLostPulse{
     animation:lifeLostPulse .55s ease-out forwards;
 }
-/* SHIFTVIX CENTER REACTOR RING — minimal three-ring flight reticle */
+/* SHIFTVIX IONIC THRUSTER — permanent living center reactor */
 #center{
-    --reactor-color:255,255,255;
+    --reactor-color:210,245,255;
+    --reactor-hot:255,255,255;
+    --reactor-plume:105,225,255;
+    --reactor-plume-edge:70,150,255;
     --reactor-scale:1;
+    --thrust-angle:90deg;
+    --thrust-power:0;
+    --thrust-length:26px;
+    --thrust-width:9px;
     position:absolute;
     left:50%;
     top:50%;
@@ -186,99 +240,334 @@ canvas{display:block}
     height:22px;
     border-radius:50%;
     transform:translate(-50%,-50%) scale(var(--reactor-scale));
-    background:rgba(0,0,0,.72);
+    background:
+        radial-gradient(circle at 50% 50%,
+            rgba(var(--reactor-hot),.98) 0 12%,
+            rgba(var(--reactor-plume),.78) 20%,
+            rgba(7,18,28,.88) 46%,
+            rgba(0,0,0,.92) 70%);
     border:2px solid rgba(255,255,255,.98);
-    box-shadow:0 0 8px rgba(255,255,255,.72),inset 0 0 7px rgba(255,255,255,.24);
+    box-shadow:
+        0 0 8px rgba(255,255,255,.78),
+        0 0 16px rgba(var(--reactor-color),.28),
+        inset 0 0 8px rgba(var(--reactor-plume),.42);
     z-index:13;
     pointer-events:auto;
     cursor:pointer;
-    transition:transform .28s ease,border-color .24s ease,box-shadow .24s ease;
+    transition:
+        transform .28s ease,
+        border-color .24s ease,
+        box-shadow .24s ease,
+        background .24s ease;
+    isolation:isolate;
 }
+
+#center .reactorCore,
 #center .reactorMiddle,
-#center .reactorOuter{
+#center .reactorOuter,
+#center .reactorPlume{
     position:absolute;
     left:50%;
     top:50%;
-    border-radius:50%;
     pointer-events:none;
     box-sizing:border-box;
-    transition:width .3s ease,height .3s ease,border-color .24s ease,box-shadow .24s ease,opacity .24s ease;
 }
+
+#center .reactorCore{
+    width:11px;
+    height:11px;
+    border-radius:50%;
+    transform:translate(-50%,-50%);
+    background:
+        radial-gradient(circle,
+            rgba(255,255,255,1) 0 20%,
+            rgba(var(--reactor-hot),.98) 32%,
+            rgba(var(--reactor-plume),.56) 58%,
+            transparent 76%);
+    box-shadow:
+        0 0 7px rgba(255,255,255,.96),
+        0 0 14px rgba(var(--reactor-plume),.72);
+    animation:ionicCoreIdle 1.25s ease-in-out infinite;
+    z-index:4;
+}
+
+#center .reactorMiddle,
+#center .reactorOuter{
+    border-radius:50%;
+    transform:translate(-50%,-50%);
+    transition:
+        width .3s ease,
+        height .3s ease,
+        border-color .24s ease,
+        box-shadow .24s ease,
+        opacity .24s ease;
+}
+
 #center .reactorMiddle{
     width:43px;
     height:43px;
-    transform:translate(-50%,-50%);
-    border:1px solid rgba(255,255,255,.48);
-    box-shadow:0 0 7px rgba(255,255,255,.12);
+    border:1px solid rgba(255,255,255,.50);
+    box-shadow:
+        0 0 7px rgba(255,255,255,.13),
+        inset 0 0 6px rgba(var(--reactor-plume),.08);
+    z-index:2;
 }
+
 #center .reactorOuter{
     width:64px;
     height:64px;
-    transform:translate(-50%,-50%);
     border:2px solid rgba(var(--reactor-color),.88);
-    box-shadow:0 0 10px rgba(var(--reactor-color),.48),inset 0 0 8px rgba(var(--reactor-color),.12);
+    box-shadow:
+        0 0 10px rgba(var(--reactor-color),.48),
+        inset 0 0 8px rgba(var(--reactor-color),.12);
     animation:reactorBreathe 1.8s ease-in-out infinite;
+    z-index:1;
 }
+
+/* Short ion cone. It appears only while the player is changing lanes. */
+#center .reactorPlume{
+    left:50%;
+    top:50%;
+    width:calc(var(--thrust-length) * (.42 + var(--thrust-power) * .58));
+    height:calc(var(--thrust-width) * (.72 + var(--thrust-power) * .28));
+    border-radius:999px 72% 72% 999px;
+    transform-origin:0 50%;
+    transform:
+        translate(7px,-50%)
+        rotate(var(--thrust-angle))
+        scaleX(calc(.74 + var(--thrust-power) * .26));
+    opacity:calc(var(--thrust-power) * .88);
+    background:linear-gradient(
+        90deg,
+        rgba(255,255,255,.98) 0%,
+        rgba(var(--reactor-hot),.92) 18%,
+        rgba(var(--reactor-plume),.72) 54%,
+        rgba(var(--reactor-plume-edge),.12) 100%
+    );
+    box-shadow:
+        0 0 6px rgba(255,255,255,.86),
+        0 0 13px rgba(var(--reactor-plume),.64);
+    filter:blur(.25px);
+    transition:
+        opacity .08s linear,
+        width .12s ease,
+        height .12s ease,
+        background .22s ease,
+        box-shadow .22s ease;
+    z-index:-1;
+}
+
+@keyframes ionicCoreIdle{
+    0%,100%{
+        transform:translate(-50%,-50%) scale(.92);
+        opacity:.78;
+        filter:brightness(.92);
+    }
+    52%{
+        transform:translate(-50%,-50%) scale(1.12);
+        opacity:1;
+        filter:brightness(1.18);
+    }
+}
+
+@keyframes ionicCoreFlux{
+    0%,100%{transform:translate(-50%,-50%) scale(1.02);filter:brightness(1.06)}
+    24%{transform:translate(-50%,-50%) scale(1.24);filter:brightness(1.35)}
+    61%{transform:translate(-50%,-50%) scale(1.11);filter:brightness(1.18)}
+}
+
 @keyframes reactorBreathe{
     0%,100%{transform:translate(-50%,-50%) scale(.97);opacity:.72}
     50%{transform:translate(-50%,-50%) scale(1.04);opacity:1}
 }
-#center.reactorFlux{
-    --reactor-color:85,234,255;
-    --reactor-scale:1.08;
-    border-color:#eaffff;
-    box-shadow:0 0 12px rgba(255,255,255,.92),0 0 22px rgba(85,234,255,.55);
+
+/* Normal flight: cool white/cyan ion engine. */
+#center.reactorNormal{
+    --reactor-color:205,242,255;
+    --reactor-hot:255,255,255;
+    --reactor-plume:105,225,255;
+    --reactor-plume-edge:75,135,255;
 }
+
+/* Flux: white-hot center, gold reactor heat, cyan ion exhaust. */
+#center.reactorFlux{
+    --reactor-color:255,190,58;
+    --reactor-hot:255,238,168;
+    --reactor-plume:80,228,255;
+    --reactor-plume-edge:145,72,255;
+    --reactor-scale:1.08;
+    --thrust-length:32px;
+    --thrust-width:11px;
+    border-color:#fffbea;
+    box-shadow:
+        0 0 13px rgba(255,255,255,.96),
+        0 0 23px rgba(255,190,58,.66),
+        inset 0 0 10px rgba(255,225,120,.48);
+}
+
+#center.reactorFlux .reactorCore{
+    animation:ionicCoreFlux .48s ease-in-out infinite;
+    box-shadow:
+        0 0 8px rgba(255,255,255,1),
+        0 0 18px rgba(255,214,88,.90),
+        0 0 26px rgba(80,228,255,.45);
+}
+
+#center.reactorFlux .reactorMiddle{
+    border-color:rgba(255,231,151,.76);
+    box-shadow:0 0 9px rgba(255,194,55,.34);
+}
+
 #center.reactorFlux .reactorOuter{
     width:78px;
     height:78px;
-    border-color:rgba(85,234,255,.98);
-    box-shadow:0 0 12px rgba(85,234,255,.9),0 0 28px rgba(255,102,221,.38),inset 0 0 10px rgba(85,234,255,.18);
+    border-color:rgba(255,190,58,.98);
+    box-shadow:
+        0 0 13px rgba(255,190,58,.92),
+        0 0 29px rgba(255,102,60,.28),
+        inset 0 0 10px rgba(255,225,112,.22);
     animation-duration:.72s;
 }
+
+/* Chrono: compressed, cool, controlled plasma. */
 #center.reactorChrono{
     --reactor-color:174,139,255;
+    --reactor-hot:226,249,255;
+    --reactor-plume:115,205,255;
+    --reactor-plume-edge:150,80,255;
     --reactor-scale:.96;
+    --thrust-length:22px;
+    --thrust-width:8px;
 }
+
+#center.reactorChrono .reactorCore{
+    animation-duration:2.15s;
+    box-shadow:
+        0 0 7px rgba(255,255,255,.90),
+        0 0 16px rgba(125,210,255,.65),
+        0 0 22px rgba(174,139,255,.36);
+}
+
 #center.reactorChrono .reactorOuter{
     width:56px;
     height:56px;
     border-color:rgba(174,139,255,.95);
-    box-shadow:0 0 11px rgba(174,139,255,.7),inset 0 0 8px rgba(70,207,255,.14);
+    box-shadow:
+        0 0 11px rgba(174,139,255,.70),
+        inset 0 0 8px rgba(70,207,255,.14);
     animation-duration:2.45s;
 }
+
+/* Midas: smooth gold-white propulsion. */
 #center.reactorMidas{
     --reactor-color:255,195,65;
+    --reactor-hot:255,250,210;
+    --reactor-plume:255,204,72;
+    --reactor-plume-edge:255,120,20;
     --reactor-scale:1.03;
+    --thrust-length:28px;
+    --thrust-width:10px;
 }
+
+#center.reactorMidas .reactorCore{
+    animation-duration:1.05s;
+    box-shadow:
+        0 0 8px rgba(255,255,245,.98),
+        0 0 18px rgba(255,210,80,.82);
+}
+
 #center.reactorMidas .reactorOuter{
     width:70px;
     height:70px;
     border-color:rgba(255,195,65,.98);
-    box-shadow:0 0 12px rgba(255,195,65,.88),0 0 25px rgba(255,130,0,.3),inset 0 0 9px rgba(255,211,106,.18);
+    box-shadow:
+        0 0 12px rgba(255,195,65,.88),
+        0 0 25px rgba(255,130,0,.30),
+        inset 0 0 9px rgba(255,211,106,.18);
     animation-duration:1.35s;
 }
+
 #center.reactorDamage{
     --reactor-color:255,55,55;
+    --reactor-hot:255,255,255;
+    --reactor-plume:255,70,55;
+    --reactor-plume-edge:180,0,0;
     --reactor-scale:1.14;
     border-color:#fff;
     animation:reactorHit .42s ease-out;
 }
+
 #center.reactorDamage .reactorOuter{
     width:76px;
     height:76px;
     border-color:rgba(255,55,55,1);
-    box-shadow:0 0 14px rgba(255,55,55,1),0 0 30px rgba(255,35,35,.6);
+    box-shadow:
+        0 0 14px rgba(255,55,55,1),
+        0 0 30px rgba(255,35,35,.60);
     animation:none;
 }
+
 @keyframes reactorHit{
     0%{transform:translate(-50%,-50%) scale(.82)}
     35%{transform:translate(-50%,-50%) scale(1.24)}
     100%{transform:translate(-50%,-50%) scale(1.14)}
 }
+
 @media(prefers-reduced-motion:reduce){
-    #center .reactorOuter{animation:none}
+    #center .reactorOuter,
+    #center .reactorCore{animation:none}
+    #center .reactorPlume{display:none}
     #center.reactorDamage{animation:none}
+}
+
+/* SHIFTVIX POWER ANNOUNCEMENT 2.0 */
+#powerAnnouncement{
+  position:fixed;
+  left:50%;
+  top:29.5%;
+  transform:translate(-50%,-50%) scale(.90);
+  z-index:68;
+  pointer-events:none;
+  opacity:0;
+  white-space:nowrap;
+  text-align:center;
+  font-size:clamp(32px,9vw,58px);
+  font-weight:1000;
+  letter-spacing:3px;
+  color:#fff;
+  text-shadow:
+    0 0 8px rgba(255,255,255,.98),
+    0 0 24px rgba(100,220,255,.72),
+    0 0 46px rgba(160,90,255,.44);
+  transition:opacity .14s ease,transform .18s ease,filter .18s ease;
+}
+#powerAnnouncement.show{
+  opacity:1;
+  transform:translate(-50%,-50%) scale(1);
+}
+#powerAnnouncement.powerTier1{filter:brightness(1)}
+#powerAnnouncement.powerTier2{filter:brightness(1.12) saturate(1.12)}
+#powerAnnouncement.powerTier3{
+  filter:brightness(1.28) saturate(1.24);
+  text-shadow:
+    0 0 9px rgba(255,255,255,1),
+    0 0 28px rgba(95,225,255,.95),
+    0 0 58px rgba(175,90,255,.72);
+}
+@keyframes powerAnnouncementTier3{
+  0%{transform:translate(-50%,-50%) scale(.78)}
+  48%{transform:translate(-50%,-50%) scale(1.12)}
+  100%{transform:translate(-50%,-50%) scale(1)}
+}
+#powerAnnouncement.show.powerTier3{
+  animation:powerAnnouncementTier3 .30s ease-out;
+}
+@media(max-width:520px){
+  #powerAnnouncement{
+    top:28.5%;
+    font-size:clamp(32px,9.8vw,48px);
+    letter-spacing:2px;
+  }
 }
 #laneLabel{display:none}
 #startOverlay{position:absolute;inset:0;display:grid;place-items:center;text-align:center;z-index:80;background:radial-gradient(circle,rgba(255,102,204,.10),rgba(0,0,0,.92))}
@@ -386,6 +675,36 @@ canvas{display:block}
 .pauseSelection{margin:18px 0 20px;padding:14px 12px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09)}
 .pauseFlowName{font-size:13px;font-weight:1000;letter-spacing:2px;color:#fff}
 .pauseFlowObjective{margin-top:7px;font-size:12px;line-height:1.35;letter-spacing:1px;color:rgba(255,255,255,.68)}
+.pauseFlowBar{
+  position:relative;
+  height:16px;
+  margin-top:12px;
+  border-radius:999px;
+  overflow:hidden;
+  background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,211,106,.24);
+  box-shadow:inset 0 0 8px rgba(0,0,0,.65)
+}
+.pauseFlowFill{
+  position:absolute;
+  inset:0 auto 0 0;
+  width:0%;
+  height:100%;
+  background:linear-gradient(90deg,#8f6a16,#ffd36a);
+  box-shadow:0 0 10px rgba(255,211,106,.58)
+}
+.pauseFlowPct{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  z-index:2;
+  font-size:9px;
+  font-weight:1000;
+  letter-spacing:1px;
+  color:#fff;
+  text-shadow:0 1px 4px #000
+}
 .pauseActions{display:grid;gap:10px}
 .pauseButton{min-height:48px;border-radius:14px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.045);color:#fff;font:900 13px Arial;letter-spacing:2.5px;cursor:pointer}
 .pauseButton.primary{border-color:rgba(255,211,106,.55);color:#ffd36a;background:rgba(255,211,106,.08);box-shadow:0 0 16px rgba(255,211,106,.10)}
@@ -397,15 +716,92 @@ canvas{display:block}
    SHIFTVIX — FLOW SYSTEM
    ========================= */
 #challengeHud{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:22;width:min(620px,92vw);text-align:center;color:#fff;font-weight:900;text-shadow:0 0 10px #000;cursor:pointer;pointer-events:auto}
-#challengeName{font-size:20px;letter-spacing:2.8px;color:#ffd36a;margin-bottom:9px;text-shadow:0 0 10px rgba(255,211,106,.5),0 0 24px rgba(255,211,106,.22)}
-#challengeText{font-size:clamp(17px,4.5vw,22px);line-height:1.18;letter-spacing:1.6px;color:#fff;white-space:normal;overflow:visible;text-overflow:clip;padding:0 8px}
-#challengeBar{margin:11px auto 0;width:min(430px,82vw);height:7px;border-radius:999px;background:rgba(255,255,255,.11);overflow:hidden;border:1px solid rgba(255,211,106,.28);box-shadow:inset 0 0 8px rgba(0,0,0,.7)}
-#challengeFill{height:100%;width:0%;background:linear-gradient(90deg,#8f6a16 0%,#d6aa38 45%,#ffd36a 100%);box-shadow:0 0 12px rgba(255,211,106,.82);transition:width .2s}
+#challengeName{
+  font-size:clamp(38px,8vw,64px);
+  letter-spacing:3.2px;
+  color:#ffd36a;
+  margin-bottom:9px;
+  line-height:.96;
+  text-shadow:0 0 12px rgba(255,211,106,.58),0 0 28px rgba(255,211,106,.24)
+}
+#challengeText{
+  font-size:clamp(14px,3.5vw,20px);
+  line-height:1.18;
+  letter-spacing:1.35px;
+  color:#fff;
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
+  padding:0 8px
+}
+#challengeBar{
+  position:relative;
+  margin:11px auto 0;
+  width:min(430px,82vw);
+  height:17px;
+  border-radius:999px;
+  background:rgba(255,255,255,.11);
+  overflow:hidden;
+  border:1px solid rgba(255,211,106,.28);
+  box-shadow:inset 0 0 8px rgba(0,0,0,.7)
+}
+#challengeFill{
+  position:absolute;
+  inset:0 auto 0 0;
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#8f6a16 0%,#d6aa38 45%,#ffd36a 100%);
+  box-shadow:0 0 12px rgba(255,211,106,.82);
+  transition:width .2s
+}
+#challengePct{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  z-index:2;
+  pointer-events:none;
+  font-size:10px;
+  font-weight:1000;
+  letter-spacing:1.1px;
+  color:#fff;
+  text-shadow:0 1px 4px rgba(0,0,0,.95),0 0 6px rgba(0,0,0,.9)
+}
 @media (max-width:768px){
   #challengeHud{bottom:24px;width:92vw}
-  #challengeName{font-size:22px;margin-bottom:8px;letter-spacing:2.5px}
+  #challengeName{font-size:clamp(38px,10vw,54px);margin-bottom:8px;letter-spacing:2.4px}
   #challengeText{font-size:19px;letter-spacing:1.3px}
-  #challengeBar{width:82vw;height:7px}
+  #challengeBar{width:82vw;height:17px}
+}
+
+/* SHIFTVIX 2.4 — first-run silent tutorial */
+#tutorialPrompt{
+  position:fixed;
+  left:50%;
+  top:23%;
+  transform:translate(-50%,-50%) scale(.94);
+  z-index:72;
+  pointer-events:none;
+  opacity:0;
+  white-space:nowrap;
+  text-align:center;
+  font-size:clamp(22px,5.6vw,40px);
+  font-weight:1000;
+  letter-spacing:2.4px;
+  color:#fff;
+  text-shadow:0 0 9px rgba(255,255,255,.98),0 0 30px rgba(125,249,255,.62);
+  transition:opacity .16s ease,transform .18s ease
+}
+#tutorialPrompt.show{
+  opacity:1;
+  transform:translate(-50%,-50%) scale(1)
+}
+@media(max-width:520px){
+  #tutorialPrompt{
+    top:24%;
+    font-size:clamp(22px,6.7vw,34px);
+    letter-spacing:1.7px
+  }
 }
 #modeBanner{position:absolute;left:50%;top:31%;transform:translate(-50%,-50%);z-index:65;pointer-events:none;font-size:16px;font-weight:1000;letter-spacing:3px;opacity:0;color:#ffd36a;text-shadow:0 0 14px #ffd36a,0 0 42px #ff8800;white-space:nowrap}
 #modeBanner.show{animation:modeFlash 1.25s ease-out forwards}
@@ -521,6 +917,14 @@ canvas{display:block}
     opacity:1;
     transform:translate(-50%,-50%) scale(1);
 }
+
+/* Chrono 2.1 — multiplier is the second beat, after CHRONO 1/2/3. */
+@media(max-width:520px){
+  #chronoMultiplier{
+    top:28%;
+    font-size:clamp(22px,6.2vw,30px);
+  }
+}
 .scorePopup.chronoScore{color:#c9f7ff;text-shadow:0 0 10px rgba(255,255,255,1),0 0 28px rgba(70,207,255,.98),0 0 58px rgba(160,85,255,.72)}
 .resultsCard{position:relative;z-index:56}
 .flowSummary{margin:16px 0 4px;padding:12px;border-radius:16px;background:rgba(125,249,255,.06);border:1px solid rgba(125,249,255,.18);font-size:12px;line-height:1.6;letter-spacing:1.3px}
@@ -539,8 +943,35 @@ canvas{display:block}
 .runFlowCategory{font-size:11px;font-weight:1000;letter-spacing:1.8px;color:#ffd36a}
 .runFlowObjective{margin-top:9px;font-size:13px;font-weight:900;line-height:1.35;letter-spacing:.7px;color:rgba(255,255,255,.88)}
 .runFlowProgressText{margin-top:10px;font-size:10px;font-weight:900;letter-spacing:1.1px;color:rgba(255,255,255,.56)}
-.runFlowBar{height:6px;margin-top:9px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.10);border:1px solid rgba(255,211,106,.20)}
-.runFlowFill{height:100%;border-radius:inherit;background:linear-gradient(90deg,#8f6a16,#ffd36a);box-shadow:0 0 10px rgba(255,211,106,.65)}
+.runFlowBar{
+  position:relative;
+  height:17px;
+  margin-top:9px;
+  border-radius:999px;
+  overflow:hidden;
+  background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,211,106,.20)
+}
+.runFlowFill{
+  position:absolute;
+  inset:0 auto 0 0;
+  height:100%;
+  border-radius:inherit;
+  background:linear-gradient(90deg,#8f6a16,#ffd36a);
+  box-shadow:0 0 10px rgba(255,211,106,.65)
+}
+.runFlowPct{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  z-index:2;
+  font-size:9px;
+  font-weight:1000;
+  letter-spacing:1px;
+  color:#fff;
+  text-shadow:0 1px 4px #000
+}
 .runArchiveProgress{margin:12px 0 16px;font-size:10px;font-weight:900;letter-spacing:1.4px;color:rgba(255,255,255,.48)}
 .runActions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .runAction{min-height:48px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.045);color:#fff;font:900 12px Arial;letter-spacing:2px;cursor:pointer;transition:transform .12s ease,border-color .15s ease,background .15s ease,box-shadow .15s ease}
@@ -810,23 +1241,33 @@ body.uiModalOpen #center{pointer-events:none}
 <body>
 <div id="gameTitle"><span id="shift">SHIFT</span><span id="vix">VIX</span></div>
 <div id="strikes"><div class="strikeDot" id="s0"></div><div class="strikeDot" id="s1"></div><div class="strikeDot" id="s2"></div></div>
-<div id="hud"><div class="hudBlock"><div class="hudLabel">DISTANCE</div><div class="hudValue"> <span id="distance">0</span>m</div></div><div class="hudBlock"><div class="hudLabel">LEVEL</div>
-
-<div class="hudValue">
-
-<span id="level" class="levelNumber">1</span>
-
+<div id="hud">
+  <div class="hudBlock">
+    <div class="hudLabel">DISTANCE</div>
+    <div class="hudValue"><span id="distance">0</span>m</div>
+  </div>
+  <div class="hudBlock">
+    <div class="hudLabel">LEVEL</div>
+    <div class="hudValue"><span id="level" class="levelNumber">1</span></div>
+  </div>
+  <div class="hudBlock">
+    <div class="hudLabel">SCORE</div>
+    <div class="hudValue"><span id="hudScore">0</span></div>
+  </div>
 </div>
-</div></div>
 <div style="display:none"><span id="world">Distance Run</span>
 <span id="found">0</span><span id="score">0</span><span id="bestScore">0</span><span id="combo">1x</span><div id="signal"></div></div></div>
-<div id="center" aria-label="Pause"><span class="reactorMiddle"></span><span class="reactorOuter"></span></div><div id="pauseText">PAUSED</div><div id="laneLabel">CENTER</div><div id="roundComplete"></div>
+<div id="center" class="reactorNormal" aria-label="Pause"><span class="reactorPlume"></span><span class="reactorMiddle"></span><span class="reactorOuter"></span><span class="reactorCore"></span></div><div id="pauseText">PAUSED</div><div id="laneLabel">CENTER</div><div id="roundComplete"></div>
 <div id="pauseMenu" aria-hidden="true">
   <div class="pausePanel" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
     <div class="pauseTitle" id="pauseTitle">PAUSED</div>
     <div class="pauseSelection">
       <div class="pauseFlowName" id="pauseFlowName">FLOW 1 · REACH</div>
       <div class="pauseFlowObjective" id="pauseFlowObjective">LOADING…</div>
+      <div class="pauseFlowBar" aria-label="Current Flow progress">
+        <div class="pauseFlowFill" id="pauseFlowFill"></div>
+        <div class="pauseFlowPct" id="pauseFlowPct">0%</div>
+      </div>
     </div>
     <div class="pauseActions">
       <button class="pauseButton primary" id="pauseResume" type="button">RESUME</button>
@@ -835,8 +1276,8 @@ body.uiModalOpen #center{pointer-events:none}
     <div class="pauseHint">CENTER EYE OR ESC TO RESUME</div>
   </div>
 </div>
-<div id="challengeHud"><div id="challengeName">CURRENT FLOW</div><div id="challengeText">LOADING…</div><div id="challengeBar"><div id="challengeFill"></div></div></div>
-<div id="modeBanner"></div><div id="chronoMultiplier">×2 SCORE</div><div id="warpBurstFx"></div><div id="flowFx"></div><div id="fluxFx"></div><div id="chronoFx"></div><div id="midasFx"></div><div id="prismFx"></div><div id="pulseWaves"></div>
+<div id="challengeHud"><div id="challengeName">SURVIVE THE FLOW</div><div id="challengeText">LOADING…</div><div id="challengeBar"><div id="challengeFill"></div><div id="challengePct">0%</div></div></div>
+<div id="tutorialPrompt" aria-live="polite"></div><div id="powerAnnouncement" aria-live="polite"></div><div id="modeBanner"></div><div id="chronoMultiplier">×2 SCORE</div><div id="warpBurstFx"></div><div id="flowFx"></div><div id="fluxFx"></div><div id="chronoFx"></div><div id="midasFx"></div><div id="prismFx"></div><div id="pulseWaves"></div>
 <div id="flowArchive" aria-hidden="true"><div class="archiveCard" role="dialog" aria-modal="true" aria-labelledby="flowPathTitle"><div class="archiveHeader"><h2 id="flowPathTitle">FLOW PATH</h2><button class="archiveClose" id="archiveClose" type="button" aria-label="Close Flow Path">×</button></div><div id="archiveList"></div></div></div>
 
 <!-- SHIFTVIX CHRONO 2.0 — SLOW TIME + PRISM VISION + 2X SCORE -->
@@ -846,7 +1287,194 @@ const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x000000,0.0011);
 const camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,0.1,5000);camera.position.set(0,0,48);camera.lookAt(0,0,-500);
 let playerX=0,playerY=0;
 const PLAYER_Z=72;
-const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);document.body.appendChild(renderer.domElement);
+const renderer=new THREE.WebGLRenderer({
+  antialias:true,
+  powerPreference:"high-performance"
+});
+
+const SHIFTVIX_MOBILE_DEVICE =
+  /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+  (
+    navigator.maxTouchPoints>1 &&
+    Math.min(innerWidth,innerHeight)<1400
+  );
+
+const SHIFTVIX_DESKTOP_DPR_CAP=2;
+const SHIFTVIX_MOBILE_DPR_CAP=1.4;
+
+function applyRendererResolution(width=window.innerWidth,height=window.innerHeight){
+  const cap=
+    SHIFTVIX_MOBILE_DEVICE
+      ? SHIFTVIX_MOBILE_DPR_CAP
+      : SHIFTVIX_DESKTOP_DPR_CAP;
+
+  renderer.setPixelRatio(
+    Math.min(window.devicePixelRatio||1,cap)
+  );
+
+  /*
+    Keep the drawing buffer and CSS canvas synchronized to one stable viewport.
+    The width/height are supplied by the viewport-stability controller below.
+  */
+  renderer.setSize(width,height,true);
+}
+
+/*
+  SHIFTVIX FROZEN MOBILE VIEWPORT
+
+  Mobile browsers can change innerHeight/clientHeight while their address bars,
+  bottom bars, power-up compositing layers, or page chrome animate. Rebuilding
+  WebGL from those transient dimensions is what lets the game jump, crop, or
+  remain slightly up/left.
+
+  Rule for mobile:
+  - capture one viewport rectangle for the current orientation;
+  - freeze it for the entire orientation;
+  - NEVER resize because of toolbar / visualViewport / power-up events;
+  - only recalculate after a genuine portrait <-> landscape orientation change.
+
+  The HTML body, WebGL renderer, camera and center reactor all use this exact
+  same frozen rectangle.
+*/
+function measureOrientationViewport(){
+  return {
+    width:Math.max(
+      1,
+      Math.round(window.innerWidth || document.documentElement.clientWidth)
+    ),
+    height:Math.max(
+      1,
+      Math.round(window.innerHeight || document.documentElement.clientHeight)
+    )
+  };
+}
+
+let initialStableViewport=measureOrientationViewport();
+let stableViewportWidth=initialStableViewport.width;
+let stableViewportHeight=initialStableViewport.height;
+let viewportOrientation=
+  stableViewportWidth>=stableViewportHeight ? "landscape" : "portrait";
+let viewportResizeTimer=null;
+
+function applyFrozenGameViewport(width,height){
+  document.documentElement.style.setProperty(
+    "--shiftvix-app-width",
+    `${width}px`
+  );
+  document.documentElement.style.setProperty(
+    "--shiftvix-app-height",
+    `${height}px`
+  );
+
+  const canvas=renderer.domElement;
+
+  canvas.style.position="fixed";
+  canvas.style.left="0px";
+  canvas.style.top="0px";
+  canvas.style.right="auto";
+  canvas.style.bottom="auto";
+  canvas.style.width=`${width}px`;
+  canvas.style.height=`${height}px`;
+
+  camera.aspect=width/height;
+  camera.updateProjectionMatrix();
+
+  applyRendererResolution(width,height);
+
+  const center=document.getElementById("center");
+  if(center){
+    center.style.left=`${width/2}px`;
+    center.style.top=`${height/2}px`;
+  }
+}
+
+function recaptureViewportForOrientation(){
+  const next=measureOrientationViewport();
+
+  stableViewportWidth=next.width;
+  stableViewportHeight=next.height;
+  viewportOrientation=
+    stableViewportWidth>=stableViewportHeight ? "landscape" : "portrait";
+
+  applyFrozenGameViewport(
+    stableViewportWidth,
+    stableViewportHeight
+  );
+}
+
+function currentPhysicalOrientation(){
+  const w=window.innerWidth || document.documentElement.clientWidth;
+  const h=window.innerHeight || document.documentElement.clientHeight;
+  return w>=h ? "landscape" : "portrait";
+}
+
+function commitStableViewport(force=false){
+  /*
+    Compatibility function retained because other SHIFTVIX systems call it.
+    It deliberately does NOT re-measure on mobile unless orientation changed.
+  */
+  const orientation=currentPhysicalOrientation();
+
+  if(
+    SHIFTVIX_MOBILE_DEVICE &&
+    !force &&
+    orientation===viewportOrientation
+  ){
+    return;
+  }
+
+  if(
+    SHIFTVIX_MOBILE_DEVICE &&
+    force &&
+    orientation===viewportOrientation
+  ){
+    // Re-apply the already-frozen rectangle; do not ingest transient sizes.
+    applyFrozenGameViewport(
+      stableViewportWidth,
+      stableViewportHeight
+    );
+    return;
+  }
+
+  recaptureViewportForOrientation();
+}
+
+applyRendererResolution(
+  stableViewportWidth,
+  stableViewportHeight
+);
+
+document.body.appendChild(renderer.domElement);
+
+applyFrozenGameViewport(
+  stableViewportWidth,
+  stableViewportHeight
+);
+
+/* =========================
+   SHIFTVIX — PERMANENT CHRONO NEON HYPERSPACE
+   Exact full-strength Chrono world color grade.
+   This remains active during normal flight, Flux, Chrono, Midas, and warp.
+   ========================= */
+const SHIFTVIX_CHRONO_WORLD_FILTER =
+  "saturate(1.62) brightness(1.13) contrast(1.09)";
+
+function applyPermanentChronoWorldGrade(){
+  renderer.domElement.style.filter=SHIFTVIX_CHRONO_WORLD_FILTER;
+}
+
+applyPermanentChronoWorldGrade();
+
+renderer.domElement.addEventListener("webglcontextlost",(event)=>{
+  event.preventDefault();
+});
+
+renderer.domElement.addEventListener("webglcontextrestored",()=>{
+  applyRendererResolution(stableViewportWidth,stableViewportHeight);
+  applyFrozenGameViewport(stableViewportWidth,stableViewportHeight);
+  applyPermanentChronoWorldGrade();
+});
+
 const LANE_X=[-40,0,40], LANE_Y=[30,0,-30], FAR_Z=-920, NEAR_Z=72, SPEED_START=170, COLLECT_RADIUS=18, TRAIN_GAP=20, BREAK_GRACE=.72;
 const HERO_SECONDS = 15;
 let laneX=1,laneY=1,targetX=0,targetY=0,score=0,bestScore=Number(localStorage.getItem("sourceLaneBestScore")||0),bestDistance=Number(localStorage.getItem("sourceLaneBestDistance")||0),foundCount=0,combo=1,lastFoundAt=0,distance=0,speed=SPEED_START,spawnTimer=0,trainId=0,strikes=0,runStarted=false,gameStarted=false,gameOver=false,breakTimer=0,audioCtx=null;
@@ -890,6 +1518,12 @@ let warpAmount = 0;
 let launchSurge = 0;
 let lastWarpBreakthrough = 0;
 
+/* Star positions remain 60fps. Color interpolation is visually slow enough
+   to update less often on mobile without changing the look. */
+let starColorUpdateFrame=0;
+const STAR_COLOR_UPDATE_INTERVAL=
+  SHIFTVIX_MOBILE_DEVICE ? 4 : 2;
+
 // =========================
 // SHIFTVIX 5.8 — LEGENDARY ORB ENGINE
 // Flux, Chrono, and Midas may appear at any point in a run.
@@ -913,15 +1547,68 @@ function currentLegendaryEffect(){
 }
 
 let reactorDamageUntil=0;
+let ionicThrustPower=0;
+let ionicThrustAngle=90;
+
 function updateCenterReactor(){
   const center=document.getElementById("center");
   if(!center)return;
+
   const damageActive=performance.now()<reactorDamageUntil;
+  const fluxActive=!damageActive&&fluxBoostTime>0;
+  const chronoActive=!damageActive&&chronoTime>0;
+  const midasActive=!damageActive&&midasTime>0;
+  const normalActive=!damageActive&&!fluxActive&&!chronoActive&&!midasActive;
+
   center.classList.toggle("reactorDamage",damageActive);
-  center.classList.toggle("reactorFlux",!damageActive&&fluxBoostTime>0);
-  center.classList.toggle("reactorChrono",!damageActive&&chronoTime>0);
-  center.classList.toggle("reactorMidas",!damageActive&&midasTime>0);
+  center.classList.toggle("reactorFlux",fluxActive);
+  center.classList.toggle("reactorChrono",chronoActive);
+  center.classList.toggle("reactorMidas",midasActive);
+  center.classList.toggle("reactorNormal",normalActive);
 }
+
+function updateIonicThruster(dt){
+  const center=document.getElementById("center");
+  if(!center)return;
+
+  /*
+  The plume points opposite the player's actual on-screen motion.
+  It is intentionally short and appears only during lane transitions.
+  */
+  const velocityX=targetX-playerX;
+  const velocityY=targetY-playerY;
+  const magnitude=Math.hypot(velocityX,velocityY);
+  const movementPower=THREE.MathUtils.clamp(magnitude/22,0,1);
+
+  if(magnitude>.08){
+    const targetAngle=Math.atan2(-velocityY,-velocityX)*180/Math.PI;
+    let angleDelta=((targetAngle-ionicThrustAngle+540)%360)-180;
+    ionicThrustAngle+=angleDelta*(1-Math.exp(-dt*14));
+  }
+
+  const statePower=
+    fluxBoostTime>0 ? 1 :
+    midasTime>0 ? .82 :
+    chronoTime>0 ? .60 :
+    .48;
+
+  const targetPower=movementPower*statePower;
+  ionicThrustPower+=(targetPower-ionicThrustPower)*(1-Math.exp(-dt*(targetPower>ionicThrustPower?18:8)));
+
+  center.style.setProperty("--thrust-angle",`${ionicThrustAngle.toFixed(2)}deg`);
+  center.style.setProperty("--thrust-power",ionicThrustPower.toFixed(3));
+
+  /*
+  Legendary states also alter the universe's energy spectrum.
+  This replaces full-screen particle density with restrained color response.
+  */
+  // Permanent Chrono grade was applied once at renderer initialization.
+  // Do not rewrite the canvas CSS filter every frame; keeping the compositor
+  // layer stable reduces Safari/Firefox power-up rendering glitches.
+
+  updateCenterReactor();
+}
+
 function pulseCenterReactorDamage(){
   reactorDamageUntil=performance.now()+430;
   const center=document.getElementById("center");
@@ -947,14 +1634,84 @@ function scheduleNextLegendaryWindow(){
 // 3) double score for manually or Midas-collected normal orbs.
 // Orb count, distance, lives, and Flow collection totals remain unchanged.
 // =========================
+
 const CHRONO_SCORE_MULTIPLIER=2;
+
+// =========================
+// SHIFTVIX FOUR POWER ORBS — THREE TIERS
+// Tier I  = 65%
+// Tier II = 27%
+// Tier III=  8%
+// Visual language: 1 / 2 / 3 concentric energy rings.
+// =========================
+const POWER_TIER_WEIGHTS=[.50,.32,.18];
+const POWER_DURATIONS=[4,8,12];
+const WARP_DISTANCES=[500,1000,1500];
+
+// SHIFTVIX POWER ORB FREQUENCY 2.0
+// First opportunity: 180–300m.
+// Then another opportunity roughly every 260–430m.
+const POWER_ORB_FIRST_MIN=180;
+const POWER_ORB_FIRST_MAX=300;
+const POWER_ORB_GAP_MIN=260;
+const POWER_ORB_GAP_MAX=430;
+let nextPowerOrbOpportunity=
+  POWER_ORB_FIRST_MIN+
+  Math.random()*(POWER_ORB_FIRST_MAX-POWER_ORB_FIRST_MIN);
+
+function scheduleNextPowerOrbOpportunity(first=false){
+  const min=first?POWER_ORB_FIRST_MIN:POWER_ORB_GAP_MIN;
+  const max=first?POWER_ORB_FIRST_MAX:POWER_ORB_GAP_MAX;
+  nextPowerOrbOpportunity=
+    distance+
+    min+
+    Math.random()*(max-min);
+}
+
+
+function choosePowerTier(){
+  const r=Math.random();
+  if(r<POWER_TIER_WEIGHTS[0])return 1;
+  if(r<POWER_TIER_WEIGHTS[0]+POWER_TIER_WEIGHTS[1])return 2;
+  return 3;
+}
+
+function powerTierDuration(tier){
+  return POWER_DURATIONS[Math.max(0,Math.min(2,(tier||1)-1))];
+}
+
+function warpTierDistance(tier){
+  return WARP_DISTANCES[Math.max(0,Math.min(2,(tier||1)-1))];
+}
+
+function addPowerTierRings(group,tier,color){
+  const rings=[];
+  for(let i=0;i<tier;i++){
+    const ring=new THREE.Mesh(
+      new THREE.TorusGeometry(10.2+i*2.15,.34,8,36),
+      new THREE.MeshBasicMaterial({
+        color,
+        transparent:true,
+        opacity:.88-i*.12,
+        blending:THREE.AdditiveBlending,
+        depthWrite:false
+      })
+    );
+    ring.userData.powerTierRing=true;
+    group.add(ring);
+    rings.push(ring);
+  }
+  group.userData.powerTierRings=rings;
+  return rings;
+}
+
 
 // =========================
 // SHIFTVIX 5.5 — FLUX ORB
 // A rare, rapidly iridescent orb earned through skill, distance, Flow
 // completion, or a very small lucky chance. No surrounding particles.
 // =========================
-const FLUX_DURATION_SECONDS = 8;
+const FLUX_DURATION_SECONDS = 8; // fallback; tier activation uses 4/8/12
 const FLUX_COLLECTION_STREAK_TARGET = 120;
 const FLUX_SPEED_BOOST = 0.24;
 const FLUX_PALETTE = [0xffffff,0x55eaff,0xff66dd,0xa866ff,0xffd36a];
@@ -968,7 +1725,7 @@ let fluxCooldownUntilDistance = 0;
 let fluxCollectedThisRun = 0;
 
 function queueFluxOrb(reason){
-  if(gameOver || fluxOrbActive || chronoOrbActive || midasOrbActive || chronoTime>0 || midasTime>0 || distance < fluxCooldownUntilDistance)return false;
+  if(gameOver || fluxOrbActive || chronoOrbActive || midasOrbActive || warpOrbActive || chronoTime>0 || midasTime>0 || distance < fluxCooldownUntilDistance)return false;
   if(!fluxPendingReasons.includes(reason))fluxPendingReasons.push(reason);
   return true;
 }
@@ -985,7 +1742,7 @@ function updateFluxBoost(dt){
   const target=fluxBoostTime>0?1:0;
   const response=1-Math.exp(-dt*(target?8.5:2.7));
   fluxBoostAmount+=(target-fluxBoostAmount)*response;
-  // Flux now changes pacing rather than adding particle or fog intensity.
+  // Flux pacing remains primary; the dedicated dust layer uses fluxBoostAmount with hard visual caps.
   const fx=document.getElementById("fluxFx");
   if(fx)fx.classList.remove("active");
   updateCenterReactor();
@@ -1056,14 +1813,140 @@ function playFluxSound(){
   shimmer.start(now+.08);shimmer.stop(now+.45);
 }
 
-function activateFluxBoost(reason){
-  chronoTime=0;midasTime=0;fluxBoostTime=FLUX_DURATION_SECONDS;
+
+
+const SILENT_TUTORIAL_KEY="shiftvixSilentTutorialComplete";
+let silentTutorialComplete=
+  localStorage.getItem(SILENT_TUTORIAL_KEY)==="1";
+
+let tutorialStage=silentTutorialComplete?99:0;
+let tutorialPromptTimer=null;
+let tutorialStageStartedAt=0;
+let tutorialVoidIntroduced=false;
+let tutorialPowerSeen=false;
+let tutorialFirstCollectSeen=false;
+
+function showTutorialPrompt(text,hold=1600){
+  if(silentTutorialComplete)return;
+  const el=document.getElementById("tutorialPrompt");
+  if(!el)return;
+
+  el.textContent=text;
+  el.classList.add("show");
+
+  if(tutorialPromptTimer){
+    clearTimeout(tutorialPromptTimer);
+  }
+
+  tutorialPromptTimer=setTimeout(()=>{
+    el.classList.remove("show");
+  },hold);
+}
+
+function finishSilentTutorial(){
+  if(silentTutorialComplete)return;
+
+  silentTutorialComplete=true;
+  tutorialStage=99;
+  localStorage.setItem(SILENT_TUTORIAL_KEY,"1");
+
+  const el=document.getElementById("tutorialPrompt");
+  if(el)el.classList.remove("show");
+
+  trackGame("silent_tutorial_completed",{
+    distance:Math.floor(distance),
+    level
+  });
+}
+
+function updateSilentTutorial(){
+  if(
+    silentTutorialComplete ||
+    !gameStarted ||
+    gameOver ||
+    paused
+  )return;
+
+  if(tutorialStage===0){
+    tutorialStage=1;
+    tutorialStageStartedAt=performance.now();
+    showTutorialPrompt("SHIFT TO COLLECT",1800);
+    return;
+  }
+
+  if(tutorialStage===1 && tutorialFirstCollectSeen){
+    tutorialStage=2;
+    tutorialStageStartedAt=performance.now();
+    showTutorialPrompt("SHIFT TO AVOID",1800);
+
+    setTimeout(()=>{
+      if(
+        !silentTutorialComplete &&
+        tutorialStage===2 &&
+        !tutorialVoidIntroduced
+      ){
+        tutorialVoidIntroduced=
+          makeVoidHazard("tutorial");
+      }
+    },450);
+
+    return;
+  }
+
+  if(
+    tutorialStage===2 &&
+    tutorialVoidIntroduced &&
+    performance.now()-tutorialStageStartedAt>3400
+  ){
+    tutorialStage=3;
+    tutorialStageStartedAt=performance.now();
+    showTutorialPrompt("POWER ORBS CHANGE THE FLOW",2200);
+
+    if(
+      !fluxOrbActive &&
+      !chronoOrbActive &&
+      !midasOrbActive &&
+      !warpOrbActive
+    ){
+      makeLegendaryOrb();
+    }
+
+    return;
+  }
+
+  if(tutorialStage===3 && tutorialPowerSeen){
+    tutorialStage=4;
+    tutorialStageStartedAt=performance.now();
+    showTutorialPrompt("SURVIVE THE FLOW",1900);
+    setTimeout(finishSilentTutorial,2050);
+  }
+}
+
+let powerAnnouncementTimer=null;
+function showPowerAnnouncement(powerName,tier){
+  const el=document.getElementById("powerAnnouncement");
+  if(!el)return;
+  const safeTier=Math.max(1,Math.min(3,tier||1));
+  el.textContent=`${powerName} ${safeTier}`;
+  el.className=`powerTier${safeTier}`;
+  void el.offsetWidth;
+  el.classList.add("show");
+  if(powerAnnouncementTimer)clearTimeout(powerAnnouncementTimer);
+  const holdMs=safeTier===3?1550:safeTier===2?1400:1250;
+  powerAnnouncementTimer=setTimeout(()=>{
+    el.classList.remove("show");
+  },holdMs);
+}
+
+function activateFluxBoost(reason,tier=1){
+  const duration=powerTierDuration(tier);
+  chronoTime=0;midasTime=0;fluxBoostTime=duration;
   fluxCollectedThisRun++;
   fluxCooldownUntilDistance=distance+800+Math.random()*200;
   fluxPendingReasons.length=0;
   playFluxSound();
   triggerWarpBreakthrough("flux");
-  showModeBanner("FLUX DRIVE");
+  showPowerAnnouncement("FLUX",tier);
   if(navigator.vibrate)navigator.vibrate([18,22,35]);
   trackGame("flux_orb_collected",{
     trigger_reason:reason||"unknown",
@@ -1071,7 +1954,8 @@ function activateFluxBoost(reason){
     flow_number:currentFlowIndex+1,
     collection_streak:fluxCollectionStreak,
     flux_count_run:fluxCollectedThisRun,
-    duration_seconds:FLUX_DURATION_SECONDS
+    duration_seconds:duration,
+    power_tier:tier
   });
 }
 
@@ -1081,7 +1965,7 @@ function activateFluxBoost(reason){
 // Slows world simulation, refracts the universe, and doubles score earned from
 // normal orb collections while keeping steering fully responsive.
 // =========================
-const CHRONO_DURATION_SECONDS=10;
+const CHRONO_DURATION_SECONDS=8; // fallback; tier activation uses 4/8/12
 const CHRONO_MIN_DISTANCE=1800;
 const CHRONO_WORLD_SCALE=.40;
 const CHRONO_COLOR=0xbff6ff;
@@ -1094,6 +1978,7 @@ let chronoAmount=0;
 let chronoNextDistanceTrigger=2000+Math.random()*650;
 let chronoCooldownUntilDistance=0;
 let chronoCollectedThisRun=0;
+let chronoMultiplierRevealAt=0;
 
 function queueChronoOrb(reason){
   if(
@@ -1101,6 +1986,7 @@ function queueChronoOrb(reason){
     chronoOrbActive||
     fluxOrbActive||
     midasOrbActive||
+    warpOrbActive||
     fluxBoostTime>0||
     midasTime>0||
     distance<CHRONO_MIN_DISTANCE||
@@ -1148,12 +2034,13 @@ function updateChronoState(dt){
 
   const multiplier=document.getElementById("chronoMultiplier");
   if(multiplier){
-    multiplier.classList.toggle("show",chronoTime>0);
+    const chronoMultiplierReady=
+      chronoTime>0 &&
+      performance.now()>=chronoMultiplierRevealAt;
+
+    multiplier.classList.toggle("show",chronoMultiplierReady);
   }
 
-  renderer.domElement.style.filter=chronoAmount>.01
-    ? `saturate(${1+chronoAmount*.62}) brightness(${1+chronoAmount*.13}) contrast(${1+chronoAmount*.09}) hue-rotate(${Math.sin(performance.now()*.00135)*chronoAmount*7}deg)`
-    : "none";
   updateCenterReactor();
 }
 
@@ -1190,11 +2077,12 @@ function playChronoSound(){
   bell.stop(now+.60);
 }
 
-function activateChrono(reason){
+function activateChrono(reason,tier=1){
+  const duration=powerTierDuration(tier);
   // Legendary states never overlap.
   fluxBoostTime=0;
   midasTime=0;
-  chronoTime=CHRONO_DURATION_SECONDS;
+  chronoTime=duration;
   chronoCollectedThisRun++;
   chronoCooldownUntilDistance=distance+1100+Math.random()*300;
   fluxCooldownUntilDistance=Math.max(
@@ -1204,7 +2092,26 @@ function activateChrono(reason){
   chronoPendingReasons.length=0;
 
   playChronoSound();
-  showModeBanner("CHRONO ×2 SCORE");
+  showPowerAnnouncement("CHRONO",tier);
+
+  /*
+    CHRONO UI SEQUENCE:
+    1) Player first reads CHRONO 1 / CHRONO 2 / CHRONO 3.
+    2) After that announcement clears, ×2 SCORE appears.
+    This prevents both messages from competing for the same screen space.
+  */
+  const chronoAnnouncementHold=
+    tier===3 ? 1550 :
+    tier===2 ? 1400 :
+    1250;
+
+  chronoMultiplierRevealAt=
+    performance.now()+
+    chronoAnnouncementHold+
+    140;
+
+  const multiplier=document.getElementById("chronoMultiplier");
+  if(multiplier)multiplier.classList.remove("show");
 
   if(navigator.vibrate)navigator.vibrate([22,45,22]);
 
@@ -1213,7 +2120,8 @@ function activateChrono(reason){
     distance:Math.floor(distance),
     flow_number:currentFlowIndex+1,
     chrono_count_run:chronoCollectedThisRun,
-    duration_seconds:CHRONO_DURATION_SECONDS,
+    duration_seconds:duration,
+    power_tier:tier,
     world_scale:CHRONO_WORLD_SCALE,
     score_multiplier:CHRONO_SCORE_MULTIPLIER,
     prism_visual:true
@@ -1227,7 +2135,7 @@ function activateChrono(reason){
 // Values remain normal: no multiplier, bonus factor, or invincibility.
 // Midas frequency is now controlled by the shared 5.8 legendary manager.
 // =========================
-const MIDAS_DURATION_SECONDS=4.5;
+const MIDAS_DURATION_SECONDS=8; // fallback; tier activation uses 4/8/12
 const MIDAS_MIN_DISTANCE=850;
 const MIDAS_MAX_PER_RUN=Infinity;
 const MIDAS_COLOR=0xffd36a;
@@ -1250,7 +2158,8 @@ function legendaryStateActive(){
     midasTime>0||
     fluxOrbActive||
     chronoOrbActive||
-    midasOrbActive
+    midasOrbActive||
+    warpOrbActive
   );
 }
 
@@ -1260,6 +2169,7 @@ function queueMidasOrb(reason){
     midasOrbActive||
     fluxOrbActive||
     chronoOrbActive||
+    warpOrbActive||
     fluxBoostTime>0||
     chronoTime>0||
     midasTime>0||
@@ -1352,11 +2262,12 @@ function playMidasSound(){
   });
 }
 
-function activateMidas(reason){
+function activateMidas(reason,tier=1){
+  const duration=powerTierDuration(tier);
   // Midas never overlaps Flux or Chrono.
   fluxBoostTime=0;
   chronoTime=0;
-  midasTime=MIDAS_DURATION_SECONDS;
+  midasTime=duration;
   midasCollectedThisRun++;
   midasAbsorbedThisState=0;
   midasPendingReasons.length=0;
@@ -1377,7 +2288,7 @@ function activateMidas(reason){
   );
 
   playMidasSound();
-  showModeBanner("GOLDEN TOUCH");
+  showPowerAnnouncement("MIDAS",tier);
 
   if(navigator.vibrate)navigator.vibrate([16,24,16,24,32]);
 
@@ -1386,7 +2297,8 @@ function activateMidas(reason){
     distance:Math.floor(distance),
     flow_number:currentFlowIndex+1,
     midas_count_run:midasCollectedThisRun,
-    duration_seconds:MIDAS_DURATION_SECONDS
+    duration_seconds:duration,
+    power_tier:tier
   });
 }
 
@@ -1751,9 +2663,13 @@ function updateWarpBanking(dt){
   const ambientYaw = Math.sin(routePhase * 0.61 + 0.4) * warpAmount * THREE.MathUtils.degToRad(0.20);
   const ambientPitch = Math.sin(routePhase * 0.47 + 1.2) * warpAmount * THREE.MathUtils.degToRad(0.09);
 
+  /*
+    CENTER LOCK:
+    Preserve the arcade banking sensation as roll only.
+    Pitch/yaw used to push the lane convergence point away from the fixed
+    center reactor on mobile. Deep-field stars still receive curvature.
+  */
   camera.rotation.z = bankRoll + ambientRoll;
-  camera.rotation.x += bankPitch + ambientPitch;
-  camera.rotation.y += bankYaw + ambientYaw;
 
   stars.forEach((s,index)=>{
     const depthWeight = 0.78 + index * 0.12;
@@ -1789,6 +2705,17 @@ function resetWarpBanking(){
 
 let introScale=1.2;
 const clock=new THREE.Clock(), beacons=[], stars=[], laneGuides=[];
+
+/* SHIFTVIX FLUX DUST — capped acceleration cue.
+   This is a dedicated sparse layer that only becomes visible during Flux.
+   Its count, opacity, speed multiplier, and streak length all have hard ceilings,
+   so later game speed cannot make the effect increasingly aggressive. */
+const FLUX_DUST_COUNT = 72;
+const FLUX_DUST_MAX_OPACITY = .22;
+const FLUX_DUST_MAX_STREAK = 18;
+const FLUX_DUST_MAX_SPEED_MULT = 1.75;
+let fluxDust = null;
+let fluxDustVisualPower = 0;
 const TIERS=[{name:"WHITE",color:0xffffff,value:10,size:3.8,freq:880},{name:"BLUE",color:0x55ccff,value:25,size:4.3,freq:1046},{name:"GREEN",color:0x66ff66,value:50,size:4.8,freq:1174},{name:"PURPLE",color:0xcc66ff,value:75,size:5.1,freq:1240},{name:"ORANGE",color:0xff8800,value:100,size:5.4,freq:1318},{name:"RED",color:0xff4444,value:200,size:6.1,freq:1568}];
 function initAudio(){if(audioCtx){if(audioCtx.state!=="running")audioCtx.resume();return;}audioCtx=new (window.AudioContext||window.webkitAudioContext)();}
 function playCoin(tier){if(!audioCtx)return;const now=audioCtx.currentTime,osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type="square";osc.frequency.setValueAtTime(tier.freq,now);osc.frequency.exponentialRampToValueAtTime(tier.freq*1.55,now+.055);gain.gain.setValueAtTime(.0001,now);gain.gain.linearRampToValueAtTime(.018,now+.008);gain.gain.exponentialRampToValueAtTime(.0001,now+.105);osc.connect(gain).connect(audioCtx.destination);osc.start(now);osc.stop(now+.13);if(tier.value>=100){const osc2=audioCtx.createOscillator(),gain2=audioCtx.createGain();osc2.type="sine";osc2.frequency.setValueAtTime(tier.freq*2,now+.035);gain2.gain.setValueAtTime(.0001,now+.035);gain2.gain.linearRampToValueAtTime(.018,now+.045);gain2.gain.exponentialRampToValueAtTime(.0001,now+.16);osc2.connect(gain2).connect(audioCtx.destination);osc2.start(now+.035);osc2.stop(now+.18);}}
@@ -2564,6 +3491,20 @@ function isFlowCompleted(index){
 }
 
 
+/*
+  SEQUENTIAL FLOW PATH:
+  Inside an unlocked Sector, only the current unfinished Flow is available.
+  Completed Flows stay visible/replayable. Future Flows stay visible but locked
+  until the current Flow is completed.
+*/
+function isFlowArchiveSelectable(index){
+    return (
+        index === currentFlowIndex ||
+        isFlowCompleted(index)
+    );
+}
+
+
 function blockIsComplete(blockNumber){
 
     if(
@@ -2823,6 +3764,12 @@ function completeCurrentFlow(){
         );
 
     if(
+        finished.category==="REACH"&&
+        !warpOrbActive&&
+        Math.random()<.62
+    ){
+        makeWarpOrb("reach_flow_complete");
+    }else if(
         midasCollectedThisRun<MIDAS_MAX_PER_RUN&&
         (finished.category==="COLLECT"||finished.category==="SCORE")&&
         Math.random()<.58
@@ -2980,8 +3927,10 @@ function updateChallenge(){
   // Keep the active-play HUD minimal. Full flow number, category, title,
   // completion history, and exact totals remain available inside FLOW PATH.
   updateFlowHeading();
-  document.getElementById("challengeText").textContent=activeChallenge.label;
+  document.getElementById("challengeText").textContent=`FLOW ${currentFlowIndex+1} · ${activeChallenge.label}`;
   document.getElementById("challengeFill").style.width=pct+"%";
+  const challengePct=document.getElementById("challengePct");
+  if(challengePct)challengePct.textContent=`${Math.floor(pct)}%`;
   if(!challengeAdvanceTimer && raw>=activeChallenge.target)completeCurrentFlow();
 }
 // SHIFTVIX v2.5 PATCH 8 — FLOW SELECTION
@@ -2992,15 +3941,14 @@ function renderFlowArchive(){
 
     let html = `
         <div class="archiveProgress">
-            <span>FLOWS COMPLETED</span>
-            <span>${Math.min(completedFlows,FLOW_TOTAL)} / ${FLOW_TOTAL}</span>
+            <span>SECTOR ${blockForFlow(currentFlowIndex)} · FLOW ${currentFlowIndex+1}</span>
+            <span>${Math.min(completedFlows,FLOW_TOTAL)} / ${FLOW_TOTAL} COMPLETE</span>
         </div>
 
         <div class="archiveLegend">
             <span>✓ COMPLETED</span>
             <span>▶ CURRENT</span>
-            <span>• AVAILABLE</span>
-            <span>🔒 LOCKED</span>
+            <span>🔒 NEXT / LOCKED</span>
         </div>
     `;
 
@@ -3015,7 +3963,7 @@ function renderFlowArchive(){
         html += `
             <section class="archiveBlock ${blockLocked ? "lockedBlock" : ""}" data-block="${blockNumber}">
                 <div class="archiveBlockLabel">
-                    <span>FLOWS ${blockStart + 1}–${blockEnd}</span>
+                    <span>SECTOR ${blockNumber} · FLOWS ${blockStart + 1}–${blockEnd}</span>
                     <span class="blockProgress">${blockLocked ? "🔒" : `${blockDone}/${blockEnd-blockStart}`}</span>
                 </div>
                 <div class="archiveGrid">
@@ -3025,13 +3973,12 @@ function renderFlowArchive(){
             const flowNumber = i + 1;
             const isCompleted = isFlowCompleted(i);
             const isCurrent = i === currentFlowIndex;
-            const isLocked = !isFlowUnlocked(i);
+            const isLocked = !isFlowArchiveSelectable(i);
             const flowType = createFlow(i).category;
-            let rowClass = "available selectable";
-            let status = "•";
+            let rowClass = "locked";
+            let status = "🔒";
 
-            if(isLocked){rowClass="locked";status="🔒";}
-            else if(isCurrent){rowClass="current selectable";status="▶";}
+            if(isCurrent){rowClass="current selectable";status="▶";}
             else if(isCompleted){rowClass="done selectable";status="✓";}
 
             html += `
@@ -3190,10 +4137,9 @@ function selectFlowFromArchive(flowIndex){
 
     if(
         !Number.isInteger(flowIndex) ||
-        !isFlowUnlocked(flowIndex)
+        !isFlowArchiveSelectable(flowIndex)
     ){
-        loadSelectedFlow(flowIndex);
-        return;
+        return false;
     }
 
     // Completed Flows automatically enter replay mode.
@@ -3226,8 +4172,15 @@ function updatePauseSelection(){
   const name=document.getElementById("pauseFlowName");
   const objective=document.getElementById("pauseFlowObjective");
   const flow=activeChallenge||createFlow(currentFlowIndex);
+  const raw=challengeValue(flow);
+  const value=Math.max(0,Math.min(flow.target,raw));
+  const pct=Math.max(0,Math.min(100,(value/flow.target)*100));
   if(name)name.textContent=`FLOW ${currentFlowIndex+1} · ${flow.category}`;
   if(objective)objective.textContent=flow.label;
+  const fill=document.getElementById("pauseFlowFill");
+  const pctLabel=document.getElementById("pauseFlowPct");
+  if(fill)fill.style.width=`${pct}%`;
+  if(pctLabel)pctLabel.textContent=`${Math.floor(pct)}%`;
 }
 
 function applyPauseVisuals(isPaused){
@@ -3380,6 +4333,140 @@ function introIsClear(){return distance >= 72;}
 function showModeBanner(text){const el=document.getElementById("modeBanner");if(!el)return;if(!introIsClear()){pendingModeBanner=text;return;}pendingModeBanner=null;el.textContent=text;el.classList.remove("show");void el.offsetWidth;el.classList.add("show");}
 function releasePendingModeBanner(){if(pendingModeBanner&&introIsClear())showModeBanner(pendingModeBanner);}
 function makeStarField(){const count=850,positions=new Float32Array(count*3),colors=new Float32Array(count*3),baseXY=new Float32Array(count*2),palette=[0xffffff,0x777777,0x55ccff,0xff66cc,0x5d3dff,0xff8800].map(c=>new THREE.Color(c));for(let i=0;i<count;i++){const x=(Math.random()*2-1)*260,y=(Math.random()*2-1)*180;positions[i*3]=x;positions[i*3+1]=y;positions[i*3+2]=-50-Math.random()*1200;baseXY[i*2]=x;baseXY[i*2+1]=y;const c=palette[Math.floor(Math.random()*palette.length)].clone().multiplyScalar(.35+Math.random()*.7);colors[i*3]=c.r;colors[i*3+1]=c.g;colors[i*3+2]=c.b;}const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(positions,3));geo.setAttribute("color",new THREE.BufferAttribute(colors,3));const mat=new THREE.PointsMaterial({size:1.3,sizeAttenuation:true,transparent:true,opacity:.72,vertexColors:true});const pts=new THREE.Points(geo,mat);pts.userData.baseXY=baseXY;scene.add(pts);stars.push(pts);}
+
+function makeFluxDustField(){
+    const positions=new Float32Array(FLUX_DUST_COUNT*2*3);
+    const colors=new Float32Array(FLUX_DUST_COUNT*2*3);
+    const anchors=new Float32Array(FLUX_DUST_COUNT*2);
+
+    const palette=[
+        new THREE.Color(0xffffff),
+        new THREE.Color(0xbfefff),
+        new THREE.Color(0x75ddff),
+        new THREE.Color(0xffd36a),
+        new THREE.Color(0xc58cff)
+    ];
+
+    for(let i=0;i<FLUX_DUST_COUNT;i++){
+        let x=(Math.random()*2-1)*250;
+        let y=(Math.random()*2-1)*175;
+
+        // Keep the center gameplay corridor calmer.
+        const r=Math.hypot(x,y);
+        if(r<62){
+            const a=Math.atan2(y||1,x||1);
+            const pushed=62+Math.random()*45;
+            x=Math.cos(a)*pushed;
+            y=Math.sin(a)*pushed;
+        }
+
+        const z=-120-Math.random()*1050;
+        anchors[i*2]=x;
+        anchors[i*2+1]=y;
+
+        const p=i*6;
+        positions[p]=x;positions[p+1]=y;positions[p+2]=z;
+        positions[p+3]=x;positions[p+4]=y;positions[p+5]=z-4;
+
+        const c=palette[Math.floor(Math.random()*palette.length)]
+            .clone()
+            .multiplyScalar(.58+Math.random()*.32);
+
+        colors[p]=c.r;colors[p+1]=c.g;colors[p+2]=c.b;
+        colors[p+3]=c.r;colors[p+4]=c.g;colors[p+5]=c.b;
+    }
+
+    const geo=new THREE.BufferGeometry();
+    geo.setAttribute("position",new THREE.BufferAttribute(positions,3));
+    geo.setAttribute("color",new THREE.BufferAttribute(colors,3));
+
+    const mat=new THREE.LineBasicMaterial({
+        vertexColors:true,
+        transparent:true,
+        opacity:0,
+        depthWrite:false,
+        blending:THREE.AdditiveBlending
+    });
+
+    fluxDust=new THREE.LineSegments(geo,mat);
+    fluxDust.frustumCulled=false;
+    fluxDust.userData.anchors=anchors;
+    scene.add(fluxDust);
+}
+
+function updateFluxDust(dt){
+    if(!fluxDust)return;
+
+    const reducedMotion=
+        window.matchMedia &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const targetPower=
+        reducedMotion ? 0 :
+        THREE.MathUtils.clamp(fluxBoostAmount,0,1);
+
+    // Fast attack, gentle release. No blinking or pulsing.
+    const response=
+        1-Math.exp(-dt*(targetPower>fluxDustVisualPower?5.8:2.1));
+
+    fluxDustVisualPower+=
+        (targetPower-fluxDustVisualPower)*response;
+
+    const visualPower=
+        THREE.MathUtils.clamp(fluxDustVisualPower,0,1);
+
+    fluxDust.material.opacity=
+        THREE.MathUtils.lerp(
+            0,
+            FLUX_DUST_MAX_OPACITY,
+            visualPower
+        );
+
+    const streakLength=
+        THREE.MathUtils.lerp(
+            4,
+            FLUX_DUST_MAX_STREAK,
+            visualPower
+        );
+
+    const speedMult=
+        THREE.MathUtils.lerp(
+            1.05,
+            FLUX_DUST_MAX_SPEED_MULT,
+            visualPower
+        );
+
+    const pos=fluxDust.geometry.attributes.position;
+    const anchors=fluxDust.userData.anchors;
+
+    // Hard cap the visual travel rate even if gameplay speed rises later.
+    const cappedSpeed=Math.min(speed,330);
+
+    for(let i=0;i<FLUX_DUST_COUNT;i++){
+        const p=i*6;
+        const x=anchors[i*2];
+        const y=anchors[i*2+1];
+
+        let z=pos.array[p+2];
+        z+=cappedSpeed*dt*speedMult;
+
+        if(z>82){
+            z=-1050-Math.random()*280;
+        }
+
+        // Two points at different Z values form a short radial perspective streak.
+        pos.array[p]=x;
+        pos.array[p+1]=y;
+        pos.array[p+2]=z;
+
+        pos.array[p+3]=x;
+        pos.array[p+4]=y;
+        pos.array[p+5]=z-streakLength;
+    }
+
+    pos.needsUpdate=true;
+}
+
 function makeLaneGuides(){LANE_X.forEach(x=>{LANE_Y.forEach(y=>{const geo=new THREE.BufferGeometry(),positions=[];for(let i=0;i<52;i++)positions.push(x,y,-80-i*25);geo.setAttribute("position",new THREE.Float32BufferAttribute(positions,3));const mat=new THREE.PointsMaterial({color:0xff66cc,size:.85,transparent:true,opacity:.0,sizeAttenuation:true,depthWrite:false});const pts=new THREE.Points(geo,mat);scene.add(pts);laneGuides.push(pts);});});}
 function chooseTier(){
 
@@ -3458,6 +4545,7 @@ function chooseTier(){
 }
 function makeFluxOrb(reason="random"){
   if(fluxOrbActive)return false;
+  const powerTier=choosePowerTier();
   trainId++;
   const xIndex=Math.floor(Math.random()*3);
   const yIndex=Math.floor(Math.random()*3);
@@ -3475,10 +4563,12 @@ function makeFluxOrb(reason="random"){
     })
   );
   group.add(glow);group.add(core);
+  addPowerTierRings(group,powerTier,0x55eaff);
   group.position.set(x,y,FAR_Z+90);
   group.userData={
     core,glow,state:"active",fade:1,train:trainId,speedMult:1,
     roadX:x,roadY:y,isFlux:true,fluxReason:reason,
+    powerTier,
     fluxBornAt:performance.now()
   };
   group.scale.setScalar(introScale);
@@ -3488,6 +4578,7 @@ function makeFluxOrb(reason="random"){
     trigger_reason:group.userData.fluxReason,
     distance:Math.floor(distance),
     flow_number:currentFlowIndex+1,
+    power_tier:powerTier,
     lane_x:xIndex,lane_y:yIndex
   });
   return true;
@@ -3495,6 +4586,7 @@ function makeFluxOrb(reason="random"){
 
 function makeChronoOrb(reason="random"){
   if(chronoOrbActive)return false;
+  const powerTier=choosePowerTier();
 
   trainId++;
 
@@ -3523,6 +4615,7 @@ function makeChronoOrb(reason="random"){
 
   group.add(glow);
   group.add(core);
+  addPowerTierRings(group,powerTier,CHRONO_GLOW_COLOR);
   group.position.set(x,y,FAR_Z+90);
 
   group.userData={
@@ -3536,6 +4629,7 @@ function makeChronoOrb(reason="random"){
     roadY:y,
     isChrono:true,
     chronoReason:reason,
+    powerTier,
     chronoBornAt:performance.now()
   };
 
@@ -3548,6 +4642,7 @@ function makeChronoOrb(reason="random"){
     trigger_reason:group.userData.chronoReason,
     distance:Math.floor(distance),
     flow_number:currentFlowIndex+1,
+    power_tier:powerTier,
     lane_x:xIndex,
     lane_y:yIndex
   });
@@ -3557,6 +4652,7 @@ function makeChronoOrb(reason="random"){
 
 function makeMidasOrb(reason="random"){
   if(midasOrbActive)return false;
+  const powerTier=choosePowerTier();
 
   trainId++;
 
@@ -3597,6 +4693,7 @@ function makeMidasOrb(reason="random"){
   group.add(glow);
   group.add(shell);
   group.add(core);
+  addPowerTierRings(group,powerTier,MIDAS_GLOW_COLOR);
   group.position.set(x,y,FAR_Z+90);
 
   group.userData={
@@ -3611,6 +4708,7 @@ function makeMidasOrb(reason="random"){
     roadY:y,
     isMidas:true,
     midasReason:reason,
+    powerTier,
     midasBornAt:performance.now()
   };
 
@@ -3623,6 +4721,7 @@ function makeMidasOrb(reason="random"){
     trigger_reason:group.userData.midasReason,
     distance:Math.floor(distance),
     flow_number:currentFlowIndex+1,
+    power_tier:powerTier,
     lane_x:xIndex,
     lane_y:yIndex,
     midas_count_run:midasCollectedThisRun
@@ -3630,6 +4729,282 @@ function makeMidasOrb(reason="random"){
 
   return true;
 }
+
+
+// =========================
+// SHIFTVIX WARP ORB — REACH POWER
+// Tier I +500m / Tier II +1000m / Tier III +1500m.
+// This is an instantaneous spatial jump, not a speed boost.
+// =========================
+
+// =========================
+// SHIFTVIX 2.4 — VOID HAZARD
+// A black O-ring threat that uses the same 3x3 lane language.
+// Touching one costs one strike.
+// =========================
+let voidSpawnCooldown=4.0;
+let voidCountRun=0;
+
+function makeVoidHazard(reason="normal"){
+  const activeVoids=beacons.filter(
+    b=>b?.userData?.isVoid && b.userData.state==="active"
+  ).length;
+  if(activeVoids>=2)return false;
+
+  trainId++;
+  const xIndex=Math.floor(Math.random()*3);
+  const yIndex=Math.floor(Math.random()*3);
+  const x=LANE_X[xIndex];
+  const y=LANE_Y[yIndex];
+
+  const group=new THREE.Group();
+
+  const core=new THREE.Mesh(
+    new THREE.TorusGeometry(12.5,3.15,12,48),
+    new THREE.MeshBasicMaterial({
+      color:0x020204,
+      transparent:true,
+      opacity:.99,
+      depthWrite:false
+    })
+  );
+
+  const shell=new THREE.Mesh(
+    new THREE.TorusGeometry(12.55,3.75,10,48),
+    new THREE.MeshBasicMaterial({
+      color:0x8993a3,
+      transparent:true,
+      opacity:.24,
+      blending:THREE.AdditiveBlending,
+      depthWrite:false
+    })
+  );
+
+  const glow=new THREE.Mesh(
+    new THREE.TorusGeometry(14.9,1.1,8,48),
+    new THREE.MeshBasicMaterial({
+      color:0x1a2030,
+      transparent:true,
+      opacity:.20,
+      blending:THREE.AdditiveBlending,
+      depthWrite:false
+    })
+  );
+
+  group.add(glow);
+  group.add(shell);
+  group.add(core);
+
+  group.position.set(x,y,FAR_Z+110);
+  group.scale.setScalar(introScale);
+
+  group.userData={
+    core,
+    shell,
+    glow,
+    isVoid:true,
+    state:"active",
+    fade:1,
+    train:trainId,
+    speedMult:.92,
+    roadX:x,
+    roadY:y,
+    voidReason:reason,
+    voidBornAt:performance.now()
+  };
+
+  scene.add(group);
+  beacons.push(group);
+  voidCountRun++;
+
+  trackGame("void_spawned",{
+    trigger_reason:reason,
+    distance:Math.floor(distance),
+    level,
+    flow_number:currentFlowIndex+1,
+    lane_x:xIndex,
+    lane_y:yIndex,
+    void_count_run:voidCountRun
+  });
+
+  return true;
+}
+
+function hitVoidHazard(b){
+  if(!b?.userData || b.userData.state!=="active")return;
+
+  b.userData.state="collected";
+  b.userData.fade=1;
+  fluxCollectionStreak=0;
+  breakTimer=0;
+  combo=1;
+
+  if(!heroMode){
+    strikes++;
+    lastStrikeDistance=distance;
+
+    if(environmentEngine?.current?.onStrike){
+      environmentEngine.current.onStrike();
+    }
+
+    track("strike",{
+      strike_number:strikes,
+      level,
+      distance:Math.floor(distance),
+      score,
+      source:"void"
+    });
+
+    trackGame("void_hit",{
+      distance:Math.floor(distance),
+      level,
+      strikes,
+      flow_number:currentFlowIndex+1
+    });
+
+    playStrike();
+    pulseCenterReactorDamage();
+
+    if(navigator.vibrate){
+      navigator.vibrate([30,40,30]);
+    }
+
+    if(strikes<3){
+      animateLostLife(strikes-1);
+    }else{
+      updateStrikes();
+    }
+
+    const signal=document.getElementById("signal");
+    if(signal)signal.textContent="Signal: break "+strikes+"/3";
+
+    if(strikes>=3){
+      endRun();
+    }
+  }else{
+    // During the opening grace period, the Void still teaches avoidance
+    // without ending a brand-new player's run.
+    playStrike();
+    pulseCenterReactorDamage();
+    if(navigator.vibrate)navigator.vibrate([18,24,18]);
+  }
+}
+
+const WARP_COLOR=0xd86cff;
+const WARP_CORE_COLOR=0xffffff;
+const WARP_GLOW_COLOR=0x7feaff;
+let warpOrbActive=false;
+let warpCollectedThisRun=0;
+let warpCooldownUntilDistance=0;
+
+function playWarpOrbSound(tier=1){
+  initAudio();
+  if(!audioCtx)return;
+  const now=audioCtx.currentTime;
+  const osc=audioCtx.createOscillator();
+  const gain=audioCtx.createGain();
+  osc.type="sawtooth";
+  osc.frequency.setValueAtTime(180,now);
+  osc.frequency.exponentialRampToValueAtTime(1200+tier*420,now+.24);
+  gain.gain.setValueAtTime(.0001,now);
+  gain.gain.linearRampToValueAtTime(.055,now+.025);
+  gain.gain.exponentialRampToValueAtTime(.0001,now+.46);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(now);osc.stop(now+.5);
+}
+
+function activateWarp(reason,tier=1){
+  const jump=warpTierDistance(tier);
+  const before=distance;
+
+  // Warp is instantaneous and never changes the current viewport/camera sizing.
+  distance+=jump;
+  level=Math.floor(distance/500)+1;
+  lastLevel=Math.max(lastLevel,level);
+
+  // The Warp orb supplies its own breakthrough so the normal 3000m boundary
+  // does not immediately fire a duplicate burst on the next frame.
+  lastWarpBreakthrough=Math.floor(distance/3000);
+
+  warpCollectedThisRun++;
+  warpCooldownUntilDistance=distance+700+Math.random()*250;
+
+  playWarpOrbSound(tier);
+  triggerWarpBreakthrough("warp");
+  launchSurge=Math.max(launchSurge,16+tier*3);
+  showPowerAnnouncement("WARP",tier);
+  updateHUD();
+  updateChallenge();
+
+  if(navigator.vibrate){
+    navigator.vibrate(tier===3?[30,24,50,28,70]:tier===2?[26,22,48]:[22,20,38]);
+  }
+
+  trackGame("warp_orb_collected",{
+    trigger_reason:reason||"unknown",
+    power_tier:tier,
+    jump_meters:jump,
+    distance_before:Math.floor(before),
+    distance_after:Math.floor(distance),
+    level_after:level,
+    flow_number:currentFlowIndex+1,
+    warp_count_run:warpCollectedThisRun
+  });
+}
+
+function makeWarpOrb(reason="random"){
+  if(warpOrbActive || distance<warpCooldownUntilDistance)return false;
+  const powerTier=choosePowerTier();
+
+  trainId++;
+  const xIndex=Math.floor(Math.random()*3);
+  const yIndex=Math.floor(Math.random()*3);
+  const x=LANE_X[xIndex],y=LANE_Y[yIndex];
+
+  const group=new THREE.Group();
+  const core=new THREE.Mesh(
+    new THREE.SphereGeometry(7.5,24,24),
+    new THREE.MeshBasicMaterial({color:WARP_CORE_COLOR})
+  );
+  const shell=new THREE.Mesh(
+    new THREE.SphereGeometry(9.0,20,20),
+    new THREE.MeshBasicMaterial({
+      color:WARP_COLOR,transparent:true,opacity:.68,
+      blending:THREE.AdditiveBlending,depthWrite:false
+    })
+  );
+  const glow=new THREE.Mesh(
+    new THREE.SphereGeometry(14.8,22,22),
+    new THREE.MeshBasicMaterial({
+      color:WARP_GLOW_COLOR,transparent:true,opacity:.26,
+      blending:THREE.AdditiveBlending,depthWrite:false
+    })
+  );
+
+  group.add(glow);group.add(shell);group.add(core);
+  addPowerTierRings(group,powerTier,WARP_COLOR);
+  group.position.set(x,y,FAR_Z+90);
+  group.userData={
+    core,shell,glow,state:"active",fade:1,train:trainId,speedMult:1,
+    roadX:x,roadY:y,isWarp:true,warpReason:reason,powerTier,
+    warpBornAt:performance.now()
+  };
+
+  group.scale.setScalar(introScale);
+  scene.add(group);beacons.push(group);
+  warpOrbActive=true;
+
+  trackGame("warp_orb_spawned",{
+    trigger_reason:reason,
+    power_tier:powerTier,
+    jump_meters:warpTierDistance(powerTier),
+    distance:Math.floor(distance),
+    flow_number:currentFlowIndex+1,
+    lane_x:xIndex,lane_y:yIndex
+  });
+  return true;
+}
+
 
 function makeLegendaryOrb(){
   const available=[];
@@ -3649,6 +5024,11 @@ function makeLegendaryOrb(){
   if(!midasOrbActive)available.push({
     type:"midas",
     spawn:()=>makeMidasOrb("random_wave")
+  });
+
+  if(!warpOrbActive && distance>=warpCooldownUntilDistance)available.push({
+    type:"warp",
+    spawn:()=>makeWarpOrb("random_wave")
   });
 
   if(!available.length)return false;
@@ -3674,13 +5054,111 @@ function makeLegendaryOrb(){
   return spawned;
 }
 
+// =========================
+// SHIFTVIX MOBILE PERFORMANCE 1.0
+// Shared collectible geometry + explicit GPU cleanup.
+// =========================
+const sharedBeaconGeometryCache=new Map();
+
+function getSharedBeaconGeometry(radius,segments=14){
+  const key=`${radius.toFixed(3)}:${segments}`;
+  let geometry=sharedBeaconGeometryCache.get(key);
+
+  if(!geometry){
+    geometry=new THREE.SphereGeometry(
+      radius,
+      segments,
+      segments
+    );
+    sharedBeaconGeometryCache.set(key,geometry);
+  }
+
+  return geometry;
+}
+
+function disposeBeaconObject(group){
+  if(!group)return;
+
+  scene.remove(group);
+
+  const sharedGeometry=
+    Boolean(group.userData&&group.userData.sharedGeometry);
+
+  group.traverse(child=>{
+    if(!child||!child.isMesh)return;
+
+    if(
+      !sharedGeometry &&
+      child.geometry &&
+      typeof child.geometry.dispose==="function"
+    ){
+      child.geometry.dispose();
+    }
+
+    const materials=
+      Array.isArray(child.material)
+        ? child.material
+        : [child.material];
+
+    materials.forEach(material=>{
+      if(
+        material &&
+        typeof material.dispose==="function"
+      ){
+        material.dispose();
+      }
+    });
+  });
+}
+
 function makeBeacon(tier,x,y,z,train){
  const group=new THREE.Group();
- const core=new THREE.Mesh(new THREE.SphereGeometry(tier.size,18,18),new THREE.MeshBasicMaterial({color:tier.color}));
- const glow=new THREE.Mesh(new THREE.SphereGeometry(tier.size*1.9,16,16),new THREE.MeshBasicMaterial({color:tier.color,transparent:true,opacity:.10,blending:THREE.AdditiveBlending,depthWrite:false}));
- group.add(glow);group.add(core);group.position.set(x,y,z);
- group.userData={core,glow,tier,value:tier.value,state:"active",fade:1,train,speedMult:1,roadX:x,roadY:y};
- group.scale.setScalar(introScale);scene.add(group);beacons.push(group);
+
+ // Shared geometry avoids hundreds/thousands of repeated GPU allocations
+ // during long mobile sessions.
+ const coreGeometry=
+   getSharedBeaconGeometry(tier.size,14);
+
+ const glowGeometry=
+   getSharedBeaconGeometry(tier.size*1.9,12);
+
+ const core=new THREE.Mesh(
+   coreGeometry,
+   new THREE.MeshBasicMaterial({color:tier.color})
+ );
+
+ const glow=new THREE.Mesh(
+   glowGeometry,
+   new THREE.MeshBasicMaterial({
+     color:tier.color,
+     transparent:true,
+     opacity:.10,
+     blending:THREE.AdditiveBlending,
+     depthWrite:false
+   })
+ );
+
+ group.add(glow);
+ group.add(core);
+ group.position.set(x,y,z);
+
+ group.userData={
+   core,
+   glow,
+   tier,
+   value:tier.value,
+   state:"active",
+   fade:1,
+   train,
+   speedMult:1,
+   roadX:x,
+   roadY:y,
+   sharedGeometry:true
+ };
+
+ group.scale.setScalar(introScale);
+ scene.add(group);
+ beacons.push(group);
 }
 function spawnTrain(){
  trainId++;
@@ -3999,6 +5477,12 @@ function takeStrike(){
 
 }function collectBeacon(b){
  if(b.userData.state!=="active")return;
+
+ if(b.userData.isVoid){
+   hitVoidHazard(b);
+   return;
+ }
+
  b.userData.state="collected";b.userData.fade=1;
  if(!runStarted){runStarted=true;breakTimer=0;document.getElementById("signal").textContent="Signal: run started";}
  lastFoundAt=performance.now();breakTimer=0;
@@ -4006,16 +5490,19 @@ function takeStrike(){
  if(
    b.userData.isFlux||
    b.userData.isChrono||
-   b.userData.isMidas
+   b.userData.isMidas||
+   b.userData.isWarp
  ){
    const collectedType=
      b.userData.isFlux?"flux":
      b.userData.isChrono?"chrono":
-     "midas";
+     b.userData.isMidas?"midas":
+     "warp";
 
    if(b.userData.isFlux)fluxOrbActive=false;
    if(b.userData.isChrono)chronoOrbActive=false;
    if(b.userData.isMidas)midasOrbActive=false;
+   if(b.userData.isWarp)warpOrbActive=false;
 
    const activeEffect=currentLegendaryEffect();
 
@@ -4033,12 +5520,19 @@ function takeStrike(){
      return;
    }
 
+   const powerTier=b.userData.powerTier||1;
    if(collectedType==="flux"){
-     activateFluxBoost(b.userData.fluxReason);
+     if(!silentTutorialComplete)tutorialPowerSeen=true;
+     activateFluxBoost(b.userData.fluxReason,powerTier);
    }else if(collectedType==="chrono"){
-     activateChrono(b.userData.chronoReason);
+     if(!silentTutorialComplete)tutorialPowerSeen=true;
+     activateChrono(b.userData.chronoReason,powerTier);
+   }else if(collectedType==="midas"){
+     if(!silentTutorialComplete)tutorialPowerSeen=true;
+     activateMidas(b.userData.midasReason,powerTier);
    }else{
-     activateMidas(b.userData.midasReason);
+     if(!silentTutorialComplete)tutorialPowerSeen=true;
+     activateWarp(b.userData.warpReason,powerTier);
    }
 
    return;
@@ -4052,6 +5546,9 @@ function takeStrike(){
 
 score += gained;
 foundCount++;
+if(!silentTutorialComplete){
+  tutorialFirstCollectSeen=true;
+}
 if(midasTime>0)midasAbsorbedThisState++;
 fluxCollectionStreak++;
 if(fluxCollectionStreak>=FLUX_COLLECTION_STREAK_TARGET){
@@ -4079,6 +5576,11 @@ function updateHUD(){
     document.getElementById("level").textContent =
         level;
 
+    const hudScore = document.getElementById("hudScore");
+    if(hudScore){
+        hudScore.textContent = Math.floor(score).toLocaleString();
+    }
+
 }
 function formatRunFlowProgress(flow,value){
   const current=Math.max(0,Math.min(flow.target,value));
@@ -4096,6 +5598,7 @@ function endRun(){
     fluxBoostTime=0;
     chronoTime=0;
     midasTime=0;
+    warpOrbActive=false;
     fluxPendingReasons.length=0;
     chronoPendingReasons.length=0;
     midasPendingReasons.length=0;
@@ -4208,6 +5711,7 @@ function endRun(){
     const runFlowRaw = challengeValue(runFlow);
     const runFlowValue = Math.max(0,Math.min(runFlow.target,runFlowRaw));
     const runFlowPct = Math.max(0,Math.min(100,(runFlowValue/runFlow.target)*100));
+    const runFlowPctWhole = Math.floor(runFlowPct);
     const runFlowProgress = formatRunFlowProgress(runFlow,runFlowValue);
 
     card.innerHTML = `
@@ -4237,8 +5741,9 @@ function endRun(){
         </div>
         <div class="runFlowObjective">${runFlow.label}</div>
         <div class="runFlowProgressText">${runFlowProgress}</div>
-        <div class="runFlowBar" aria-label="Flow progress">
+        <div class="runFlowBar" aria-label="Flow progress ${runFlowPctWhole}%">
             <div class="runFlowFill" style="width:${runFlowPct}%"></div>
+            <div class="runFlowPct">${runFlowPctWhole}%</div>
         </div>
     </div>
 
@@ -4266,6 +5771,33 @@ function endRun(){
 
 }
 function resetRun(){
+if(!silentTutorialComplete){
+  tutorialStage=0;
+  tutorialStageStartedAt=0;
+  tutorialVoidIntroduced=false;
+  tutorialPowerSeen=false;
+  tutorialFirstCollectSeen=false;
+
+  if(tutorialPromptTimer){
+    clearTimeout(tutorialPromptTimer);
+    tutorialPromptTimer=null;
+  }
+
+  const tutorialPrompt=document.getElementById("tutorialPrompt");
+  if(tutorialPrompt)tutorialPrompt.classList.remove("show");
+}
+
+scheduleNextPowerOrbOpportunity(true);
+const powerAnnouncement=document.getElementById("powerAnnouncement");
+if(powerAnnouncement){
+  powerAnnouncement.className="";
+  powerAnnouncement.textContent="";
+}
+if(powerAnnouncementTimer){
+  clearTimeout(powerAnnouncementTimer);
+  powerAnnouncementTimer=null;
+}
+
 
     // This function is reached when the player taps
     // the results screen after losing all three lives.
@@ -4292,13 +5824,13 @@ vix.style.transform = "translateY(0)";
 
 title.style.transform = "translate(-50%,-50%)";
 
-const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center)center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");reactorDamageUntil=0;document.getElementById("roundComplete").style.display="none";beacons.forEach(b=>scene.remove(b));beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");renderer.domElement.style.filter="none";playerX=0;playerY=0;
+const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;const hudScoreReset=document.getElementById("hudScore");if(hudScoreReset)hudScoreReset.textContent="0";tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=4.0;voidCountRun=0;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
 
-lastLevel = 1;strikes = 0;milestonesReached = {};lastWarpBreakthrough=0;launchSurge=0;runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;resetWarpBanking();resetEnvironmentForRun();beginCurrentFlow();updateStrikes();updateHUD();spawnWave();if(!musicStarted){startMusic();}else if(!musicTimer&&audioCtx){nextNoteTime=Math.max(nextNoteTime,audioCtx.currentTime+0.035);nextDrumTime=Math.max(nextDrumTime,audioCtx.currentTime+0.05);musicTimer=setInterval(musicScheduler,25);}}
+lastLevel = 1;strikes = 0;milestonesReached = {};lastWarpBreakthrough=0;starColorUpdateFrame=0;launchSurge=0;runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;resetWarpBanking();applyFrozenGameViewport(stableViewportWidth,stableViewportHeight);resetEnvironmentForRun();beginCurrentFlow();updateStrikes();updateHUD();spawnWave();if(!musicStarted){startMusic();}else if(!musicTimer&&audioCtx){nextNoteTime=Math.max(nextNoteTime,audioCtx.currentTime+0.035);nextDrumTime=Math.max(nextDrumTime,audioCtx.currentTime+0.05);musicTimer=setInterval(musicScheduler,25);}}
 const title = document.getElementById("gameTitle");
 const shift = document.getElementById("shift");
 const vix = document.getElementById("vix");
-function animate(){requestAnimationFrame(animate);updateGamepad();const dt = Math.min(clock.getDelta(), .05);if(gameStarted&&!gameOver&&!paused){updateFluxBoost(dt);updateChronoState(dt);updateMidasState(dt);const worldTimeScale=THREE.MathUtils.lerp(1,CHRONO_WORLD_SCALE,chronoAmount);const worldDt=dt*worldTimeScale;const baseRunSpeed=SPEED_START+Math.min(150,distance*.018);speed=baseRunSpeed*(1+fluxBoostAmount*FLUX_SPEED_BOOST);distance+=speed*worldDt*.08;
+function animate(){requestAnimationFrame(animate);updateGamepad();const dt = Math.min(clock.getDelta(), .05);if(gameStarted&&!gameOver&&!paused){updateFluxBoost(dt);updateChronoState(dt);updateMidasState(dt);updateIonicThruster(dt);const worldTimeScale=THREE.MathUtils.lerp(1,CHRONO_WORLD_SCALE,chronoAmount);const worldDt=dt*worldTimeScale;const baseRunSpeed=SPEED_START+Math.min(150,distance*.018);speed=baseRunSpeed*(1+fluxBoostAmount*FLUX_SPEED_BOOST);distance+=speed*worldDt*.08;
 level = Math.floor(distance / 500) + 1;
 heroMode = ((performance.now()-runStartTime)/1000) < HERO_SECONDS;
 if(!heroMode && heroBannerShown){heroBannerShown=false;}
@@ -4364,10 +5896,45 @@ if(warpBoundary>lastWarpBreakthrough){
 }
 
 updateChallenge();
+updateSilentTutorial();
 updateEnvironment(worldDt);
+starColorUpdateFrame=(starColorUpdateFrame+1)%1200;
+updateFluxDust(worldDt);
+
+if(
+  distance>=nextPowerOrbOpportunity &&
+  !fluxOrbActive &&
+  !chronoOrbActive &&
+  !midasOrbActive &&
+  !warpOrbActive &&
+  fluxBoostTime<=0 &&
+  chronoTime<=0 &&
+  midasTime<=0
+){
+  makeLegendaryOrb();
+  scheduleNextPowerOrbOpportunity(false);
+}
+
+if(silentTutorialComplete){
+  voidSpawnCooldown-=worldDt;
+
+  if(
+    voidSpawnCooldown<=0 &&
+    level>=2
+  ){
+    if(makeVoidHazard("normal")){
+      // Sparse at first, then gently more frequent as level rises.
+      const base=Math.max(5.2,10.8-level*.30);
+      voidSpawnCooldown=base+Math.random()*4.4;
+    }else{
+      voidSpawnCooldown=1.2;
+    }
+  }
+}
+
 spawnTimer-=worldDt;
 if(spawnTimer<=0){
-    // Flux increases incoming train frequency instead of increasing dust/stars.
+    // Flux increases incoming train frequency; a separate sparse capped dust layer adds the speed cue.
     const normalInterval=.54+Math.random()*.26;
     const fluxInterval=.22+Math.random()*.12;
     spawnTimer=THREE.MathUtils.lerp(normalInterval,fluxInterval,fluxBoostAmount);
@@ -4424,7 +5991,7 @@ if(cycleDistance >= WARP_BUILD_END){
 
 // Flux Drive temporarily intensifies the existing warp without changing lanes,
 // controls, collision radius, or obstacle logic.
-// Flux no longer adds warp particles or visual density.
+// Flux dust is handled separately and capped; warpAmount itself is not increased by Flux.
 
 // Atmosphere pacing follows the same capped visual distance so fog and color
 // do not keep escalating after the preferred 1050m-quality appearance.
@@ -4477,9 +6044,16 @@ scene.fog.color.setHex(
 atmosphereColors[stage]
 );
 
+/*
+  CENTER LOCK:
+  The center reactor is fixed at 50% / 50% in the HTML layer.
+  The 3D camera must therefore look exactly through the player's current
+  lane center. Deep-field curvature may still move the stars, but it must
+  never move the gameplay vanishing point away from the reactor.
+*/
 camera.lookAt(
-playerX * 0.995 + vanishingX,
-playerY * 0.995 + vanishingY,
+playerX,
+playerY,
 -500
 );let targetFov =
 70
@@ -4505,7 +6079,9 @@ const roadPoint=environmentPoint(b.userData.roadX,b.userData.roadY);
 const isRegularCollectible=
   !b.userData.isFlux&&
   !b.userData.isChrono&&
-  !b.userData.isMidas;
+  !b.userData.isMidas&&
+  !b.userData.isWarp&&
+  !b.userData.isVoid;
 
 if(midasTime>0&&isRegularCollectible){
   // Golden Touch bends every normal coin from all nine lanes toward the player.
@@ -4557,6 +6133,13 @@ if(b.userData.isChrono){
   b.scale.setScalar(introScale*pulse);
 }
 
+if(b.userData.isVoid){
+  const voidPulse=.5+.5*Math.sin(performance.now()*.0075);
+  b.userData.shell.material.opacity=.16+voidPulse*.18;
+  b.userData.glow.material.opacity=.10+voidPulse*.14;
+  b.scale.setScalar(introScale*(.98+voidPulse*.05));
+}
+
 if(b.userData.isMidas){
   const blink=.5+.5*Math.sin(performance.now()*.022);
   const shimmer=.5+.5*Math.sin(performance.now()*.039+1.2);
@@ -4589,13 +6172,25 @@ b.lookAt(playerX,playerY,PLAYER_Z);const dz=Math.abs(b.position.z-PLAYER_Z),dxy=
     midasOrbActive=false;
     trackGame("midas_orb_missed",{trigger_reason:b.userData.midasReason,distance:Math.floor(distance),flow_number:currentFlowIndex+1,midas_count_run:midasCollectedThisRun});
   }
+  if(b.userData.isWarp){
+    warpOrbActive=false;
+    trackGame("warp_orb_missed",{trigger_reason:b.userData.warpReason,power_tier:b.userData.powerTier||1,distance:Math.floor(distance),flow_number:currentFlowIndex+1,warp_count_run:warpCollectedThisRun});
+  }
+
+  if(b.userData.isVoid){
+    trackGame("void_avoided",{
+      distance:Math.floor(distance),
+      level,
+      flow_number:currentFlowIndex+1
+    });
+  }
 
   b.userData.state="missed";
 }}if(b.userData.state==="collected"||b.userData.state==="missed"){b.userData.fade-=dt*2.8;const f=Math.max(0,b.userData.fade);b.userData.core.material.transparent=true;b.userData.core.material.opacity=f;if(b.userData.shell)b.userData.shell.material.opacity=f*.58;b.userData.glow.material.opacity =
 f * (
 0.09 +
 warpAmount * 0.18
-);b.scale.setScalar(Math.max(.001,f));}});for(let i=beacons.length-1;i>=0;i--){const b=beacons[i];if((b.userData.state==="collected"||b.userData.state==="missed")&&b.userData.fade<=0){scene.remove(b);beacons.splice(i,1);}};stars.forEach(s=>{const pos = s.geometry.attributes.position;const speedMultiplier =1 + warpAmount * 7;const stretch =1 + warpAmount * 5 * (1-chronoAmount*.72);for(let i=0;i<pos.count;i++){
+);b.scale.setScalar(Math.max(.001,f));}});for(let i=beacons.length-1;i>=0;i--){const b=beacons[i];if((b.userData.state==="collected"||b.userData.state==="missed")&&b.userData.fade<=0){disposeBeaconObject(b);beacons.splice(i,1);}};stars.forEach(s=>{const pos = s.geometry.attributes.position;const speedMultiplier =1 + warpAmount * 7;const stretch =1 + warpAmount * 5 * (1-chronoAmount*.72);for(let i=0;i<pos.count;i++){
 
     const baseXY = s.userData.baseXY;
     const baseX = baseXY ? baseXY[i*2] : pos.getX(i);
@@ -4664,7 +6259,13 @@ warpAmount * 0.18
     y,
     z
 );
-}pos.needsUpdate=true;const colors = s.geometry.attributes.color;
+}pos.needsUpdate=true;
+
+const updateStarColors=
+  (starColorUpdateFrame % STAR_COLOR_UPDATE_INTERVAL)===0;
+
+if(updateStarColors){
+const colors = s.geometry.attributes.color;
 
 const palettes = [
 
@@ -4773,6 +6374,7 @@ for(let i=0;i<colors.count;i++){
 }
 
 colors.needsUpdate = true;
+}
 // Stretch stars into streaks
 
 // Warp Drive 2.1
@@ -4795,20 +6397,12 @@ updateHUD();}if(gameStarted&&!gameOver){
 introScale += (1-introScale)*dt*0.6;beacons.forEach(b=>{if(b.userData.state==="active") b.scale.lerp(new THREE.Vector3(introScale,introScale,introScale),0.08);});
 introCameraZ += (TARGET_CAMERA_Z-introCameraZ)*dt*0.18;
 launchSurge*=Math.exp(-dt*7.5);
-camera.position.z=introCameraZ-launchSurge;camera.position.x +=
-(Math.random()-0.5)
-*
-warpAmount
-*
-0.12;
-
-camera.position.y +=
-(Math.random()-0.5)
-*
-warpAmount
-*
-0.12;
-
+/*
+  CENTER LOCK:
+  No post-lookAt X/Y camera shake. Any lateral camera translation after
+  lookAt makes the fixed HTML reactor and the 3D lane vanishing point diverge.
+  Keep acceleration depth movement on Z only.
+*/
 camera.position.z =
 introCameraZ
 -
@@ -4927,8 +6521,19 @@ document.addEventListener("visibilitychange",()=>{
   if(document.hidden){
     saveFlowProgress();
     if(gameStarted&&!gameOver&&!paused)pauseGame("visibility_hidden");
-  }else if(gameStarted&&!musicStarted&&!paused){
-    startMusic();
+  }else{
+    clock.getDelta();
+
+    setTimeout(()=>{
+      applyFrozenGameViewport(
+        stableViewportWidth,
+        stableViewportHeight
+      );
+    },180);
+
+    if(gameStarted&&!musicStarted&&!paused){
+      startMusic();
+    }
   }
 });
     
@@ -4943,9 +6548,62 @@ window.addEventListener("beforeunload",()=>{
     });
 
 });
-window.addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+function scheduleViewportSync(force=false,delay=180){
+  if(viewportResizeTimer){
+    clearTimeout(viewportResizeTimer);
+  }
 
-makeStarField();makeLaneGuides();resetEnvironmentForRun();updateStrikes();updateHUD();startGame();animate();
+  viewportResizeTimer=setTimeout(()=>{
+    commitStableViewport(force);
+  },delay);
+}
+
+/*
+  Generic mobile resize is intentionally ignored.
+  Safari/Firefox/Chrome can emit it for browser chrome and compositor changes.
+*/
+window.addEventListener("resize",()=>{
+  if(!SHIFTVIX_MOBILE_DEVICE){
+    scheduleViewportSync(false,120);
+    return;
+  }
+
+  const orientation=currentPhysicalOrientation();
+
+  if(orientation!==viewportOrientation){
+    scheduleViewportSync(false,360);
+  }
+});
+
+window.addEventListener("orientationchange",()=>{
+  if(viewportResizeTimer){
+    clearTimeout(viewportResizeTimer);
+  }
+
+  viewportResizeTimer=setTimeout(()=>{
+    recaptureViewportForOrientation();
+  },420);
+});
+
+/*
+  visualViewport events NEVER control renderer size or canvas placement.
+*/
+if(window.visualViewport){
+  window.visualViewport.addEventListener("resize",()=>{});
+  window.visualViewport.addEventListener("scroll",()=>{});
+}
+
+window.addEventListener("pageshow",()=>{
+  // Reapply the frozen rectangle without learning a transient browser-bar size.
+  setTimeout(()=>{
+    applyFrozenGameViewport(
+      stableViewportWidth,
+      stableViewportHeight
+    );
+  },120);
+});
+
+makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();updateStrikes();updateHUD();startGame();animate();
 </script>
 </body>
 </html>
