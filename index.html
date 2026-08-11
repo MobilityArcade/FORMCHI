@@ -51,7 +51,7 @@ function track(eventName, data = {}) {
 <meta name="apple-mobile-web-app-title" content="SHIFTVIX">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<!-- SHIFTVIX 2.7 — ONE-LINE SURVIVE THE FLOW + FIREBALL METEOR VOLLEYS -->
+<!-- SHIFTVIX 2.7.1 — FIREBALL METEOR CAMERA CRASH FIX -->
 <title>SHIFTVIX</title>
 <style>
 html,body{
@@ -6220,7 +6220,7 @@ if(b.userData.isVoid){
   if(b.userData.aura)b.userData.aura.material.opacity=.045+pulse*.075;
 
   const approach=THREE.MathUtils.clamp(
-    1-(b.position.z-CAMERA_Z)/(FAR_Z+135-CAMERA_Z),
+    1-(b.position.z-NEAR_Z)/(FAR_Z+135-NEAR_Z),
     0,
     1
   );
