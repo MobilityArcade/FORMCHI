@@ -51,7 +51,7 @@ function track(eventName, data = {}) {
 <meta name="apple-mobile-web-app-title" content="SHIFTVIX">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<!-- SHIFTVIX 2.9.1 — VOID SPIKE METEORS + SYNTAX FIX -->
+<!-- SHIFTVIX 2.9.2 — UNIFORM ALTERNATING VOID SPIKES -->
 <title>SHIFTVIX</title>
 <style>
 html,body{
@@ -4830,54 +4830,66 @@ function makeVoidHazard(reason="normal",forcedLane=null){
     })
   );
 
-  // Ten outward-facing red spikes.
+  // SHIFTVIX 2.9.2 — UNIFORM ALTERNATING SPIKES
+  // Big spike, little spike, big spike, little spike...
+  // Every wide base is anchored to the outside of the fiery ring,
+  // and every sharp tip points AWAY from the meteor center.
   const spikes=new THREE.Group();
-  const spikeCount=10;
 
-  for(let i=0;i<spikeCount;i++){
-    const a=(i/spikeCount)*Math.PI*2;
+  const bigSpikeCount=8;
+  const totalSpikeCount=bigSpikeCount*2;
+
+  // Ring edge is ~9.3 units from center.
+  // ConeGeometry is centered on its local Y axis, so the spike center must
+  // sit half its length beyond the attachment point for the base to touch
+  // the ring cleanly.
+  const attachRadius=9.15;
+
+  for(let i=0;i<totalSpikeCount;i++){
+    const a=(i/totalSpikeCount)*Math.PI*2;
+    const isBig=(i%2===0);
+
+    const spikeLength=isBig?5.6:3.5;
+    const spikeBaseRadius=isBig?1.22:.78;
 
     const spike=new THREE.Mesh(
-      new THREE.ConeGeometry(1.15,5.6,10,1,false),
+      new THREE.ConeGeometry(
+        spikeBaseRadius,
+        spikeLength,
+        12,
+        1,
+        false
+      ),
       new THREE.MeshBasicMaterial({
-        color:0xff1e20,
+        color:isBig?0xff1e20:0xff3a28,
         transparent:true,
-        opacity:.96,
+        opacity:.98,
         blending:THREE.AdditiveBlending,
         depthWrite:false
       })
     );
 
-    spike.rotation.z=-a;
+    /*
+      ConeGeometry points along local +Y.
+      Rotate +Y so the cone tip points radially OUTWARD.
+      Because the geometry is centered, place the cone center at:
+      ring attachment radius + half spike length.
+      That puts the thick base directly against the ring.
+    */
+    spike.rotation.z = a - Math.PI/2;
+
+    const centerRadius=attachRadius + spikeLength*.5;
+
     spike.position.set(
-      Math.cos(a)*11.15,
-      Math.sin(a)*11.15,
+      Math.cos(a)*centerRadius,
+      Math.sin(a)*centerRadius,
       0
     );
 
-    const tip=new THREE.Mesh(
-      new THREE.ConeGeometry(.45,2.0,8),
-      new THREE.MeshBasicMaterial({
-        color:0xff6a28,
-        transparent:true,
-        opacity:.76,
-        blending:THREE.AdditiveBlending,
-        depthWrite:false
-      })
-    );
-
-    tip.rotation.z=-a;
-    tip.position.set(
-      Math.cos(a)*13.05,
-      Math.sin(a)*13.05,
-      .02
-    );
-
     spikes.add(spike);
-    spikes.add(tip);
   }
 
-  group.add(aura);
+group.add(aura);
   group.add(heat);
   group.add(spikes);
   group.add(corona);
@@ -6300,7 +6312,7 @@ if(b.userData.isVoid){
 
   // Slow counter-rotation makes the spikes feel alive and threatening.
   if(b.userData.spikes){
-    b.userData.spikes.rotation.z-=worldDt*.55;
+    b.userData.spikes.rotation.z-=worldDt*.38;
   }
 }
 
