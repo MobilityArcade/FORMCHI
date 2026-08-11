@@ -51,7 +51,7 @@ function track(eventName, data = {}) {
 <meta name="apple-mobile-web-app-title" content="SHIFTVIX">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<!-- SHIFTVIX 2.4 — SURVIVE THE FLOW + VOID HAZARDS + SILENT FIRST-RUN TUTORIAL -->
+<!-- SHIFTVIX 2.5 — SURVIVE THE FLOW + FREQUENT BLACK ORB HAZARDS -->
 <title>SHIFTVIX</title>
 <style>
 html,body{
@@ -717,12 +717,14 @@ canvas{
    ========================= */
 #challengeHud{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:22;width:min(620px,92vw);text-align:center;color:#fff;font-weight:900;text-shadow:0 0 10px #000;cursor:pointer;pointer-events:auto}
 #challengeName{
-  font-size:clamp(38px,8vw,64px);
+  font-size:clamp(40px,8.8vw,68px);
   letter-spacing:3.2px;
   color:#ffd36a;
-  margin-bottom:9px;
+  margin-bottom:10px;
   line-height:.96;
-  text-shadow:0 0 12px rgba(255,211,106,.58),0 0 28px rgba(255,211,106,.24)
+  text-shadow:
+    0 0 12px rgba(255,211,106,.68),
+    0 0 30px rgba(255,211,106,.30)
 }
 #challengeText{
   font-size:clamp(14px,3.5vw,20px);
@@ -4742,14 +4744,14 @@ function makeMidasOrb(reason="random"){
 // A black O-ring threat that uses the same 3x3 lane language.
 // Touching one costs one strike.
 // =========================
-let voidSpawnCooldown=4.0;
+let voidSpawnCooldown=2.2;
 let voidCountRun=0;
 
 function makeVoidHazard(reason="normal"){
   const activeVoids=beacons.filter(
     b=>b?.userData?.isVoid && b.userData.state==="active"
   ).length;
-  if(activeVoids>=2)return false;
+  if(activeVoids>=3)return false;
 
   trainId++;
   const xIndex=Math.floor(Math.random()*3);
@@ -4759,31 +4761,23 @@ function makeVoidHazard(reason="normal"){
 
   const group=new THREE.Group();
 
+  // Main black hazard orb: intentionally close to legendary orb scale.
   const core=new THREE.Mesh(
-    new THREE.TorusGeometry(12.5,3.15,12,48),
+    new THREE.SphereGeometry(9.2,24,24),
     new THREE.MeshBasicMaterial({
-      color:0x020204,
+      color:0x000000,
       transparent:true,
-      opacity:.99,
+      opacity:1,
       depthWrite:false
     })
   );
 
-  const shell=new THREE.Mesh(
-    new THREE.TorusGeometry(12.55,3.75,10,48),
+  // Thin cool rim keeps the black sphere readable against space
+  // without turning it into another bright collectible.
+  const rim=new THREE.Mesh(
+    new THREE.SphereGeometry(10.1,24,24),
     new THREE.MeshBasicMaterial({
-      color:0x8993a3,
-      transparent:true,
-      opacity:.24,
-      blending:THREE.AdditiveBlending,
-      depthWrite:false
-    })
-  );
-
-  const glow=new THREE.Mesh(
-    new THREE.TorusGeometry(14.9,1.1,8,48),
-    new THREE.MeshBasicMaterial({
-      color:0x1a2030,
+      color:0x6f7888,
       transparent:true,
       opacity:.20,
       blending:THREE.AdditiveBlending,
@@ -4791,8 +4785,20 @@ function makeVoidHazard(reason="normal"){
     })
   );
 
-  group.add(glow);
-  group.add(shell);
+  // Very soft dark halo gives depth as it approaches.
+  const halo=new THREE.Mesh(
+    new THREE.SphereGeometry(12.6,20,20),
+    new THREE.MeshBasicMaterial({
+      color:0x111725,
+      transparent:true,
+      opacity:.13,
+      blending:THREE.AdditiveBlending,
+      depthWrite:false
+    })
+  );
+
+  group.add(halo);
+  group.add(rim);
   group.add(core);
 
   group.position.set(x,y,FAR_Z+110);
@@ -4800,13 +4806,13 @@ function makeVoidHazard(reason="normal"){
 
   group.userData={
     core,
-    shell,
-    glow,
+    rim,
+    halo,
     isVoid:true,
     state:"active",
     fade:1,
     train:trainId,
-    speedMult:.92,
+    speedMult:.96,
     roadX:x,
     roadY:y,
     voidReason:reason,
@@ -5824,7 +5830,7 @@ vix.style.transform = "translateY(0)";
 
 title.style.transform = "translate(-50%,-50%)";
 
-const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;const hudScoreReset=document.getElementById("hudScore");if(hudScoreReset)hudScoreReset.textContent="0";tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=4.0;voidCountRun=0;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
+const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;const hudScoreReset=document.getElementById("hudScore");if(hudScoreReset)hudScoreReset.textContent="0";tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=2.2;voidCountRun=0;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
 
 lastLevel = 1;strikes = 0;milestonesReached = {};lastWarpBreakthrough=0;starColorUpdateFrame=0;launchSurge=0;runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;resetWarpBanking();applyFrozenGameViewport(stableViewportWidth,stableViewportHeight);resetEnvironmentForRun();beginCurrentFlow();updateStrikes();updateHUD();spawnWave();if(!musicStarted){startMusic();}else if(!musicTimer&&audioCtx){nextNoteTime=Math.max(nextNoteTime,audioCtx.currentTime+0.035);nextDrumTime=Math.max(nextDrumTime,audioCtx.currentTime+0.05);musicTimer=setInterval(musicScheduler,25);}}
 const title = document.getElementById("gameTitle");
@@ -5920,14 +5926,18 @@ if(silentTutorialComplete){
 
   if(
     voidSpawnCooldown<=0 &&
-    level>=2
+    distance>=120
   ){
     if(makeVoidHazard("normal")){
-      // Sparse at first, then gently more frequent as level rises.
-      const base=Math.max(5.2,10.8-level*.30);
-      voidSpawnCooldown=base+Math.random()*4.4;
+      /*
+        BLACK ORB HAZARD CADENCE 2.5
+        Frequent enough that the player must actively dodge rather than
+        shifting only for collectibles. The cadence tightens gently by level.
+      */
+      const base=Math.max(2.8,5.8-level*.18);
+      voidSpawnCooldown=base+Math.random()*2.2;
     }else{
-      voidSpawnCooldown=1.2;
+      voidSpawnCooldown=.8;
     }
   }
 }
@@ -6135,9 +6145,9 @@ if(b.userData.isChrono){
 
 if(b.userData.isVoid){
   const voidPulse=.5+.5*Math.sin(performance.now()*.0075);
-  b.userData.shell.material.opacity=.16+voidPulse*.18;
-  b.userData.glow.material.opacity=.10+voidPulse*.14;
-  b.scale.setScalar(introScale*(.98+voidPulse*.05));
+  if(b.userData.rim)b.userData.rim.material.opacity=.14+voidPulse*.18;
+  if(b.userData.halo)b.userData.halo.material.opacity=.08+voidPulse*.13;
+  b.scale.setScalar(introScale*(.99+voidPulse*.04));
 }
 
 if(b.userData.isMidas){
