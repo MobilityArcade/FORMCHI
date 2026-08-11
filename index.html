@@ -51,7 +51,7 @@ function track(eventName, data = {}) {
 <meta name="apple-mobile-web-app-title" content="SHIFTVIX">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<!-- SHIFTVIX 2.7.1 — FIREBALL METEOR CAMERA CRASH FIX -->
+<!-- SHIFTVIX 2.8 — POWER-ORB-SIZED BLACK-HOLE FIREBALL METEORS -->
 <title>SHIFTVIX</title>
 <style>
 html,body{
@@ -4770,55 +4770,65 @@ function makeVoidHazard(reason="normal",forcedLane=null){
 
   const group=new THREE.Group();
 
+  /*
+    SHIFTVIX 2.8 — BLACK-HOLE FIREBALL METEOR
+    Core is intentionally the same visual size family as the power-up orbs.
+    The fiery color lives OUTSIDE the core so the center stays sky-black.
+  */
+
+  // Black center: ~same circumference as Flux / Chrono / Midas / Warp cores.
   const core=new THREE.Mesh(
-    new THREE.SphereGeometry(14.7,28,28),
+    new THREE.SphereGeometry(7.4,26,26),
     new THREE.MeshBasicMaterial({
-      color:0x010102,
-      transparent:true,
-      opacity:1,
+      color:0x000000,
+      transparent:false,
       depthWrite:false
     })
   );
 
+  // Inner molten ring.
   const corona=new THREE.Mesh(
-    new THREE.SphereGeometry(16.4,28,28),
+    new THREE.TorusGeometry(8.25,1.35,12,52),
     new THREE.MeshBasicMaterial({
       color:0xff7a00,
       transparent:true,
-      opacity:.48,
+      opacity:.92,
       blending:THREE.AdditiveBlending,
       depthWrite:false
     })
   );
 
-  const heat=new THREE.Mesh(
-    new THREE.SphereGeometry(18.6,24,24),
-    new THREE.MeshBasicMaterial({
-      color:0xff2e00,
-      transparent:true,
-      opacity:.18,
-      blending:THREE.AdditiveBlending,
-      depthWrite:false
-    })
-  );
-
+  // Bright gold strike edge.
   const ring=new THREE.Mesh(
-    new THREE.TorusGeometry(16.9,1.25,10,48),
+    new THREE.TorusGeometry(8.35,.58,10,52),
     new THREE.MeshBasicMaterial({
-      color:0xffbf45,
+      color:0xffd35a,
       transparent:true,
-      opacity:.80,
+      opacity:.98,
       blending:THREE.AdditiveBlending,
       depthWrite:false
     })
   );
 
-  const aura=new THREE.Mesh(
-    new THREE.SphereGeometry(21.0,20,20),
+  // Red-orange outer flame halo.
+  const heat=new THREE.Mesh(
+    new THREE.TorusGeometry(9.35,1.35,10,48),
     new THREE.MeshBasicMaterial({
-      color:0xff5a00,
+      color:0xff3b00,
       transparent:true,
-      opacity:.075,
+      opacity:.34,
+      blending:THREE.AdditiveBlending,
+      depthWrite:false
+    })
+  );
+
+  // Soft peripheral aura — enough to read on black, never a solid orange disc.
+  const aura=new THREE.Mesh(
+    new THREE.TorusGeometry(10.65,1.25,8,44),
+    new THREE.MeshBasicMaterial({
+      color:0xff6400,
+      transparent:true,
+      opacity:.13,
       blending:THREE.AdditiveBlending,
       depthWrite:false
     })
@@ -4827,11 +4837,13 @@ function makeVoidHazard(reason="normal",forcedLane=null){
   group.add(aura);
   group.add(heat);
   group.add(corona);
-  group.add(core);
   group.add(ring);
+  group.add(core);
 
   group.position.set(x,y,FAR_Z+135);
-  group.scale.setScalar(introScale*.72);
+
+  // Same starting scale language as the collectible/power-up field.
+  group.scale.setScalar(introScale);
 
   group.userData={
     core,
@@ -4844,7 +4856,10 @@ function makeVoidHazard(reason="normal",forcedLane=null){
     state:"active",
     fade:1,
     train:trainId,
+
+    // Preserve the faster-than-lanes projectile behavior.
     speedMult:1.78,
+
     roadX:x,
     roadY:y,
     voidReason:reason,
@@ -6214,10 +6229,10 @@ if(b.userData.isVoid){
   const t=performance.now()*.012+b.userData.meteorPhase;
   const pulse=.5+.5*Math.sin(t);
 
-  if(b.userData.corona)b.userData.corona.material.opacity=.34+pulse*.26;
-  if(b.userData.heat)b.userData.heat.material.opacity=.12+pulse*.18;
-  if(b.userData.ring)b.userData.ring.material.opacity=.58+pulse*.34;
-  if(b.userData.aura)b.userData.aura.material.opacity=.045+pulse*.075;
+  if(b.userData.corona)b.userData.corona.material.opacity=.72+pulse*.24;
+  if(b.userData.heat)b.userData.heat.material.opacity=.20+pulse*.20;
+  if(b.userData.ring)b.userData.ring.material.opacity=.82+pulse*.16;
+  if(b.userData.aura)b.userData.aura.material.opacity=.07+pulse*.09;
 
   const approach=THREE.MathUtils.clamp(
     1-(b.position.z-NEAR_Z)/(FAR_Z+135-NEAR_Z),
@@ -6225,10 +6240,15 @@ if(b.userData.isVoid){
     1
   );
 
+  /*
+    Keep the meteor in the SAME apparent size family as power-up orbs.
+    Perspective already makes it grow as it approaches, so only a tiny
+    additional breathing scale is needed.
+  */
   const surgeScale=
     introScale*
-    (.72 + approach*1.12)*
-    (1+pulse*.035);
+    (1.00 + approach*.10)*
+    (1+pulse*.025);
 
   b.scale.setScalar(surgeScale);
 
