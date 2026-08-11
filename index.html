@@ -51,7 +51,7 @@ function track(eventName, data = {}) {
 <meta name="apple-mobile-web-app-title" content="SHIFTVIX">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<!-- SHIFTVIX 2.6 — SURVIVE THE FLOW + LARGE BLACK METEOR ORBS + CRASH FIX -->
+<!-- SHIFTVIX 2.7 — ONE-LINE SURVIVE THE FLOW + FIREBALL METEOR VOLLEYS -->
 <title>SHIFTVIX</title>
 <style>
 html,body{
@@ -717,14 +717,13 @@ canvas{
    ========================= */
 #challengeHud{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:22;width:min(620px,92vw);text-align:center;color:#fff;font-weight:900;text-shadow:0 0 10px #000;cursor:pointer;pointer-events:auto}
 #challengeName{
-  font-size:clamp(40px,8.8vw,68px);
-  letter-spacing:3.2px;
+  font-size:clamp(26px,6.1vw,48px);
+  letter-spacing:2.4px;
   color:#ffd36a;
-  margin-bottom:10px;
-  line-height:.96;
-  text-shadow:
-    0 0 12px rgba(255,211,106,.68),
-    0 0 30px rgba(255,211,106,.30)
+  margin-bottom:9px;
+  line-height:1;
+  white-space:nowrap;
+  text-shadow:0 0 10px rgba(255,211,106,.66),0 0 24px rgba(255,211,106,.28)
 }
 #challengeText{
   font-size:clamp(14px,3.5vw,20px);
@@ -771,7 +770,7 @@ canvas{
 }
 @media (max-width:768px){
   #challengeHud{bottom:24px;width:92vw}
-  #challengeName{font-size:clamp(38px,10vw,54px);margin-bottom:8px;letter-spacing:2.4px}
+  #challengeName{font-size:clamp(25px,6.7vw,34px);margin-bottom:7px;letter-spacing:1.5px;white-space:nowrap}
   #challengeText{font-size:19px;letter-spacing:1.3px}
   #challengeBar{width:82vw;height:17px}
 }
@@ -3929,7 +3928,7 @@ function updateChallenge(){
   // Keep the active-play HUD minimal. Full flow number, category, title,
   // completion history, and exact totals remain available inside FLOW PATH.
   updateFlowHeading();
-  document.getElementById("challengeText").textContent=`FLOW ${currentFlowIndex+1} · ${activeChallenge.label}`;
+  document.getElementById("challengeText").textContent=activeChallenge.label;
   document.getElementById("challengeFill").style.width=pct+"%";
   const challengePct=document.getElementById("challengePct");
   if(challengePct)challengePct.textContent=`${Math.floor(pct)}%`;
@@ -4744,80 +4743,115 @@ function makeMidasOrb(reason="random"){
 // A black O-ring threat that uses the same 3x3 lane language.
 // Touching one costs one strike.
 // =========================
-let voidSpawnCooldown=1.6;
+let voidSpawnCooldown=1.25;
 let voidCountRun=0;
 
-function makeVoidHazard(reason="normal"){
+function makeVoidHazard(reason="normal",forcedLane=null){
   const activeVoids=beacons.filter(
     b=>b?.userData?.isVoid && b.userData.state==="active"
   ).length;
-  if(activeVoids>=4)return false;
+  if(activeVoids>=5)return false;
 
   trainId++;
-  const xIndex=Math.floor(Math.random()*3);
-  const yIndex=Math.floor(Math.random()*3);
+
+  let xIndex;
+  let yIndex;
+
+  if(forcedLane && Number.isInteger(forcedLane.x) && Number.isInteger(forcedLane.y)){
+    xIndex=Math.max(0,Math.min(2,forcedLane.x));
+    yIndex=Math.max(0,Math.min(2,forcedLane.y));
+  }else{
+    xIndex=Math.floor(Math.random()*3);
+    yIndex=Math.floor(Math.random()*3);
+  }
+
   const x=LANE_X[xIndex];
   const y=LANE_Y[yIndex];
 
   const group=new THREE.Group();
 
-  // Main black hazard orb: intentionally close to legendary orb scale.
   const core=new THREE.Mesh(
-    new THREE.SphereGeometry(14.2,28,28),
+    new THREE.SphereGeometry(14.7,28,28),
     new THREE.MeshBasicMaterial({
-      color:0x000000,
+      color:0x010102,
       transparent:true,
       opacity:1,
       depthWrite:false
     })
   );
 
-  // Thin cool rim keeps the black sphere readable against space
-  // without turning it into another bright collectible.
-  const rim=new THREE.Mesh(
-    new THREE.SphereGeometry(15.5,28,28),
+  const corona=new THREE.Mesh(
+    new THREE.SphereGeometry(16.4,28,28),
     new THREE.MeshBasicMaterial({
-      color:0x6f7888,
+      color:0xff7a00,
       transparent:true,
-      opacity:.20,
+      opacity:.48,
       blending:THREE.AdditiveBlending,
       depthWrite:false
     })
   );
 
-  // Very soft dark halo gives depth as it approaches.
-  const halo=new THREE.Mesh(
-    new THREE.SphereGeometry(19.2,24,24),
+  const heat=new THREE.Mesh(
+    new THREE.SphereGeometry(18.6,24,24),
     new THREE.MeshBasicMaterial({
-      color:0x111725,
+      color:0xff2e00,
       transparent:true,
-      opacity:.13,
+      opacity:.18,
       blending:THREE.AdditiveBlending,
       depthWrite:false
     })
   );
 
-  group.add(halo);
-  group.add(rim);
+  const ring=new THREE.Mesh(
+    new THREE.TorusGeometry(16.9,1.25,10,48),
+    new THREE.MeshBasicMaterial({
+      color:0xffbf45,
+      transparent:true,
+      opacity:.80,
+      blending:THREE.AdditiveBlending,
+      depthWrite:false
+    })
+  );
+
+  const aura=new THREE.Mesh(
+    new THREE.SphereGeometry(21.0,20,20),
+    new THREE.MeshBasicMaterial({
+      color:0xff5a00,
+      transparent:true,
+      opacity:.075,
+      blending:THREE.AdditiveBlending,
+      depthWrite:false
+    })
+  );
+
+  group.add(aura);
+  group.add(heat);
+  group.add(corona);
   group.add(core);
+  group.add(ring);
 
-  group.position.set(x,y,FAR_Z+110);
-  group.scale.setScalar(introScale);
+  group.position.set(x,y,FAR_Z+135);
+  group.scale.setScalar(introScale*.72);
 
   group.userData={
     core,
-    rim,
-    halo,
-    glow:halo,
+    corona,
+    heat,
+    ring,
+    aura,
+    glow:aura,
     isVoid:true,
     state:"active",
     fade:1,
     train:trainId,
-    speedMult:1.10,
+    speedMult:1.78,
     roadX:x,
     roadY:y,
     voidReason:reason,
-    voidBornAt:performance.now()
+    voidBornAt:performance.now(),
+    meteorPhase:Math.random()*Math.PI*2,
+    meteorLaneX:xIndex,
+    meteorLaneY:yIndex
   };
 
   scene.add(group);
@@ -4837,24 +4871,34 @@ function makeVoidHazard(reason="normal"){
   return true;
 }
 
-
 function spawnVoidVolley(reason="normal"){
-  let spawned=0;
-
-  if(makeVoidHazard(reason)){
-    spawned++;
+  const allLanes=[];
+  for(let y=0;y<3;y++){
+    for(let x=0;x<3;x++){
+      allLanes.push({x,y});
+    }
   }
 
-  /*
-    Roughly 42% of normal hazard moments send a second black orb.
-    This produces "meteor pair" decisions while still leaving escape lanes.
-  */
-  if(
-    reason!=="tutorial" &&
-    level>=2 &&
-    Math.random()<.42
-  ){
-    if(makeVoidHazard("meteor_pair")){
+  for(let i=allLanes.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [allLanes[i],allLanes[j]]=[allLanes[j],allLanes[i]];
+  }
+
+  let count=1;
+
+  if(reason!=="tutorial"){
+    const r=Math.random();
+    if(r>=.77)count=3;
+    else if(r>=.34)count=2;
+  }
+
+  let spawned=0;
+
+  for(let i=0;i<count;i++){
+    if(makeVoidHazard(
+      i===0?reason:(count===3?"meteor_triple":"meteor_pair"),
+      allLanes[i]
+    )){
       spawned++;
     }
   }
@@ -5856,7 +5900,7 @@ vix.style.transform = "translateY(0)";
 
 title.style.transform = "translate(-50%,-50%)";
 
-const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;const hudScoreReset=document.getElementById("hudScore");if(hudScoreReset)hudScoreReset.textContent="0";tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=1.6;voidCountRun=0;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
+const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;const hudScoreReset=document.getElementById("hudScore");if(hudScoreReset)hudScoreReset.textContent="0";tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=1.25;voidCountRun=0;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
 
 lastLevel = 1;strikes = 0;milestonesReached = {};lastWarpBreakthrough=0;starColorUpdateFrame=0;launchSurge=0;runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;resetWarpBanking();applyFrozenGameViewport(stableViewportWidth,stableViewportHeight);resetEnvironmentForRun();beginCurrentFlow();updateStrikes();updateHUD();spawnWave();if(!musicStarted){startMusic();}else if(!musicTimer&&audioCtx){nextNoteTime=Math.max(nextNoteTime,audioCtx.currentTime+0.035);nextDrumTime=Math.max(nextDrumTime,audioCtx.currentTime+0.05);musicTimer=setInterval(musicScheduler,25);}}
 const title = document.getElementById("gameTitle");
@@ -5952,21 +5996,15 @@ if(silentTutorialComplete){
 
   if(
     voidSpawnCooldown<=0 &&
-    distance>=80
+    distance>=55
   ){
     const spawnedVoids=spawnVoidVolley("normal");
 
     if(spawnedVoids>0){
-      /*
-        BLACK METEOR CADENCE 2.6
-        Frequent enough to force real lane dodging.
-        Early game: about every 2.3–3.9 seconds.
-        Higher levels: can tighten toward ~1.6–3.2 seconds.
-      */
-      const base=Math.max(1.6,3.25-level*.10);
-      voidSpawnCooldown=base+Math.random()*1.6;
+      const base=Math.max(1.25,2.15-level*.055);
+      voidSpawnCooldown=base+Math.random()*.90;
     }else{
-      voidSpawnCooldown=.55;
+      voidSpawnCooldown=.40;
     }
   }
 }
@@ -6173,12 +6211,30 @@ if(b.userData.isChrono){
 }
 
 if(b.userData.isVoid){
-  const voidPulse=.5+.5*Math.sin(performance.now()*.009);
-  if(b.userData.rim)b.userData.rim.material.opacity=.18+voidPulse*.18;
-  if(b.userData.halo)b.userData.halo.material.opacity=.10+voidPulse*.14;
+  const t=performance.now()*.012+b.userData.meteorPhase;
+  const pulse=.5+.5*Math.sin(t);
 
-  // Slight mass/pulse reads as an incoming object, not another collectible.
-  b.scale.setScalar(introScale*(1.00+voidPulse*.055));
+  if(b.userData.corona)b.userData.corona.material.opacity=.34+pulse*.26;
+  if(b.userData.heat)b.userData.heat.material.opacity=.12+pulse*.18;
+  if(b.userData.ring)b.userData.ring.material.opacity=.58+pulse*.34;
+  if(b.userData.aura)b.userData.aura.material.opacity=.045+pulse*.075;
+
+  const approach=THREE.MathUtils.clamp(
+    1-(b.position.z-CAMERA_Z)/(FAR_Z+135-CAMERA_Z),
+    0,
+    1
+  );
+
+  const surgeScale=
+    introScale*
+    (.72 + approach*1.12)*
+    (1+pulse*.035);
+
+  b.scale.setScalar(surgeScale);
+
+  if(b.userData.ring){
+    b.userData.ring.rotation.z+=worldDt*.95;
+  }
 }
 
 if(b.userData.isMidas){
