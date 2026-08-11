@@ -51,7 +51,7 @@ function track(eventName, data = {}) {
 <meta name="apple-mobile-web-app-title" content="SHIFTVIX">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<!-- SHIFTVIX 2.9 — VOID SPIKE METEORS: PITCH-BLACK CORE + RED SPIKES -->
+<!-- SHIFTVIX 2.9.1 — VOID SPIKE METEORS + SYNTAX FIX -->
 <title>SHIFTVIX</title>
 <style>
 html,body{
@@ -4770,12 +4770,8 @@ function makeVoidHazard(reason="normal",forcedLane=null){
 
   const group=new THREE.Group();
 
-  /*
-    SHIFTVIX 2.9 — VOID SPIKE METEOR
-    Pitch-black center + fiery ring + red outward spikes.
-  */
-
-  // Fully opaque pitch-black core.
+  // SHIFTVIX 2.9 — VOID SPIKE METEOR
+  // Fully opaque pitch-black center.
   const core=new THREE.Mesh(
     new THREE.SphereGeometry(7.45,28,28),
     new THREE.MeshBasicMaterial({
@@ -4786,6 +4782,7 @@ function makeVoidHazard(reason="normal",forcedLane=null){
     })
   );
 
+  // Fiery orange ring.
   const corona=new THREE.Mesh(
     new THREE.TorusGeometry(8.30,1.30,12,56),
     new THREE.MeshBasicMaterial({
@@ -4797,6 +4794,7 @@ function makeVoidHazard(reason="normal",forcedLane=null){
     })
   );
 
+  // Bright gold strike edge.
   const ring=new THREE.Mesh(
     new THREE.TorusGeometry(8.45,.60,10,56),
     new THREE.MeshBasicMaterial({
@@ -4808,6 +4806,7 @@ function makeVoidHazard(reason="normal",forcedLane=null){
     })
   );
 
+  // Red-orange heat ring.
   const heat=new THREE.Mesh(
     new THREE.TorusGeometry(9.30,1.20,10,52),
     new THREE.MeshBasicMaterial({
@@ -4819,6 +4818,7 @@ function makeVoidHazard(reason="normal",forcedLane=null){
     })
   );
 
+  // Soft outer aura.
   const aura=new THREE.Mesh(
     new THREE.TorusGeometry(10.55,1.15,8,48),
     new THREE.MeshBasicMaterial({
@@ -4830,7 +4830,7 @@ function makeVoidHazard(reason="normal",forcedLane=null){
     })
   );
 
-  // Threatening red spike crown.
+  // Ten outward-facing red spikes.
   const spikes=new THREE.Group();
   const spikeCount=10;
 
@@ -5610,6 +5610,662 @@ function takeStrike(){
  if(b.userData.state!=="active")return;
 
  if(b.userData.isVoid){
+   hitVoidHazard(b);
+   return;
+ }
+
+ b.userData.state="collected";b.userData.fade=1;
+ if(!runStarted){runStarted=true;breakTimer=0;document.getElementById("signal").textContent="Signal: run started";}
+ lastFoundAt=performance.now();breakTimer=0;
+
+ if(
+   b.userData.isFlux||
+   b.userData.isChrono||
+   b.userData.isMidas||
+   b.userData.isWarp
+ ){
+   const collectedType=
+     b.userData.isFlux?"flux":
+     b.userData.isChrono?"chrono":
+     b.userData.isMidas?"midas":
+     "warp";
+
+   if(b.userData.isFlux)fluxOrbActive=false;
+   if(b.userData.isChrono)chronoOrbActive=false;
+   if(b.userData.isMidas)midasOrbActive=false;
+   if(b.userData.isWarp)warpOrbActive=false;
+
+   const activeEffect=currentLegendaryEffect();
+
+   if(activeEffect){
+     // The orb is consumed, but the effect already in use continues unchanged.
+     trackGame("legendary_orb_ignored_during_active_effect",{
+       collected_type:collectedType,
+       active_effect:activeEffect,
+       distance:Math.floor(distance),
+       flow_number:currentFlowIndex+1
+     });
+
+     playCoin(TIERS[0]);
+     if(navigator.vibrate)navigator.vibrate(8);
+     return;
+   }
+
+   const powerTier=b.userData.powerTier||1;
+   if(collectedType==="flux"){
+     if(!silentTutorialComplete)tutorialPowerSeen=true;
+     activateFluxBoost(b.userData.fluxReason,powerTier);
+   }else if(collectedType==="chrono"){
+     if(!silentTutorialComplete)tutorialPowerSeen=true;
+     activateChrono(b.userData.chronoReason,powerTier);
+   }else if(collectedType==="midas"){
+     if(!silentTutorialComplete)tutorialPowerSeen=true;
+     activateMidas(b.userData.midasReason,powerTier);
+   }else{
+     if(!silentTutorialComplete)tutorialPowerSeen=true;
+     activateWarp(b.userData.warpReason,powerTier);
+   }
+
+   return;
+ }
+
+ const baseGained=b.userData.value;
+ const chronoScoring=chronoTime>0;
+ const gained=
+   baseGained*
+   (chronoScoring?CHRONO_SCORE_MULTIPLIER:1);
+
+score += gained;
+foundCount++;
+if(!silentTutorialComplete){
+  tutorialFirstCollectSeen=true;
+}
+if(midasTime>0)midasAbsorbedThisState++;
+fluxCollectionStreak++;
+if(fluxCollectionStreak>=FLUX_COLLECTION_STREAK_TARGET){
+  queueFluxOrb("collection_streak");
+  fluxCollectionStreak=0;
+}
+
+objectiveOrbsCollected++;
+if(environmentEngine?.current?.onCollect)environmentEngine.current.onCollect();
+
+tierCounts[b.userData.tier.name] =
+    (tierCounts[b.userData.tier.name] || 0) + 1;
+ if(foundCount===1){track("first_source_collected",{tier:b.userData.tier.name});}
+ if(score>bestScore){bestScore=score;localStorage.setItem("sourceLaneBestScore",String(bestScore));}
+ playCoin(b.userData.tier);
+ showScorePopup("+"+gained,chronoScoring);
+ updateHUD();updateChallenge();
+ if(navigator.vibrate)navigator.vibrate(4);
+}
+function updateHUD(){
+
+    document.getElementById("distance").textContent =
+        Math.floor(distance);
+
+    document.getElementById("level").textContent =
+        level;
+
+    const hudScore = document.getElementById("hudScore");
+    if(hudScore){
+        hudScore.textContent = Math.floor(score).toLocaleString();
+    }
+
+}
+function formatRunFlowProgress(flow,value){
+  const current=Math.max(0,Math.min(flow.target,value));
+  const whole=Math.floor(current);
+  const target=Math.floor(flow.target);
+  if(flow.metric==="distance")return `${whole.toLocaleString()} / ${target.toLocaleString()}m`;
+  if(flow.metric==="score"||flow.metric==="precision")return `${whole.toLocaleString()} / ${target.toLocaleString()} POINTS`;
+  if(flow.metric==="level"||flow.metric==="lives"||flow.metric==="maxStrikesLevel")return `LEVEL ${whole} / ${target}`;
+  return `${whole.toLocaleString()} / ${target.toLocaleString()} ORBS`;
+}
+
+function endRun(){
+
+    gameOver = true;
+    fluxBoostTime=0;
+    chronoTime=0;
+    midasTime=0;
+    warpOrbActive=false;
+    fluxPendingReasons.length=0;
+    chronoPendingReasons.length=0;
+    midasPendingReasons.length=0;
+
+    // SHIFTVIX 5.3.2: keep the same song and percussion sequence playing
+    // through Run Complete and Flow Path instead of creating a silent screen.
+    if(musicStarted && !musicTimer && audioCtx){
+        nextNoteTime = Math.max(nextNoteTime, audioCtx.currentTime + 0.035);
+        nextDrumTime = Math.max(nextDrumTime, audioCtx.currentTime + 0.05);
+        musicTimer = setInterval(musicScheduler,25);
+    }
+
+    const runSeconds =
+        (performance.now() - runStartTime) / 1000;
+
+    lastRunDuration = Math.round(runSeconds);
+
+    // Exact level where all three lives were lost
+    track("death_level",{
+        level: level,
+        distance: Math.floor(distance),
+        strikes: strikes,
+        score: score,
+        duration: lastRunDuration,
+        sources: foundCount
+    });
+
+    // Dedicated survival-time event
+    track("run_duration",{
+        seconds: lastRunDuration,
+        level: level,
+        distance: Math.floor(distance),
+        score: score
+    });
+
+    // Existing full run summary
+    track("run_ended",{
+        level: level,
+        distance: Math.floor(distance),
+        strikes: strikes,
+        score: score,
+        sources: foundCount,
+        duration: lastRunDuration,
+    });
+    
+    const isNewBestDistance = distance > bestDistance;
+    if(isNewBestDistance){
+        bestDistance = distance;
+        track("new_best_distance",{
+
+    distance: Math.floor(bestDistance)
+
+});
+        localStorage.setItem(
+            "sourceLaneBestDistance",
+            String(bestDistance)
+        );
+    }
+
+    if(level>bestLevel){
+
+    bestLevel = level;
+
+    track("new_best_level",{
+        level: bestLevel,
+        distance: Math.floor(distance)
+    });
+
+    localStorage.setItem(
+        "shiftvixBestLevel",
+        bestLevel
+    );
+
+}
+
+    const isNewBestScore = score > bestScore;
+    if(isNewBestScore){
+        bestScore = score;
+        track("new_best_score",{
+
+    score: bestScore
+
+});
+        localStorage.setItem(
+            "sourceLaneBestScore",
+            String(bestScore)
+        );
+    }
+
+    const bestSources =
+        Number(localStorage.getItem("sourceLaneBestSources") || 0);
+
+    const isNewBestSources =
+        foundCount > bestSources;
+
+    if(isNewBestSources){
+        localStorage.setItem(
+            "sourceLaneBestSources",
+            foundCount
+        );
+    }
+
+    const finalBestSources =
+        Math.max(foundCount, bestSources);
+
+    const card =
+        document.getElementById("roundComplete");
+
+    const runFlow = activeChallenge || createFlow(currentFlowIndex);
+    const runFlowRaw = challengeValue(runFlow);
+    const runFlowValue = Math.max(0,Math.min(runFlow.target,runFlowRaw));
+    const runFlowPct = Math.max(0,Math.min(100,(runFlowValue/runFlow.target)*100));
+    const runFlowPctWhole = Math.floor(runFlowPct);
+    const runFlowProgress = formatRunFlowProgress(runFlow,runFlowValue);
+
+    card.innerHTML = `
+<div class="resultsCard flowResults">
+
+    <div class="big">RUN COMPLETE</div>
+
+    <div class="runSnapshot">
+        <div class="runMetric">
+            <div class="runMetricLabel">DISTANCE</div>
+            <div class="runMetricValue">${Math.floor(distance).toLocaleString()}m</div>
+        </div>
+        <div class="runMetric">
+            <div class="runMetricLabel">LEVEL</div>
+            <div class="runMetricValue">${level}</div>
+        </div>
+        <div class="runMetric">
+            <div class="runMetricLabel">SCORE</div>
+            <div class="runMetricValue">${score.toLocaleString()}</div>
+        </div>
+    </div>
+
+    <div class="runFlowPanel">
+        <div class="runFlowTop">
+            <span class="runFlowNumber">FLOW ${currentFlowIndex+1}</span>
+            <span class="runFlowCategory">${runFlow.category}</span>
+        </div>
+        <div class="runFlowObjective">${runFlow.label}</div>
+        <div class="runFlowProgressText">${runFlowProgress}</div>
+        <div class="runFlowBar" aria-label="Flow progress ${runFlowPctWhole}%">
+            <div class="runFlowFill" style="width:${runFlowPct}%"></div>
+            <div class="runFlowPct">${runFlowPctWhole}%</div>
+        </div>
+    </div>
+
+    <div class="runArchiveProgress">
+        ${completedFlows.toLocaleString()} / ${FLOW_TOTAL.toLocaleString()} FLOWS COMPLETE
+    </div>
+
+    <div class="runActions">
+        <button class="runAction primary" id="runPlayAgain" type="button">PLAY AGAIN</button>
+        <button class="runAction" id="runFlowPath" type="button">FLOW PATH</button>
+    </div>
+
+</div>
+`;
+    card.style.display = "grid";
+    card.onclick = null;
+    document.getElementById("runPlayAgain")?.addEventListener("click",event=>{
+        event.stopPropagation();
+        resetRun();
+    });
+    document.getElementById("runFlowPath")?.addEventListener("click",event=>{
+        event.stopPropagation();
+        openFlowArchive("run_complete");
+    });
+
+}
+function resetRun(){
+if(!silentTutorialComplete){
+  tutorialStage=0;
+  tutorialStageStartedAt=0;
+  tutorialVoidIntroduced=false;
+  tutorialPowerSeen=false;
+  tutorialFirstCollectSeen=false;
+
+  if(tutorialPromptTimer){
+    clearTimeout(tutorialPromptTimer);
+    tutorialPromptTimer=null;
+  }
+
+  const tutorialPrompt=document.getElementById("tutorialPrompt");
+  if(tutorialPrompt)tutorialPrompt.classList.remove("show");
+}
+
+scheduleNextPowerOrbOpportunity(true);
+const powerAnnouncement=document.getElementById("powerAnnouncement");
+if(powerAnnouncement){
+  powerAnnouncement.className="";
+  powerAnnouncement.textContent="";
+}
+if(powerAnnouncementTimer){
+  clearTimeout(powerAnnouncementTimer);
+  powerAnnouncementTimer=null;
+}
+
+
+    // This function is reached when the player taps
+    // the results screen after losing all three lives.
+    track("restart_after_death",{
+        previous_level: level,
+        previous_distance: Math.floor(distance),
+        previous_score: score,
+        previous_duration: lastRunDuration,
+        previous_sources: foundCount
+    });
+
+    paused = false;
+    applyPauseVisuals(false);
+
+    const title = document.getElementById("gameTitle");
+
+    title.style.opacity = 1;
+
+  shift.style.opacity = 1;
+vix.style.opacity = 1;
+
+shift.style.transform = "translateY(0)";
+vix.style.transform = "translateY(0)";
+
+title.style.transform = "translate(-50%,-50%)";
+
+const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;const hudScoreReset=document.getElementById("hudScore");if(hudScoreReset)hudScoreReset.textContent="0";tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=1.25;voidCountRun=0;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
+
+lastLevel = 1;strikes = 0;milestonesReached = {};lastWarpBreakthrough=0;starColorUpdateFrame=0;launchSurge=0;runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;resetWarpBanking();applyFrozenGameViewport(stableViewportWidth,stableViewportHeight);resetEnvironmentForRun();beginCurrentFlow();updateStrikes();updateHUD();spawnWave();if(!musicStarted){startMusic();}else if(!musicTimer&&audioCtx){nextNoteTime=Math.max(nextNoteTime,audioCtx.currentTime+0.035);nextDrumTime=Math.max(nextDrumTime,audioCtx.currentTime+0.05);musicTimer=setInterval(musicScheduler,25);}}
+const title = document.getElementById("gameTitle");
+const shift = document.getElementById("shift");
+const vix = document.getElementById("vix");
+function animate(){requestAnimationFrame(animate);updateGamepad();const dt = Math.min(clock.getDelta(), .05);if(gameStarted&&!gameOver&&!paused){updateFluxBoost(dt);updateChronoState(dt);updateMidasState(dt);updateIonicThruster(dt);const worldTimeScale=THREE.MathUtils.lerp(1,CHRONO_WORLD_SCALE,chronoAmount);const worldDt=dt*worldTimeScale;const baseRunSpeed=SPEED_START+Math.min(150,distance*.018);speed=baseRunSpeed*(1+fluxBoostAmount*FLUX_SPEED_BOOST);distance+=speed*worldDt*.08;
+level = Math.floor(distance / 500) + 1;
+heroMode = ((performance.now()-runStartTime)/1000) < HERO_SECONDS;
+if(!heroMode && heroBannerShown){heroBannerShown=false;}
+
+if (level > lastLevel) {
+
+    lastLevel = level;
+
+    // Send level reached to Google Analytics
+    track("level_reached", {
+        level: level,
+        distance: Math.floor(distance),
+        strikes: strikes,
+        score: score
+    });
+
+    animateLevelNumber();
+
+}
+const milestones = [
+
+100,
+
+250,
+
+500,
+
+1000,
+
+2500,
+
+3000,
+
+5000,
+
+7500,
+
+10000
+
+];
+
+for(const m of milestones){
+
+    if(distance >= m && !milestonesReached[m]){
+
+        milestonesReached[m]=true;
+
+        track("distance_milestone",{
+
+            distance:m
+
+        });
+
+    }
+
+}
+
+const warpBoundary=Math.floor(distance/3000);
+if(warpBoundary>lastWarpBreakthrough){
+    lastWarpBreakthrough=warpBoundary;
+    triggerWarpBreakthrough("warp");
+    showModeBanner("WARP BREAKTHROUGH");
+}
+
+updateChallenge();
+updateSilentTutorial();
+updateEnvironment(worldDt);
+starColorUpdateFrame=(starColorUpdateFrame+1)%1200;
+updateFluxDust(worldDt);
+
+if(
+  distance>=nextPowerOrbOpportunity &&
+  !fluxOrbActive &&
+  !chronoOrbActive &&
+  !midasOrbActive &&
+  !warpOrbActive &&
+  fluxBoostTime<=0 &&
+  chronoTime<=0 &&
+  midasTime<=0
+){
+  makeLegendaryOrb();
+  scheduleNextPowerOrbOpportunity(false);
+}
+
+if(silentTutorialComplete){
+  voidSpawnCooldown-=worldDt;
+
+  if(
+    voidSpawnCooldown<=0 &&
+    distance>=55
+  ){
+    const spawnedVoids=spawnVoidVolley("normal");
+
+    if(spawnedVoids>0){
+      const base=Math.max(1.25,2.15-level*.055);
+      voidSpawnCooldown=base+Math.random()*.90;
+    }else{
+      voidSpawnCooldown=.40;
+    }
+  }
+}
+
+spawnTimer-=worldDt;
+if(spawnTimer<=0){
+    // Flux increases incoming train frequency; a separate sparse capped dust layer adds the speed cue.
+    const normalInterval=.54+Math.random()*.26;
+    const fluxInterval=.22+Math.random()*.12;
+    spawnTimer=THREE.MathUtils.lerp(normalInterval,fluxInterval,fluxBoostAmount);
+    spawnWave();
+}if(runStarted){breakTimer+=worldDt;if(breakTimer>BREAK_GRACE)takeStrike();}playerX+=(targetX-playerX)*(1-Math.pow(.0009,dt));playerY+=(targetY-playerY)*(1-Math.pow(.0009,dt));
+camera.position.x=playerX;
+camera.position.y=playerY;
+// Camera Z is finalized below after warp offsets.
+// =========================
+// SHIFTVIX 5.3.2 — EXTENDED WARP BUILD
+// The visual intensity that previously appeared near 1050m is now the cap.
+// 0–2500m: stretch that same visual buildup across a longer flight.
+// 2500–3000m: hold the capped maximum before the next warp cycle.
+// =========================
+const cycleDistance = distance % 3000;
+const WARP_BUILD_END = 2500;
+const WARP_REFERENCE_MAX_DISTANCE = 1050;
+
+// Convert the longer 0–2500m cycle back into the old 0–1050m visual range.
+// This preserves the preferred visual aesthetic without allowing later,
+// more chaotic intensity values to appear.
+const pacedVisualDistance =
+  Math.min(
+    WARP_REFERENCE_MAX_DISTANCE,
+    (cycleDistance / WARP_BUILD_END) * WARP_REFERENCE_MAX_DISTANCE
+  );
+
+if(pacedVisualDistance < 700){
+  warpAmount = (pacedVisualDistance / 700) * 0.35;
+}else{
+  const buildProgress =
+    THREE.MathUtils.clamp(
+      (pacedVisualDistance - 700) / 800,
+      0,
+      1
+    );
+
+  const easedBuild =
+    buildProgress * buildProgress * (3 - 2 * buildProgress);
+
+  warpAmount = 0.35 + easedBuild * 0.65;
+}
+
+// Hold the exact capped appearance from 2500m until the 3000m transition.
+if(cycleDistance >= WARP_BUILD_END){
+  const capProgress =
+    (WARP_REFERENCE_MAX_DISTANCE - 700) / 800;
+
+  const easedCap =
+    capProgress * capProgress * (3 - 2 * capProgress);
+
+  warpAmount = 0.35 + easedCap * 0.65;
+}
+
+// Flux Drive temporarily intensifies the existing warp without changing lanes,
+// controls, collision radius, or obstacle logic.
+// Flux dust is handled separately and capped; warpAmount itself is not increased by Flux.
+
+// Atmosphere pacing follows the same capped visual distance so fog and color
+// do not keep escalating after the preferred 1050m-quality appearance.
+const stage =
+Math.min(
+    6,
+    Math.floor(pacedVisualDistance / 700)
+);
+
+const fogLevels = [
+0.0011,
+0.0013,
+0.0016,
+0.0019,
+0.0023,
+0.0028,
+0.0033,
+0.0040
+];
+
+scene.fog.density =
+fogLevels[stage]
++
+warpAmount*0.0008;
+
+if(distance>4600){
+
+    const t =
+        Math.min(
+            1,
+            (distance-4600)/400
+        );
+
+    scene.fog.density +=
+        t*0.0025;
+
+}
+const atmosphereColors = [
+0x000000,
+0x061221,
+0x15092d,
+0x2b0038,
+0x442100,
+0x5b1800,
+0x330000,
+0xffffff
+];
+
+scene.fog.color.setHex(
+atmosphereColors[stage]
+);
+
+/*
+  CENTER LOCK:
+  The center reactor is fixed at 50% / 50% in the HTML layer.
+  The 3D camera must therefore look exactly through the player's current
+  lane center. Deep-field curvature may still move the stars, but it must
+  never move the gameplay vanishing point away from the reactor.
+*/
+camera.lookAt(
+playerX,
+playerY,
+-500
+);let targetFov =
+70
++
+warpAmount*11
++
+pulseFovBoost
++
+fluxBoostAmount*5
+-
+chronoAmount*4.5
++
+Math.sin(distance*0.004)
+*
+warpAmount
+*
+0.6;
+
+
+camera.fov = targetFov;
+camera.updateProjectionMatrix();beacons.forEach(b=>{if(b.userData.state==="active"){
+const roadPoint=environmentPoint(b.userData.roadX,b.userData.roadY);
+const isRegularCollectible=
+  !b.userData.isFlux&&
+  !b.userData.isChrono&&
+  !b.userData.isMidas&&
+  !b.userData.isWarp&&
+  !b.userData.isVoid;
+
+if(midasTime>0&&isRegularCollectible){
+  // Golden Touch bends every normal coin from all nine lanes toward the player.
+  const attraction=
+    THREE.MathUtils.clamp(
+      (b.position.z-FAR_Z)/(NEAR_Z-FAR_Z),
+      0,
+      1
+    );
+
+  const pull=
+    1-Math.exp(
+      -worldDt*(2.8+attraction*10.5)
+    );
+
+  b.position.x=THREE.MathUtils.lerp(
+    b.position.x,
+    playerX,
+    pull
+  );
+
+  b.position.y=THREE.MathUtils.lerp(
+    b.position.y,
+    playerY,
+    pull
+  );
+}else{
+  b.position.x=roadPoint.x;
+  b.position.y=roadPoint.y;
+}
+
+b.position.z+=speed*worldDt*b.userData.speedMult;
+if(b.userData.isFlux){
+  const paletteIndex=Math.floor(performance.now()/100)%FLUX_PALETTE.length;
+  const fluxColor=FLUX_PALETTE[paletteIndex];
+  b.userData.core.material.color.setHex(fluxColor);
+  b.userData.glow.material.color.setHex(fluxColor);
+  b.userData.glow.material.opacity=.18+.12*(.5+.5*Math.sin(performance.now()*.025));
+  const pulse=1+.08*Math.sin(performance.now()*.018);
+  b.scale.setScalar(introScale*pulse);
+}
+
+if(b.userData.isChrono){
+  const breath=.5+.5*Math.sin(performance.now()*.0046);
+  b.userData.core.material.color.setHex(CHRONO_COLOR);
+  b.userData.glow.material.color.setHex(CHRONO_GLOW_COLOR);
+  b.userData.glow.material.opacity=.16+breath*.16;
+  const pulse=.96+breath*.10;
+  b.scale.setScalar(introScale*pulse);
+}
+
+if(b.userData.isVoid){
   const t=performance.now()*.012+b.userData.meteorPhase;
   const pulse=.5+.5*Math.sin(t);
 
@@ -5618,8 +6274,9 @@ function takeStrike(){
   if(b.userData.ring)b.userData.ring.material.opacity=.84+pulse*.14;
   if(b.userData.aura)b.userData.aura.material.opacity=.07+pulse*.09;
 
-  // Lock the Void center to absolute black.
+  // Keep the VOID center absolutely pitch black.
   if(b.userData.core){
+    b.userData.core.material.transparent=false;
     b.userData.core.material.opacity=1;
     b.userData.core.material.color.setHex(0x000000);
   }
@@ -5641,7 +6298,7 @@ function takeStrike(){
     b.userData.ring.rotation.z+=worldDt*.85;
   }
 
-  // Slow opposing spin makes the red spike silhouette feel alive and dangerous.
+  // Slow counter-rotation makes the spikes feel alive and threatening.
   if(b.userData.spikes){
     b.userData.spikes.rotation.z-=worldDt*.55;
   }
