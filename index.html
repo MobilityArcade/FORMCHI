@@ -51,7 +51,7 @@ function track(eventName, data = {}) {
 <meta name="apple-mobile-web-app-title" content="SHIFTVIX">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<!-- SHIFTVIX 2.5 — SURVIVE THE FLOW + FREQUENT BLACK ORB HAZARDS -->
+<!-- SHIFTVIX 2.6 — SURVIVE THE FLOW + LARGE BLACK METEOR ORBS + CRASH FIX -->
 <title>SHIFTVIX</title>
 <style>
 html,body{
@@ -2564,7 +2564,7 @@ const environmentEngine={
   applyLaneGuides(){const rotation=this.current.getRotation();laneGuides.forEach(guide=>{guide.rotation.z=rotation;});}
 };
 
-function updateFlowHeading(){const heading=document.getElementById("challengeName");if(heading)heading.textContent=environmentEngine.current.name;}
+function updateFlowHeading(){const heading=document.getElementById("challengeName");if(heading)heading.textContent="SURVIVE THE FLOW";}
 function updateEnvironment(dt){environmentEngine.update(dt);}
 function resetEnvironmentForRun(){environmentEngine.resetForRun();}
 function environmentPoint(x,y){return environmentEngine.transformPoint(x,y);}
@@ -4744,14 +4744,14 @@ function makeMidasOrb(reason="random"){
 // A black O-ring threat that uses the same 3x3 lane language.
 // Touching one costs one strike.
 // =========================
-let voidSpawnCooldown=2.2;
+let voidSpawnCooldown=1.6;
 let voidCountRun=0;
 
 function makeVoidHazard(reason="normal"){
   const activeVoids=beacons.filter(
     b=>b?.userData?.isVoid && b.userData.state==="active"
   ).length;
-  if(activeVoids>=3)return false;
+  if(activeVoids>=4)return false;
 
   trainId++;
   const xIndex=Math.floor(Math.random()*3);
@@ -4763,7 +4763,7 @@ function makeVoidHazard(reason="normal"){
 
   // Main black hazard orb: intentionally close to legendary orb scale.
   const core=new THREE.Mesh(
-    new THREE.SphereGeometry(9.2,24,24),
+    new THREE.SphereGeometry(14.2,28,28),
     new THREE.MeshBasicMaterial({
       color:0x000000,
       transparent:true,
@@ -4775,7 +4775,7 @@ function makeVoidHazard(reason="normal"){
   // Thin cool rim keeps the black sphere readable against space
   // without turning it into another bright collectible.
   const rim=new THREE.Mesh(
-    new THREE.SphereGeometry(10.1,24,24),
+    new THREE.SphereGeometry(15.5,28,28),
     new THREE.MeshBasicMaterial({
       color:0x6f7888,
       transparent:true,
@@ -4787,7 +4787,7 @@ function makeVoidHazard(reason="normal"){
 
   // Very soft dark halo gives depth as it approaches.
   const halo=new THREE.Mesh(
-    new THREE.SphereGeometry(12.6,20,20),
+    new THREE.SphereGeometry(19.2,24,24),
     new THREE.MeshBasicMaterial({
       color:0x111725,
       transparent:true,
@@ -4808,11 +4808,12 @@ function makeVoidHazard(reason="normal"){
     core,
     rim,
     halo,
+    glow:halo,
     isVoid:true,
     state:"active",
     fade:1,
     train:trainId,
-    speedMult:.96,
+    speedMult:1.10,
     roadX:x,
     roadY:y,
     voidReason:reason,
@@ -4834,6 +4835,31 @@ function makeVoidHazard(reason="normal"){
   });
 
   return true;
+}
+
+
+function spawnVoidVolley(reason="normal"){
+  let spawned=0;
+
+  if(makeVoidHazard(reason)){
+    spawned++;
+  }
+
+  /*
+    Roughly 42% of normal hazard moments send a second black orb.
+    This produces "meteor pair" decisions while still leaving escape lanes.
+  */
+  if(
+    reason!=="tutorial" &&
+    level>=2 &&
+    Math.random()<.42
+  ){
+    if(makeVoidHazard("meteor_pair")){
+      spawned++;
+    }
+  }
+
+  return spawned;
 }
 
 function hitVoidHazard(b){
@@ -5830,7 +5856,7 @@ vix.style.transform = "translateY(0)";
 
 title.style.transform = "translate(-50%,-50%)";
 
-const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;const hudScoreReset=document.getElementById("hudScore");if(hudScoreReset)hudScoreReset.textContent="0";tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=2.2;voidCountRun=0;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
+const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;const hudScoreReset=document.getElementById("hudScore");if(hudScoreReset)hudScoreReset.textContent="0";tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=1.6;voidCountRun=0;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
 
 lastLevel = 1;strikes = 0;milestonesReached = {};lastWarpBreakthrough=0;starColorUpdateFrame=0;launchSurge=0;runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;resetWarpBanking();applyFrozenGameViewport(stableViewportWidth,stableViewportHeight);resetEnvironmentForRun();beginCurrentFlow();updateStrikes();updateHUD();spawnWave();if(!musicStarted){startMusic();}else if(!musicTimer&&audioCtx){nextNoteTime=Math.max(nextNoteTime,audioCtx.currentTime+0.035);nextDrumTime=Math.max(nextDrumTime,audioCtx.currentTime+0.05);musicTimer=setInterval(musicScheduler,25);}}
 const title = document.getElementById("gameTitle");
@@ -5926,18 +5952,21 @@ if(silentTutorialComplete){
 
   if(
     voidSpawnCooldown<=0 &&
-    distance>=120
+    distance>=80
   ){
-    if(makeVoidHazard("normal")){
+    const spawnedVoids=spawnVoidVolley("normal");
+
+    if(spawnedVoids>0){
       /*
-        BLACK ORB HAZARD CADENCE 2.5
-        Frequent enough that the player must actively dodge rather than
-        shifting only for collectibles. The cadence tightens gently by level.
+        BLACK METEOR CADENCE 2.6
+        Frequent enough to force real lane dodging.
+        Early game: about every 2.3–3.9 seconds.
+        Higher levels: can tighten toward ~1.6–3.2 seconds.
       */
-      const base=Math.max(2.8,5.8-level*.18);
-      voidSpawnCooldown=base+Math.random()*2.2;
+      const base=Math.max(1.6,3.25-level*.10);
+      voidSpawnCooldown=base+Math.random()*1.6;
     }else{
-      voidSpawnCooldown=.8;
+      voidSpawnCooldown=.55;
     }
   }
 }
@@ -6144,10 +6173,12 @@ if(b.userData.isChrono){
 }
 
 if(b.userData.isVoid){
-  const voidPulse=.5+.5*Math.sin(performance.now()*.0075);
-  if(b.userData.rim)b.userData.rim.material.opacity=.14+voidPulse*.18;
-  if(b.userData.halo)b.userData.halo.material.opacity=.08+voidPulse*.13;
-  b.scale.setScalar(introScale*(.99+voidPulse*.04));
+  const voidPulse=.5+.5*Math.sin(performance.now()*.009);
+  if(b.userData.rim)b.userData.rim.material.opacity=.18+voidPulse*.18;
+  if(b.userData.halo)b.userData.halo.material.opacity=.10+voidPulse*.14;
+
+  // Slight mass/pulse reads as an incoming object, not another collectible.
+  b.scale.setScalar(introScale*(1.00+voidPulse*.055));
 }
 
 if(b.userData.isMidas){
@@ -6196,11 +6227,14 @@ b.lookAt(playerX,playerY,PLAYER_Z);const dz=Math.abs(b.position.z-PLAYER_Z),dxy=
   }
 
   b.userData.state="missed";
-}}if(b.userData.state==="collected"||b.userData.state==="missed"){b.userData.fade-=dt*2.8;const f=Math.max(0,b.userData.fade);b.userData.core.material.transparent=true;b.userData.core.material.opacity=f;if(b.userData.shell)b.userData.shell.material.opacity=f*.58;b.userData.glow.material.opacity =
-f * (
-0.09 +
-warpAmount * 0.18
-);b.scale.setScalar(Math.max(.001,f));}});for(let i=beacons.length-1;i>=0;i--){const b=beacons[i];if((b.userData.state==="collected"||b.userData.state==="missed")&&b.userData.fade<=0){disposeBeaconObject(b);beacons.splice(i,1);}};stars.forEach(s=>{const pos = s.geometry.attributes.position;const speedMultiplier =1 + warpAmount * 7;const stretch =1 + warpAmount * 5 * (1-chronoAmount*.72);for(let i=0;i<pos.count;i++){
+}}if(b.userData.state==="collected"||b.userData.state==="missed"){b.userData.fade-=dt*2.8;const f=Math.max(0,b.userData.fade);b.userData.core.material.transparent=true;b.userData.core.material.opacity=f;if(b.userData.shell)b.userData.shell.material.opacity=f*.58;
+if(b.userData.glow&&b.userData.glow.material){
+  b.userData.glow.material.opacity =
+  f * (
+  0.09 +
+  warpAmount * 0.18
+  );
+}b.scale.setScalar(Math.max(.001,f));}});for(let i=beacons.length-1;i>=0;i--){const b=beacons[i];if((b.userData.state==="collected"||b.userData.state==="missed")&&b.userData.fade<=0){disposeBeaconObject(b);beacons.splice(i,1);}};stars.forEach(s=>{const pos = s.geometry.attributes.position;const speedMultiplier =1 + warpAmount * 7;const stretch =1 + warpAmount * 5 * (1-chronoAmount*.72);for(let i=0;i<pos.count;i++){
 
     const baseXY = s.userData.baseXY;
     const baseX = baseXY ? baseXY[i*2] : pos.getX(i);
