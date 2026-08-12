@@ -1504,6 +1504,8 @@ let runStartStrikes = 0;
 let goldRingsPassed=0;
 let goldRingSpawnCooldown=2.5;
 let goldRingSpawnedThisRun=0;
+let goldRingSequenceRemaining=0;
+let goldRingSequenceDelay=0;
 const GOLD_RING_PASS_RADIUS=16;
 
 let heroMode = true;
@@ -3881,9 +3883,14 @@ function createFlow(index){
       Starts at 5 rings and gradually rises to the high 40s by the end
       of the 300-Flow path. Missing a ring does NOT cost a life.
     */
+    /*
+      SHIFTVIX 2.13 — GOLD RING OBJECTIVE SCALE
+      Early Ring Flows should feel like a real objective, not a quick bonus.
+      Starts at 12 rings and climbs steadily toward 60.
+    */
     const target=Math.min(
-      50,
-      5 + Math.floor(group*.75)
+      60,
+      12 + Math.floor(group*1.0)
     );
 
     flow={
@@ -3928,7 +3935,7 @@ function beginCurrentFlow(){
 
     // Ring objectives should begin presenting targets quickly.
     if(activeChallenge.metric==="rings"){
-        goldRingSpawnCooldown=Math.min(goldRingSpawnCooldown,.65);
+        goldRingSpawnCooldown=Math.min(goldRingSpawnCooldown,.35);
     }
 
     updateChallenge();
@@ -5112,6 +5119,40 @@ function makeGoldRing(reason="ambient"){
   });
 
   return true;
+}
+
+
+function startGoldRingSequence(){
+  /*
+    A Ring Flow can occasionally send a short run of 2–3 rings.
+    They remain spaced apart so the player has to steer accurately,
+    but they arrive close enough together to feel like a flight path.
+  */
+  goldRingSequenceRemaining=
+    Math.random()<.55 ? 2 : 3;
+
+  goldRingSequenceDelay=.18;
+}
+
+function updateGoldRingSequence(worldDt){
+  if(
+    !activeChallenge ||
+    activeChallenge.metric!=="rings" ||
+    goldRingSequenceRemaining<=0
+  ){
+    return;
+  }
+
+  goldRingSequenceDelay-=worldDt;
+
+  if(goldRingSequenceDelay<=0){
+    if(makeGoldRing("ring_sequence")){
+      goldRingSequenceRemaining--;
+      goldRingSequenceDelay=.42+Math.random()*.34;
+    }else{
+      goldRingSequenceDelay=.18;
+    }
+  }
 }
 
 function passGoldRing(b){
@@ -6361,7 +6402,7 @@ vix.style.transform = "translateY(0)";
 
 title.style.transform = "translate(-50%,-50%)";
 
-const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;const hudScoreReset=document.getElementById("hudScore");if(hudScoreReset)hudScoreReset.textContent="0";tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=1.25;voidCountRun=0;goldRingsPassed=0;goldRingSpawnCooldown=2.5;goldRingSpawnedThisRun=0;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
+const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;const hudScoreReset=document.getElementById("hudScore");if(hudScoreReset)hudScoreReset.textContent="0";tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=1.25;voidCountRun=0;goldRingsPassed=0;goldRingSpawnCooldown=2.5;goldRingSpawnedThisRun=0;goldRingSequenceRemaining=0;goldRingSequenceDelay=0;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
 
 lastLevel = 1;strikes = 0;milestonesReached = {};lastWarpBreakthrough=0;starColorUpdateFrame=0;launchSurge=0;runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;resetWarpBanking();applyFrozenGameViewport(stableViewportWidth,stableViewportHeight);resetEnvironmentForRun();beginCurrentFlow();updateStrikes();updateHUD();spawnWave();if(!musicStarted){startMusic();}else if(!musicTimer&&audioCtx){nextNoteTime=Math.max(nextNoteTime,audioCtx.currentTime+0.035);nextDrumTime=Math.max(nextDrumTime,audioCtx.currentTime+0.05);musicTimer=setInterval(musicScheduler,25);}}
 const title = document.getElementById("gameTitle");
@@ -6490,14 +6531,31 @@ if(silentTutorialComplete){
     );
 
     if(spawnedRing){
-      goldRingSpawnCooldown=
-        ringObjective
-          ? 1.15 + Math.random()*.95
-          : 6.5 + Math.random()*5.5;
+      if(ringObjective){
+        /*
+          Ring objectives get a stronger cadence.
+          Normal singles arrive often, with occasional short 2–3 ring runs.
+        */
+        if(
+          goldRingSequenceRemaining<=0 &&
+          Math.random()<.34
+        ){
+          startGoldRingSequence();
+        }
+
+        goldRingSpawnCooldown=
+          .72 + Math.random()*.62;
+      }else{
+        // Outside Ring objectives, rings remain an occasional visual bonus.
+        goldRingSpawnCooldown=
+          7.0 + Math.random()*6.0;
+      }
     }else{
-      goldRingSpawnCooldown=.55;
+      goldRingSpawnCooldown=.45;
     }
   }
+
+  updateGoldRingSequence(worldDt);
 }
 
 spawnTimer-=worldDt;
