@@ -39,7 +39,7 @@ function track(eventName, data = {}) {
 }
 </script>
 <head>
-<!-- SHIFTVIX 2.20 — SHIFT PATTERN RULE + RUSH WARP CADENCE -->
+<!-- SHIFTVIX 2.21 — SHIFT REBALANCE + TUTORIAL REFINEMENT -->
 <meta charset="utf-8">
 <link rel="icon" type="image/png" href="icon-512.png">
 
@@ -2133,7 +2133,7 @@ function updateSilentTutorial(){
   if(tutorialStage===0){
     tutorialStage=1;
     tutorialStageStartedAt=performance.now();
-    showTutorialPrompt("SWIPE TO COLLECT",1650);
+    showTutorialPrompt("SWIPE TO SHIFT",1650);
     return;
   }
 
@@ -2185,7 +2185,7 @@ function updateSilentTutorial(){
   ){
     tutorialStage=4;
     tutorialStageStartedAt=performance.now();
-    showTutorialPrompt("GRAB POWER ORBS",1750);
+    showTutorialPrompt("GRAB POWER-UPS",1750);
 
     if(
       !fluxOrbActive &&
@@ -4136,7 +4136,7 @@ function createFlow(index){
     // Start substantial. SHIFT measures ARRIVAL at a distinct lane,
     // not raw swipe/input events.
     const target=
-      300 + categoryStep*25;
+      100 + categoryStep*25;
 
     flow={
       id:`shift_${n}`,
