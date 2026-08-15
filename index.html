@@ -39,7 +39,7 @@ function track(eventName, data = {}) {
 }
 </script>
 <head>
-<!-- SHIFTVIX 2.19 — SIX FLOW SYSTEM: SHIFT ARRIVAL + WARP RUSH -->
+<!-- SHIFTVIX 2.20 — SHIFT PATTERN RULE + RUSH WARP CADENCE -->
 <meta charset="utf-8">
 <link rel="icon" type="image/png" href="icon-512.png">
 
@@ -1682,7 +1682,14 @@ let runStartStrikes = 0;
 // =========================
 let shiftCountRun=0;
 let shiftArrivalTimer=null;
-let lastCountedShiftLane="1:1";
+let shiftLastArrivalLane="1:1";
+let shiftPreviousArrivalLane=null;
+
+let rushNextWarpDistance=Infinity;
+const RUSH_WARP_FIRST_GAP_MIN=70;
+const RUSH_WARP_FIRST_GAP_MAX=140;
+const RUSH_WARP_GAP_MIN=90;
+const RUSH_WARP_GAP_MAX=180;
 
 // =========================
 // SHIFTVIX 2.11 — GOLD RING ACCURACY SYSTEM
@@ -4184,6 +4191,13 @@ function beginCurrentFlow(){
         goldRingSpawnCooldown=Math.min(goldRingSpawnCooldown,.35);
     }
 
+    if(activeChallenge.metric==="rush"){
+        scheduleRushWarp(true);
+        showModeBanner("RUSH");
+    }else{
+        rushNextWarpDistance=Infinity;
+    }
+
     updateChallenge();
 }
 function challengeBaseValue(ch){
@@ -5856,6 +5870,43 @@ function playWarpOrbSound(tier=1){
   osc.start(now);osc.stop(now+.5);
 }
 
+function isRushFlowActive(){
+  return activeChallenge?.metric==="rush";
+}
+
+function scheduleRushWarp(first=false){
+  if(!isRushFlowActive()){
+    rushNextWarpDistance=Infinity;
+    return;
+  }
+
+  const min=first?RUSH_WARP_FIRST_GAP_MIN:RUSH_WARP_GAP_MIN;
+  const max=first?RUSH_WARP_FIRST_GAP_MAX:RUSH_WARP_GAP_MAX;
+
+  rushNextWarpDistance=
+    distance+
+    min+
+    Math.random()*(max-min);
+
+  warpCooldownUntilDistance=Math.min(
+    warpCooldownUntilDistance,
+    rushNextWarpDistance
+  );
+}
+
+function updateRushWarpOpportunity(){
+  if(!isRushFlowActive())return;
+  if(warpOrbActive)return;
+  if(distance<rushNextWarpDistance)return;
+  if(distance<warpCooldownUntilDistance)return;
+
+  if(makeWarpOrb("rush_flow")){
+    rushNextWarpDistance=Infinity;
+  }else{
+    rushNextWarpDistance=distance+35;
+  }
+}
+
 function activateWarp(reason,tier=1){
   const jump=warpTierDistance(tier);
   const before=distance;
@@ -5870,7 +5921,18 @@ function activateWarp(reason,tier=1){
   lastWarpBreakthrough=Math.floor(distance/3000);
 
   warpCollectedThisRun++;
-  warpCooldownUntilDistance=distance+700+Math.random()*250;
+
+  if(isRushFlowActive()){
+    warpCooldownUntilDistance=
+      distance+
+      RUSH_WARP_GAP_MIN+
+      Math.random()*(RUSH_WARP_GAP_MAX-RUSH_WARP_GAP_MIN);
+
+    rushNextWarpDistance=warpCooldownUntilDistance;
+  }else{
+    warpCooldownUntilDistance=
+      distance+700+Math.random()*250;
+  }
 
   playWarpOrbSound(tier);
   triggerWarpBreakthrough("warp");
@@ -6140,15 +6202,35 @@ function spawnWave(){
 function registerShiftArrival(){
   const laneKey=`${laneX}:${laneY}`;
 
-  if(laneKey===lastCountedShiftLane)return;
+  if(laneKey===shiftLastArrivalLane)return;
 
-  lastCountedShiftLane=laneKey;
+  // Reject immediate reversals. This prevents LEFT↔RIGHT, UP↔DOWN,
+  // or the same diagonal bounce from farming the SHIFT objective.
+  const countsAsPatternShift=
+    laneKey!==shiftPreviousArrivalLane;
+
+  const fromLane=shiftLastArrivalLane;
+
+  // Update route history whether or not this arrival scores.
+  shiftPreviousArrivalLane=shiftLastArrivalLane;
+  shiftLastArrivalLane=laneKey;
+
+  if(!countsAsPatternShift){
+    trackGame("lane_shift_repeat_rejected",{
+      from_lane:fromLane,
+      to_lane:laneKey,
+      shift_count_run:shiftCountRun,
+      flow_number:currentFlowIndex+1
+    });
+    return;
+  }
+
   shiftCountRun++;
 
   trackGame("lane_shift",{
     shift_count_run:shiftCountRun,
-    lane_x:laneX,
-    lane_y:laneY,
+    from_lane:fromLane,
+    to_lane:laneKey,
     flow_number:currentFlowIndex+1,
     flow_category:activeChallenge?.category||"none"
   });
@@ -6523,7 +6605,11 @@ function takeStrike(){
 
    const activeEffect=currentLegendaryEffect();
 
-   if(activeEffect){
+   const rushWarpOverride=
+     collectedType==="warp" &&
+     isRushFlowActive();
+
+   if(activeEffect && !rushWarpOverride){
      // The orb's effect is consumed, but its Tier score is ALWAYS earned.
      trackGame("legendary_orb_ignored_during_active_effect",{
        collected_type:collectedType,
@@ -6965,7 +7051,7 @@ vix.style.transform = "translateY(0)";
 
 title.style.transform = "translate(-50%,-50%)";
 
-const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;shiftCountRun=0;lastCountedShiftLane=`${laneX}:${laneY}`;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=1.25;voidCountRun=0;goldRingsPassed=0;goldRingSpawnCooldown=2.5;goldRingSpawnedThisRun=0;goldRingSequenceRemaining=0;goldRingSequenceDelay=0;goldRingLastLane=null;goldRingSequenceAnchor=null;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
+const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;shiftCountRun=0;shiftLastArrivalLane=`${laneX}:${laneY}`;shiftPreviousArrivalLane=null;rushNextWarpDistance=Infinity;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=1.25;voidCountRun=0;goldRingsPassed=0;goldRingSpawnCooldown=2.5;goldRingSpawnedThisRun=0;goldRingSequenceRemaining=0;goldRingSequenceDelay=0;goldRingLastLane=null;goldRingSequenceAnchor=null;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
 
 lastLevel = 1;strikes = 0;milestonesReached = {};lastWarpBreakthrough=0;starColorUpdateFrame=0;launchSurge=0;runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;resetWarpBanking();applyFrozenGameViewport(stableViewportWidth,stableViewportHeight);resetEnvironmentForRun();beginCurrentFlow();updateStrikes();updateHUD();spawnWave();if(!musicStarted){startMusic();}else if(!musicTimer&&audioCtx){nextNoteTime=Math.max(nextNoteTime,audioCtx.currentTime+0.035);nextDrumTime=Math.max(nextDrumTime,audioCtx.currentTime+0.05);musicTimer=setInterval(musicScheduler,25);}}
 const title = document.getElementById("gameTitle");
@@ -7041,6 +7127,9 @@ updateSilentTutorial();
 updateEnvironment(worldDt);
 starColorUpdateFrame=(starColorUpdateFrame+1)%1200;
 updateFluxDust(worldDt);
+
+updateRushWarpOpportunity();
+
 
 if(
   distance>=nextPowerOrbOpportunity &&
@@ -7488,7 +7577,19 @@ if(b.position.z>NEAR_Z+60){
   }
   if(b.userData.isWarp){
     warpOrbActive=false;
-    trackGame("warp_orb_missed",{trigger_reason:b.userData.warpReason,power_tier:b.userData.powerTier||1,distance:Math.floor(distance),flow_number:currentFlowIndex+1,warp_count_run:warpCollectedThisRun});
+
+    if(isRushFlowActive()){
+      scheduleRushWarp(false);
+    }
+
+    trackGame("warp_orb_missed",{
+      trigger_reason:b.userData.warpReason,
+      power_tier:b.userData.powerTier||1,
+      distance:Math.floor(distance),
+      flow_number:currentFlowIndex+1,
+      warp_count_run:warpCollectedThisRun,
+      rush_flow:isRushFlowActive()
+    });
   }
 
   if(
