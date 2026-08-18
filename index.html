@@ -1,45 +1,130 @@
 <!DOCTYPE html>
 <html>
-<!-- Google Analytics -->
+<!-- Google Analytics — SHIFTVIX 2.32 Retention Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-M88902RHLE"></script>
 
 <script>
 window.dataLayer = window.dataLayer || [];
 
-function gtag() {
+function gtag(){
     dataLayer.push(arguments);
 }
 
-gtag('js', new Date());
+gtag("js",new Date());
 
-const isDeveloper =
-    localStorage.getItem("shiftvixDeveloper") === "true";
+const params=
+    new URLSearchParams(
+        window.location.search
+    );
 
-gtag('config', 'G-M88902RHLE', {
-    developer_mode: isDeveloper
-});
-
-const params = new URLSearchParams(window.location.search);
-
-if (params.get("developer") === "true") {
-    localStorage.setItem("shiftvixDeveloper", "true");
+if(params.get("developer")==="true"){
+    localStorage.setItem(
+        "shiftvixDeveloper",
+        "true"
+    );
 }
 
-function track(eventName, data = {}) {
+const isDeveloper=
+    params.get("developer")==="true" ||
+    localStorage.getItem(
+        "shiftvixDeveloper"
+    )==="true";
 
-    // Completely ignore analytics from your developer browser
-    if (isDeveloper) {
-        console.log("[Developer analytics blocked]", eventName, data);
+/*
+  GA4 already handles page/session/user engagement automatically.
+  Custom SHIFTVIX analytics are intentionally limited to:
+  - real gameplay starts
+  - Flow choice
+  - Flow outcome
+  - run outcome
+  - daily-pick behavior
+  - meaningful return behavior
+  - personal records
+  - a few core mechanic-health signals
+*/
+const ANALYTICS_EVENT_ALIASES={
+    flow_family_selected:"flow_selected",
+    current_flow_completed:"flow_completed",
+    today_vector_completed:"today_pick_completed",
+    vector_personal_record:"personal_best",
+    gold_ring_passed:"ring_passed",
+    warp_orb_collected:"warp_collected"
+};
+
+const ANALYTICS_ALLOWED_EVENTS=new Set([
+    "first_run",
+    "game_started",
+    "player_returned",
+    "flow_selected",
+    "flow_completed",
+    "flow_attempt_ended",
+    "run_ended",
+    "today_pick_started",
+    "today_pick_completed",
+    "personal_best",
+    "void_hit",
+    "ring_passed",
+    "warp_collected"
+]);
+
+gtag("config","G-M88902RHLE",{
+    developer_mode:isDeveloper,
+    send_page_view:!isDeveloper
+});
+
+function track(eventName,data={}){
+    const cleanName=
+        ANALYTICS_EVENT_ALIASES[eventName] ||
+        eventName;
+
+    // Completely suppress analytics from the developer browser.
+    if(isDeveloper){
+        console.log(
+            "[Developer analytics blocked]",
+            cleanName,
+            data
+        );
         return;
     }
 
-    if (typeof gtag === "function") {
-        gtag("event", eventName, data);
+    // Old/debug/engine events remain harmless in code but never reach GA4.
+    if(!ANALYTICS_ALLOWED_EVENTS.has(cleanName)){
+        return;
+    }
+
+    if(typeof gtag==="function"){
+        gtag(
+            "event",
+            cleanName,
+            data
+        );
     }
 }
 </script>
+
+
+<!--
+  ANALYTICS MAINTENANCE NOTE — 2.32
+  GA4 custom events intentionally kept:
+    first_run
+    game_started
+    player_returned
+    flow_selected
+    flow_completed
+    flow_attempt_ended
+    run_ended
+    today_pick_started
+    today_pick_completed
+    personal_best
+    void_hit
+    ring_passed
+    warp_collected
+
+  Everything else is suppressed centrally by ANALYTICS_ALLOWED_EVENTS.
+  Do not add new GA4 events unless they answer a real product/retention question.
+-->
 <head>
-<!-- SHIFTVIX 2.21 — SHIFT REBALANCE + TUTORIAL REFINEMENT -->
+<!-- SHIFTVIX 2.33 — ANALYTICS DUPLICATE DECLARATION FIX -->
 <meta charset="utf-8">
 <link rel="icon" type="image/png" href="icon-512.png">
 
@@ -990,6 +1075,41 @@ canvas{
   text-shadow:0 1px 4px #000
 }
 .runArchiveProgress{margin:12px 0 16px;font-size:10px;font-weight:900;letter-spacing:1.4px;color:rgba(255,255,255,.48)}
+.retentionJourney{margin:14px 0 0;padding:13px 14px 12px;border:1px solid rgba(255,211,106,.25);border-radius:16px;background:rgba(255,211,106,.035)}
+.retentionJourneyTop{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:9px;font-weight:950;letter-spacing:1.2px;color:rgba(255,255,255,.58)}
+.retentionJourneyTop strong{color:#ffd36a;font-size:10px;letter-spacing:1.5px}
+.vectorDots{display:grid;grid-template-columns:repeat(9,1fr);gap:6px;margin-top:9px}
+.vectorDot{height:5px;border-radius:999px;background:rgba(255,255,255,.10);box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
+.vectorDot.done{background:#ffd36a;box-shadow:0 0 8px rgba(255,211,106,.55)}
+.vectorDot.current{background:rgba(255,211,106,.38);box-shadow:0 0 7px rgba(255,211,106,.24)}
+
+.nextFlowPreview{margin:12px 0 16px;padding:12px 14px;border-radius:15px;border:1px solid rgba(255,255,255,.11);background:rgba(255,255,255,.025);text-align:left}
+.nextFlowEyebrow{font-size:8px;font-weight:950;letter-spacing:1.4px;color:rgba(255,255,255,.44)}
+.nextFlowTitle{margin-top:5px;font-size:12px;font-weight:950;letter-spacing:1.05px;color:#fff}
+.nextFlowObjective{margin-top:4px;font-size:10px;font-weight:850;letter-spacing:.45px;color:rgba(255,255,255,.64);line-height:1.35}
+
+.archiveRetention{display:grid;gap:11px;margin:12px 0 18px}
+.todayVectorCard{padding:14px 15px;border:1px solid rgba(255,211,106,.30);border-radius:17px;background:linear-gradient(180deg,rgba(255,211,106,.075),rgba(255,211,106,.02))}
+.todayVectorTop{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.todayVectorName{font-size:10px;font-weight:950;letter-spacing:1.55px;color:#ffd36a}
+.todayVectorStatus{font-size:9px;font-weight:950;letter-spacing:1.15px;color:rgba(255,255,255,.50)}
+.todayVectorFlow{margin-top:8px;font-size:13px;font-weight:950;letter-spacing:.75px;color:#fff}
+.todayVectorObjective{margin-top:4px;font-size:10px;font-weight:850;letter-spacing:.4px;color:rgba(255,255,255,.64);line-height:1.4}
+.todayVectorAction{margin-top:10px;width:100%;min-height:40px;border-radius:12px;border:1px solid rgba(255,211,106,.38);background:rgba(255,211,106,.08);color:#ffd36a;font:950 9px Arial;letter-spacing:1.2px;cursor:pointer}
+
+.vectorJourneyCard{padding:12px 14px;border:1px solid rgba(255,255,255,.10);border-radius:16px;background:rgba(255,255,255,.018)}
+.vectorJourneyLabel{display:flex;justify-content:space-between;gap:10px;font-size:9px;font-weight:950;letter-spacing:1.15px;color:rgba(255,255,255,.56)}
+.vectorJourneyLabel strong{color:#ffd36a}
+.personalRecords{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.recordChip{padding:9px 7px;border-radius:12px;border:1px solid rgba(255,255,255,.085);background:rgba(255,255,255,.016);text-align:center}
+.recordChipLabel{font-size:7px;font-weight:950;letter-spacing:1px;color:rgba(255,255,255,.38)}
+.recordChipValue{margin-top:4px;font-size:11px;font-weight:950;color:#fff}
+
+@media(max-width:600px){
+  .personalRecords{grid-template-columns:repeat(2,1fr)}
+  .retentionJourneyTop,.vectorJourneyLabel{font-size:8px}
+}
+
 .runActions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .runAction{min-height:48px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.045);color:#fff;font:900 12px Arial;letter-spacing:2px;cursor:pointer;transition:transform .12s ease,border-color .15s ease,background .15s ease,box-shadow .15s ease}
 .runAction.primary{border-color:rgba(255,211,106,.58);background:rgba(255,211,106,.09);color:#ffd36a;box-shadow:0 0 17px rgba(255,211,106,.10)}
@@ -1436,6 +1556,1355 @@ body.uiModalOpen #center{pointer-events:none}
     font-size:clamp(29px,9vw,40px);
   }
 }
+
+/* SHIFTVIX 2.24 — Six Flows / Cycles */
+.sixFlowSummary{margin:14px 0 16px;padding:13px 14px;border:1px solid rgba(255,211,106,.24);border-radius:16px;background:rgba(255,211,106,.03)}
+.sixFlowSummaryTop{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:9px;font-weight:950;letter-spacing:1.2px;color:rgba(255,255,255,.56)}
+.sixFlowSummaryTop strong{color:#ffd36a;letter-spacing:1.45px}
+.sixFlowNames{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:10px}
+.sixFlowName{padding:5px 7px;border-radius:999px;border:1px solid rgba(255,255,255,.09);font-size:7px;font-weight:950;letter-spacing:.75px;color:rgba(255,255,255,.46)}
+.sixFlowName.done{border-color:rgba(255,211,106,.32);color:#ffd36a;background:rgba(255,211,106,.06)}
+.sixFlowName.current{border-color:rgba(255,255,255,.25);color:#fff}
+.nextDailyNote{margin-top:8px;text-align:center;font-size:8px;font-weight:900;letter-spacing:1px;color:rgba(255,255,255,.42)}
+
+/* =========================
+   SHIFTVIX 2.26 — SIMPLIFIED FLOWS SCREEN
+   Six visible Flow types. 300 objectives stay hidden under the hood.
+   ========================= */
+
+#flowArchive{
+    padding:
+      max(12px,env(safe-area-inset-top))
+      12px
+      max(12px,env(safe-area-inset-bottom));
+    box-sizing:border-box;
+}
+
+#flowArchive .archiveCard{
+    width:min(560px,90vw);
+    max-height:none;
+    overflow:hidden;
+    padding:22px;
+    box-sizing:border-box;
+}
+
+#flowArchive .archiveHeader{
+    margin-bottom:14px;
+}
+
+#flowArchive .archiveHeader h2{
+    font-size:24px;
+    letter-spacing:4px;
+}
+
+#archiveList{
+    max-height:none;
+    overflow:visible;
+    padding:0;
+}
+
+#flowArchive .archiveProgress,
+#flowArchive .archiveLegend,
+#flowArchive .archiveBlock,
+#flowArchive .archiveGrid,
+#flowArchive .archiveRow{
+    display:none !important;
+}
+
+#flowArchive .sixFlowSummary{
+    margin:0 0 12px;
+    padding:13px 14px;
+}
+
+#flowArchive .sixFlowSummaryTop{
+    font-size:9px;
+}
+
+#flowArchive .sixFlowNames{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:6px;
+}
+
+#flowArchive .sixFlowName{
+    display:grid;
+    place-items:center;
+    min-width:0;
+    padding:7px 3px;
+    font-size:7px;
+    letter-spacing:.55px;
+}
+
+#flowArchive .archiveRetention{
+    gap:10px;
+    margin:0;
+}
+
+#flowArchive .todayVectorCard{
+    padding:14px 15px;
+}
+
+#flowArchive .todayVectorFlow{
+    font-size:14px;
+}
+
+#flowArchive .todayVectorObjective{
+    font-size:10px;
+}
+
+#flowArchive .todayVectorAction{
+    min-height:42px;
+}
+
+#flowArchive .personalRecords{
+    grid-template-columns:repeat(3,1fr);
+    gap:7px;
+}
+
+#flowArchive .recordChip{
+    padding:10px 6px;
+}
+
+#flowArchive .recordChipLabel{
+    font-size:7px;
+}
+
+#flowArchive .recordChipValue{
+    font-size:13px;
+}
+
+@media(max-width:520px){
+  #flowArchive{
+      place-items:center;
+      padding:
+        max(10px,env(safe-area-inset-top))
+        10px
+        max(10px,env(safe-area-inset-bottom));
+  }
+
+  #flowArchive .archiveCard{
+      width:min(94vw,500px);
+      padding:18px 15px;
+      border-radius:22px;
+  }
+
+  #flowArchive .archiveHeader{
+      margin-bottom:10px;
+  }
+
+  #flowArchive .archiveHeader h2{
+      font-size:22px;
+      letter-spacing:3px;
+  }
+
+  #flowArchive .archiveClose{
+      font-size:24px;
+      padding:5px 9px;
+  }
+
+  #flowArchive .sixFlowSummary{
+      padding:11px 10px;
+      margin-bottom:10px;
+  }
+
+  #flowArchive .sixFlowNames{
+      grid-template-columns:repeat(3,1fr);
+      gap:6px;
+  }
+
+  #flowArchive .sixFlowName{
+      padding:6px 3px;
+      font-size:7px;
+  }
+
+  #flowArchive .todayVectorCard{
+      padding:12px;
+  }
+
+  #flowArchive .todayVectorFlow{
+      font-size:13px;
+  }
+
+  #flowArchive .todayVectorObjective{
+      margin-top:3px;
+      line-height:1.3;
+  }
+
+  #flowArchive .todayVectorAction{
+      min-height:40px;
+      margin-top:9px;
+  }
+
+  #flowArchive .nextDailyNote{
+      margin-top:7px;
+      font-size:7px;
+  }
+
+  #flowArchive .personalRecords{
+      grid-template-columns:repeat(3,1fr);
+      gap:6px;
+  }
+
+  #flowArchive .recordChip{
+      padding:8px 4px;
+  }
+
+  #flowArchive .recordChipValue{
+      font-size:12px;
+  }
+}
+
+
+
+/* ============================================================
+   SHIFTVIX 2.27 — FLOWS RESPONSIVE READABILITY
+   ============================================================ */
+
+#flowArchive{
+    place-items:center;
+    padding:
+      max(18px,env(safe-area-inset-top))
+      18px
+      max(18px,env(safe-area-inset-bottom));
+    box-sizing:border-box;
+}
+
+#flowArchive .archiveCard{
+    width:min(1040px,92vw);
+    max-height:min(900px,92vh);
+    min-height:min(680px,82vh);
+    padding:clamp(28px,3vw,44px);
+    border-radius:30px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    box-sizing:border-box;
+}
+
+#flowArchive .archiveHeader{
+    margin-bottom:clamp(18px,2vh,28px);
+}
+
+#flowArchive .archiveHeader h2{
+    font-size:clamp(34px,4.2vw,58px);
+    letter-spacing:clamp(4px,.55vw,8px);
+    line-height:1;
+}
+
+#flowArchive .archiveClose{
+    font-size:clamp(30px,3vw,42px);
+    min-width:58px;
+    min-height:58px;
+    display:grid;
+    place-items:center;
+}
+
+#archiveList{
+    max-height:none;
+    overflow:visible;
+    padding:0;
+    width:100%;
+}
+
+#flowArchive .sixFlowSummary{
+    margin:0 0 clamp(18px,2vh,26px);
+    padding:clamp(18px,2vw,26px);
+    border-radius:22px;
+}
+
+#flowArchive .sixFlowSummaryTop{
+    font-size:clamp(13px,1.4vw,19px);
+    letter-spacing:clamp(1.4px,.18vw,2.5px);
+    margin-bottom:14px;
+}
+
+#flowArchive .sixFlowSummaryTop strong{
+    font-size:inherit;
+}
+
+#flowArchive .sixFlowNames{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:clamp(8px,1vw,14px);
+    margin-top:0;
+}
+
+#flowArchive .sixFlowName{
+    min-height:48px;
+    padding:10px 8px;
+    border-radius:999px;
+    font-size:clamp(11px,1.05vw,15px);
+    letter-spacing:clamp(.8px,.1vw,1.4px);
+}
+
+#flowArchive .archiveRetention{
+    gap:clamp(16px,1.8vh,24px);
+    margin:0;
+}
+
+#flowArchive .todayVectorCard{
+    padding:clamp(20px,2.2vw,30px);
+    border-radius:22px;
+}
+
+#flowArchive .todayVectorTop{
+    font-size:clamp(12px,1.2vw,17px);
+    letter-spacing:1.7px;
+}
+
+#flowArchive .todayVectorName,
+#flowArchive .todayVectorStatus{
+    font-size:inherit;
+}
+
+#flowArchive .todayVectorFlow{
+    margin-top:14px;
+    font-size:clamp(22px,2.2vw,32px);
+    letter-spacing:1.4px;
+}
+
+#flowArchive .todayVectorObjective{
+    margin-top:8px;
+    font-size:clamp(15px,1.45vw,21px);
+    line-height:1.35;
+    letter-spacing:.7px;
+}
+
+#flowArchive .todayVectorAction{
+    min-height:clamp(54px,6vh,70px);
+    margin-top:18px;
+    border-radius:16px;
+    font-size:clamp(13px,1.3vw,18px);
+    letter-spacing:1.8px;
+}
+
+#flowArchive .nextDailyNote{
+    margin-top:12px;
+    font-size:clamp(10px,.95vw,14px);
+    letter-spacing:1.2px;
+    line-height:1.35;
+}
+
+#flowArchive .personalRecords{
+    grid-template-columns:repeat(3,1fr);
+    gap:clamp(10px,1.2vw,16px);
+}
+
+#flowArchive .recordChip{
+    min-height:82px;
+    padding:14px 10px;
+    border-radius:16px;
+    display:grid;
+    align-content:center;
+}
+
+#flowArchive .recordChipLabel{
+    font-size:clamp(10px,.95vw,14px);
+    letter-spacing:1.4px;
+}
+
+#flowArchive .recordChipValue{
+    margin-top:7px;
+    font-size:clamp(18px,1.9vw,28px);
+}
+
+/* TABLET */
+@media(min-width:700px) and (max-width:1180px){
+  #flowArchive{
+      padding:
+        max(20px,env(safe-area-inset-top))
+        24px
+        max(20px,env(safe-area-inset-bottom));
+  }
+
+  #flowArchive .archiveCard{
+      width:min(900px,90vw);
+      min-height:min(760px,86vh);
+      max-height:90vh;
+      padding:32px;
+  }
+
+  #flowArchive .sixFlowNames{
+      grid-template-columns:repeat(3,1fr);
+  }
+
+  #flowArchive .sixFlowName{
+      min-height:52px;
+      font-size:14px;
+  }
+
+  #flowArchive .personalRecords{
+      grid-template-columns:repeat(3,1fr);
+  }
+}
+
+/* PHONE */
+@media(max-width:699px){
+  #flowArchive{
+      place-items:center;
+      padding:
+        max(8px,env(safe-area-inset-top))
+        8px
+        max(8px,env(safe-area-inset-bottom));
+  }
+
+  #flowArchive .archiveCard{
+      width:96vw;
+      min-height:88vh;
+      max-height:92vh;
+      padding:22px 18px 20px;
+      border-radius:26px;
+      justify-content:flex-start;
+  }
+
+  #flowArchive .archiveHeader{
+      margin-bottom:16px;
+  }
+
+  #flowArchive .archiveHeader h2{
+      font-size:clamp(30px,9vw,42px);
+      letter-spacing:4px;
+  }
+
+  #flowArchive .archiveClose{
+      min-width:52px;
+      min-height:52px;
+      font-size:30px;
+  }
+
+  #flowArchive .sixFlowSummary{
+      padding:16px 14px;
+      margin-bottom:16px;
+      border-radius:20px;
+  }
+
+  #flowArchive .sixFlowSummaryTop{
+      font-size:13px;
+      margin-bottom:12px;
+  }
+
+  #flowArchive .sixFlowNames{
+      grid-template-columns:repeat(2,1fr);
+      gap:9px;
+  }
+
+  #flowArchive .sixFlowName{
+      min-height:46px;
+      padding:9px 6px;
+      font-size:12px;
+      letter-spacing:1px;
+  }
+
+  #flowArchive .todayVectorCard{
+      padding:18px 16px;
+      border-radius:20px;
+  }
+
+  #flowArchive .todayVectorTop{
+      font-size:12px;
+  }
+
+  #flowArchive .todayVectorFlow{
+      margin-top:12px;
+      font-size:24px;
+  }
+
+  #flowArchive .todayVectorObjective{
+      margin-top:6px;
+      font-size:16px;
+      line-height:1.35;
+  }
+
+  #flowArchive .todayVectorAction{
+      min-height:56px;
+      margin-top:16px;
+      font-size:14px;
+  }
+
+  #flowArchive .nextDailyNote{
+      font-size:10px;
+      margin-top:10px;
+  }
+
+  #flowArchive .personalRecords{
+      grid-template-columns:repeat(2,1fr);
+      gap:9px;
+  }
+
+  #flowArchive .recordChip{
+      min-height:68px;
+      padding:11px 8px;
+  }
+
+  #flowArchive .recordChipLabel{
+      font-size:10px;
+  }
+
+  #flowArchive .recordChipValue{
+      font-size:20px;
+  }
+}
+
+/* VERY SHORT PHONE SCREENS */
+@media(max-width:699px) and (max-height:740px){
+  #flowArchive .archiveCard{
+      min-height:0;
+      max-height:96vh;
+      padding-top:16px;
+      padding-bottom:16px;
+  }
+
+  #flowArchive .archiveHeader{
+      margin-bottom:10px;
+  }
+
+  #flowArchive .sixFlowSummary{
+      padding:12px;
+      margin-bottom:11px;
+  }
+
+  #flowArchive .sixFlowName{
+      min-height:38px;
+      font-size:11px;
+  }
+
+  #flowArchive .todayVectorCard{
+      padding:14px;
+  }
+
+  #flowArchive .todayVectorFlow{
+      font-size:21px;
+  }
+
+  #flowArchive .todayVectorObjective{
+      font-size:14px;
+  }
+
+  #flowArchive .todayVectorAction{
+      min-height:48px;
+      margin-top:11px;
+  }
+
+  #flowArchive .personalRecords{
+      gap:7px;
+  }
+
+  #flowArchive .recordChip{
+      min-height:58px;
+  }
+}
+
+
+
+/* ============================================================
+   SHIFTVIX 2.28 — DESKTOP PAUSE + FLOWS SCROLL
+   ============================================================ */
+
+/* ---------- FLOWS: keep the current visual scale, add controlled scroll ---------- */
+#flowArchive .archiveCard{
+    overflow:hidden;
+}
+
+#archiveList{
+    overflow-y:auto;
+    overflow-x:hidden;
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(255,211,106,.46) rgba(255,255,255,.06);
+    padding-right:6px;
+}
+
+#archiveList::-webkit-scrollbar{
+    width:7px;
+}
+
+#archiveList::-webkit-scrollbar-track{
+    background:rgba(255,255,255,.045);
+    border-radius:999px;
+}
+
+#archiveList::-webkit-scrollbar-thumb{
+    background:rgba(255,211,106,.42);
+    border-radius:999px;
+}
+
+#archiveList::-webkit-scrollbar-thumb:hover{
+    background:rgba(255,211,106,.62);
+}
+
+/* Desktop/tablet: enough travel to expose the bottom record row without making
+   the card feel like a long page. */
+@media(min-width:700px){
+  #archiveList{
+      max-height:calc(min(900px,92vh) - 150px);
+      padding-bottom:10px;
+  }
+}
+
+/* Phone: use almost the full panel height, but allow a short scroll to the
+   SCORE / RINGS / SHIFT / WARP record cards. */
+@media(max-width:699px){
+  #archiveList{
+      max-height:calc(92vh - 118px);
+      padding-right:4px;
+      padding-bottom:12px;
+  }
+}
+
+/* Very short phones need slightly more compressed scroll viewport. */
+@media(max-width:699px) and (max-height:740px){
+  #archiveList{
+      max-height:calc(96vh - 105px);
+  }
+}
+
+/* ---------- PAUSE: desktop only ---------- */
+@media(min-width:900px){
+  #pauseOverlay{
+      place-items:center;
+      padding:24px;
+  }
+
+  #pauseOverlay .pauseCard{
+      width:min(760px,72vw);
+      min-height:520px;
+      padding:38px 40px 34px;
+      border-radius:28px;
+      box-sizing:border-box;
+  }
+
+  #pauseOverlay .pauseTitle{
+      font-size:44px;
+      letter-spacing:7px;
+      margin-bottom:22px;
+  }
+
+  #pauseOverlay .pauseChallenge{
+      padding:24px 26px;
+      border-radius:18px;
+      margin-bottom:24px;
+  }
+
+  #pauseOverlay .pauseChallengeTitle{
+      font-size:20px;
+      letter-spacing:2.4px;
+  }
+
+  #pauseOverlay .pauseChallengeObjective{
+      margin-top:12px;
+      font-size:18px;
+      line-height:1.35;
+      letter-spacing:1.1px;
+  }
+
+  #pauseOverlay .pauseProgress{
+      margin-top:18px;
+      height:18px;
+  }
+
+  #pauseOverlay .pauseProgressPct{
+      font-size:12px;
+  }
+
+  #pauseOverlay .pauseButton{
+      min-height:72px;
+      border-radius:18px;
+      font-size:20px;
+      letter-spacing:3px;
+      margin-top:14px;
+  }
+
+  #pauseOverlay .pauseHint{
+      margin-top:20px;
+      font-size:12px;
+      letter-spacing:2px;
+  }
+}
+
+/* Large desktop screens get a stronger scale-up. */
+@media(min-width:1280px){
+  #pauseOverlay .pauseCard{
+      width:min(860px,68vw);
+      min-height:560px;
+      padding:44px 46px 38px;
+  }
+
+  #pauseOverlay .pauseTitle{
+      font-size:50px;
+  }
+
+  #pauseOverlay .pauseChallengeTitle{
+      font-size:22px;
+  }
+
+  #pauseOverlay .pauseChallengeObjective{
+      font-size:20px;
+  }
+
+  #pauseOverlay .pauseButton{
+      min-height:78px;
+      font-size:22px;
+  }
+}
+
+
+
+/* ============================================================
+   SHIFTVIX 2.29 — FREE-CHOICE CYCLES + LARGE RUN COMPLETE
+   ============================================================ */
+
+/* Six Flow chips are true choices now. */
+.sixFlowName{
+    position:relative;
+    appearance:none;
+    -webkit-appearance:none;
+    font-family:Arial,sans-serif;
+    cursor:pointer;
+    transition:
+      transform .12s ease,
+      border-color .15s ease,
+      background .15s ease,
+      color .15s ease,
+      box-shadow .15s ease;
+}
+
+.sixFlowName.__retiredHover,
+.sixFlowName.__retiredFocus{
+    outline:none;
+    transform:translateY(-1px);
+    border-color:rgba(255,211,106,.62) !important;
+    color:#fff !important;
+    background:rgba(255,211,106,.075);
+    box-shadow:0 0 14px rgba(255,211,106,.10);
+}
+
+.sixFlowName:active{
+    transform:scale(.98);
+}
+
+.sixFlowName.done{
+    border-color:rgba(255,211,106,.48);
+    color:#ffd36a;
+    background:rgba(255,211,106,.07);
+}
+
+.sixFlowName.current{
+    border-color:rgba(255,255,255,.48);
+    color:#fff;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);
+}
+
+.flowChoiceMark{
+    position:absolute;
+    right:9px;
+    top:5px;
+    font-size:10px;
+    color:#ffd36a;
+}
+
+/* RUN COMPLETE gets the same readability philosophy as FLOWS. */
+#roundComplete{
+    padding:
+      max(14px,env(safe-area-inset-top))
+      14px
+      max(14px,env(safe-area-inset-bottom));
+    box-sizing:border-box;
+}
+
+#roundComplete .resultsCard.flowResults.minimalResults{
+    width:min(800px,72vw);
+    max-height:88vh;
+    padding:clamp(34px,3.2vw,50px);
+    border-radius:30px;
+    box-sizing:border-box;
+    overflow-y:auto;
+    overflow-x:hidden;
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(255,211,106,.46) rgba(255,255,255,.06);
+}
+
+#roundComplete .resultsCard.flowResults.minimalResults::-webkit-scrollbar{
+    width:7px;
+}
+
+#roundComplete .resultsCard.flowResults.minimalResults::-webkit-scrollbar-thumb{
+    background:rgba(255,211,106,.42);
+    border-radius:999px;
+}
+
+#roundComplete .flowResults .big{
+    margin-bottom:clamp(22px,2.4vh,34px);
+    font-size:clamp(38px,4vw,56px);
+    letter-spacing:clamp(5px,.55vw,8px);
+}
+
+#roundComplete .runObjectiveOnly{
+    margin-bottom:22px;
+    padding:clamp(22px,2.2vw,32px);
+    border-radius:22px;
+}
+
+#roundComplete .runObjectiveLabel{
+    font-size:clamp(14px,1.25vw,19px);
+    letter-spacing:2.4px;
+}
+
+#roundComplete .runObjectiveValue{
+    margin-top:14px;
+    font-size:clamp(44px,5.1vw,72px);
+}
+
+#roundComplete .runObjectiveCondition{
+    font-size:clamp(11px,1vw,15px);
+}
+
+#roundComplete .sixFlowSummary{
+    padding:clamp(16px,1.8vw,24px);
+    margin-bottom:16px;
+}
+
+#roundComplete .sixFlowSummaryTop{
+    font-size:clamp(11px,1vw,15px);
+}
+
+#roundComplete .sixFlowName{
+    min-height:46px;
+    font-size:clamp(10px,.9vw,13px);
+}
+
+#roundComplete .nextDailyNote{
+    margin:13px 0;
+    font-size:clamp(9px,.82vw,12px);
+    line-height:1.4;
+}
+
+.runCycleHint{
+    margin:14px 0 18px;
+    font-size:clamp(10px,.9vw,13px);
+    font-weight:950;
+    letter-spacing:1.5px;
+    color:rgba(255,255,255,.52);
+}
+
+#roundComplete .runActions{
+    gap:14px;
+}
+
+#roundComplete .runAction{
+    min-height:64px;
+    font-size:clamp(13px,1.15vw,17px);
+}
+
+/* Tablet */
+@media(min-width:700px) and (max-width:1100px){
+  #roundComplete .resultsCard.flowResults.minimalResults{
+      width:min(780px,82vw);
+      max-height:86vh;
+      padding:34px;
+  }
+
+  #roundComplete .flowResults .big{
+      font-size:42px;
+  }
+
+  #roundComplete .runObjectiveValue{
+      font-size:52px;
+  }
+
+  #roundComplete .sixFlowNames{
+      grid-template-columns:repeat(3,1fr);
+  }
+
+  #roundComplete .sixFlowName{
+      min-height:48px;
+      font-size:12px;
+  }
+}
+
+/* Phone */
+@media(max-width:699px){
+  #roundComplete{
+      padding:
+        max(8px,env(safe-area-inset-top))
+        8px
+        max(8px,env(safe-area-inset-bottom));
+  }
+
+  #roundComplete .resultsCard.flowResults.minimalResults{
+      width:95vw;
+      max-height:90vh;
+      padding:26px 20px 22px;
+      border-radius:26px;
+  }
+
+  #roundComplete .flowResults .big{
+      font-size:clamp(32px,9vw,44px);
+      letter-spacing:4px;
+      margin-bottom:20px;
+  }
+
+  #roundComplete .runObjectiveOnly{
+      padding:20px 15px;
+      margin-bottom:17px;
+  }
+
+  #roundComplete .runObjectiveLabel{
+      font-size:12px;
+  }
+
+  #roundComplete .runObjectiveValue{
+      font-size:clamp(38px,11vw,52px);
+  }
+
+  #roundComplete .sixFlowNames{
+      grid-template-columns:repeat(2,1fr);
+      gap:8px;
+  }
+
+  #roundComplete .sixFlowName{
+      min-height:44px;
+      font-size:11px;
+  }
+
+  #roundComplete .runActions{
+      grid-template-columns:1fr;
+      gap:10px;
+  }
+
+  #roundComplete .runAction{
+      min-height:58px;
+      font-size:14px;
+  }
+
+  .runCycleHint{
+      font-size:9px;
+  }
+}
+
+
+/* ============================================================
+   SHIFTVIX 2.30 — UNIFIED FLOW HUB
+   ============================================================ */
+
+/* Retire duplicate menu screens. */
+#roundComplete,
+#pauseMenu{
+  display:none !important;
+}
+
+/* Hub uses nearly the full useful viewport while remaining readable. */
+#flowArchive{
+  place-items:center;
+  padding:
+    max(8px,env(safe-area-inset-top))
+    8px
+    max(8px,env(safe-area-inset-bottom));
+}
+
+#flowArchive .archiveCard{
+  width:min(1120px,94vw);
+  max-height:92vh;
+  min-height:0;
+  padding:clamp(24px,2.5vw,38px);
+  border-radius:28px;
+  overflow:hidden;
+}
+
+#flowArchive .archiveHeader{
+  margin-bottom:16px;
+}
+
+#flowArchive .archiveHeader h2{
+  font-size:clamp(34px,4vw,54px);
+  letter-spacing:5px;
+}
+
+#archiveList{
+  max-height:calc(92vh - 110px);
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding:0 8px 14px 0;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* Context block: pause / death / objective complete. */
+.hubStatus{
+  margin-bottom:16px;
+  padding:18px 20px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:20px;
+  text-align:center;
+  background:rgba(255,255,255,.025);
+}
+
+.hubStatusRun{
+  border-color:rgba(78,221,225,.26);
+}
+
+.hubStatusComplete{
+  border-color:rgba(255,211,106,.30);
+  background:rgba(255,211,106,.035);
+}
+
+.hubStatusPaused{
+  border-color:rgba(255,211,106,.22);
+}
+
+.hubStatusEyebrow{
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:2.6px;
+  color:#ffd36a;
+}
+
+.hubStatusLabel{
+  margin-top:8px;
+  font-size:clamp(18px,2vw,28px);
+  font-weight:950;
+  letter-spacing:1.6px;
+  color:#fff;
+}
+
+.hubStatusValue{
+  margin-top:6px;
+  font-size:clamp(34px,4vw,58px);
+  font-weight:950;
+  color:#fff;
+  text-shadow:0 0 16px rgba(255,255,255,.22);
+}
+
+.hubStatusMessage{
+  margin-top:8px;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:1.3px;
+  color:rgba(255,255,255,.52);
+}
+
+.hubResumeButton{
+  width:100%;
+  min-height:54px;
+  margin-top:14px;
+  border-radius:15px;
+  border:1px solid rgba(255,211,106,.45);
+  background:rgba(255,211,106,.075);
+  color:#ffd36a;
+  font:950 13px Arial,sans-serif;
+  letter-spacing:2px;
+}
+
+/* Today's Pick remains gold-framed, but borrows the recommended Flow color. */
+.todayPickCard{
+  margin-bottom:18px;
+  padding:20px;
+  border-radius:22px;
+  border:1px solid rgba(255,211,106,.30);
+  background:
+    radial-gradient(
+      circle at 12% 0%,
+      var(--flow-glow),
+      transparent 44%
+    ),
+    rgba(255,211,106,.025);
+}
+
+.todayPickTop{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:1.8px;
+  color:#ffd36a;
+}
+
+.todayPickTop span:last-child{
+  color:rgba(255,255,255,.52);
+}
+
+.todayPickName{
+  margin-top:12px;
+  font-size:clamp(25px,2.5vw,36px);
+  font-weight:950;
+  letter-spacing:1.4px;
+  color:var(--flow-color);
+  text-shadow:0 0 18px var(--flow-glow);
+}
+
+.todayPickObjective{
+  margin-top:6px;
+  font-size:clamp(14px,1.35vw,19px);
+  font-weight:850;
+  letter-spacing:.7px;
+  color:rgba(255,255,255,.72);
+}
+
+.todayPickButton{
+  width:100%;
+  min-height:58px;
+  margin-top:16px;
+  border-radius:16px;
+  border:1px solid var(--flow-color);
+  background:rgba(0,0,0,.38);
+  color:var(--flow-color);
+  font:950 13px Arial,sans-serif;
+  letter-spacing:1.8px;
+  box-shadow:
+    inset 0 0 18px var(--flow-glow),
+    0 0 14px rgba(0,0,0,.26);
+}
+
+.hubChooseHeader{
+  display:flex;
+  justify-content:space-between;
+  align-items:end;
+  gap:12px;
+  margin:18px 2px 10px;
+}
+
+.hubChooseHeader span{
+  font-size:14px;
+  font-weight:950;
+  letter-spacing:2px;
+  color:#ffd36a;
+}
+
+.hubChooseHeader small{
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:1.1px;
+  color:rgba(255,255,255,.38);
+}
+
+/* Six Flow cards: dark transparent glass, no white fill. */
+.hubFlowGrid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+
+.flowChoiceCard{
+  appearance:none;
+  -webkit-appearance:none;
+  min-height:116px;
+  padding:16px;
+  border-radius:18px;
+  border:1px solid color-mix(in srgb,var(--flow-color) 58%,transparent);
+  background:
+    radial-gradient(
+      circle at 20% 0%,
+      var(--flow-glow),
+      transparent 54%
+    ),
+    rgba(0,0,0,.48);
+  color:#fff;
+  text-align:left;
+  cursor:pointer;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.018),
+    0 0 15px rgba(0,0,0,.28);
+  transition:
+    transform .12s ease,
+    box-shadow .15s ease,
+    border-color .15s ease;
+}
+
+.flowChoiceCard:hover,
+.flowChoiceCard:focus-visible{
+  outline:none;
+  transform:translateY(-2px);
+  border-color:var(--flow-color);
+  box-shadow:
+    inset 0 0 22px var(--flow-glow),
+    0 0 18px var(--flow-glow);
+}
+
+.flowChoiceCard.active{
+  border-color:var(--flow-color);
+  box-shadow:
+    inset 0 0 20px var(--flow-glow),
+    0 0 15px var(--flow-glow);
+}
+
+.flowChoiceTop{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.flowChoiceName{
+  font-size:clamp(15px,1.5vw,21px);
+  font-weight:950;
+  letter-spacing:1.6px;
+  color:var(--flow-color);
+  text-shadow:0 0 14px var(--flow-glow);
+}
+
+.flowChoiceStep{
+  font-size:10px;
+  font-weight:950;
+  color:rgba(255,255,255,.34);
+}
+
+.flowChoiceObjective{
+  margin-top:10px;
+  font-size:clamp(11px,1vw,14px);
+  font-weight:850;
+  line-height:1.35;
+  letter-spacing:.45px;
+  color:rgba(255,255,255,.70);
+}
+
+/* Six record chips remain secondary. */
+.hubRecords{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:8px;
+  margin-top:16px;
+}
+
+.hubRecord{
+  min-height:58px;
+  padding:9px 7px;
+  border-radius:13px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.015);
+  text-align:center;
+}
+
+.hubRecord span{
+  display:block;
+  font-size:7px;
+  font-weight:950;
+  letter-spacing:.9px;
+  color:var(--flow-color);
+}
+
+.hubRecord strong{
+  display:block;
+  margin-top:5px;
+  font-size:13px;
+  color:#fff;
+}
+
+/* Mobile / narrow tablet */
+@media(max-width:699px){
+  #flowArchive .archiveCard{
+    width:96vw;
+    max-height:92vh;
+    padding:20px 15px;
+    border-radius:25px;
+  }
+
+  #flowArchive .archiveHeader h2{
+    font-size:36px;
+  }
+
+  #archiveList{
+    max-height:calc(92vh - 95px);
+    padding-right:4px;
+  }
+
+  .hubStatus{
+    padding:15px 13px;
+  }
+
+  .todayPickCard{
+    padding:16px 14px;
+  }
+
+  .todayPickTop{
+    font-size:9px;
+  }
+
+  .todayPickName{
+    font-size:26px;
+  }
+
+  .todayPickObjective{
+    font-size:14px;
+  }
+
+  .todayPickButton{
+    min-height:52px;
+    font-size:12px;
+  }
+
+  .hubChooseHeader{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:4px;
+  }
+
+  .hubFlowGrid{
+    grid-template-columns:repeat(2,1fr);
+    gap:9px;
+  }
+
+  .flowChoiceCard{
+    min-height:112px;
+    padding:13px 11px;
+  }
+
+  .flowChoiceName{
+    font-size:15px;
+  }
+
+  .flowChoiceObjective{
+    font-size:11px;
+  }
+
+  .hubRecords{
+    grid-template-columns:repeat(3,1fr);
+    gap:7px;
+  }
+}
+
+/* Tablet */
+@media(min-width:700px) and (max-width:1100px){
+  #flowArchive .archiveCard{
+    width:90vw;
+  }
+
+  .hubFlowGrid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .hubRecords{
+    grid-template-columns:repeat(3,1fr);
+  }
+}
+
+
+
+/* ============================================================
+   SHIFTVIX 2.31 — CENTERED FLOWS TITLE / NO CLOSE BUTTON
+   ============================================================ */
+
+#flowArchive .archiveHeader{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:64px;
+    margin-bottom:18px;
+}
+
+#flowArchive .archiveHeader h2{
+    width:100%;
+    margin:0;
+    text-align:center;
+}
+
+#flowArchive .archiveClose{
+    display:none !important;
+}
+
 </style>
 </head>
 <body>
@@ -1464,14 +2933,14 @@ body.uiModalOpen #center{pointer-events:none}
     </div>
     <div class="pauseActions">
       <button class="pauseButton primary" id="pauseResume" type="button">RESUME</button>
-      <button class="pauseButton" id="pauseFlowPath" type="button">FLOW PATH</button>
+      <button class="pauseButton" id="pauseFlowPath" type="button">FLOWS</button>
     </div>
     <div class="pauseHint">CENTER EYE OR ESC TO RESUME</div>
   </div>
 </div>
 <div id="challengeHud"><div id="challengeName">SURVIVE THE FLOW</div><div id="challengeText">LOADING…</div><div id="challengeBar"><div id="challengeFill"></div><div id="challengePct">0%</div></div></div>
 <div id="tutorialPrompt" aria-live="polite"></div><div id="powerAnnouncement" aria-live="polite"></div><div id="modeBanner"></div><div id="chronoMultiplier">×2 SCORE</div><div id="warpBurstFx"></div><div id="flowFx"></div><div id="fluxFx"></div><div id="chronoFx"></div><div id="midasFx"></div><div id="prismFx"></div><div id="pulseWaves"></div>
-<div id="flowArchive" aria-hidden="true"><div class="archiveCard" role="dialog" aria-modal="true" aria-labelledby="flowPathTitle"><div class="archiveHeader"><h2 id="flowPathTitle">FLOW PATH</h2><button class="archiveClose" id="archiveClose" type="button" aria-label="Close Flow Path">×</button></div><div id="archiveList"></div></div></div>
+<div id="flowArchive" aria-hidden="true"><div class="archiveCard" role="dialog" aria-modal="true" aria-labelledby="flowPathTitle"><div class="archiveHeader"><h2 id="flowPathTitle">FLOWS</h2></div><div id="archiveList"></div></div></div>
 
 <!-- SHIFTVIX CHRONO 2.0 — SLOW TIME + PRISM VISION + 2X SCORE -->
 <script type="module">
@@ -1676,7 +3145,7 @@ let tierCounts = {WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};
 let runStartStrikes = 0;
 
 // =========================
-// SHIFTVIX 2.18 — SHIFT + RUSH
+// SHIFTVIX 2.18 — SHIFT + WARP
 // SHIFT = agility objective (successful lane changes).
 // RUSH = 60-second performance Flow layered over existing actions.
 // =========================
@@ -1685,11 +3154,11 @@ let shiftArrivalTimer=null;
 let shiftLastArrivalLane="1:1";
 let shiftPreviousArrivalLane=null;
 
-let rushNextWarpDistance=Infinity;
-const RUSH_WARP_FIRST_GAP_MIN=70;
-const RUSH_WARP_FIRST_GAP_MAX=140;
-const RUSH_WARP_GAP_MIN=90;
-const RUSH_WARP_GAP_MAX=180;
+let warpFlowNextWarpDistance=Infinity;
+const WARP_FLOW_FIRST_GAP_MIN=45;
+const WARP_FLOW_FIRST_GAP_MAX=90;
+const WARP_FLOW_GAP_MIN=60;
+const WARP_FLOW_GAP_MAX=120;
 
 // =========================
 // SHIFTVIX 2.11 — GOLD RING ACCURACY SYSTEM
@@ -1720,13 +3189,155 @@ let runStartTime = 0;
 let lastRunDuration = 0;
 
 // =========================
-// SHIFTVIX v2.5 ANALYTICS (Patch 7 scaffold)
+// SHIFTVIX 2.32 — RETENTION ANALYTICS
 // =========================
-const ANALYTICS_VERSION="2.5";
-const analyticsSessionId=`${Date.now()}-${Math.random().toString(36).slice(2,10)}`;
-let analyticsRunId=null,analyticsRunStartedAt=0,analyticsFlowStartedAt=0;
-function analyticsBaseData(){return {analytics_version:ANALYTICS_VERSION,analytics_session_id:analyticsSessionId,analytics_run_id:analyticsRunId||"not_started"};}
-function trackGame(eventName,data={}){track(eventName,{...analyticsBaseData(),...data});}
+const ANALYTICS_VERSION="3.0-retention";
+const analyticsSessionId=
+  `${Date.now()}-${Math.random().toString(36).slice(2,10)}`;
+
+let analyticsRunId=null;
+let analyticsRunStartedAt=0;
+let analyticsFlowStartedAt=0;
+let playerReturnRecordedThisPage=false;
+
+function analyticsBaseData(){
+  return {
+    analytics_version:ANALYTICS_VERSION,
+    analytics_session_id:analyticsSessionId,
+    analytics_run_id:
+      analyticsRunId||"not_started"
+  };
+}
+
+function trackGame(eventName,data={}){
+  track(
+    eventName,
+    {
+      ...analyticsBaseData(),
+      ...data
+    }
+  );
+}
+
+function analyticsLocalDateKey(date=new Date()){
+  const y=date.getFullYear();
+  const m=String(
+    date.getMonth()+1
+  ).padStart(2,"0");
+  const d=String(
+    date.getDate()
+  ).padStart(2,"0");
+
+  return `${y}-${m}-${d}`;
+}
+
+function daysBetweenDateKeys(a,b){
+  if(!a||!b)return null;
+
+  const parse=key=>{
+    const [y,m,d]=
+      key.split("-").map(Number);
+
+    if(!y||!m||!d)return NaN;
+
+    return Date.UTC(y,m-1,d);
+  };
+
+  const start=parse(a);
+  const end=parse(b);
+
+  if(
+    !Number.isFinite(start) ||
+    !Number.isFinite(end)
+  ){
+    return null;
+  }
+
+  return Math.max(
+    0,
+    Math.round(
+      (end-start)/86400000
+    )
+  );
+}
+
+function recordPlayerReturnOnGameStart(){
+  if(playerReturnRecordedThisPage)return;
+  playerReturnRecordedThisPage=true;
+
+  const today=analyticsLocalDateKey();
+  const lastPlay=
+    localStorage.getItem(
+      "shiftvixLastPlayDate"
+    );
+
+  let lifetimePlayDays=
+    Math.max(
+      0,
+      Number(
+        localStorage.getItem(
+          "shiftvixLifetimePlayDays"
+        )||0
+      )
+    );
+
+  if(!lastPlay){
+    lifetimePlayDays=
+      Math.max(1,lifetimePlayDays);
+
+    localStorage.setItem(
+      "shiftvixLastPlayDate",
+      today
+    );
+
+    localStorage.setItem(
+      "shiftvixLifetimePlayDays",
+      String(lifetimePlayDays)
+    );
+
+    return;
+  }
+
+  if(lastPlay!==today){
+    const daysSince=
+      daysBetweenDateKeys(
+        lastPlay,
+        today
+      );
+
+    lifetimePlayDays++;
+
+    localStorage.setItem(
+      "shiftvixLastPlayDate",
+      today
+    );
+
+    localStorage.setItem(
+      "shiftvixLifetimePlayDays",
+      String(lifetimePlayDays)
+    );
+
+    trackGame(
+      "player_returned",
+      {
+        days_since_last_play:
+          daysSince===null
+            ? -1
+            : daysSince,
+        lifetime_play_days:
+          lifetimePlayDays,
+        d1_return:
+          daysSince===1 ? 1 : 0,
+        d3_return:
+          daysSince!==null &&
+          daysSince>=3 ? 1 : 0,
+        d7_return:
+          daysSince!==null &&
+          daysSince>=7 ? 1 : 0
+      }
+    );
+  }
+}
 
 
 // Remembers whether this browser has ever started SHIFTVIX before
@@ -3404,6 +5015,338 @@ function startMusic(){
 }
 
 const FLOW_TOTAL = 300;
+const FLOW_TYPES=["COLLECT","TRAVEL","SCORE","RINGS","SHIFT","WARP"];
+const FLOWS_PER_CYCLE=6;
+const TOTAL_CYCLES=Math.ceil(FLOW_TOTAL/FLOWS_PER_CYCLE);
+const FLOW_COLOR_MAP={
+  COLLECT:"#39ff88",
+  TRAVEL:"#45b7ff",
+  SCORE:"#c86bff",
+  RINGS:"#ffd34e",
+  SHIFT:"#ff5f6d",
+  WARP:"#35f2ff"
+};
+
+const FLOW_GLOW_MAP={
+  COLLECT:"rgba(57,255,136,.22)",
+  TRAVEL:"rgba(69,183,255,.22)",
+  SCORE:"rgba(200,107,255,.22)",
+  RINGS:"rgba(255,211,78,.22)",
+  SHIFT:"rgba(255,95,109,.22)",
+  WARP:"rgba(53,242,255,.22)"
+};
+
+function flowFamilyOffset(category){
+  return FLOW_TYPES.indexOf(category);
+}
+
+function authoredIndexesForCategory(category){
+  const offset=flowFamilyOffset(category);
+  if(offset<0)return [];
+
+  const indexes=[];
+  for(
+    let index=offset;
+    index<FLOW_TOTAL;
+    index+=FLOWS_PER_CYCLE
+  ){
+    indexes.push(index);
+  }
+  return indexes;
+}
+
+function currentFamilyFlowIndex(category){
+  const indexes=authoredIndexesForCategory(category);
+  if(!indexes.length)return 0;
+
+  const unfinished=indexes.find(
+    index=>!completedFlowIndexes.has(index)
+  );
+
+  if(Number.isInteger(unfinished)){
+    return unfinished;
+  }
+
+  // Mastery mode: once this family has exhausted its authored queue,
+  // keep it alive by selecting from the same tuned challenge library.
+  const seed=
+    Math.floor(Date.now()/86400000) +
+    flowFamilyOffset(category)*17 +
+    Math.floor(Math.random()*indexes.length);
+
+  return indexes[
+    Math.abs(seed)%indexes.length
+  ];
+}
+
+function currentSixFlowIndexes(){
+  return FLOW_TYPES.map(
+    category=>currentFamilyFlowIndex(category)
+  );
+}
+
+function familyCompletedCount(category){
+  return authoredIndexesForCategory(category)
+    .filter(index=>completedFlowIndexes.has(index))
+    .length;
+}
+
+function familyMastered(category){
+  const indexes=authoredIndexesForCategory(category);
+  return indexes.length>0 &&
+    indexes.every(index=>completedFlowIndexes.has(index));
+}
+
+function familyProgressLabel(category){
+  const total=authoredIndexesForCategory(category).length;
+  const complete=familyCompletedCount(category);
+
+  if(total && complete>=total){
+    return "MASTERY";
+  }
+
+  return `${complete+1}`;
+}
+
+function flowCardHtml(category){
+  const flowIndex=currentFamilyFlowIndex(category);
+  const flow=createFlow(flowIndex);
+  const active=
+    activeChallenge?.category===category &&
+    !gameOver;
+  const mastered=familyMastered(category);
+
+  return `
+    <button
+      class="flowChoiceCard flow-${category.toLowerCase()} ${active?"active":""}"
+      type="button"
+      data-family-flow="${category}"
+      data-flow-index="${flowIndex}"
+      style="
+        --flow-color:${FLOW_COLOR_MAP[category]};
+        --flow-glow:${FLOW_GLOW_MAP[category]};
+      "
+      aria-label="${category}: ${flow.label}"
+    >
+      <div class="flowChoiceTop">
+        <span class="flowChoiceName">${category}</span>
+        <span class="flowChoiceStep">${
+          mastered
+            ?"∞"
+            :familyProgressLabel(category)
+        }</span>
+      </div>
+      <div class="flowChoiceObjective">${flow.label}</div>
+    </button>
+  `;
+}
+
+function sixIndependentFlowCardsHtml(){
+  return `
+    <div class="hubFlowGrid">
+      ${FLOW_TYPES.map(flowCardHtml).join("")}
+    </div>
+  `;
+}
+
+function chooseFlowFamily(category,source="flow_hub"){
+  if(!FLOW_TYPES.includes(category))return false;
+
+  const flowIndex=
+    currentFamilyFlowIndex(category);
+
+  trackGame("flow_selected",{
+    category,
+    flow_number:flowIndex+1,
+    source,
+    family_completed:
+      familyCompletedCount(category),
+    family_mastery:
+      familyMastered(category)
+  });
+
+  if(source==="today_pick"){
+    trackGame(
+      "today_pick_started",
+      {
+        category,
+        flow_number:flowIndex+1
+      }
+    );
+  }
+
+  currentFlowIndex=flowIndex;
+  replayReturnFlowIndex=null;
+
+  saveFlowProgress();
+
+  if(gameOver){
+    const archive=
+      document.getElementById("flowArchive");
+
+    archive?.classList.remove("show");
+    archive?.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+    document.body.classList.remove(
+      "uiModalOpen"
+    );
+
+    resetRun();
+    return true;
+  }
+
+  loadSelectedFlow(
+    flowIndex,
+    {
+      replay:false,
+      announce:false
+    }
+  );
+
+  // loadSelectedFlow closes the hub. If this was a pause,
+  // closeFlowArchive resumes the run.
+  return true;
+}
+
+let flowHubContext={
+  mode:"browse",
+  message:"",
+  resultLabel:"",
+  resultValue:""
+};
+
+function setFlowHubContext(
+  mode="browse",
+  {
+    message="",
+    resultLabel="",
+    resultValue=""
+  }={}
+){
+  flowHubContext={
+    mode,
+    message,
+    resultLabel,
+    resultValue
+  };
+}
+
+
+
+function cycleNumberForFlow(index=currentFlowIndex){
+  return Math.floor(Math.max(0,index)/FLOWS_PER_CYCLE)+1;
+}
+function cycleStartIndex(index=currentFlowIndex){
+  return Math.floor(Math.max(0,index)/FLOWS_PER_CYCLE)*FLOWS_PER_CYCLE;
+}
+function cycleIsCompleteAtStart(start){
+  if(start<0 || start>=FLOW_TOTAL)return false;
+
+  for(let i=0;i<FLOWS_PER_CYCLE;i++){
+    const fi=start+i;
+    if(fi>=FLOW_TOTAL)break;
+    if(!completedFlowIndexes.has(fi))return false;
+  }
+
+  return true;
+}
+
+function activeCycleStartIndex(){
+  for(
+    let start=0;
+    start<FLOW_TOTAL;
+    start+=FLOWS_PER_CYCLE
+  ){
+    if(!cycleIsCompleteAtStart(start)){
+      return start;
+    }
+  }
+
+  // All hidden objectives complete: remain on the final cycle.
+  return Math.max(0,FLOW_TOTAL-FLOWS_PER_CYCLE);
+}
+
+function activeCycleIndexes(){
+  const start=activeCycleStartIndex();
+  const result=[];
+
+  for(let i=0;i<FLOWS_PER_CYCLE;i++){
+    const fi=start+i;
+    if(fi<FLOW_TOTAL)result.push(fi);
+  }
+
+  return result;
+}
+
+function isCurrentCycleFlow(index){
+  return activeCycleIndexes().includes(index);
+}
+
+function cycleProgress(index=currentFlowIndex){
+  const start=activeCycleStartIndex();
+  const completed=new Set();
+
+  for(let i=0;i<FLOWS_PER_CYCLE;i++){
+    const fi=start+i;
+    if(fi>=FLOW_TOTAL)break;
+
+    if(completedFlowIndexes.has(fi)){
+      completed.add(createFlow(fi).category);
+    }
+  }
+
+  return {
+    cycle:Math.floor(start/FLOWS_PER_CYCLE)+1,
+    start,
+    completed,
+    count:completed.size
+  };
+}
+function sixFlowCycleHtml(index=currentFlowIndex){
+  const p=cycleProgress(index);
+  const start=p.start;
+
+  const chips=FLOW_TYPES.map((type,offset)=>{
+    const flowIndex=start+offset;
+    const flow=createFlow(flowIndex);
+    const done=completedFlowIndexes.has(flowIndex);
+    const current=flowIndex===currentFlowIndex;
+
+    const cls=[
+      done?"done":"",
+      current?"current":""
+    ].filter(Boolean).join(" ");
+
+    return `
+      <button
+        class="sixFlowName ${cls}"
+        type="button"
+        data-cycle-flow-index="${flowIndex}"
+        aria-label="${type}: ${flow.label}${done?" — completed":""}"
+      >
+        <span>${type}</span>
+        ${done?'<span class="flowChoiceMark">✓</span>':""}
+      </button>
+    `;
+  }).join("");
+
+  return `
+    <div class="sixFlowSummary">
+      <div class="sixFlowSummaryTop">
+        <strong>CURRENT CYCLE</strong>
+        <span>${p.count} / 6</span>
+      </div>
+
+      <div class="sixFlowNames">
+        ${chips}
+      </div>
+    </div>
+  `;
+}
+
 
 const FLOWS_PER_BLOCK = 30;
 
@@ -3419,6 +5362,228 @@ const FLOW_STAGES = [
   {name:"MASTERY",end:270},
   {name:"TRANSCENDENCE",end:300}
 ];
+
+// =========================
+// SHIFTVIX 2.23 — VECTOR RETENTION LAYER
+// =========================
+const VECTOR_THRESHOLDS=[34,67,100,134,167,200,234,267,300];
+const VECTOR_ROMANS=["I","II","III","IV","V","VI","VII","VIII","IX"];
+const VECTOR_RECORD_KEY="shiftvixVectorRecordsV1";
+const TODAY_VECTOR_KEY="shiftvixTodayVectorV1";
+
+function vectorStageForCompleted(total=completedFlows){
+  const done=Math.max(0,Math.min(FLOW_TOTAL,Number(total)||0));
+  let stage=0;
+  for(const threshold of VECTOR_THRESHOLDS){
+    if(done>=threshold)stage++;
+  }
+  return stage;
+}
+
+function nextVectorInfo(total=completedFlows){
+  const done=Math.max(0,Math.min(FLOW_TOTAL,Number(total)||0));
+  const stage=vectorStageForCompleted(done);
+
+  if(stage>=VECTOR_THRESHOLDS.length){
+    return {
+      complete:true,
+      stage:9,
+      nextRoman:"IX",
+      flowsRemaining:0
+    };
+  }
+
+  return {
+    complete:false,
+    stage,
+    nextRoman:VECTOR_ROMANS[stage],
+    flowsRemaining:Math.max(0,VECTOR_THRESHOLDS[stage]-done)
+  };
+}
+
+function vectorDotsHtml(total=completedFlows){
+  const stage=vectorStageForCompleted(total);
+  return VECTOR_THRESHOLDS.map((_,i)=>{
+    const cls=i<stage?"done":i===stage?"current":"";
+    return `<span class="vectorDot ${cls}"></span>`;
+  }).join("");
+}
+
+function loadVectorRecords(){
+  try{
+    const raw=JSON.parse(localStorage.getItem(VECTOR_RECORD_KEY)||"{}");
+    return {
+      COLLECT:Number(raw.COLLECT)||0,
+      TRAVEL:Number(raw.TRAVEL)||0,
+      SCORE:Number(raw.SCORE)||0,
+      RINGS:Number(raw.RINGS)||0,
+      SHIFT:Number(raw.SHIFT)||0,
+      WARP:Number(raw.WARP)||Number(raw.RUSH)||0
+    };
+  }catch(e){
+    return {COLLECT:0,TRAVEL:0,SCORE:0,RINGS:0,SHIFT:0,WARP:0};
+  }
+}
+
+let vectorRecords=loadVectorRecords();
+
+function saveVectorRecords(){
+  localStorage.setItem(VECTOR_RECORD_KEY,JSON.stringify(vectorRecords));
+}
+
+function updateVectorRecord(flow,value){
+  if(!flow)return;
+  const category=flow.category;
+  if(!(category in vectorRecords))return;
+
+  const safe=Math.max(0,Math.floor(Number(value)||0));
+  if(safe<=vectorRecords[category])return;
+
+  vectorRecords[category]=safe;
+  saveVectorRecords();
+
+  trackGame("personal_best",{
+    category,
+    record:safe,
+    flow_number:currentFlowIndex+1
+  });
+}
+
+function formatVectorRecord(category,value){
+  const v=Math.max(0,Math.floor(Number(value)||0));
+  return category==="TRAVEL"
+    ? `${v.toLocaleString()}m`
+    : v.toLocaleString();
+}
+
+function localDateKey(){
+  const d=new Date();
+  return [
+    d.getFullYear(),
+    String(d.getMonth()+1).padStart(2,"0"),
+    String(d.getDate()).padStart(2,"0")
+  ].join("-");
+}
+
+function hashDateKey(key){
+  let h=2166136261;
+  for(let i=0;i<key.length;i++){
+    h^=key.charCodeAt(i);
+    h=Math.imul(h,16777619);
+  }
+  return h>>>0;
+}
+
+function selectableDailyFlowIndexes(){
+  return currentSixFlowIndexes();
+}
+
+function loadTodayVector(){
+  const date=localDateKey();
+
+  try{
+    const saved=JSON.parse(localStorage.getItem(TODAY_VECTOR_KEY)||"null");
+    if(
+      saved &&
+      saved.date===date &&
+      Number.isFinite(saved.flowIndex)
+    ){
+      return saved;
+    }
+  }catch(e){}
+
+  const choices=selectableDailyFlowIndexes();
+  const seed=hashDateKey(date);
+  const flowIndex=choices[seed%choices.length];
+
+  const today={
+    date,
+    flowIndex,
+    completed:false
+  };
+
+  localStorage.setItem(
+    TODAY_VECTOR_KEY,
+    JSON.stringify(today)
+  );
+
+  return today;
+}
+
+let todayVector=null;
+
+function refreshTodayVector(){
+  todayVector=loadTodayVector();
+
+  if(todayVector){
+    const savedFlow=createFlow(
+      Math.max(
+        0,
+        Math.min(
+          FLOW_TOTAL-1,
+          Number(todayVector.flowIndex)||0
+        )
+      )
+    );
+
+    const currentIndex=
+      currentFamilyFlowIndex(
+        savedFlow.category
+      );
+
+    // Keep the daily category stable for the day,
+    // while allowing that family's objective to advance.
+    todayVector.flowIndex=currentIndex;
+  }
+
+  return todayVector;
+}
+
+function markTodayVectorComplete(flowIndex){
+  refreshTodayVector();
+
+  if(!todayVector || todayVector.completed)return;
+
+  const finishedCategory=
+    createFlow(flowIndex).category;
+
+  const dailyCategory=
+    createFlow(todayVector.flowIndex).category;
+
+  if(finishedCategory!==dailyCategory)return;
+
+  todayVector.completed=true;
+
+  localStorage.setItem(
+    TODAY_VECTOR_KEY,
+    JSON.stringify(todayVector)
+  );
+
+  trackGame("today_pick_completed",{
+    flow_number:flowIndex+1,
+    category:finishedCategory
+  });
+}
+
+function retentionJourneyHtml(){
+  const info=nextVectorInfo();
+  const stage=vectorStageForCompleted();
+
+  return `
+    <div class="retentionJourney">
+      <div class="retentionJourneyTop">
+        <strong>VECTOR ${stage>0?VECTOR_ROMANS[stage-1]:"0"} / IX</strong>
+        <span>${
+          info.complete
+            ?"JOURNEY COMPLETE"
+            :`${info.flowsRemaining} FLOWS TO VECTOR ${info.nextRoman}`
+        }</span>
+      </div>
+      <div class="vectorDots">${vectorDotsHtml()}</div>
+    </div>
+  `;
+}
+
 let currentFlowIndex = Math.max(0,Math.min(FLOW_TOTAL-1,Number(localStorage.getItem("shiftvixCurrentFlow")||0)));
 let highestCompletedFlow = Number(localStorage.getItem("shiftvixHighestCompletedFlow") || 0);
 let completedFlows = Math.max(0,Math.min(FLOW_TOTAL,Number(localStorage.getItem("shiftvixCompletedFlows")||0)));
@@ -3788,14 +5953,11 @@ function isBlockUnlocked(blockNumber){
 
 
 function isFlowUnlocked(index){
-
-    if(index < 0 || index >= FLOW_TOTAL){
-        return false;
-    }
-
-    return isBlockUnlocked(
-        blockForFlow(index)
-    );
+  return (
+    Number.isInteger(index) &&
+    index>=0 &&
+    index<FLOW_TOTAL
+  );
 }
 
 
@@ -3812,10 +5974,7 @@ function isFlowCompleted(index){
   until the current Flow is completed.
 */
 function isFlowArchiveSelectable(index){
-    return (
-        index === currentFlowIndex ||
-        isFlowCompleted(index)
-    );
+  return isFlowUnlocked(index);
 }
 
 
@@ -3851,45 +6010,39 @@ function blockIsComplete(blockNumber){
 function nextUnfinishedUnlockedFlow(
     afterIndex=currentFlowIndex
 ){
+    const indexes=activeCycleIndexes();
 
-    // Search forward first so normal Flow 1 → Flow 2
-    // progression remains seamless.
-    for(
-        let index=afterIndex+1;
-        index<FLOW_TOTAL;
-        index++
-    ){
-        if(
-            isFlowUnlocked(index) &&
-            !isFlowCompleted(index)
-        ){
-            return index;
-        }
-    }
-
-    // Then wrap through earlier unfinished choices
-    // inside the player's unlocked Flow blocks.
-    for(
-        let index=0;
-        index<=afterIndex &&
-        index<FLOW_TOTAL;
-        index++
-    ){
-        if(
-            isFlowUnlocked(index) &&
-            !isFlowCompleted(index)
-        ){
-            return index;
-        }
-    }
-
-    return Math.max(
+    if(!indexes.length){
+      return Math.max(
         0,
-        Math.min(
-            FLOW_TOTAL-1,
-            afterIndex
-        )
-    );
+        Math.min(FLOW_TOTAL-1,afterIndex)
+      );
+    }
+
+    // First look after the currently played choice.
+    const afterPos=indexes.indexOf(afterIndex);
+
+    if(afterPos>=0){
+      for(let step=1;step<=indexes.length;step++){
+        const index=
+          indexes[
+            (afterPos+step)%indexes.length
+          ];
+
+        if(!completedFlowIndexes.has(index)){
+          return index;
+        }
+      }
+    }
+
+    // After 6/6, activeCycleIndexes() automatically points at the next Cycle.
+    for(const index of indexes){
+      if(!completedFlowIndexes.has(index)){
+        return index;
+      }
+    }
+
+    return indexes[0];
 }
 
 
@@ -3951,7 +6104,7 @@ function flowCategoryForIndex(index){
     "SCORE",
     "RINGS",
     "SHIFT",
-    "RUSH"
+    "WARP"
   ][index%6];
 }
 
@@ -3978,7 +6131,7 @@ function flowStrikeAllowance(index,category){
     category==="TRAVEL" ||
     category==="RINGS" ||
     category==="SHIFT" ||
-    category==="RUSH";
+    category==="WARP";
 
   if(n<=100){
     return ((n-31)%6===0)?2:null;
@@ -4024,7 +6177,7 @@ function createFlow(index){
     SCORE   = performance / value
     RINGS   = accuracy / navigation
     SHIFT   = agility / lane arrival
-    RUSH    = acceleration / Warp activation
+    WARP    = acceleration / Warp activation
 
     REACH / LEVEL has been removed as an objective family.
     Level still exists visually in the game world, but is no longer a Flow target.
@@ -4116,8 +6269,8 @@ function createFlow(index){
 
   if(category==="RINGS"){
     const target=Math.min(
-      70,
-      12+Math.floor(categoryStep*1.2)
+      80,
+      20+Math.floor(categoryStep*1.3)
     );
 
     flow={
@@ -4135,8 +6288,10 @@ function createFlow(index){
   if(category==="SHIFT"){
     // Start substantial. SHIFT measures ARRIVAL at a distinct lane,
     // not raw swipe/input events.
-    const target=
-      100 + categoryStep*25;
+    const target=Math.min(
+      200,
+      50 + categoryStep*5
+    );
 
     flow={
       id:`shift_${n}`,
@@ -4150,27 +6305,28 @@ function createFlow(index){
     return applyFlowStrikeAllowance(flow,index);
   }
 
-  // RUSH replaces REACH.
-  // One Rush = one successfully activated Warp orb, regardless of Warp tier.
-  // Warp's 500/1000/1500m jump still happens normally; the Flow simply counts
-  // the acceleration event as 1.
+  // WARP = acceleration / space-jump mastery.
+  // One successfully activated Warp orb counts as one WARP,
+  // regardless of Tier I / II / III. The 500 / 1000 / 1500m
+  // jump still happens normally.
   const target=Math.min(
-    20,
-    5+Math.floor(categoryStep/3)
+    24,
+    8+Math.floor(categoryStep/3)
   );
 
   flow={
-    id:`rush_${n}`,
+    id:`warp_${n}`,
     name,
-    category:"RUSH",
-    label:`RUSH ${target.toLocaleString()} TIMES`,
+    category:"WARP",
+    label:`HIT ${target.toLocaleString()} WARPS`,
     target,
-    metric:"rush"
+    metric:"warp"
   };
 
   return applyFlowStrikeAllowance(flow,index);
 }
 function beginCurrentFlow(){
+    refreshTodayVector();
 
     activeChallenge=createFlow(currentFlowIndex);
 
@@ -4183,7 +6339,7 @@ function beginCurrentFlow(){
         strikes,
         rings:goldRingsPassed,
         shifts:shiftCountRun,
-        rushes:warpCollectedThisRun,
+        warps:warpCollectedThisRun,
         tierCounts:{...tierCounts}
     };
 
@@ -4191,11 +6347,11 @@ function beginCurrentFlow(){
         goldRingSpawnCooldown=Math.min(goldRingSpawnCooldown,.35);
     }
 
-    if(activeChallenge.metric==="rush"){
-        scheduleRushWarp(true);
-        showModeBanner("RUSH");
+    if(activeChallenge.metric==="warp"){
+        scheduleWarpFlowOrb(true);
+        showModeBanner("WARP");
     }else{
-        rushNextWarpDistance=Infinity;
+        warpFlowNextWarpDistance=Infinity;
     }
 
     updateChallenge();
@@ -4217,7 +6373,7 @@ function challengeBaseValue(ch){
   if(ch.metric==="distance")return Math.max(0,distance-challengeStart.distance);
   if(ch.metric==="rings")return Math.max(0,goldRingsPassed-(challengeStart.rings||0));
   if(ch.metric==="shift")return Math.max(0,shiftCountRun-(challengeStart.shifts||0));
-  if(ch.metric==="rush")return Math.max(0,warpCollectedThisRun-(challengeStart.rushes||0));
+  if(ch.metric==="warp")return Math.max(0,warpCollectedThisRun-(challengeStart.warps||0));
 
   return 0;
 }
@@ -4267,9 +6423,32 @@ function completeCurrentFlow(){
             finishedFlowIndex
         );
 
+    const finishedCycleStart=
+        cycleStartIndex(
+            finishedFlowIndex
+        );
+
+    const cycleWasComplete=
+        cycleIsCompleteAtStart(
+            finishedCycleStart
+        );
+
     completedFlowIndexes.add(
         finishedFlowIndex
     );
+
+    const cycleCompletedNow=
+        !cycleWasComplete &&
+        cycleIsCompleteAtStart(
+            finishedCycleStart
+        );
+
+    const completedBeforeThisFlow=
+        Math.max(
+          0,
+          completedFlowIndexes.size -
+          (wasAlreadyCompleted?0:1)
+        );
 
     completedFlows =
         completedFlowIndexes.size;
@@ -4278,6 +6457,50 @@ function completeCurrentFlow(){
         highestCompletedFlow,
         finishedFlowIndex
     );
+
+    updateVectorRecord(
+        finished,
+        Math.max(
+            finished.target||0,
+            challengeBaseValue(finished)||0
+        )
+    );
+
+    markTodayVectorComplete(
+        finishedFlowIndex
+    );
+
+    const vectorBefore=
+        vectorStageForCompleted(
+            completedBeforeThisFlow
+        );
+
+    const vectorAfter=
+        vectorStageForCompleted(
+            completedFlows
+        );
+
+    if(vectorAfter>vectorBefore){
+        const unlockedRoman=
+            VECTOR_ROMANS[
+                Math.min(
+                    VECTOR_ROMANS.length-1,
+                    vectorAfter-1
+                )
+            ];
+
+        trackGame("vector_stage_unlocked",{
+            vector_stage:vectorAfter,
+            vector_roman:unlockedRoman,
+            completed_flows:completedFlows
+        });
+
+        setTimeout(()=>{
+            showModeBanner(
+                `VECTOR ${unlockedRoman} UNLOCKED`
+            );
+        },180);
+    }
 
     saveFlowProgress();
 
@@ -4312,45 +6535,98 @@ function completeCurrentFlow(){
         queueFluxOrb("flow_complete");
     }
 
-    track("current_flow_completed",{
-        flow_number:
-            finishedFlowIndex + 1,
-        flow_id:finished.id,
-        flow_stage:
-            flowStageFor(
-                finishedFlowIndex
-            ).name,
-        environment:
-            environmentEngine.current.id,
-        level,
+    const completedFlowProgress=
+        Math.max(
+          0,
+          Math.min(
+            finished.target,
+            challengeBaseValue(finished)
+          )
+        );
+
+    const completedFlowSeconds=
+        Math.max(
+          0,
+          Math.round(
+            (
+              performance.now() -
+              (analyticsFlowStartedAt||runStartTime)
+            )/1000
+          )
+        );
+
+    trackGame("flow_completed",{
+        category:finished.category,
+        flow_number:finishedFlowIndex+1,
+        target:Math.floor(finished.target),
+        progress:Math.floor(completedFlowProgress),
+        duration_seconds:completedFlowSeconds,
         distance:Math.floor(distance),
         score,
+        lives_remaining:
+          Math.max(0,3-strikes),
         first_completion:
-            !wasAlreadyCompleted,
-        completed_flows_total:
-            completedFlows
+          !wasAlreadyCompleted,
+        family_completed:
+          familyCompletedCount(
+            finished.category
+          )
     });
 
-    track("highest_flow_reached",{
-        highest_flow:
-            finishedFlowIndex + 1
+    trackGame("flow_attempt_ended",{
+        category:finished.category,
+        result:"completed",
+        flow_number:finishedFlowIndex+1,
+        progress:Math.floor(completedFlowProgress),
+        target:Math.floor(finished.target),
+        progress_percent:100,
+        duration_seconds:completedFlowSeconds,
+        distance:Math.floor(distance),
+        score,
+        strikes
     });
 
-    showModeBanner(
-        blockUnlocked
-            ? `FLOWS ${
-                highestUnlockedBlock *
-                FLOWS_PER_BLOCK -
-                FLOWS_PER_BLOCK + 1
-              }–${
-                Math.min(
-                    highestUnlockedBlock *
-                    FLOWS_PER_BLOCK,
-                    FLOW_TOTAL
-                )
-              } UNLOCKED`
-            : `${environmentEngine.current.name} COMPLETE`
+    const nextFamilyIndex=
+        currentFamilyFlowIndex(
+            finished.category
+        );
+
+    currentFlowIndex=
+        nextFamilyIndex;
+
+    saveFlowProgress();
+
+    activeChallenge=
+        createFlow(currentFlowIndex);
+
+    setFlowHubContext(
+      "flow_complete",
+      {
+        resultLabel:
+          `${finished.category} COMPLETE ✓`,
+        message:
+          `NEXT ${finished.category} CHALLENGE READY`
+      }
     );
+
+    paused=true;
+    applyPauseVisuals(false);
+
+    openFlowArchive(
+      "flow_complete"
+    );
+
+    trackGame(
+      "flow_hub_after_completion",
+      {
+        completed_category:
+          finished.category,
+        next_flow_number:
+          currentFlowIndex+1
+      }
+    );
+
+    return;
 
 if(replayReturnFlowIndex !== null){
 
@@ -4376,7 +6652,7 @@ if(replayReturnFlowIndex !== null){
         strikes,
         rings:goldRingsPassed,
         shifts:shiftCountRun,
-        rushes:warpCollectedThisRun,
+        warps:warpCollectedThisRun,
         tierCounts:{...tierCounts}
     };
 
@@ -4391,11 +6667,7 @@ if(replayReturnFlowIndex !== null){
 
             updateChallenge();
 
-            showModeBanner(
-                `REPLAY COMPLETE · FLOW ${
-                    currentFlowIndex + 1
-                } RESTORED`
-            );
+            showModeBanner("FLOW RESTORED");
 
         },650);
 
@@ -4429,7 +6701,7 @@ if(replayReturnFlowIndex !== null){
         strikes,
         rings:goldRingsPassed,
         shifts:shiftCountRun,
-        rushes:warpCollectedThisRun,
+        warps:warpCollectedThisRun,
         tierCounts:{...tierCounts}
     };
 
@@ -4454,7 +6726,7 @@ function updateChallenge(){
   updateHUD();
   if(!activeChallenge){
     activeChallenge=createFlow(currentFlowIndex);
-    challengeStart={found:foundCount,score,distance,strikes,rings:goldRingsPassed,shifts:shiftCountRun,rushes:warpCollectedThisRun,tierCounts:{...tierCounts}};
+    challengeStart={found:foundCount,score,distance,strikes,rings:goldRingsPassed,shifts:shiftCountRun,warps:warpCollectedThisRun,tierCounts:{...tierCounts}};
     updateHUD();
   }
   const raw=challengeValue(activeChallenge);
@@ -4476,84 +6748,234 @@ function updateChallenge(){
   }
 }
 // SHIFTVIX v2.5 PATCH 8 — FLOW SELECTION
-function renderFlowArchive(){
+function activateCycleFlow(
+  flowIndex,
+  source="cycle_choice"
+){
+  if(
+    !Number.isInteger(flowIndex) ||
+    flowIndex<0 ||
+    flowIndex>=FLOW_TOTAL ||
+    !isFlowArchiveSelectable(flowIndex)
+  ){
+    return false;
+  }
 
-    const list = document.getElementById("archiveList");
-    if(!list) return;
+  trackGame("cycle_flow_selected",{
+    category:createFlow(flowIndex).category,
+    flow_number:flowIndex+1,
+    source,
+    cycle_progress:cycleProgress().count
+  });
 
-    let html = `
-        <div class="archiveProgress">
-            <span>SECTOR ${blockForFlow(currentFlowIndex)} · FLOW ${currentFlowIndex+1}</span>
-            <span>${Math.min(completedFlows,FLOW_TOTAL)} / ${FLOW_TOTAL} COMPLETE</span>
-        </div>
+  // From RUN COMPLETE, selecting a Flow starts the next run immediately.
+  if(gameOver){
+    replayReturnFlowIndex=null;
+    currentFlowIndex=flowIndex;
+    saveFlowProgress();
+    resetRun();
+    return true;
+  }
 
-        <div class="archiveLegend">
-            <span>✓ COMPLETED</span>
-            <span>▶ CURRENT</span>
-            <span>🔒 NEXT / LOCKED</span>
-        </div>
-    `;
-
-    for(let block = 0; block < TOTAL_FLOW_BLOCKS; block++){
-        const blockNumber = block + 1;
-        const blockStart = block * FLOWS_PER_BLOCK;
-        const blockEnd = Math.min(blockStart + FLOWS_PER_BLOCK,FLOW_TOTAL);
-        const blockLocked = !isBlockUnlocked(blockNumber);
-        let blockDone = 0;
-        for(let i=blockStart;i<blockEnd;i++) if(isFlowCompleted(i)) blockDone++;
-
-        html += `
-            <section class="archiveBlock ${blockLocked ? "lockedBlock" : ""}" data-block="${blockNumber}">
-                <div class="archiveBlockLabel">
-                    <span>SECTOR ${blockNumber} · FLOWS ${blockStart + 1}–${blockEnd}</span>
-                    <span class="blockProgress">${blockLocked ? "🔒" : `${blockDone}/${blockEnd-blockStart}`}</span>
-                </div>
-                <div class="archiveGrid">
-        `;
-
-        for(let i = blockStart; i < blockEnd; i++){
-            const flowNumber = i + 1;
-            const isCompleted = isFlowCompleted(i);
-            const isCurrent = i === currentFlowIndex;
-            const isLocked = !isFlowArchiveSelectable(i);
-            const flowType = createFlow(i).category;
-            let rowClass = "locked";
-            let status = "🔒";
-
-            if(isCurrent){rowClass="current selectable";status="▶";}
-            else if(isCompleted){rowClass="done selectable";status="✓";}
-
-            html += `
-                <div
-                    class="archiveRow ${rowClass}"
-                    data-flow-index="${i}"
-                    role="button"
-                    tabindex="${isLocked ? -1 : 0}"
-                    aria-disabled="${isLocked}"
-                    aria-current="${isCurrent ? "true" : "false"}"
-                    aria-label="Flow ${flowNumber}, ${flowType.toLowerCase()} objective${isCompleted ? ", completed" : isLocked ? ", locked" : ", available"}"
-                    title="Flow ${flowNumber} · ${flowType}"
-                >
-                    <span>${flowNumber}</span>
-                    <span class="archiveStatus">${status}</span>
-                    <span class="archiveFlowType category-${flowType.toLowerCase()}">${flowType}</span>
-                </div>
-            `;
-        }
-        html += `</div></section>`;
+  return loadSelectedFlow(
+    flowIndex,
+    {
+      replay:false,
+      announce:false
     }
+  );
+}
 
-    list.innerHTML = html;
+function wireCycleChoiceButtons(root,source){
+  if(!root)return;
 
-    requestAnimationFrame(()=>{
-        if(archiveScrollTop > 0){
-            list.scrollTop = archiveScrollTop;
-            return;
-        }
-        const current = list.querySelector(`[data-flow-index="${currentFlowIndex}"]`);
-        if(current) current.scrollIntoView({block:"center",behavior:"auto"});
+  root
+    .querySelectorAll("[data-cycle-flow-index]")
+    .forEach(button=>{
+      button.addEventListener("click",event=>{
+        event.stopPropagation();
+
+        const flowIndex=Number(
+          button.dataset.cycleFlowIndex
+        );
+
+        activateCycleFlow(
+          flowIndex,
+          source
+        );
+      });
     });
 }
+
+function flowHubStatusHtml(){
+  const context=flowHubContext||{mode:"browse"};
+
+  if(context.mode==="run_complete"){
+    return `
+      <div class="hubStatus hubStatusRun">
+        <div class="hubStatusEyebrow">RUN COMPLETE</div>
+        <div class="hubStatusLabel">${context.resultLabel||""}</div>
+        <div class="hubStatusValue">${context.resultValue||""}</div>
+        <div class="hubStatusMessage">
+          ${context.message||"PICK ANY FLOW AND GO AGAIN"}
+        </div>
+      </div>
+    `;
+  }
+
+  if(context.mode==="flow_complete"){
+    return `
+      <div class="hubStatus hubStatusComplete">
+        <div class="hubStatusEyebrow">FLOW COMPLETE</div>
+        <div class="hubStatusLabel">${context.resultLabel||""}</div>
+        <div class="hubStatusMessage">
+          ${context.message||"YOUR NEXT CHALLENGE IS READY"}
+        </div>
+      </div>
+    `;
+  }
+
+  if(context.mode==="paused"){
+    const flow=
+      activeChallenge||
+      createFlow(currentFlowIndex);
+
+    return `
+      <div class="hubStatus hubStatusPaused">
+        <div class="hubStatusEyebrow">PAUSED</div>
+        <div class="hubStatusLabel">${flow.category}</div>
+        <div class="hubStatusMessage">${flow.label}</div>
+        <button
+          class="hubResumeButton"
+          id="hubResumeButton"
+          type="button"
+        >RESUME</button>
+      </div>
+    `;
+  }
+
+  return "";
+}
+
+function todayPickHtml(){
+  refreshTodayVector();
+
+  const flow=createFlow(
+    Number(todayVector?.flowIndex)||0
+  );
+
+  const category=flow.category;
+  const color=FLOW_COLOR_MAP[category];
+
+  return `
+    <div
+      class="todayPickCard"
+      style="
+        --flow-color:${color};
+        --flow-glow:${FLOW_GLOW_MAP[category]};
+      "
+    >
+      <div class="todayPickTop">
+        <span>TODAY'S PICK</span>
+        <span>${
+          todayVector?.completed
+            ?"COMPLETE ✓"
+            :"RECOMMENDED"
+        }</span>
+      </div>
+
+      <div class="todayPickName">${category}</div>
+      <div class="todayPickObjective">${flow.label}</div>
+
+      <button
+        class="todayPickButton"
+        id="todayVectorPlay"
+        type="button"
+        data-family-flow="${category}"
+      >
+        ${
+          todayVector?.completed
+            ?"PLAY AGAIN"
+            :"PLAY TODAY'S PICK"
+        }
+      </button>
+    </div>
+  `;
+}
+
+function flowRecordsHtml(){
+  return `
+    <div class="hubRecords">
+      ${FLOW_TYPES.map(category=>`
+        <div
+          class="hubRecord"
+          style="
+            --flow-color:${FLOW_COLOR_MAP[category]};
+          "
+        >
+          <span>${category}</span>
+          <strong>${
+            formatVectorRecord(
+              category,
+              vectorRecords[category]
+            )
+          }</strong>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+function renderFlowArchive(){
+
+  const list=
+    document.getElementById("archiveList");
+
+  if(!list)return;
+
+  list.innerHTML=`
+    ${flowHubStatusHtml()}
+
+    ${todayPickHtml()}
+
+    <div class="hubChooseHeader">
+      <span>CHOOSE A FLOW</span>
+      <small>ALL SIX ARE ALWAYS OPEN</small>
+    </div>
+
+    ${sixIndependentFlowCardsHtml()}
+
+    ${flowRecordsHtml()}
+  `;
+
+  list
+    .querySelectorAll("[data-family-flow]")
+    .forEach(button=>{
+      button.addEventListener("click",event=>{
+        event.stopPropagation();
+
+        const category=
+          button.dataset.familyFlow;
+
+        chooseFlowFamily(
+          category,
+          button.id==="todayVectorPlay"
+            ?"today_pick"
+            :"flow_hub"
+        );
+      });
+    });
+
+  document
+    .getElementById("hubResumeButton")
+    ?.addEventListener("click",event=>{
+      event.stopPropagation();
+      closeFlowArchive();
+    });
+
+  list.scrollTop=0;
+}
+
 function loadSelectedFlow(
     flowIndex,
     {
@@ -4615,6 +7037,9 @@ function loadSelectedFlow(
         score,
         distance,
         strikes,
+        rings:goldRingsPassed,
+        shifts:shiftCountRun,
+        warps:warpCollectedThisRun,
         tierCounts:{...tierCounts}
     };
 
@@ -4650,13 +7075,9 @@ function loadSelectedFlow(
 
     if(announce){
         showModeBanner(
-            replay
-                ? `REPLAY FLOW ${
-                    currentFlowIndex + 1
-                  }`
-                : `FLOW ${
-                    currentFlowIndex + 1
-                  } SELECTED`
+          `${
+            createFlow(currentFlowIndex).category
+          } SELECTED`
         );
     }
 
@@ -4717,7 +7138,7 @@ function updatePauseSelection(){
   const raw=challengeValue(flow);
   const value=Math.max(0,Math.min(flow.target,raw));
   const pct=Math.max(0,Math.min(100,(value/flow.target)*100));
-  if(name)name.textContent=`FLOW ${currentFlowIndex+1} · ${flow.category}`;
+  if(name)name.textContent=flow.category;
   if(objective)objective.textContent=flow.label;
   const fill=document.getElementById("pauseFlowFill");
   const pctLabel=document.getElementById("pauseFlowPct");
@@ -4756,13 +7177,31 @@ function resumeMusicAfterPause(){
 
 function pauseGame(source="center"){
   if(gameOver||paused)return;
+
   paused=true;
   pauseStartedAt=performance.now();
   pausePreviouslyFocused=document.activeElement;
+
   pauseMusicOnly();
-  applyPauseVisuals(true);
-  requestAnimationFrame(()=>document.getElementById("pauseResume")?.focus());
-  trackGame("game_paused",{source,flow_number:currentFlowIndex+1});
+
+  // One hub only: no separate pause card.
+  applyPauseVisuals(false);
+
+  setFlowHubContext(
+    "paused",
+    {
+      message:
+        activeChallenge?.label||
+        createFlow(currentFlowIndex).label
+    }
+  );
+
+  openFlowArchive("pause");
+
+  trackGame("game_paused",{
+    source,
+    flow_number:currentFlowIndex+1
+  });
 }
 
 function resumeGame(source="resume"){
@@ -4789,39 +7228,87 @@ function togglePause(source="center"){
 }
 
 function openFlowArchive(source="hud"){
-  const archive=document.getElementById("flowArchive");
-  if(!archive||archive.classList.contains("show"))return;
+  const archive=
+    document.getElementById("flowArchive");
+
+  if(
+    !archive ||
+    archive.classList.contains("show")
+  )return;
+
   archiveOpenedFromPause=paused;
   archiveWasPaused=paused;
-  if(!paused)pauseGame("flow_path");
-  archiveScrollTop=0;
+
+  if(!paused && !gameOver){
+    paused=true;
+    pauseStartedAt=performance.now();
+    pauseMusicOnly();
+  }
+
+  if(
+    source==="hud" ||
+    source==="pause_menu"
+  ){
+    setFlowHubContext(
+      paused
+        ?"paused"
+        :"browse"
+    );
+  }
+
+  applyPauseVisuals(false);
+
   renderFlowArchive();
+
   archive.classList.add("show");
-  archive.setAttribute("aria-hidden","false");
-  document.getElementById("pauseMenu")?.classList.remove("show");
-  document.body.classList.add("uiModalOpen");
+  archive.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+  document.body.classList.add(
+    "uiModalOpen"
+  );
+
   requestAnimationFrame(()=>{
-    const current=archive.querySelector(`[data-flow-index="${currentFlowIndex}"]`);
-    (current||document.getElementById("archiveClose"))?.focus();
+    (
+      document.getElementById("hubResumeButton") ||
+      document.getElementById("todayVectorPlay")
+    )?.focus();
   });
-  trackGame("pause_flow_path_opened",{source,opened_while_paused:archiveOpenedFromPause,flow_number:currentFlowIndex+1});
+
+  trackGame("flow_hub_opened",{
+    source,
+    flow_number:currentFlowIndex+1,
+    game_over:gameOver
+  });
 }
 
 function closeFlowArchive(){
-  const archive=document.getElementById("flowArchive");
-  if(!archive||!archive.classList.contains("show"))return;
-  const list=document.getElementById("archiveList");
-  archiveScrollTop=list?.scrollTop||0;
+  const archive=
+    document.getElementById("flowArchive");
+
+  if(
+    !archive ||
+    !archive.classList.contains("show")
+  )return;
+
   archive.classList.remove("show");
-  archive.setAttribute("aria-hidden","true");
-  if(paused){
-    applyPauseVisuals(true);
-    updatePauseSelection();
-    requestAnimationFrame(()=>document.getElementById("pauseFlowPath")?.focus());
-  }else{
-    document.body.classList.remove("uiModalOpen");
-  }
+  archive.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+  archiveScrollTop=0;
   archiveOpenedFromPause=false;
+
+  document.body.classList.remove(
+    "uiModalOpen"
+  );
+
+  if(paused && !gameOver){
+    resumeGame("flow_hub_close");
+  }
 }
 document.getElementById("challengeHud").addEventListener("click",()=>openFlowArchive("hud"));
 document.getElementById("archiveClose").addEventListener("click",closeFlowArchive);
@@ -5383,15 +7870,15 @@ function chooseReachableGoldRingLane(reason="ambient"){
   return pool[Math.floor(Math.random()*pool.length)];
 }
 
-function makeGoldRing(reason="ambient"){
+function makeGoldRing(reason="ambient",forcedLane=null,zOffset=0){
   const activeRings=beacons.filter(
     b=>b?.userData?.isGoldRing && b.userData.state==="active"
   ).length;
-  if(activeRings>=2)return false;
+  if(activeRings>=4)return false;
 
   trainId++;
 
-  const chosen=chooseReachableGoldRingLane(reason);
+  const chosen=forcedLane||chooseReachableGoldRingLane(reason);
   if(!chosen)return false;
 
   const x=LANE_X[chosen.x];
@@ -5449,7 +7936,7 @@ function makeGoldRing(reason="ambient"){
   group.add(hotEdge);
   group.add(innerGlow);
 
-  group.position.set(x,y,FAR_Z+120);
+  group.position.set(x,y,FAR_Z+120+zOffset);
   group.scale.setScalar(introScale);
 
   group.userData={
@@ -5495,6 +7982,126 @@ function makeGoldRing(reason="ambient"){
   return true;
 }
 
+function safeRingRouteCandidates(){
+  const playerLane={
+    x:nearestRingLaneIndex(playerX,LANE_X),
+    y:nearestRingLaneIndex(playerY,LANE_Y)
+  };
+
+  const candidates=[];
+
+  for(let y=0;y<3;y++){
+    for(let x=0;x<3;x++){
+      const laneXValue=LANE_X[x];
+      const laneYValue=LANE_Y[y];
+
+      const blocked=beacons.some(b=>
+        b?.userData?.isVoid &&
+        b.userData.state==="active" &&
+        Math.abs(b.userData.roadX-laneXValue)<1 &&
+        Math.abs(b.userData.roadY-laneYValue)<1 &&
+        b.position.z<(FAR_Z+350)
+      );
+
+      if(blocked)continue;
+
+      const fromPlayer=ringLaneDistance({x,y},playerLane);
+
+      // Keep every offered route achievable.
+      if(fromPlayer>3)continue;
+
+      candidates.push({
+        x,
+        y,
+        fromPlayer
+      });
+    }
+  }
+
+  return candidates;
+}
+
+function spawnGoldRingRouteChoice(){
+  if(activeChallenge?.metric!=="rings")return false;
+
+  const activeRings=beacons.filter(
+    b=>b?.userData?.isGoldRing &&
+       b.userData.state==="active"
+  ).length;
+
+  if(activeRings>1)return false;
+
+  const candidates=safeRingRouteCandidates();
+  if(candidates.length<2)return false;
+
+  const byDistance=(a,b)=>a.fromPlayer-b.fromPlayer;
+  const sorted=candidates.slice().sort(byDistance);
+
+  const picked=[];
+
+  // EASY: nearest readable route.
+  picked.push(sorted[0]);
+
+  // MEDIUM: a different lane around the middle of the safe pool.
+  const mediumPool=sorted.filter(c=>
+    !picked.some(p=>p.x===c.x&&p.y===c.y) &&
+    c.fromPlayer>=1
+  );
+
+  if(mediumPool.length){
+    picked.push(
+      mediumPool[
+        Math.floor(mediumPool.length/2)
+      ]
+    );
+  }
+
+  // HARD: furthest still-reachable safe lane.
+  const hardPool=sorted
+    .slice()
+    .reverse()
+    .filter(c=>
+      !picked.some(p=>p.x===c.x&&p.y===c.y)
+    );
+
+  if(hardPool.length){
+    picked.push(hardPool[0]);
+  }
+
+  // Fall back to any remaining safe lane so a volley can still show 2–3 options.
+  for(const candidate of sorted){
+    if(picked.length>=3)break;
+    if(!picked.some(p=>p.x===candidate.x&&p.y===candidate.y)){
+      picked.push(candidate);
+    }
+  }
+
+  const zOffsets=[0,-62,-124];
+  let spawned=0;
+
+  picked.slice(0,3).forEach((lane,i)=>{
+    if(
+      makeGoldRing(
+        "ring_route_choice",
+        {x:lane.x,y:lane.y},
+        zOffsets[i]
+      )
+    ){
+      spawned++;
+    }
+  });
+
+  if(spawned>0){
+    trackGame("gold_ring_route_choice_spawned",{
+      options:spawned,
+      distance:Math.floor(distance),
+      flow_number:currentFlowIndex+1
+    });
+  }
+
+  return spawned>0;
+}
+
 function startGoldRingSequence(){
   /*
     A Ring Flow can occasionally send a short run of 2–3 rings.
@@ -5502,7 +8109,7 @@ function startGoldRingSequence(){
     but they arrive close enough together to feel like a flight path.
   */
   goldRingSequenceRemaining=
-    Math.random()<.55 ? 2 : 3;
+    Math.random()<.60 ? 3 : 4;
 
   goldRingSequenceDelay=.18;
 }
@@ -5521,7 +8128,7 @@ function updateGoldRingSequence(worldDt){
   if(goldRingSequenceDelay<=0){
     if(makeGoldRing("ring_sequence")){
       goldRingSequenceRemaining--;
-      goldRingSequenceDelay=.48+Math.random()*.30;
+      goldRingSequenceDelay=.38+Math.random()*.24;
     }else{
       goldRingSequenceDelay=.18;
     }
@@ -5548,7 +8155,7 @@ function passGoldRing(b){
     navigator.vibrate([10,22,10]);
   }
 
-  trackGame("gold_ring_passed",{
+  trackGame("ring_passed",{
     distance:Math.floor(distance),
     level,
     flow_number:currentFlowIndex+1,
@@ -5870,40 +8477,40 @@ function playWarpOrbSound(tier=1){
   osc.start(now);osc.stop(now+.5);
 }
 
-function isRushFlowActive(){
-  return activeChallenge?.metric==="rush";
+function isWarpFlowActive(){
+  return activeChallenge?.metric==="warp";
 }
 
-function scheduleRushWarp(first=false){
-  if(!isRushFlowActive()){
-    rushNextWarpDistance=Infinity;
+function scheduleWarpFlowOrb(first=false){
+  if(!isWarpFlowActive()){
+    warpFlowNextWarpDistance=Infinity;
     return;
   }
 
-  const min=first?RUSH_WARP_FIRST_GAP_MIN:RUSH_WARP_GAP_MIN;
-  const max=first?RUSH_WARP_FIRST_GAP_MAX:RUSH_WARP_GAP_MAX;
+  const min=first?WARP_FLOW_FIRST_GAP_MIN:WARP_FLOW_GAP_MIN;
+  const max=first?WARP_FLOW_FIRST_GAP_MAX:WARP_FLOW_GAP_MAX;
 
-  rushNextWarpDistance=
+  warpFlowNextWarpDistance=
     distance+
     min+
     Math.random()*(max-min);
 
   warpCooldownUntilDistance=Math.min(
     warpCooldownUntilDistance,
-    rushNextWarpDistance
+    warpFlowNextWarpDistance
   );
 }
 
-function updateRushWarpOpportunity(){
-  if(!isRushFlowActive())return;
+function updateWarpFlowOpportunity(){
+  if(!isWarpFlowActive())return;
   if(warpOrbActive)return;
-  if(distance<rushNextWarpDistance)return;
+  if(distance<warpFlowNextWarpDistance)return;
   if(distance<warpCooldownUntilDistance)return;
 
-  if(makeWarpOrb("rush_flow")){
-    rushNextWarpDistance=Infinity;
+  if(makeWarpOrb("warp_flow")){
+    warpFlowNextWarpDistance=Infinity;
   }else{
-    rushNextWarpDistance=distance+35;
+    warpFlowNextWarpDistance=distance+35;
   }
 }
 
@@ -5922,13 +8529,13 @@ function activateWarp(reason,tier=1){
 
   warpCollectedThisRun++;
 
-  if(isRushFlowActive()){
+  if(isWarpFlowActive()){
     warpCooldownUntilDistance=
       distance+
-      RUSH_WARP_GAP_MIN+
-      Math.random()*(RUSH_WARP_GAP_MAX-RUSH_WARP_GAP_MIN);
+      WARP_FLOW_GAP_MIN+
+      Math.random()*(WARP_FLOW_GAP_MAX-WARP_FLOW_GAP_MIN);
 
-    rushNextWarpDistance=warpCooldownUntilDistance;
+    warpFlowNextWarpDistance=warpCooldownUntilDistance;
   }else{
     warpCooldownUntilDistance=
       distance+700+Math.random()*250;
@@ -5945,7 +8552,7 @@ function activateWarp(reason,tier=1){
     navigator.vibrate(tier===3?[30,24,50,28,70]:tier===2?[26,22,48]:[22,20,38]);
   }
 
-  trackGame("warp_orb_collected",{
+  trackGame("warp_collected",{
     trigger_reason:reason||"unknown",
     power_tier:tier,
     jump_meters:jump,
@@ -5954,7 +8561,7 @@ function activateWarp(reason,tier=1){
     level_after:level,
     flow_number:currentFlowIndex+1,
     warp_count_run:warpCollectedThisRun,
-    rush_progress:
+    warp_progress:
       activeChallenge?.metric==="rush"
         ? challengeBaseValue(activeChallenge)
         : 0
@@ -6375,8 +8982,8 @@ function startGame(){
     // Fires only once on this browser/device
     if(!hasPlayedBefore){
 
-        track("first_run",{
-            starting_level: 1
+        trackGame("first_run",{
+            starting_level:1
         });
 
         localStorage.setItem(
@@ -6387,9 +8994,16 @@ function startGame(){
         hasPlayedBefore = true;
     }
 
-    // Fires every time a new game session begins
-    track("game_started",{
-        starting_level: 1
+    // Fires every time a real game session begins.
+    recordPlayerReturnOnGameStart();
+
+    trackGame("game_started",{
+        category:
+          activeChallenge?.category ||
+          createFlow(currentFlowIndex).category,
+        flow_number:
+          currentFlowIndex+1,
+        starting_level:1
     });
 
     runStartTime = performance.now();
@@ -6607,7 +9221,7 @@ function takeStrike(){
 
    const rushWarpOverride=
      collectedType==="warp" &&
-     isRushFlowActive();
+     isWarpFlowActive();
 
    if(activeEffect && !rushWarpOverride){
      // The orb's effect is consumed, but its Tier score is ALWAYS earned.
@@ -6734,9 +9348,9 @@ function objectiveHudData(){
         };
     }
 
-    if(activeChallenge.metric==="rush"){
+    if(activeChallenge.metric==="warp"){
         return {
-            label:"RUSH",
+            label:"WARP",
             value:`${current.toLocaleString()} / ${target.toLocaleString()}`
         };
     }
@@ -6806,7 +9420,7 @@ function flowDisplayLabel(flow){
   if(flow.metric==="orbs")return "ORBS";
   if(flow.metric==="rings")return "RINGS";
   if(flow.metric==="shift")return "SHIFT";
-  if(flow.metric==="rush")return "RUSH";
+  if(flow.metric==="warp")return "WARP";
   if(flow.metric==="distance")return "DISTANCE";
   if(flow.metric==="score")return "SCORE";
   if(flow.metric==="level")return "LEVEL";
@@ -6852,41 +9466,91 @@ function endRun(){
 
     lastRunDuration = Math.round(runSeconds);
 
-    // Exact level where all three lives were lost
-    track("death_level",{
-        level: level,
-        distance: Math.floor(distance),
-        strikes: strikes,
-        score: score,
-        duration: lastRunDuration,
-        sources: foundCount
+    const endedFlow=
+        activeChallenge ||
+        createFlow(currentFlowIndex);
+
+    const endedProgress=
+        Math.max(
+          0,
+          Math.min(
+            endedFlow.target,
+            challengeBaseValue(
+              endedFlow
+            )
+          )
+        );
+
+    const endedTarget=
+        Math.max(
+          1,
+          Math.floor(
+            Number(endedFlow.target)||1
+          )
+        );
+
+    const endedPercent=
+        Math.max(
+          0,
+          Math.min(
+            100,
+            Math.round(
+              endedProgress /
+              endedTarget *
+              100
+            )
+          )
+        );
+
+    /*
+      ONE run summary replaces:
+      death_level + run_duration + duplicate run_ended detail.
+      This is the primary gameplay-health event.
+    */
+    trackGame("run_ended",{
+        result:"failed",
+        category:endedFlow.category,
+        flow_number:currentFlowIndex+1,
+        duration_seconds:lastRunDuration,
+        distance:Math.floor(distance),
+        level,
+        score,
+        strikes,
+        lives_remaining:
+          Math.max(0,3-strikes),
+        orbs_collected:foundCount,
+        rings_passed:goldRingsPassed,
+        shifts:shiftCountRun,
+        warps_collected:
+          warpCollectedThisRun,
+        progress:
+          Math.floor(endedProgress),
+        target:endedTarget,
+        progress_percent:
+          endedPercent
     });
 
-    // Dedicated survival-time event
-    track("run_duration",{
-        seconds: lastRunDuration,
-        level: level,
-        distance: Math.floor(distance),
-        score: score
-    });
-
-    // Existing full run summary
-    track("run_ended",{
-        level: level,
-        distance: Math.floor(distance),
-        strikes: strikes,
-        score: score,
-        sources: foundCount,
-        duration: lastRunDuration,
+    trackGame("flow_attempt_ended",{
+        category:endedFlow.category,
+        result:"failed",
+        flow_number:currentFlowIndex+1,
+        progress:
+          Math.floor(endedProgress),
+        target:endedTarget,
+        progress_percent:
+          endedPercent,
+        duration_seconds:lastRunDuration,
+        distance:Math.floor(distance),
+        score,
+        strikes
     });
     
     const isNewBestDistance = distance > bestDistance;
     if(isNewBestDistance){
         bestDistance = distance;
-        track("new_best_distance",{
-
-    distance: Math.floor(bestDistance)
-
+        trackGame("personal_best",{
+    category:"DISTANCE",
+    value:Math.floor(bestDistance)
 });
         localStorage.setItem(
             "sourceLaneBestDistance",
@@ -6898,10 +9562,11 @@ function endRun(){
 
     bestLevel = level;
 
-    track("new_best_level",{
-        level: bestLevel,
-        distance: Math.floor(distance)
-    });
+    trackGame("personal_best",{
+    category:"LEVEL",
+    value:bestLevel,
+    distance:Math.floor(distance)
+});
 
     localStorage.setItem(
         "shiftvixBestLevel",
@@ -6913,10 +9578,9 @@ function endRun(){
     const isNewBestScore = score > bestScore;
     if(isNewBestScore){
         bestScore = score;
-        track("new_best_score",{
-
-    score: bestScore
-
+        trackGame("personal_best",{
+    category:"SCORE",
+    value:bestScore
 });
         localStorage.setItem(
             "sourceLaneBestScore",
@@ -6940,60 +9604,55 @@ function endRun(){
     const finalBestSources =
         Math.max(foundCount, bestSources);
 
-    const card =
-        document.getElementById("roundComplete");
+    const runFlow =
+        activeChallenge ||
+        createFlow(currentFlowIndex);
 
-    const runFlow = activeChallenge || createFlow(currentFlowIndex);
+    const runFlowRaw=
+        challengeBaseValue(runFlow);
 
-    // Show the player's REAL progress even if a life-condition was missed.
-    const runFlowRaw=challengeBaseValue(runFlow);
-
-    const runFlowValue=Math.max(
-        0,
-        Math.min(runFlow.target,runFlowRaw)
-    );
+    const runFlowValue=
+        Math.max(
+          0,
+          Math.min(
+            runFlow.target,
+            runFlowRaw
+          )
+        );
 
     const runFlowProgress=
-        formatRunFlowProgress(runFlow,runFlowValue);
+        formatRunFlowProgress(
+          runFlow,
+          runFlowValue
+        );
 
-    const runFlowLabel =
+    const runFlowLabel=
         flowDisplayLabel(runFlow);
 
-    const runFlowCondition =
-        flowConditionText(runFlow);
+    // Separate Run Complete screen is retired.
+    const oldCard=
+        document.getElementById(
+          "roundComplete"
+        );
 
-    card.innerHTML = `
-<div class="resultsCard flowResults minimalResults">
+    if(oldCard){
+      oldCard.style.display="none";
+      oldCard.innerHTML="";
+    }
 
-    <div class="big">RUN COMPLETE</div>
+    setFlowHubContext(
+      "run_complete",
+      {
+        resultLabel:runFlowLabel,
+        resultValue:runFlowProgress,
+        message:
+          "PICK ANY FLOW AND GO AGAIN"
+      }
+    );
 
-    <div class="runObjectiveOnly">
-        <div class="runObjectiveLabel">${runFlowLabel}</div>
-        <div class="runObjectiveValue">${runFlowProgress}</div>
-        <div class="runObjectiveCondition">${runFlowCondition}</div>
-    </div>
-
-    <div class="runArchiveProgress">
-        ${completedFlows.toLocaleString()} / ${FLOW_TOTAL.toLocaleString()} FLOWS COMPLETE
-    </div>
-
-    <div class="runActions">
-        <button class="runAction primary" id="runPlayAgain" type="button">PLAY AGAIN</button>
-        <button class="runAction" id="runFlowPath" type="button">FLOW PATH</button>
-    </div>
-
-</div>
-`;
-    card.style.display = "grid";
-    card.onclick = null;
-    document.getElementById("runPlayAgain")?.addEventListener("click",event=>{
-        event.stopPropagation();
-        resetRun();
-    });
-    document.getElementById("runFlowPath")?.addEventListener("click",event=>{
-        event.stopPropagation();
-        openFlowArchive("run_complete");
-    });
+    openFlowArchive(
+      "run_complete"
+    );
 
 }
 function resetRun(){
@@ -7051,7 +9710,7 @@ vix.style.transform = "translateY(0)";
 
 title.style.transform = "translate(-50%,-50%)";
 
-const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;shiftCountRun=0;shiftLastArrivalLane=`${laneX}:${laneY}`;shiftPreviousArrivalLane=null;rushNextWarpDistance=Infinity;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=1.25;voidCountRun=0;goldRingsPassed=0;goldRingSpawnCooldown=2.5;goldRingSpawnedThisRun=0;goldRingSequenceRemaining=0;goldRingSequenceDelay=0;goldRingLastLane=null;goldRingSequenceAnchor=null;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
+const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;shiftCountRun=0;shiftLastArrivalLane=`${laneX}:${laneY}`;shiftPreviousArrivalLane=null;warpFlowNextWarpDistance=Infinity;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=1.25;voidCountRun=0;goldRingsPassed=0;goldRingSpawnCooldown=2.5;goldRingSpawnedThisRun=0;goldRingSequenceRemaining=0;goldRingSequenceDelay=0;goldRingLastLane=null;goldRingSequenceAnchor=null;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
 
 lastLevel = 1;strikes = 0;milestonesReached = {};lastWarpBreakthrough=0;starColorUpdateFrame=0;launchSurge=0;runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;resetWarpBanking();applyFrozenGameViewport(stableViewportWidth,stableViewportHeight);resetEnvironmentForRun();beginCurrentFlow();updateStrikes();updateHUD();spawnWave();if(!musicStarted){startMusic();}else if(!musicTimer&&audioCtx){nextNoteTime=Math.max(nextNoteTime,audioCtx.currentTime+0.035);nextDrumTime=Math.max(nextDrumTime,audioCtx.currentTime+0.05);musicTimer=setInterval(musicScheduler,25);}}
 const title = document.getElementById("gameTitle");
@@ -7128,7 +9787,7 @@ updateEnvironment(worldDt);
 starColorUpdateFrame=(starColorUpdateFrame+1)%1200;
 updateFluxDust(worldDt);
 
-updateRushWarpOpportunity();
+updateWarpFlowOpportunity();
 
 
 if(
@@ -7178,32 +9837,39 @@ if(silentTutorialComplete){
       activeChallenge &&
       activeChallenge.metric==="rings";
 
-    const spawnedRing=makeGoldRing(
-      ringObjective?"ring_flow":"ambient"
-    );
+    let spawnedRing=false;
+
+    if(ringObjective){
+      // Most Ring opportunities present a readable 2–3 route choice:
+      // easy / medium / hard. Singles and sequences still appear between them.
+      if(Math.random()<.62){
+        spawnedRing=spawnGoldRingRouteChoice();
+      }
+
+      if(!spawnedRing){
+        spawnedRing=makeGoldRing("ring_flow");
+      }
+    }else{
+      spawnedRing=makeGoldRing("ambient");
+    }
 
     if(spawnedRing){
       if(ringObjective){
-        /*
-          Ring objectives get a stronger cadence.
-          Normal singles arrive often, with occasional short 2–3 ring runs.
-        */
         if(
           goldRingSequenceRemaining<=0 &&
-          Math.random()<.46
+          Math.random()<.38
         ){
           startGoldRingSequence();
         }
 
         goldRingSpawnCooldown=
-          .62 + Math.random()*.48;
+          .44 + Math.random()*.34;
       }else{
-        // Outside Ring objectives, rings remain an occasional visual bonus.
         goldRingSpawnCooldown=
           7.0 + Math.random()*6.0;
       }
     }else{
-      goldRingSpawnCooldown=.45;
+      goldRingSpawnCooldown=.30;
     }
   }
 
@@ -7578,8 +10244,8 @@ if(b.position.z>NEAR_Z+60){
   if(b.userData.isWarp){
     warpOrbActive=false;
 
-    if(isRushFlowActive()){
-      scheduleRushWarp(false);
+    if(isWarpFlowActive()){
+      scheduleWarpFlowOrb(false);
     }
 
     trackGame("warp_orb_missed",{
@@ -7588,7 +10254,7 @@ if(b.position.z>NEAR_Z+60){
       distance:Math.floor(distance),
       flow_number:currentFlowIndex+1,
       warp_count_run:warpCollectedThisRun,
-      rush_flow:isRushFlowActive()
+      warp_flow:isWarpFlowActive()
     });
   }
 
@@ -7959,15 +10625,7 @@ document.addEventListener("visibilitychange",()=>{
 });
     
 window.addEventListener("beforeunload",()=>{
-
     saveFlowProgress();
-
-    track("session_finished",{
-
-        runs:sessionRuns
-
-    });
-
 });
 function scheduleViewportSync(force=false,delay=180){
   if(viewportResizeTimer){
