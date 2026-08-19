@@ -24,11 +24,7 @@ if(params.get("developer")==="true"){
     );
 }
 
-const isDeveloper=
-    params.get("developer")==="true" ||
-    localStorage.getItem(
-        "shiftvixDeveloper"
-    )==="true";
+const isDeveloper=true; // WORKING PROTOTYPE: analytics intentionally disabled
 
 /*
   GA4 already handles page/session/user engagement automatically.
@@ -124,7 +120,8 @@ function track(eventName,data={}){
   Do not add new GA4 events unless they answer a real product/retention question.
 -->
 <head>
-<!-- SHIFTVIX 2.33 — ANALYTICS DUPLICATE DECLARATION FIX -->
+<!-- STANDALONE WORKING PROTOTYPE: 9 LANES / 9 FLOWS. DO NOT USE AS PRODUCTION INDEX. -->
+<!-- SHIFTVIX 2.41 — WARP SCALING + SHIFT REBALANCE -->
 <meta charset="utf-8">
 <link rel="icon" type="image/png" href="icon-512.png">
 
@@ -134,11 +131,12 @@ function track(eventName,data={}){
 
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="SHIFTVIX">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <!-- SHIFTVIX 2.11 — GOLD RINGS + FIVE EVEN OBJECTIVE TYPES -->
-<title>SHIFTVIX</title>
+<title>SHIFTVIX — 9 FLOW WORKING PROTOTYPE</title>
 <style>
 html,body{
   margin:0;
@@ -2905,6 +2903,159 @@ body.uiModalOpen #center{pointer-events:none}
     display:none !important;
 }
 
+
+
+/* ============================================================
+   SHIFTVIX 2.37 — OUTLINED NEON HUB TITLE
+   ============================================================ */
+
+#flowArchive .archiveHeader{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:clamp(86px,10vh,128px);
+    margin-bottom:clamp(18px,2.4vh,30px);
+}
+
+#flowArchive .archiveHeader h2,
+#flowPathTitle{
+    width:100%;
+    margin:0;
+    text-align:center;
+
+    font-family:"Arial Black",Arial,Helvetica,sans-serif;
+    font-size:clamp(46px,6.4vw,82px);
+    font-weight:900;
+    line-height:.92;
+    letter-spacing:clamp(2px,.38vw,6px);
+
+    /* Hollow black/transparent SHIFTVIX */
+    color:transparent !important;
+    -webkit-text-fill-color:transparent !important;
+
+    /* Gold outlined logo aesthetic */
+    -webkit-text-stroke:
+        clamp(1.6px,.18vw,2.8px)
+        #ffd36a;
+
+    /* Small neon halo — bright enough to feel alive, not blurry */
+    text-shadow:
+        0 0 5px rgba(255,211,106,.80),
+        0 0 12px rgba(255,185,45,.42),
+        0 0 24px rgba(255,153,0,.16);
+
+    filter:
+        drop-shadow(
+            0 0 6px
+            rgba(255,211,106,.20)
+        );
+
+    background:transparent !important;
+}
+
+/* Keep the title elegant rather than oversized on phones. */
+@media(max-width:699px){
+    #flowArchive .archiveHeader{
+        min-height:84px;
+        margin-bottom:18px;
+    }
+
+    #flowArchive .archiveHeader h2,
+    #flowPathTitle{
+        font-size:clamp(43px,12.2vw,62px);
+        letter-spacing:2px;
+        -webkit-text-stroke:2px #ffd36a;
+        text-shadow:
+            0 0 4px rgba(255,211,106,.78),
+            0 0 10px rgba(255,185,45,.38),
+            0 0 20px rgba(255,153,0,.14);
+    }
+}
+
+/* Tablet */
+@media(min-width:700px) and (max-width:1100px){
+    #flowArchive .archiveHeader h2,
+    #flowPathTitle{
+        font-size:clamp(54px,7.5vw,74px);
+        -webkit-text-stroke:2.4px #ffd36a;
+    }
+}
+
+
+
+/* ============================================================
+   SHIFTVIX 2.38 — CLEAN HOLLOW GOLD OUTLINE TITLE
+   Removes the gold fill/inner neon appearance from 2.37.
+   ============================================================ */
+#flowArchive .archiveHeader h2,
+#flowPathTitle{
+    color:rgba(0,0,0,0) !important;
+    -webkit-text-fill-color:rgba(0,0,0,0) !important;
+    -webkit-text-stroke:2px #f4c64f !important;
+    paint-order:stroke fill;
+
+    /* Crisp outline with only a faint OUTSIDE halo. */
+    text-shadow:
+        0 0 3px rgba(244,198,79,.34),
+        0 0 8px rgba(244,198,79,.16) !important;
+    filter:none !important;
+    background:transparent !important;
+}
+
+@media(max-width:699px){
+    #flowArchive .archiveHeader h2,
+    #flowPathTitle{
+        -webkit-text-stroke:2px #f4c64f !important;
+        text-shadow:
+            0 0 3px rgba(244,198,79,.30),
+            0 0 7px rgba(244,198,79,.14) !important;
+    }
+}
+
+
+
+/* ============================================================
+   SHIFTVIX 2.39 — TRUE HOLLOW HUB LOGO
+   Match the gameplay title: transparent interior, gold stroke only.
+   ============================================================ */
+
+#flowArchive .archiveHeader h2,
+#flowPathTitle{
+    font-family:"Arial Black",Arial,Helvetica,sans-serif !important;
+    font-weight:900 !important;
+
+    color:transparent !important;
+    -webkit-text-fill-color:transparent !important;
+
+    /* Slightly thinner than the huge gameplay logo because this is one line. */
+    -webkit-text-stroke:3px #ffd36a !important;
+
+    /* Critical: NO glyph shadow. A text-shadow paints the full glyph silhouette
+       and is what made the supposedly hollow letters look gold-filled. */
+    text-shadow:none !important;
+    filter:none !important;
+    background:transparent !important;
+}
+
+@media(max-width:699px){
+    #flowArchive .archiveHeader h2,
+    #flowPathTitle{
+        -webkit-text-stroke:2px #ffd36a !important;
+        text-shadow:none !important;
+        filter:none !important;
+    }
+}
+
+@media(min-width:700px) and (max-width:1100px){
+    #flowArchive .archiveHeader h2,
+    #flowPathTitle{
+        -webkit-text-stroke:2.5px #ffd36a !important;
+        text-shadow:none !important;
+        filter:none !important;
+    }
+}
+
 </style>
 </head>
 <body>
@@ -2940,7 +3091,7 @@ body.uiModalOpen #center{pointer-events:none}
 </div>
 <div id="challengeHud"><div id="challengeName">SURVIVE THE FLOW</div><div id="challengeText">LOADING…</div><div id="challengeBar"><div id="challengeFill"></div><div id="challengePct">0%</div></div></div>
 <div id="tutorialPrompt" aria-live="polite"></div><div id="powerAnnouncement" aria-live="polite"></div><div id="modeBanner"></div><div id="chronoMultiplier">×2 SCORE</div><div id="warpBurstFx"></div><div id="flowFx"></div><div id="fluxFx"></div><div id="chronoFx"></div><div id="midasFx"></div><div id="prismFx"></div><div id="pulseWaves"></div>
-<div id="flowArchive" aria-hidden="true"><div class="archiveCard" role="dialog" aria-modal="true" aria-labelledby="flowPathTitle"><div class="archiveHeader"><h2 id="flowPathTitle">FLOWS</h2></div><div id="archiveList"></div></div></div>
+<div id="flowArchive" aria-hidden="true"><div class="archiveCard" role="dialog" aria-modal="true" aria-labelledby="flowPathTitle"><div class="archiveHeader"><h2 id="flowPathTitle">SHIFTVIX</h2></div><div id="archiveList"></div></div></div>
 
 <!-- SHIFTVIX CHRONO 2.0 — SLOW TIME + PRISM VISION + 2X SCORE -->
 <script type="module">
@@ -3150,9 +3301,20 @@ let runStartStrikes = 0;
 // RUSH = 60-second performance Flow layered over existing actions.
 // =========================
 let shiftCountRun=0;
-let shiftArrivalTimer=null;
-let shiftLastArrivalLane="1:1";
+
+// SHIFTVIX 2.35 — true train-to-train SHIFT validation.
+let shiftLastArrivalLane=null;
 let shiftPreviousArrivalLane=null;
+let lastRegularTrainContact=null;
+let pendingTrainShift=null;
+
+// A coin string passes the player quickly. This small grace window means
+// "still riding this train" even when the swipe happens between adjacent coins.
+const TRAIN_CONTACT_GRACE_MS=420;
+
+// A player can cross one or more empty lanes before reconnecting.
+// The departure remains valid briefly, but empty air itself never scores.
+const TRAIN_SHIFT_CONNECTION_WINDOW_MS=1250;
 
 let warpFlowNextWarpDistance=Infinity;
 const WARP_FLOW_FIRST_GAP_MIN=45;
@@ -3171,6 +3333,27 @@ let goldRingSequenceDelay=0;
 let goldRingLastLane=null;
 let goldRingSequenceAnchor=null;
 const GOLD_RING_PASS_RADIUS=16;
+
+// =========================
+// SHIFTVIX 9-FLOW WORKING PROTOTYPE
+// Experimental metrics. Production analytics are disabled in this file.
+// =========================
+let breakVoidsDestroyed=0;
+let driftDistance=0;
+let holdSeconds=0;
+let holdTargetX=1;
+let holdTargetY=1;
+function holdLaneName(){
+  const ys=["TOP","CENTER","BOTTOM"];
+  const xs=["LEFT","CENTER","RIGHT"];
+  if(holdTargetX===1 && holdTargetY===1)return "CENTER";
+  return `${ys[holdTargetY]} ${xs[holdTargetX]}`;
+}
+function chooseNewHoldLane(){
+  holdTargetX=Math.floor(Math.random()*3);
+  holdTargetY=Math.floor(Math.random()*3);
+}
+
 
 let heroMode = true;
 let heroBannerShown = false;
@@ -3519,6 +3702,28 @@ function powerTierDuration(tier){
 
 function warpTierDistance(tier){
   return WARP_DISTANCES[Math.max(0,Math.min(2,(tier||1)-1))];
+}
+
+function warpFlowJumpDistance(){
+  /*
+    SHIFTVIX 2.41 — WARP FLOW DISTANCE CURVE
+
+    The more Warps the Flow asks the player to chain, the less raw
+    distance each Warp adds. The visual Warp/surge remains intact;
+    only the underlying distance jump is reduced.
+
+      8–12  -> 400m
+      13–17 -> 300m
+      18–21 -> 200m
+      22–24 -> 100m
+  */
+  const target=
+    Number(activeChallenge?.target)||8;
+
+  if(target<=12)return 400;
+  if(target<=17)return 300;
+  if(target<=21)return 200;
+  return 100;
 }
 
 function powerOrbScoreValue(tier){
@@ -5015,8 +5220,8 @@ function startMusic(){
 }
 
 const FLOW_TOTAL = 300;
-const FLOW_TYPES=["COLLECT","TRAVEL","SCORE","RINGS","SHIFT","WARP"];
-const FLOWS_PER_CYCLE=6;
+const FLOW_TYPES=["COLLECT","TRAVEL","SCORE","RINGS","SHIFT","WARP","BREAK","DRIFT","HOLD"];
+const FLOWS_PER_CYCLE=9;
 const TOTAL_CYCLES=Math.ceil(FLOW_TOTAL/FLOWS_PER_CYCLE);
 const FLOW_COLOR_MAP={
   COLLECT:"#39ff88",
@@ -5024,7 +5229,10 @@ const FLOW_COLOR_MAP={
   SCORE:"#c86bff",
   RINGS:"#ffd34e",
   SHIFT:"#ff5f6d",
-  WARP:"#35f2ff"
+  WARP:"#35f2ff",
+  BREAK:"#ff7a35",
+  DRIFT:"#72e6d1",
+  HOLD:"#f4f0ff"
 };
 
 const FLOW_GLOW_MAP={
@@ -5033,7 +5241,10 @@ const FLOW_GLOW_MAP={
   SCORE:"rgba(200,107,255,.22)",
   RINGS:"rgba(255,211,78,.22)",
   SHIFT:"rgba(255,95,109,.22)",
-  WARP:"rgba(53,242,255,.22)"
+  WARP:"rgba(53,242,255,.22)",
+  BREAK:"rgba(255,122,53,.24)",
+  DRIFT:"rgba(114,230,209,.22)",
+  HOLD:"rgba(244,240,255,.20)"
 };
 
 function flowFamilyOffset(category){
@@ -5141,7 +5352,7 @@ function flowCardHtml(category){
   `;
 }
 
-function sixIndependentFlowCardsHtml(){
+function nineIndependentFlowCardsHtml(){
   return `
     <div class="hubFlowGrid">
       ${FLOW_TYPES.map(flowCardHtml).join("")}
@@ -6104,8 +6315,11 @@ function flowCategoryForIndex(index){
     "SCORE",
     "RINGS",
     "SHIFT",
-    "WARP"
-  ][index%6];
+    "WARP",
+    "BREAK",
+    "DRIFT",
+    "HOLD"
+  ][index%9];
 }
 
 function flowStrikeAllowance(index,category){
@@ -6131,7 +6345,10 @@ function flowStrikeAllowance(index,category){
     category==="TRAVEL" ||
     category==="RINGS" ||
     category==="SHIFT" ||
-    category==="WARP";
+    category==="WARP" ||
+    category==="BREAK" ||
+    category==="DRIFT" ||
+    category==="HOLD";
 
   if(n<=100){
     return ((n-31)%6===0)?2:null;
@@ -6165,7 +6382,7 @@ function applyFlowStrikeAllowance(flow,index){
 function createFlow(index){
   const n=index+1;
   const category=flowCategoryForIndex(index);
-  const categoryStep=Math.floor(index/6); // 0..49 within each family
+  const categoryStep=Math.floor(index/9); // prototype: nine Flow families
   const name="CURRENT FLOW";
 
   /*
@@ -6286,11 +6503,20 @@ function createFlow(index){
   }
 
   if(category==="SHIFT"){
-    // Start substantial. SHIFT measures ARRIVAL at a distinct lane,
-    // not raw swipe/input events.
+    /*
+      SHIFTVIX 2.41 — SHIFT REBALANCE
+
+      Empty space is now safe, so SHIFT needs more endurance to retain
+      its identity as the agility / train-connection Flow.
+
+      2.40: 50 + categoryStep*5, capped at 200.
+      2.41: 100 + categoryStep*10, capped at 400.
+
+      A SHIFT still counts ONLY after a real train-to-train reconnection.
+    */
     const target=Math.min(
-      200,
-      50 + categoryStep*5
+      400,
+      100 + categoryStep*10
     );
 
     flow={
@@ -6305,24 +6531,26 @@ function createFlow(index){
     return applyFlowStrikeAllowance(flow,index);
   }
 
-  // WARP = acceleration / space-jump mastery.
-  // One successfully activated Warp orb counts as one WARP,
-  // regardless of Tier I / II / III. The 500 / 1000 / 1500m
-  // jump still happens normally.
-  const target=Math.min(
-    24,
-    8+Math.floor(categoryStep/3)
-  );
+  if(category==="WARP"){
+    const target=Math.min(24,8+Math.floor(categoryStep/3));
+    flow={id:`warp_${n}`,name,category,label:`HIT ${target.toLocaleString()} WARPS`,target,metric:"warp"};
+    return applyFlowStrikeAllowance(flow,index);
+  }
 
-  flow={
-    id:`warp_${n}`,
-    name,
-    category:"WARP",
-    label:`HIT ${target.toLocaleString()} WARPS`,
-    target,
-    metric:"warp"
-  };
+  if(category==="BREAK"){
+    const target=Math.min(90,12+categoryStep*2);
+    flow={id:`break_${n}`,name,category,label:`BREAK ${target.toLocaleString()} VOIDS`,target,metric:"break"};
+    return applyFlowStrikeAllowance(flow,index);
+  }
 
+  if(category==="DRIFT"){
+    const target=750+categoryStep*175;
+    flow={id:`drift_${n}`,name,category,label:`DRIFT ${target.toLocaleString()}m IN OPEN SPACE`,target,metric:"drift"};
+    return applyFlowStrikeAllowance(flow,index);
+  }
+
+  const target=Math.min(90,20+categoryStep*2);
+  flow={id:`hold_${n}`,name,category:"HOLD",label:`HOLD THE TARGET LANE FOR ${target}s`,target,metric:"hold"};
   return applyFlowStrikeAllowance(flow,index);
 }
 function beginCurrentFlow(){
@@ -6340,6 +6568,9 @@ function beginCurrentFlow(){
         rings:goldRingsPassed,
         shifts:shiftCountRun,
         warps:warpCollectedThisRun,
+        breaks:breakVoidsDestroyed,
+        drift:driftDistance,
+        hold:holdSeconds,
         tierCounts:{...tierCounts}
     };
 
@@ -6352,6 +6583,15 @@ function beginCurrentFlow(){
         showModeBanner("WARP");
     }else{
         warpFlowNextWarpDistance=Infinity;
+    }
+
+    if(activeChallenge.metric==="hold"){
+        chooseNewHoldLane();
+        showModeBanner(`HOLD: ${holdLaneName()}`);
+    }else if(activeChallenge.metric==="break"){
+        showModeBanner("BREAK: ATTACK THE VOIDS");
+    }else if(activeChallenge.metric==="drift"){
+        showModeBanner("DRIFT: FIND OPEN SPACE");
     }
 
     updateChallenge();
@@ -6374,6 +6614,9 @@ function challengeBaseValue(ch){
   if(ch.metric==="rings")return Math.max(0,goldRingsPassed-(challengeStart.rings||0));
   if(ch.metric==="shift")return Math.max(0,shiftCountRun-(challengeStart.shifts||0));
   if(ch.metric==="warp")return Math.max(0,warpCollectedThisRun-(challengeStart.warps||0));
+  if(ch.metric==="break")return Math.max(0,breakVoidsDestroyed-(challengeStart.breaks||0));
+  if(ch.metric==="drift")return Math.max(0,driftDistance-(challengeStart.drift||0));
+  if(ch.metric==="hold")return Math.max(0,holdSeconds-(challengeStart.hold||0));
 
   return 0;
 }
@@ -6643,6 +6886,8 @@ if(replayReturnFlowIndex !== null){
     activeChallenge =
         createFlow(currentFlowIndex);
 
+    if(activeChallenge.metric==="hold")chooseNewHoldLane();
+
     objectiveOrbsCollected = 0;
 
         challengeStart = {
@@ -6653,6 +6898,9 @@ if(replayReturnFlowIndex !== null){
         rings:goldRingsPassed,
         shifts:shiftCountRun,
         warps:warpCollectedThisRun,
+        breaks:breakVoidsDestroyed,
+        drift:driftDistance,
+        hold:holdSeconds,
         tierCounts:{...tierCounts}
     };
 
@@ -6702,6 +6950,9 @@ if(replayReturnFlowIndex !== null){
         rings:goldRingsPassed,
         shifts:shiftCountRun,
         warps:warpCollectedThisRun,
+        breaks:breakVoidsDestroyed,
+        drift:driftDistance,
+        hold:holdSeconds,
         tierCounts:{...tierCounts}
     };
 
@@ -6726,7 +6977,7 @@ function updateChallenge(){
   updateHUD();
   if(!activeChallenge){
     activeChallenge=createFlow(currentFlowIndex);
-    challengeStart={found:foundCount,score,distance,strikes,rings:goldRingsPassed,shifts:shiftCountRun,warps:warpCollectedThisRun,tierCounts:{...tierCounts}};
+    challengeStart={found:foundCount,score,distance,strikes,rings:goldRingsPassed,shifts:shiftCountRun,warps:warpCollectedThisRun,breaks:breakVoidsDestroyed,drift:driftDistance,hold:holdSeconds,tierCounts:{...tierCounts}};
     updateHUD();
   }
   const raw=challengeValue(activeChallenge);
@@ -6735,7 +6986,7 @@ function updateChallenge(){
   // Keep the active-play HUD minimal. Full flow number, category, title,
   // completion history, and exact totals remain available inside FLOW PATH.
   updateFlowHeading();
-  document.getElementById("challengeText").textContent=activeChallenge.label;
+  document.getElementById("challengeText").textContent=activeChallenge.metric==="hold" ? `${activeChallenge.label} • ${holdLaneName()}` : activeChallenge.label;
   document.getElementById("challengeFill").style.width=pct+"%";
   const challengePct=document.getElementById("challengePct");
   if(challengePct)challengePct.textContent=`${Math.floor(pct)}%`;
@@ -6940,10 +7191,10 @@ function renderFlowArchive(){
 
     <div class="hubChooseHeader">
       <span>CHOOSE A FLOW</span>
-      <small>ALL SIX ARE ALWAYS OPEN</small>
+      <small>ALL NINE ARE ALWAYS OPEN</small>
     </div>
 
-    ${sixIndependentFlowCardsHtml()}
+    ${nineIndependentFlowCardsHtml()}
 
     ${flowRecordsHtml()}
   `;
@@ -7040,6 +7291,9 @@ function loadSelectedFlow(
         rings:goldRingsPassed,
         shifts:shiftCountRun,
         warps:warpCollectedThisRun,
+        breaks:breakVoidsDestroyed,
+        drift:driftDistance,
+        hold:holdSeconds,
         tierCounts:{...tierCounts}
     };
 
@@ -7310,12 +7564,12 @@ function closeFlowArchive(){
     resumeGame("flow_hub_close");
   }
 }
-document.getElementById("challengeHud").addEventListener("click",()=>openFlowArchive("hud"));
-document.getElementById("archiveClose").addEventListener("click",closeFlowArchive);
-document.getElementById("flowArchive").addEventListener("click",e=>{if(e.target.id==="flowArchive")closeFlowArchive();});
-document.getElementById("pauseResume").addEventListener("click",()=>resumeGame("pause_button"));
-document.getElementById("pauseFlowPath").addEventListener("click",()=>openFlowArchive("pause_menu"));
-document.getElementById("pauseMenu").addEventListener("click",e=>{if(e.target.id==="pauseMenu")document.getElementById("pauseResume")?.focus();});
+document.getElementById("challengeHud")?.addEventListener("click",()=>openFlowArchive("hud"));
+// #archiveClose intentionally removed in the unified FLOWS hub.
+document.getElementById("flowArchive")?.addEventListener("click",e=>{e.stopPropagation();});
+document.getElementById("pauseResume")?.addEventListener("click",()=>resumeGame("pause_button"));
+document.getElementById("pauseFlowPath")?.addEventListener("click",()=>openFlowArchive("pause_menu"));
+document.getElementById("pauseMenu")?.addEventListener("click",e=>{if(e.target.id==="pauseMenu")document.getElementById("pauseResume")?.focus();});
 
 document
     .getElementById("archiveList")
@@ -8140,6 +8394,17 @@ function passGoldRing(b){
 
   b.userData.state="collected";
   b.userData.fade=1;
+
+  // BREAK Flow inverts the Void: touching it destroys it instead of costing a life.
+  if(activeChallenge?.metric==="break"){
+    breakVoidsDestroyed++;
+    score+=250;
+    playRingPass();
+    pulseObjectiveHud();
+    if(navigator.vibrate)navigator.vibrate(18);
+    updateChallenge();
+    return;
+  }
   goldRingsPassed++;
 
   const ringPoints=
@@ -8361,32 +8626,106 @@ group.add(aura);
 
 function spawnVoidVolley(reason="normal"){
   const allLanes=[];
+
   for(let y=0;y<3;y++){
     for(let x=0;x<3;x++){
       allLanes.push({x,y});
     }
   }
 
+  // Unique lanes inside each volley.
   for(let i=allLanes.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [allLanes[i],allLanes[j]]=[allLanes[j],allLanes[i]];
+    const j=Math.floor(
+      Math.random()*(i+1)
+    );
+
+    [
+      allLanes[i],
+      allLanes[j]
+    ]=[
+      allLanes[j],
+      allLanes[i]
+    ];
   }
 
   let count=1;
 
   if(reason!=="tutorial"){
+    /*
+      VOID PRESSURE 2.0
+
+      Minimum: 2 hazards.
+      Maximum: 6 hazards.
+
+      Because SHIFTVIX has nine lanes, six is the hard cap:
+      every single volley always leaves at least three immediate
+      escape lanes.
+
+      Early flight mostly produces 2–3.
+      As distance/level rise, 4–6 become more common without
+      suddenly turning the opening game into a wall.
+    */
+    const pressure=
+      THREE.MathUtils.clamp(
+        (
+          Math.max(0,distance-55) /
+          5000
+        ) +
+        (
+          Math.max(0,level-1) *
+          .018
+        ),
+        0,
+        1
+      );
+
     const r=Math.random();
-    if(r>=.77)count=3;
-    else if(r>=.34)count=2;
+
+    const sixThreshold=
+      .985-pressure*.105;
+
+    const fiveThreshold=
+      .94-pressure*.145;
+
+    const fourThreshold=
+      .78-pressure*.17;
+
+    const threeThreshold=
+      .38-pressure*.08;
+
+    if(r>=sixThreshold){
+      count=6;
+    }else if(r>=fiveThreshold){
+      count=5;
+    }else if(r>=fourThreshold){
+      count=4;
+    }else if(r>=threeThreshold){
+      count=3;
+    }else{
+      count=2;
+    }
   }
+
+  // Absolute readability/safety cap.
+  count=Math.max(
+    1,
+    Math.min(
+      reason==="tutorial"?1:6,
+      count
+    )
+  );
 
   let spawned=0;
 
   for(let i=0;i<count;i++){
-    if(makeVoidHazard(
-      i===0?reason:(count===3?"meteor_triple":"meteor_pair"),
-      allLanes[i]
-    )){
+    if(
+      makeVoidHazard(
+        i===0
+          ? reason
+          : `meteor_group_${count}`,
+        allLanes[i]
+      )
+    ){
       spawned++;
     }
   }
@@ -8515,7 +8854,11 @@ function updateWarpFlowOpportunity(){
 }
 
 function activateWarp(reason,tier=1){
-  const jump=warpTierDistance(tier);
+  const jump=
+    isWarpFlowActive()
+      ? warpFlowJumpDistance()
+      : warpTierDistance(tier);
+
   const before=distance;
 
   // Warp is instantaneous and never changes the current viewport/camera sizing.
@@ -8570,7 +8913,23 @@ function activateWarp(reason,tier=1){
 
 function makeWarpOrb(reason="random"){
   if(warpOrbActive || distance<warpCooldownUntilDistance)return false;
-  const powerTier=choosePowerTier();
+
+  /*
+    SHIFTVIX 2.40 — WARP FLOW CONTROL
+
+    WARP objectives are about chaining multiple spatial jumps.
+    Tier II / III jumps accelerate progression so aggressively that
+    later required Warps become harder to physically reach/read.
+
+    Therefore:
+      WARP Flow active  -> Tier I visual + scaled 400/300/200/100m jump
+      Any other Flow    -> normal weighted Tier I / II / III with
+                           500/1000/1500m jumps
+  */
+  const powerTier=
+    isWarpFlowActive()
+      ? 1
+      : choosePowerTier();
 
   trainId++;
   const xIndex=Math.floor(Math.random()*3);
@@ -8785,7 +9144,7 @@ function spawnTrain(){
  else if(tier.value>=50)length=8+Math.floor(Math.random()*8);
  else length=12+Math.floor(Math.random()*14);
  for(let i=0;i<length;i++)makeBeacon(tier,x,y,FAR_Z-i*TRAIN_GAP,trainId);
- document.getElementById("signal").textContent=runStarted?"Signal: stay connected":"Signal: touch first string";
+ document.getElementById("signal").textContent=runStarted?"Signal: avoid the VOID":"Signal: enter the flow";
 }
 function spawnWave(){
   const now=performance.now();
@@ -8806,61 +9165,211 @@ function spawnWave(){
   }
 }
 
-function registerShiftArrival(){
-  const laneKey=`${laneX}:${laneY}`;
+function laneKeyFromIndexes(xIndex,yIndex){
+  return `${xIndex}:${yIndex}`;
+}
 
-  if(laneKey===shiftLastArrivalLane)return;
+function currentLaneKey(){
+  return laneKeyFromIndexes(
+    laneX,
+    laneY
+  );
+}
 
-  // Reject immediate reversals. This prevents LEFT↔RIGHT, UP↔DOWN,
-  // or the same diagonal bounce from farming the SHIFT objective.
+function recentTrainContactForLane(
+  laneKey,
+  now=performance.now()
+){
+  return !!(
+    lastRegularTrainContact &&
+    lastRegularTrainContact.laneKey===laneKey &&
+    (
+      now-lastRegularTrainContact.at
+    )<=TRAIN_CONTACT_GRACE_MS
+  );
+}
+
+function beginTrainShiftIfConnected(
+  fromLaneKey,
+  toLaneKey
+){
+  const now=performance.now();
+
+  // Already carrying a valid departure across empty lanes:
+  // do not replace it just because another swipe crosses more empty space.
+  if(
+    pendingTrainShift &&
+    (
+      now-pendingTrainShift.startedAt
+    )<=TRAIN_SHIFT_CONNECTION_WINDOW_MS
+  ){
+    pendingTrainShift.toLaneKey=
+      toLaneKey;
+    return;
+  }
+
+  if(
+    !recentTrainContactForLane(
+      fromLaneKey,
+      now
+    )
+  ){
+    pendingTrainShift=null;
+    return;
+  }
+
+  pendingTrainShift={
+    fromLaneKey,
+    fromTrainId:
+      lastRegularTrainContact.trainId,
+    toLaneKey,
+    startedAt:now
+  };
+}
+
+function scoreTrainToTrainShift(
+  destinationLaneKey,
+  destinationTrainId
+){
+  const now=performance.now();
+
+  // First real train contact primes the SHIFT route.
+  if(!shiftLastArrivalLane){
+    shiftLastArrivalLane=
+      destinationLaneKey;
+  }
+
+  if(!pendingTrainShift){
+    return false;
+  }
+
+  const age=
+    now-pendingTrainShift.startedAt;
+
+  if(
+    age>TRAIN_SHIFT_CONNECTION_WINDOW_MS
+  ){
+    pendingTrainShift=null;
+    return false;
+  }
+
+  // Returning to the train/lane you departed from is not a SHIFT.
+  if(
+    destinationLaneKey===
+      pendingTrainShift.fromLaneKey
+  ){
+    pendingTrainShift=null;
+    return false;
+  }
+
+  // It must be a real train on the destination lane.
+  if(
+    !Number.isFinite(
+      Number(destinationTrainId)
+    )
+  ){
+    return false;
+  }
+
+  const fromLane=
+    pendingTrainShift.fromLaneKey;
+
+  // Existing anti-farming rule:
+  // A -> B -> A does not score the return to A.
   const countsAsPatternShift=
-    laneKey!==shiftPreviousArrivalLane;
+    destinationLaneKey!==
+      shiftPreviousArrivalLane;
 
-  const fromLane=shiftLastArrivalLane;
+  // Route history is updated ONLY on real train reconnection,
+  // never while crossing empty air.
+  shiftPreviousArrivalLane=
+    shiftLastArrivalLane;
 
-  // Update route history whether or not this arrival scores.
-  shiftPreviousArrivalLane=shiftLastArrivalLane;
-  shiftLastArrivalLane=laneKey;
+  shiftLastArrivalLane=
+    destinationLaneKey;
+
+  pendingTrainShift=null;
 
   if(!countsAsPatternShift){
-    trackGame("lane_shift_repeat_rejected",{
-      from_lane:fromLane,
-      to_lane:laneKey,
-      shift_count_run:shiftCountRun,
-      flow_number:currentFlowIndex+1
-    });
-    return;
+    trackGame(
+      "lane_shift_repeat_rejected",
+      {
+        from_lane:fromLane,
+        to_lane:destinationLaneKey,
+        shift_count_run:shiftCountRun,
+        flow_number:
+          currentFlowIndex+1
+      }
+    );
+    return false;
   }
 
   shiftCountRun++;
 
-  trackGame("lane_shift",{
-    shift_count_run:shiftCountRun,
-    from_lane:fromLane,
-    to_lane:laneKey,
-    flow_number:currentFlowIndex+1,
-    flow_category:activeChallenge?.category||"none"
-  });
+  trackGame(
+    "lane_shift",
+    {
+      shift_count_run:
+        shiftCountRun,
+      from_lane:
+        fromLane,
+      to_lane:
+        destinationLaneKey,
+      destination_train:
+        destinationTrainId,
+      flow_number:
+        currentFlowIndex+1,
+      flow_category:
+        activeChallenge?.category||
+        "none"
+    }
+  );
 
-  if(activeChallenge?.metric==="shift"){
+  if(
+    activeChallenge?.metric===
+      "shift"
+  ){
     updateChallenge();
   }
+
+  return true;
 }
 
-function scheduleShiftArrival(){
-  if(shiftArrivalTimer){
-    clearTimeout(shiftArrivalTimer);
+function noteRegularTrainContact(beacon){
+  if(
+    !beacon?.userData ||
+    beacon.userData.isVoid ||
+    beacon.userData.isGoldRing ||
+    beacon.userData.isFlux ||
+    beacon.userData.isChrono ||
+    beacon.userData.isMidas ||
+    beacon.userData.isWarp
+  ){
+    return;
   }
 
-  // Rapid swipes may pass through intermediate lanes.
-  // Only the destination the player actually arrives/settles on counts.
-  shiftArrivalTimer=setTimeout(()=>{
-    shiftArrivalTimer=null;
+  const laneKey=currentLaneKey();
+  const now=performance.now();
+  const trainId=
+    Number(beacon.userData.train);
 
-    if(!gameStarted||gameOver||paused)return;
+  // If we departed a real train and have now connected with
+  // a real train in another lane, this is the exact moment SHIFT earns credit.
+  scoreTrainToTrainShift(
+    laneKey,
+    trainId
+  );
 
-    registerShiftArrival();
-  },95);
+  lastRegularTrainContact={
+    laneKey,
+    trainId,
+    at:now
+  };
+
+  // The first train touched establishes the initial valid route anchor.
+  if(!shiftLastArrivalLane){
+    shiftLastArrivalLane=laneKey;
+  }
 }
 
 function moveLane(dx,dy){
@@ -8877,7 +9386,22 @@ function moveLane(dx,dy){
     laneY!==oldLaneY;
 
   if(changed){
-    scheduleShiftArrival();
+    const fromLaneKey=
+      laneKeyFromIndexes(
+        oldLaneX,
+        oldLaneY
+      );
+
+    const toLaneKey=
+      laneKeyFromIndexes(
+        laneX,
+        laneY
+      );
+
+    beginTrainShiftIfConnected(
+      fromLaneKey,
+      toLaneKey
+    );
   }
 
   environmentEngine.updatePlayerTarget();
@@ -9130,57 +9654,14 @@ function animateLostLife(index){
 }    
 function updateStrikes(){for(let i=0;i<3;i++)document.getElementById("s"+i).classList.toggle("used",i<strikes);}
 function takeStrike(){
+    // SHIFTVIX 2.35:
+    // Legacy gap/connection strikes are permanently disabled.
+    // ONLY hitVoidHazard() is allowed to remove a player life.
+    breakTimer=0;
+    return;
+}
 
-    if(!runStarted || gameOver) return;
-
-    if(heroMode){
-        breakTimer=0;
-        return;
-    }
-
-    strikes++;
-    fluxCollectionStreak = 0;
-    lastStrikeDistance = distance;
-    if(environmentEngine?.current?.onStrike)environmentEngine.current.onStrike();
-
-    track("strike",{
-    strike_number: strikes,
-    level: level,
-    distance: Math.floor(distance),
-    score: score
-});
-
-    breakTimer = 0;
-    combo = 1;
-
-    playStrike();
-    pulseCenterReactorDamage();
-
-    if(navigator.vibrate){
-        navigator.vibrate([30,40,30]);
-    }
-
-    // Animate only the first two lost lives.
-    // The third strike immediately opens the results screen.
-    if(strikes < 3){
-
-        animateLostLife(strikes - 1);
-
-    }
-    else{
-
-        updateStrikes();
-
-    }
-
-    document.getElementById("signal").textContent =
-        "Signal: break " + strikes + "/3";
-
-    if(strikes >= 3){
-        endRun();
-    }
-
-}function collectBeacon(b){
+function collectBeacon(b){
  if(b.userData.state!=="active")return;
 
  if(b.userData.isVoid){
@@ -9259,6 +9740,10 @@ function takeStrike(){
    updateChallenge();
    return;
  }
+
+ // A normal coin is also proof that the player is physically
+ // connected to a real train in the current lane.
+ noteRegularTrainContact(b);
 
  const baseGained=b.userData.value;
  const chronoScoring=chronoTime>0;
@@ -9421,6 +9906,9 @@ function flowDisplayLabel(flow){
   if(flow.metric==="rings")return "RINGS";
   if(flow.metric==="shift")return "SHIFT";
   if(flow.metric==="warp")return "WARP";
+  if(flow.metric==="break")return "BREAK";
+  if(flow.metric==="drift")return "DRIFT";
+  if(flow.metric==="hold")return `HOLD • ${holdLaneName()}`;
   if(flow.metric==="distance")return "DISTANCE";
   if(flow.metric==="score")return "SCORE";
   if(flow.metric==="level")return "LEVEL";
@@ -9432,8 +9920,11 @@ function formatRunFlowProgress(flow,value){
   const whole=Math.floor(current);
   const target=Math.floor(flow.target);
 
-  if(flow.metric==="distance"){
+  if(flow.metric==="distance" || flow.metric==="drift"){
     return `${whole.toLocaleString()}m / ${target.toLocaleString()}m`;
+  }
+  if(flow.metric==="hold"){
+    return `${current.toFixed(1)}s / ${flow.target.toFixed(0)}s`;
   }
 
   if(flow.metric==="level"){
@@ -9710,13 +10201,22 @@ vix.style.transform = "translateY(0)";
 
 title.style.transform = "translate(-50%,-50%)";
 
-const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;shiftCountRun=0;shiftLastArrivalLane=`${laneX}:${laneY}`;shiftPreviousArrivalLane=null;warpFlowNextWarpDistance=Infinity;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=1.25;voidCountRun=0;goldRingsPassed=0;goldRingSpawnCooldown=2.5;goldRingSpawnedThisRun=0;goldRingSequenceRemaining=0;goldRingSequenceDelay=0;goldRingLastLane=null;goldRingSequenceAnchor=null;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
+const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;shiftCountRun=0;shiftLastArrivalLane=null;shiftPreviousArrivalLane=null;lastRegularTrainContact=null;pendingTrainShift=null;warpFlowNextWarpDistance=Infinity;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=1.25;voidCountRun=0;goldRingsPassed=0;breakVoidsDestroyed=0;driftDistance=0;holdSeconds=0;chooseNewHoldLane();goldRingSpawnCooldown=2.5;goldRingSpawnedThisRun=0;goldRingSequenceRemaining=0;goldRingSequenceDelay=0;goldRingLastLane=null;goldRingSequenceAnchor=null;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
 
 lastLevel = 1;strikes = 0;milestonesReached = {};lastWarpBreakthrough=0;starColorUpdateFrame=0;launchSurge=0;runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;resetWarpBanking();applyFrozenGameViewport(stableViewportWidth,stableViewportHeight);resetEnvironmentForRun();beginCurrentFlow();updateStrikes();updateHUD();spawnWave();if(!musicStarted){startMusic();}else if(!musicTimer&&audioCtx){nextNoteTime=Math.max(nextNoteTime,audioCtx.currentTime+0.035);nextDrumTime=Math.max(nextDrumTime,audioCtx.currentTime+0.05);musicTimer=setInterval(musicScheduler,25);}}
 const title = document.getElementById("gameTitle");
 const shift = document.getElementById("shift");
 const vix = document.getElementById("vix");
-function animate(){requestAnimationFrame(animate);updateGamepad();const dt = Math.min(clock.getDelta(), .05);if(gameStarted&&!gameOver&&!paused){updateFluxBoost(dt);updateChronoState(dt);updateMidasState(dt);updateIonicThruster(dt);const worldTimeScale=THREE.MathUtils.lerp(1,CHRONO_WORLD_SCALE,chronoAmount);const worldDt=dt*worldTimeScale;const baseRunSpeed=SPEED_START+Math.min(150,distance*.018);speed=baseRunSpeed*(1+fluxBoostAmount*FLUX_SPEED_BOOST);distance+=speed*worldDt*.08;
+function animate(){requestAnimationFrame(animate);updateGamepad();const dt = Math.min(clock.getDelta(), .05);if(gameStarted&&!gameOver&&!paused){updateFluxBoost(dt);updateChronoState(dt);updateMidasState(dt);updateIonicThruster(dt);const worldTimeScale=THREE.MathUtils.lerp(1,CHRONO_WORLD_SCALE,chronoAmount);const worldDt=dt*worldTimeScale;const baseRunSpeed=SPEED_START+Math.min(150,distance*.018);speed=baseRunSpeed*(1+fluxBoostAmount*FLUX_SPEED_BOOST);const prototypeDistanceDelta=speed*worldDt*.08;distance+=prototypeDistanceDelta;
+// DRIFT counts only while the player is not in recent contact with a real train.
+if(activeChallenge?.metric==="drift"){
+  const recentTrain=lastRegularTrainContact && (performance.now()-lastRegularTrainContact.at)<=TRAIN_CONTACT_GRACE_MS;
+  if(!recentTrain)driftDistance+=prototypeDistanceDelta;
+}
+// HOLD rewards deliberate positional control. Dodge a Void, then return to the target lane.
+if(activeChallenge?.metric==="hold" && laneX===holdTargetX && laneY===holdTargetY){
+  holdSeconds+=worldDt;
+}
 level = Math.floor(distance / 500) + 1;
 heroMode = ((performance.now()-runStartTime)/1000) < HERO_SECONDS;
 if(!heroMode && heroBannerShown){heroBannerShown=false;}
@@ -9814,10 +10314,51 @@ if(silentTutorialComplete){
     const spawnedVoids=spawnVoidVolley("normal");
 
     if(spawnedVoids>0){
-      const base=Math.max(1.25,2.15-level*.055);
-      voidSpawnCooldown=base+Math.random()*.90;
+      /*
+        More persistent threat now that empty train gaps are safe.
+
+        Opening cadence:
+          roughly 1.05–1.50 seconds between volleys.
+
+        Later cadence:
+          gradually approaches roughly .72–1.17 seconds.
+
+        Difficulty grows through frequency + volley size rather than
+        suddenly accelerating into an unreadable wall.
+      */
+      const pressure=
+        THREE.MathUtils.clamp(
+          (
+            Math.max(0,distance-55) /
+            6000
+          ) +
+          (
+            Math.max(0,level-1) *
+            .012
+          ),
+          0,
+          1
+        );
+
+      const base=
+        THREE.MathUtils.lerp(
+          1.05,
+          .72,
+          pressure
+        );
+
+      const variance=
+        THREE.MathUtils.lerp(
+          .45,
+          .34,
+          pressure
+        );
+
+      voidSpawnCooldown=
+        base+
+        Math.random()*variance;
     }else{
-      voidSpawnCooldown=.40;
+      voidSpawnCooldown=.28;
     }
   }
 
@@ -9883,7 +10424,14 @@ if(spawnTimer<=0){
     const fluxInterval=.22+Math.random()*.12;
     spawnTimer=THREE.MathUtils.lerp(normalInterval,fluxInterval,fluxBoostAmount);
     spawnWave();
-}if(runStarted){breakTimer+=worldDt;if(breakTimer>BREAK_GRACE)takeStrike();}playerX+=(targetX-playerX)*(1-Math.pow(.0009,dt));playerY+=(targetY-playerY)*(1-Math.pow(.0009,dt));
+}
+// SHIFTVIX 2.35:
+// Empty space between trains is safe.
+// breakTimer is retained only for legacy compatibility; it can never cause damage.
+if(runStarted){
+  breakTimer=0;
+}
+playerX+=(targetX-playerX)*(1-Math.pow(.0009,dt));playerY+=(targetY-playerY)*(1-Math.pow(.0009,dt));
 camera.position.x=playerX;
 camera.position.y=playerY;
 // Camera Z is finalized below after warp offsets.
