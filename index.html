@@ -4939,6 +4939,66 @@ let fluxDustVisualPower = 0;
 const TIERS=[{name:"WHITE",color:0xffffff,value:10,size:3.8,freq:880},{name:"BLUE",color:0x55ccff,value:25,size:4.3,freq:1046},{name:"GREEN",color:0x66ff66,value:50,size:4.8,freq:1174},{name:"PURPLE",color:0xcc66ff,value:75,size:5.1,freq:1240},{name:"ORANGE",color:0xff8800,value:100,size:5.4,freq:1318},{name:"RED",color:0xff4444,value:200,size:6.1,freq:1568}];
 function initAudio(){if(audioCtx){if(audioCtx.state!=="running")audioCtx.resume();return;}audioCtx=new (window.AudioContext||window.webkitAudioContext)();}
 function playCoin(tier){if(!audioCtx)return;const now=audioCtx.currentTime,osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type="square";osc.frequency.setValueAtTime(tier.freq,now);osc.frequency.exponentialRampToValueAtTime(tier.freq*1.55,now+.055);gain.gain.setValueAtTime(.0001,now);gain.gain.linearRampToValueAtTime(.018,now+.008);gain.gain.exponentialRampToValueAtTime(.0001,now+.105);osc.connect(gain).connect(audioCtx.destination);osc.start(now);osc.stop(now+.13);if(tier.value>=100){const osc2=audioCtx.createOscillator(),gain2=audioCtx.createGain();osc2.type="sine";osc2.frequency.setValueAtTime(tier.freq*2,now+.035);gain2.gain.setValueAtTime(.0001,now+.035);gain2.gain.linearRampToValueAtTime(.018,now+.045);gain2.gain.exponentialRampToValueAtTime(.0001,now+.16);osc2.connect(gain2).connect(audioCtx.destination);osc2.start(now+.035);osc2.stop(now+.18);}}
+
+// SHIFTVIX DRIFT AUDIO V3
+// In DRIFT, ordinary orb collection is intentionally silent.
+// Open space becomes the reward: frequent, soft lane-dependent tones.
+const DRIFT_AUDIO_STEP_METERS=7.5;
+const DRIFT_LANE_FREQS=[164.81,185.00,207.65,220.00,246.94,277.18,311.13,329.63,369.99];
+let driftAudioMeterCarry=0;
+let driftAudioLastLane=-1;
+
+function driftAudioLaneIndex(){
+  // Map the current 3x3 position to the same nine spatial lanes.
+  const col=playerX<-16?0:(playerX>16?2:1);
+  const row=playerY>16?0:(playerY<-16?2:1);
+  return row*3+col;
+}
+
+function playDriftTone(laneIndex){
+  if(!audioCtx)return;
+  const now=audioCtx.currentTime;
+  const freq=DRIFT_LANE_FREQS[Math.max(0,Math.min(8,laneIndex|0))];
+
+  const osc=audioCtx.createOscillator();
+  const gain=audioCtx.createGain();
+  const filter=audioCtx.createBiquadFilter();
+
+  osc.type="sine";
+  osc.frequency.setValueAtTime(freq,now);
+  osc.frequency.exponentialRampToValueAtTime(freq*1.025,now+.085);
+
+  filter.type="lowpass";
+  filter.frequency.setValueAtTime(1150,now);
+  filter.Q.setValueAtTime(.35,now);
+
+  gain.gain.setValueAtTime(.0001,now);
+  gain.gain.linearRampToValueAtTime(.0105,now+.012);
+  gain.gain.exponentialRampToValueAtTime(.0001,now+.145);
+
+  osc.connect(filter).connect(gain).connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now+.17);
+}
+
+function updateDriftAudio(distanceDelta,isOpenSpace){
+  if(activeChallenge?.category!=="DRIFT" || !isOpenSpace){
+    driftAudioMeterCarry=0;
+    driftAudioLastLane=-1;
+    return;
+  }
+
+  driftAudioMeterCarry+=Math.max(0,Number(distanceDelta)||0);
+  const lane=driftAudioLaneIndex();
+
+  while(driftAudioMeterCarry>=DRIFT_AUDIO_STEP_METERS){
+    driftAudioMeterCarry-=DRIFT_AUDIO_STEP_METERS;
+    playDriftTone(lane);
+  }
+
+  driftAudioLastLane=lane;
+}
+
 function playStrike(){if(!audioCtx)return;const now=audioCtx.currentTime,osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type="sawtooth";osc.frequency.setValueAtTime(180,now);osc.frequency.exponentialRampToValueAtTime(70,now+.22);gain.gain.setValueAtTime(.0001,now);gain.gain.linearRampToValueAtTime(.05,now+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+.28);osc.connect(gain).connect(audioCtx.destination);osc.start(now);osc.stop(now+.3);}
 function playRingPass(){
   if(!audioCtx)return;
@@ -5877,37 +5937,41 @@ function createPrototypeDailyPick(
   sequence=0,
   previousCategory=""
 ){
-  const choices=
+  let choices=
     selectableDailyFlowIndexes();
 
-  let pick=
-    prototypeDailySeed(
-      date,
-      sequence
-    )%choices.length;
-
-  if(
-    choices.length>1 &&
-    previousCategory
-  ){
-    let guard=0;
-
-    while(
-      createFlow(
-        choices[pick]
-      ).category===previousCategory &&
-      guard<choices.length
-    ){
-      pick=(pick+1)%choices.length;
-      guard++;
+  if(previousCategory && choices.length>1){
+    const alternatives=choices.filter(index=>
+      createFlow(index).category!==previousCategory
+    );
+    if(alternatives.length){
+      choices=alternatives;
     }
   }
+
+  // A fresh shuffle after every completed Today's Pick.
+  // The just-completed category is excluded, so the next challenge is visibly new.
+  const cryptoValue=(()=>{
+    try{
+      const a=new Uint32Array(1);
+      crypto.getRandomValues(a);
+      return a[0]>>>0;
+    }catch(e){
+      return Math.floor(Math.random()*0xFFFFFFFF)>>>0;
+    }
+  })();
+
+  const mixed=(
+    cryptoValue ^
+    prototypeDailySeed(date,sequence) ^
+    ((sequence+1)*2654435761)
+  )>>>0;
 
   return {
     date,
     sequence,
     completedCount:sequence,
-    flowIndex:choices[pick]
+    flowIndex:choices[mixed%choices.length]
   };
 }
 
@@ -6029,6 +6093,10 @@ function markTodayVectorComplete(
   advanceTodayVector(
     finishedCategory
   );
+
+  // Re-read the new card immediately so the completed Today's Pick
+  // can never remain displayed as the next challenge.
+  refreshTodayVector();
 
   playingTodayPick=false;
   return true;
@@ -10156,7 +10224,9 @@ tierCounts[b.userData.tier.name] =
     (tierCounts[b.userData.tier.name] || 0) + 1;
  if(foundCount===1){track("first_source_collected",{tier:b.userData.tier.name});}
  if(score>bestScore){bestScore=score;localStorage.setItem("sourceLaneBestScore",String(bestScore));}
- playCoin(b.userData.tier);
+ if(activeChallenge?.category!=="DRIFT"){
+   playCoin(b.userData.tier);
+ }
  showScorePopup("+"+gained,chronoScoring);
  updateHUD();updateChallenge();
  if(navigator.vibrate)navigator.vibrate(4);
@@ -10583,7 +10653,7 @@ vix.style.transform = "translateY(0)";
 
 title.style.transform = "translate(-50%,-50%)";
 
-const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;shiftCountRun=0;shiftLastArrivalLane=null;shiftPreviousArrivalLane=null;lastRegularTrainContact=null;pendingTrainShift=null;warpFlowNextWarpDistance=Infinity;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=1.25;voidCountRun=0;goldRingsPassed=0;breakVoidsDestroyed=0;driftDistance=0;prototypeLastScore=0;goldRingSpawnCooldown=2.5;goldRingSpawnedThisRun=0;goldRingSequenceRemaining=0;goldRingSequenceDelay=0;goldRingLastLane=null;goldRingSequenceAnchor=null;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
+const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;shiftCountRun=0;shiftLastArrivalLane=null;shiftPreviousArrivalLane=null;lastRegularTrainContact=null;pendingTrainShift=null;warpFlowNextWarpDistance=Infinity;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=1.25;voidCountRun=0;goldRingsPassed=0;breakVoidsDestroyed=0;driftDistance=0;driftAudioMeterCarry=0;driftAudioLastLane=-1;prototypeLastScore=0;goldRingSpawnCooldown=2.5;goldRingSpawnedThisRun=0;goldRingSequenceRemaining=0;goldRingSequenceDelay=0;goldRingLastLane=null;goldRingSequenceAnchor=null;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
 
 lastLevel = 1;strikes = 0;milestonesReached = {};lastWarpBreakthrough=0;starColorUpdateFrame=0;launchSurge=0;runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;resetWarpBanking();applyFrozenGameViewport(stableViewportWidth,stableViewportHeight);resetEnvironmentForRun();beginCurrentFlow();updateStrikes();updateHUD();spawnWave();if(!musicStarted){startMusic();}else if(!musicTimer&&audioCtx){nextNoteTime=Math.max(nextNoteTime,audioCtx.currentTime+0.035);nextDrumTime=Math.max(nextDrumTime,audioCtx.currentTime+0.05);musicTimer=setInterval(musicScheduler,25);}}
 const title = document.getElementById("gameTitle");
@@ -10598,16 +10668,22 @@ if(activeChallenge?.category==="TRAVEL"){
   );
 }
 
-if(
+const driftOpenSpace=
   activeChallenge?.category==="DRIFT" &&
-  playerIsInOpenSpace()
-){
+  playerIsInOpenSpace();
+
+if(driftOpenSpace){
   driftDistance+=prototypeDistanceDelta;
   addPrototypeTotal(
     "DRIFT",
     prototypeDistanceDelta
   );
 }
+
+updateDriftAudio(
+  prototypeDistanceDelta,
+  driftOpenSpace
+);
 
 if(activeChallenge?.category==="SCORE"){
   const scoreDelta=Math.max(
