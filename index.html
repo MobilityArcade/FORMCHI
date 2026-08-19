@@ -12,7 +12,7 @@ const ANALYTICS_ALLOWED_EVENTS=new Set();
 
 <head>
 <!-- STANDALONE WORKING PROTOTYPE: 9 LANES / 9 FLOWS. DO NOT USE AS PRODUCTION INDEX. -->
-<!-- SHIFTVIX WORKING PROTOTYPE V4 — RANDOM PICK + DRIFT COINS -->
+<!-- SHIFTVIX WORKING PROTOTYPE V5 — FLOW COUNTS + FAMILIAR DRIFT COINS -->
 <meta charset="utf-8">
 <link rel="icon" type="image/png" href="icon-512.png">
 
@@ -3086,6 +3086,37 @@ body.uiModalOpen #center{pointer-events:none}
   }
 }
 
+
+
+/* SHIFTVIX V5 — visible per-Flow completion level */
+.flowChoiceIdentity{
+  display:flex;
+  align-items:baseline;
+  gap:12px;
+  min-width:0;
+}
+
+.flowChoiceCompleted{
+  color:var(--flow-color);
+  font-size:clamp(19px,2.2vw,29px);
+  font-weight:1000;
+  line-height:1;
+  letter-spacing:.4px;
+  text-shadow:
+    0 0 12px var(--flow-glow);
+  opacity:.98;
+}
+
+@media(max-width:699px){
+  .flowChoiceIdentity{
+    gap:9px;
+  }
+
+  .flowChoiceCompleted{
+    font-size:20px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -4940,14 +4971,24 @@ const TIERS=[{name:"WHITE",color:0xffffff,value:10,size:3.8,freq:880},{name:"BLU
 function initAudio(){if(audioCtx){if(audioCtx.state!=="running")audioCtx.resume();return;}audioCtx=new (window.AudioContext||window.webkitAudioContext)();}
 function playCoin(tier){if(!audioCtx)return;const now=audioCtx.currentTime,osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type="square";osc.frequency.setValueAtTime(tier.freq,now);osc.frequency.exponentialRampToValueAtTime(tier.freq*1.55,now+.055);gain.gain.setValueAtTime(.0001,now);gain.gain.linearRampToValueAtTime(.018,now+.008);gain.gain.exponentialRampToValueAtTime(.0001,now+.105);osc.connect(gain).connect(audioCtx.destination);osc.start(now);osc.stop(now+.13);if(tier.value>=100){const osc2=audioCtx.createOscillator(),gain2=audioCtx.createGain();osc2.type="sine";osc2.frequency.setValueAtTime(tier.freq*2,now+.035);gain2.gain.setValueAtTime(.0001,now+.035);gain2.gain.linearRampToValueAtTime(.018,now+.045);gain2.gain.exponentialRampToValueAtTime(.0001,now+.16);osc2.connect(gain2).connect(audioCtx.destination);osc2.start(now+.035);osc2.stop(now+.18);}}
 
-// SHIFTVIX DRIFT AUDIO V4
-// Negative space becomes the reward.
-// Normal orb pickup sounds remain muted during DRIFT.
+// SHIFTVIX DRIFT AUDIO V5
+// DRIFT is the inverse of ordinary collection:
+// - normal orb pickup sounds are muted while DRIFT is active
+// - open/negative space plays the SAME familiar SHIFTVIX coin sounds
+//
+// The nine spatial lanes are mapped across the existing six coin tiers.
+// This keeps DRIFT recognizable as SHIFTVIX while making empty space
+// feel like an invisible lane of collectibles.
 const DRIFT_AUDIO_STEP_METERS=5.2;
-const DRIFT_LANE_FREQS=[
-  174.61,196.00,220.00,
-  233.08,261.63,293.66,
-  329.63,349.23,392.00
+
+// Existing coin tiers:
+// 0 WHITE, 1 BLUE, 2 GREEN, 3 PURPLE, 4 ORANGE, 5 RED
+//
+// Nine-lane spatial mapping creates a musical color path across the field.
+const DRIFT_LANE_TIER_MAP=[
+  0,1,2,
+  3,4,5,
+  4,2,1
 ];
 
 let driftAudioMeterCarry=0;
@@ -4955,78 +4996,113 @@ let driftAudioLastLane=-1;
 let driftAudioPhraseStep=0;
 
 function driftAudioLaneIndex(){
-  const col=playerX<-16?0:(playerX>16?2:1);
-  const row=playerY>16?0:(playerY<-16?2:1);
+  const col=
+    playerX<-16
+      ?0
+      :(playerX>16?2:1);
+
+  const row=
+    playerY>16
+      ?0
+      :(playerY<-16?2:1);
+
   return row*3+col;
+}
+
+function driftTierForLane(laneIndex,phraseStep=0){
+  const lane=
+    Math.max(
+      0,
+      Math.min(
+        8,
+        laneIndex|0
+      )
+    );
+
+  const baseTier=
+    DRIFT_LANE_TIER_MAP[lane];
+
+  /*
+    Small familiar variation:
+    every few invisible "drift coins" step one tier toward a neighbor,
+    creating the same alternating white/green/red/blue feeling that
+    normal mixed coin lanes can produce.
+  */
+  const variationPattern=[0,0,1,0,-1,0];
+  const variation=
+    variationPattern[
+      phraseStep%
+      variationPattern.length
+    ];
+
+  return TIERS[
+    Math.max(
+      0,
+      Math.min(
+        TIERS.length-1,
+        baseTier+variation
+      )
+    )
+  ];
 }
 
 function playDriftCoin(laneIndex,phraseStep=0){
   if(!audioCtx)return;
 
-  const now=audioCtx.currentTime;
-  const lane=Math.max(0,Math.min(8,laneIndex|0));
-  const root=DRIFT_LANE_FREQS[lane];
-
-  // Four-note alternating phrase gives the same satisfying repetition
-  // as coin lanes, but with a softer/rounder identity.
-  const intervalPattern=[1,1.12246,1.25992,1.12246];
-  const freq=root*intervalPattern[phraseStep%intervalPattern.length];
-
-  const osc=audioCtx.createOscillator();
-  const overtone=audioCtx.createOscillator();
-  const gain=audioCtx.createGain();
-  const overtoneGain=audioCtx.createGain();
-  const filter=audioCtx.createBiquadFilter();
-
-  osc.type="triangle";
-  overtone.type="sine";
-
-  osc.frequency.setValueAtTime(freq,now);
-  osc.frequency.exponentialRampToValueAtTime(freq*1.035,now+.095);
-  overtone.frequency.setValueAtTime(freq*2,now);
-
-  filter.type="lowpass";
-  filter.frequency.setValueAtTime(1700,now);
-  filter.Q.setValueAtTime(.45,now);
-
-  gain.gain.setValueAtTime(.0001,now);
-  gain.gain.linearRampToValueAtTime(.026,now+.008);
-  gain.gain.exponentialRampToValueAtTime(.0001,now+.18);
-
-  overtoneGain.gain.setValueAtTime(.0001,now);
-  overtoneGain.gain.linearRampToValueAtTime(.0068,now+.01);
-  overtoneGain.gain.exponentialRampToValueAtTime(.0001,now+.11);
-
-  osc.connect(filter).connect(gain).connect(audioCtx.destination);
-  overtone.connect(overtoneGain).connect(audioCtx.destination);
-
-  osc.start(now);
-  overtone.start(now);
-  osc.stop(now+.20);
-  overtone.stop(now+.13);
+  // Deliberately use SHIFTVIX's existing coin sound engine.
+  playCoin(
+    driftTierForLane(
+      laneIndex,
+      phraseStep
+    )
+  );
 }
 
 function updateDriftAudio(distanceDelta,isOpenSpace){
-  if(activeChallenge?.category!=="DRIFT" || !isOpenSpace){
+  if(
+    activeChallenge?.category!=="DRIFT" ||
+    !isOpenSpace
+  ){
     driftAudioMeterCarry=0;
     driftAudioLastLane=-1;
     driftAudioPhraseStep=0;
     return;
   }
 
-  driftAudioMeterCarry+=Math.max(0,Number(distanceDelta)||0);
-  const lane=driftAudioLaneIndex();
+  driftAudioMeterCarry+=
+    Math.max(
+      0,
+      Number(distanceDelta)||0
+    );
 
-  // Changing lanes gives a tiny extra reward accent.
-  if(driftAudioLastLane!==-1 && lane!==driftAudioLastLane){
-    playDriftCoin(lane,driftAudioPhraseStep++);
+  const lane=
+    driftAudioLaneIndex();
+
+  // Moving into another negative-space lane gets an immediate familiar coin.
+  if(
+    driftAudioLastLane!==-1 &&
+    lane!==driftAudioLastLane
+  ){
+    playDriftCoin(
+      lane,
+      driftAudioPhraseStep++
+    );
   }
 
   driftAudioLastLane=lane;
 
-  while(driftAudioMeterCarry>=DRIFT_AUDIO_STEP_METERS){
-    driftAudioMeterCarry-=DRIFT_AUDIO_STEP_METERS;
-    playDriftCoin(lane,driftAudioPhraseStep++);
+  // Invisible Drift coins are tightly spaced so empty space has weight/volume.
+  while(
+    driftAudioMeterCarry>=
+    DRIFT_AUDIO_STEP_METERS
+  ){
+    driftAudioMeterCarry-=
+      DRIFT_AUDIO_STEP_METERS;
+
+    playDriftCoin(
+      lane,
+      driftAudioPhraseStep++
+    );
   }
 }
 
@@ -5582,9 +5658,18 @@ function flowCardHtml(category){
       "
     >
       <div class="flowChoiceTop">
-        <span class="flowChoiceName">
-          ${category}
-        </span>
+        <div class="flowChoiceIdentity">
+          <span class="flowChoiceName">
+            ${category}
+          </span>
+
+          <span
+            class="flowChoiceCompleted"
+            aria-label="${familyCompletedCount(category)} completed"
+          >
+            ${familyCompletedCount(category)}
+          </span>
+        </div>
 
         <span class="flowChoiceStep">
           PLAY
