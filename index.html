@@ -1,127 +1,18 @@
 <!DOCTYPE html>
 <html>
-<!-- Google Analytics — SHIFTVIX 2.32 Retention Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-M88902RHLE"></script>
-
+<!-- SHIFTVIX WORKING PROTOTYPE V2 — NO GOOGLE ANALYTICS -->
 <script>
-window.dataLayer = window.dataLayer || [];
-
-function gtag(){
-    dataLayer.push(arguments);
-}
-
-gtag("js",new Date());
-
-const params=
-    new URLSearchParams(
-        window.location.search
-    );
-
-if(params.get("developer")==="true"){
-    localStorage.setItem(
-        "shiftvixDeveloper",
-        "true"
-    );
-}
-
-const isDeveloper=true; // WORKING PROTOTYPE: analytics intentionally disabled
-
-/*
-  GA4 already handles page/session/user engagement automatically.
-  Custom SHIFTVIX analytics are intentionally limited to:
-  - real gameplay starts
-  - Flow choice
-  - Flow outcome
-  - run outcome
-  - daily-pick behavior
-  - meaningful return behavior
-  - personal records
-  - a few core mechanic-health signals
-*/
-const ANALYTICS_EVENT_ALIASES={
-    flow_family_selected:"flow_selected",
-    current_flow_completed:"flow_completed",
-    today_vector_completed:"today_pick_completed",
-    vector_personal_record:"personal_best",
-    gold_ring_passed:"ring_passed",
-    warp_orb_collected:"warp_collected"
-};
-
-const ANALYTICS_ALLOWED_EVENTS=new Set([
-    "first_run",
-    "game_started",
-    "player_returned",
-    "flow_selected",
-    "flow_completed",
-    "flow_attempt_ended",
-    "run_ended",
-    "today_pick_started",
-    "today_pick_completed",
-    "personal_best",
-    "void_hit",
-    "ring_passed",
-    "warp_collected"
-]);
-
-gtag("config","G-M88902RHLE",{
-    developer_mode:isDeveloper,
-    send_page_view:!isDeveloper
-});
-
-function track(eventName,data={}){
-    const cleanName=
-        ANALYTICS_EVENT_ALIASES[eventName] ||
-        eventName;
-
-    // Completely suppress analytics from the developer browser.
-    if(isDeveloper){
-        console.log(
-            "[Developer analytics blocked]",
-            cleanName,
-            data
-        );
-        return;
-    }
-
-    // Old/debug/engine events remain harmless in code but never reach GA4.
-    if(!ANALYTICS_ALLOWED_EVENTS.has(cleanName)){
-        return;
-    }
-
-    if(typeof gtag==="function"){
-        gtag(
-            "event",
-            cleanName,
-            data
-        );
-    }
-}
+const isDeveloper=true;
+function gtag(){ return; }
+function track(){ return; }
+const ANALYTICS_EVENT_ALIASES={};
+const ANALYTICS_ALLOWED_EVENTS=new Set();
 </script>
 
 
-<!--
-  ANALYTICS MAINTENANCE NOTE — 2.32
-  GA4 custom events intentionally kept:
-    first_run
-    game_started
-    player_returned
-    flow_selected
-    flow_completed
-    flow_attempt_ended
-    run_ended
-    today_pick_started
-    today_pick_completed
-    personal_best
-    void_hit
-    ring_passed
-    warp_collected
-
-  Everything else is suppressed centrally by ANALYTICS_ALLOWED_EVENTS.
-  Do not add new GA4 events unless they answer a real product/retention question.
--->
 <head>
 <!-- STANDALONE WORKING PROTOTYPE: 9 LANES / 9 FLOWS. DO NOT USE AS PRODUCTION INDEX. -->
-<!-- SHIFTVIX 2.41 — WARP SCALING + SHIFT REBALANCE -->
+<!-- SHIFTVIX WORKING PROTOTYPE V2 — 8 FLOWS + DAILY PICK -->
 <meta charset="utf-8">
 <link rel="icon" type="image/png" href="icon-512.png">
 
@@ -3056,6 +2947,145 @@ body.uiModalOpen #center{pointer-events:none}
     }
 }
 
+
+
+/* ============================================================
+   SHIFTVIX PROTOTYPE V2 — 8 LARGE FLOW CARDS
+   ============================================================ */
+
+.hubFlowGrid{
+  display:grid !important;
+  grid-template-columns:1fr !important;
+  gap:14px !important;
+}
+
+.flowChoiceCard,
+.todayPickCard{
+  width:100%;
+  min-height:154px !important;
+  padding:22px 24px !important;
+  border-radius:23px !important;
+  text-align:left;
+}
+
+.todayPickCard{
+  appearance:none;
+  -webkit-appearance:none;
+  cursor:pointer;
+  color:#fff;
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      var(--flow-color) 72%,
+      #ffd36a 28%
+    ) !important;
+
+  background:
+    radial-gradient(
+      circle at 9% 0%,
+      var(--flow-glow),
+      transparent 46%
+    ),
+    rgba(255,211,106,.025) !important;
+}
+
+.todayPickCard:hover,
+.todayPickCard:focus-visible{
+  outline:none;
+  box-shadow:
+    inset 0 0 30px var(--flow-glow),
+    0 0 22px var(--flow-glow);
+}
+
+.flowChoiceName,
+.todayPickName{
+  font-size:
+    clamp(
+      25px,
+      3vw,
+      38px
+    ) !important;
+}
+
+.flowChoiceObjective,
+.todayPickObjective{
+  margin-top:10px !important;
+  font-size:
+    clamp(
+      15px,
+      1.6vw,
+      21px
+    ) !important;
+  line-height:1.3;
+}
+
+.flowChoiceTotal,
+.todayPickBottom{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:14px;
+  margin-top:22px;
+  padding-top:13px;
+  border-top:
+    1px solid
+    rgba(255,255,255,.09);
+}
+
+.flowChoiceTotal span,
+.todayPickBottom span{
+  font-size:10px;
+  font-weight:950;
+  letter-spacing:1.7px;
+  color:rgba(255,255,255,.42);
+}
+
+.flowChoiceTotal strong{
+  font-size:
+    clamp(
+      18px,
+      2vw,
+      26px
+    );
+  color:var(--flow-color);
+  text-shadow:
+    0 0 12px
+    var(--flow-glow);
+}
+
+.todayPickBottom strong{
+  font-size:17px;
+  color:var(--flow-color);
+  letter-spacing:2px;
+}
+
+.hubRecords{
+  display:none !important;
+}
+
+@media(max-width:699px){
+  .flowChoiceCard,
+  .todayPickCard{
+    min-height:142px !important;
+    padding:18px 17px !important;
+  }
+
+  .flowChoiceName,
+  .todayPickName{
+    font-size:27px !important;
+  }
+
+  .flowChoiceObjective,
+  .todayPickObjective{
+    font-size:14px !important;
+  }
+
+  .hubChooseHeader small{
+    line-height:1.35;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -3335,25 +3365,114 @@ let goldRingSequenceAnchor=null;
 const GOLD_RING_PASS_RADIUS=16;
 
 // =========================
-// SHIFTVIX 9-FLOW WORKING PROTOTYPE
-// Experimental metrics. Production analytics are disabled in this file.
+// SHIFTVIX 8 FLOWS + DAILY PICK — WORKING PROTOTYPE V2
+// Production analytics are intentionally disabled.
 // =========================
+const PROTOTYPE_FORCE_GAMEPLAY_SYSTEMS=true;
+const PROTOTYPE_TOTALS_KEY="shiftvixProtoV2Totals";
+const PROTOTYPE_DAILY_KEY="shiftvixProtoV2DailyPick";
+
 let breakVoidsDestroyed=0;
 let driftDistance=0;
-let holdSeconds=0;
-let holdTargetX=1;
-let holdTargetY=1;
-function holdLaneName(){
-  const ys=["TOP","CENTER","BOTTOM"];
-  const xs=["LEFT","CENTER","RIGHT"];
-  if(holdTargetX===1 && holdTargetY===1)return "CENTER";
-  return `${ys[holdTargetY]} ${xs[holdTargetX]}`;
-}
-function chooseNewHoldLane(){
-  holdTargetX=Math.floor(Math.random()*3);
-  holdTargetY=Math.floor(Math.random()*3);
+let playingTodayPick=false;
+let prototypeLastScore=0;
+
+let prototypeTotals=(()=>{
+  const empty={
+    COLLECT:0,TRAVEL:0,SCORE:0,RINGS:0,
+    SHIFT:0,WARP:0,BREAK:0,DRIFT:0
+  };
+
+  try{
+    return {
+      ...empty,
+      ...JSON.parse(
+        localStorage.getItem(PROTOTYPE_TOTALS_KEY)||"{}"
+      )
+    };
+  }catch(e){
+    return empty;
+  }
+})();
+
+function savePrototypeTotals(){
+  try{
+    localStorage.setItem(
+      PROTOTYPE_TOTALS_KEY,
+      JSON.stringify(prototypeTotals)
+    );
+  }catch(e){}
 }
 
+function addPrototypeTotal(category,amount){
+  if(
+    !Object.prototype.hasOwnProperty.call(
+      prototypeTotals,
+      category
+    )
+  ){
+    return;
+  }
+
+  const value=Number(amount)||0;
+  if(value<=0)return;
+
+  prototypeTotals[category]+=value;
+  savePrototypeTotals();
+}
+
+function isRegularTrainBeacon(b){
+  const u=b?.userData;
+
+  return !!(
+    u &&
+    u.state==="active" &&
+    !u.isVoid &&
+    !u.isGoldRing &&
+    !u.isFlux &&
+    !u.isChrono &&
+    !u.isMidas &&
+    !u.isWarp
+  );
+}
+
+function playerIsInOpenSpace(){
+  /*
+    DRIFT counts the negative space itself.
+    A meter counts only when no normal coin-train segment is occupying
+    the player's immediate lane/flight volume.
+  */
+  return !beacons.some(b=>{
+    if(!isRegularTrainBeacon(b))return false;
+
+    if(
+      Math.abs(
+        b.position.z-PLAYER_Z
+      )>64
+    ){
+      return false;
+    }
+
+    const bx=
+      Number.isFinite(
+        b.userData.roadX
+      )
+        ? b.userData.roadX
+        : b.position.x;
+
+    const by=
+      Number.isFinite(
+        b.userData.roadY
+      )
+        ? b.userData.roadY
+        : b.position.y;
+
+    return Math.hypot(
+      bx-playerX,
+      by-playerY
+    )<21;
+  });
+}
 
 let heroMode = true;
 let heroBannerShown = false;
@@ -5219,10 +5338,14 @@ function startMusic(){
   }
 }
 
-const FLOW_TOTAL = 300;
-const FLOW_TYPES=["COLLECT","TRAVEL","SCORE","RINGS","SHIFT","WARP","BREAK","DRIFT","HOLD"];
-const FLOWS_PER_CYCLE=9;
+const FLOW_TOTAL = 320;
+const FLOW_TYPES=[
+  "COLLECT","TRAVEL","SCORE","RINGS",
+  "SHIFT","WARP","BREAK","DRIFT"
+];
+const FLOWS_PER_CYCLE=8;
 const TOTAL_CYCLES=Math.ceil(FLOW_TOTAL/FLOWS_PER_CYCLE);
+
 const FLOW_COLOR_MAP={
   COLLECT:"#39ff88",
   TRAVEL:"#45b7ff",
@@ -5231,8 +5354,7 @@ const FLOW_COLOR_MAP={
   SHIFT:"#ff5f6d",
   WARP:"#35f2ff",
   BREAK:"#ff7a35",
-  DRIFT:"#72e6d1",
-  HOLD:"#f4f0ff"
+  DRIFT:"#72e6d1"
 };
 
 const FLOW_GLOW_MAP={
@@ -5243,8 +5365,7 @@ const FLOW_GLOW_MAP={
   SHIFT:"rgba(255,95,109,.22)",
   WARP:"rgba(53,242,255,.22)",
   BREAK:"rgba(255,122,53,.24)",
-  DRIFT:"rgba(114,230,209,.22)",
-  HOLD:"rgba(244,240,255,.20)"
+  DRIFT:"rgba(114,230,209,.22)"
 };
 
 function flowFamilyOffset(category){
@@ -5290,7 +5411,7 @@ function currentFamilyFlowIndex(category){
   ];
 }
 
-function currentSixFlowIndexes(){
+function currentEightFlowIndexes(){
   return FLOW_TYPES.map(
     category=>currentFamilyFlowIndex(category)
   );
@@ -5319,17 +5440,48 @@ function familyProgressLabel(category){
   return `${complete+1}`;
 }
 
+function prototypeTotalLabel(
+  category
+){
+  const raw=
+    Number(
+      prototypeTotals[category]
+    )||0;
+
+  if(
+    category==="TRAVEL" ||
+    category==="DRIFT"
+  ){
+    return `${
+      Math.floor(raw).toLocaleString()
+    }m`;
+  }
+
+  if(category==="SCORE"){
+    return `${
+      Math.floor(raw).toLocaleString()
+    } PTS`;
+  }
+
+  return Math.floor(
+    raw
+  ).toLocaleString();
+}
+
 function flowCardHtml(category){
-  const flowIndex=currentFamilyFlowIndex(category);
-  const flow=createFlow(flowIndex);
-  const active=
-    activeChallenge?.category===category &&
-    !gameOver;
-  const mastered=familyMastered(category);
+  const flowIndex=
+    currentFamilyFlowIndex(
+      category
+    );
+
+  const flow=
+    createFlow(
+      flowIndex
+    );
 
   return `
     <button
-      class="flowChoiceCard flow-${category.toLowerCase()} ${active?"active":""}"
+      class="flowChoiceCard flow-${category.toLowerCase()}"
       type="button"
       data-family-flow="${category}"
       data-flow-index="${flowIndex}"
@@ -5337,63 +5489,87 @@ function flowCardHtml(category){
         --flow-color:${FLOW_COLOR_MAP[category]};
         --flow-glow:${FLOW_GLOW_MAP[category]};
       "
-      aria-label="${category}: ${flow.label}"
     >
       <div class="flowChoiceTop">
-        <span class="flowChoiceName">${category}</span>
-        <span class="flowChoiceStep">${
-          mastered
-            ?"∞"
-            :familyProgressLabel(category)
-        }</span>
+        <span class="flowChoiceName">
+          ${category}
+        </span>
+
+        <span class="flowChoiceStep">
+          PLAY
+        </span>
       </div>
-      <div class="flowChoiceObjective">${flow.label}</div>
+
+      <div class="flowChoiceObjective">
+        ${flow.label}
+      </div>
+
+      <div class="flowChoiceTotal">
+        <span>TOTAL</span>
+
+        <strong>
+          ${prototypeTotalLabel(category)}
+        </strong>
+      </div>
     </button>
   `;
 }
 
-function nineIndependentFlowCardsHtml(){
+function eightIndependentFlowCardsHtml(){
   return `
     <div class="hubFlowGrid">
-      ${FLOW_TYPES.map(flowCardHtml).join("")}
+      ${
+        FLOW_TYPES
+          .map(flowCardHtml)
+          .join("")
+      }
     </div>
   `;
 }
 
-function chooseFlowFamily(category,source="flow_hub"){
-  if(!FLOW_TYPES.includes(category))return false;
+function chooseFlowFamily(
+  category,
+  source="flow_hub"
+){
+  if(!FLOW_TYPES.includes(category)){
+    return false;
+  }
 
-  const flowIndex=
-    currentFamilyFlowIndex(category);
-
-  trackGame("flow_selected",{
-    category,
-    flow_number:flowIndex+1,
-    source,
-    family_completed:
-      familyCompletedCount(category),
-    family_mastery:
-      familyMastered(category)
-  });
+  let flowIndex;
 
   if(source==="today_pick"){
-    trackGame(
-      "today_pick_started",
-      {
-        category,
-        flow_number:flowIndex+1
-      }
-    );
+    refreshTodayVector();
+
+    flowIndex=
+      Math.max(
+        0,
+        Math.min(
+          FLOW_TOTAL-1,
+          Number(
+            todayVector?.flowIndex
+          )||0
+        )
+      );
+
+    playingTodayPick=true;
+  }else{
+    flowIndex=
+      currentFamilyFlowIndex(
+        category
+      );
+
+    playingTodayPick=false;
   }
 
   currentFlowIndex=flowIndex;
   replayReturnFlowIndex=null;
-
   saveFlowProgress();
 
   if(gameOver){
     const archive=
-      document.getElementById("flowArchive");
+      document.getElementById(
+        "flowArchive"
+      );
 
     archive?.classList.remove("show");
     archive?.setAttribute(
@@ -5417,8 +5593,6 @@ function chooseFlowFamily(category,source="flow_hub"){
     }
   );
 
-  // loadSelectedFlow closes the hub. If this was a pause,
-  // closeFlowArchive resumes the run.
   return true;
 }
 
@@ -5686,35 +5860,87 @@ function hashDateKey(key){
 }
 
 function selectableDailyFlowIndexes(){
-  return currentSixFlowIndexes();
+  return currentEightFlowIndexes();
+}
+
+function prototypeDailySeed(
+  date,
+  sequence
+){
+  return hashDateKey(
+    `${date}|${sequence}|SHIFTVIX-PROTO-V2`
+  );
+}
+
+function createPrototypeDailyPick(
+  date,
+  sequence=0,
+  previousCategory=""
+){
+  const choices=
+    selectableDailyFlowIndexes();
+
+  let pick=
+    prototypeDailySeed(
+      date,
+      sequence
+    )%choices.length;
+
+  if(
+    choices.length>1 &&
+    previousCategory
+  ){
+    let guard=0;
+
+    while(
+      createFlow(
+        choices[pick]
+      ).category===previousCategory &&
+      guard<choices.length
+    ){
+      pick=(pick+1)%choices.length;
+      guard++;
+    }
+  }
+
+  return {
+    date,
+    sequence,
+    completedCount:sequence,
+    flowIndex:choices[pick]
+  };
 }
 
 function loadTodayVector(){
   const date=localDateKey();
 
   try{
-    const saved=JSON.parse(localStorage.getItem(TODAY_VECTOR_KEY)||"null");
+    const saved=JSON.parse(
+      localStorage.getItem(
+        PROTOTYPE_DAILY_KEY
+      )||"null"
+    );
+
     if(
       saved &&
       saved.date===date &&
-      Number.isFinite(saved.flowIndex)
+      Number.isFinite(
+        saved.flowIndex
+      )
     ){
       return saved;
     }
   }catch(e){}
 
-  const choices=selectableDailyFlowIndexes();
-  const seed=hashDateKey(date);
-  const flowIndex=choices[seed%choices.length];
-
-  const today={
-    date,
-    flowIndex,
-    completed:false
-  };
+  const today=
+    createPrototypeDailyPick(
+      date,
+      0,
+      ""
+    );
 
   localStorage.setItem(
-    TODAY_VECTOR_KEY,
+    PROTOTYPE_DAILY_KEY,
     JSON.stringify(today)
   );
 
@@ -5724,56 +5950,88 @@ function loadTodayVector(){
 let todayVector=null;
 
 function refreshTodayVector(){
-  todayVector=loadTodayVector();
+  todayVector=
+    loadTodayVector();
 
   if(todayVector){
-    const savedFlow=createFlow(
-      Math.max(
-        0,
-        Math.min(
-          FLOW_TOTAL-1,
-          Number(todayVector.flowIndex)||0
+    const savedFlow=
+      createFlow(
+        Math.max(
+          0,
+          Math.min(
+            FLOW_TOTAL-1,
+            Number(
+              todayVector.flowIndex
+            )||0
+          )
         )
-      )
-    );
+      );
 
-    const currentIndex=
+    todayVector.flowIndex=
       currentFamilyFlowIndex(
         savedFlow.category
       );
-
-    // Keep the daily category stable for the day,
-    // while allowing that family's objective to advance.
-    todayVector.flowIndex=currentIndex;
   }
 
   return todayVector;
 }
 
-function markTodayVectorComplete(flowIndex){
+function advanceTodayVector(
+  previousCategory
+){
+  const date=localDateKey();
+
+  const sequence=
+    Math.max(
+      0,
+      Number(
+        todayVector?.sequence
+      )||0
+    )+1;
+
+  todayVector=
+    createPrototypeDailyPick(
+      date,
+      sequence,
+      previousCategory
+    );
+
+  localStorage.setItem(
+    PROTOTYPE_DAILY_KEY,
+    JSON.stringify(todayVector)
+  );
+
+  return todayVector;
+}
+
+function markTodayVectorComplete(
+  flowIndex
+){
   refreshTodayVector();
 
-  if(!todayVector || todayVector.completed)return;
+  if(
+    !playingTodayPick ||
+    !todayVector
+  ){
+    return false;
+  }
+
+  if(
+    Number(flowIndex)!==
+    Number(todayVector.flowIndex)
+  ){
+    return false;
+  }
 
   const finishedCategory=
     createFlow(flowIndex).category;
 
-  const dailyCategory=
-    createFlow(todayVector.flowIndex).category;
-
-  if(finishedCategory!==dailyCategory)return;
-
-  todayVector.completed=true;
-
-  localStorage.setItem(
-    TODAY_VECTOR_KEY,
-    JSON.stringify(todayVector)
+  advanceTodayVector(
+    finishedCategory
   );
 
-  trackGame("today_pick_completed",{
-    flow_number:flowIndex+1,
-    category:finishedCategory
-  });
+  playingTodayPick=false;
+  return true;
 }
 
 function retentionJourneyHtml(){
@@ -6308,7 +6566,6 @@ function flowStageFor(index){
   return FLOW_STAGES.find(stage=>n<=stage.end)||FLOW_STAGES[FLOW_STAGES.length-1];
 }
 function flowCategoryForIndex(index){
-  // SHIFTVIX 2.19 — six meanings, fifty Flows each.
   return [
     "COLLECT",
     "TRAVEL",
@@ -6317,9 +6574,8 @@ function flowCategoryForIndex(index){
     "SHIFT",
     "WARP",
     "BREAK",
-    "DRIFT",
-    "HOLD"
-  ][index%9];
+    "DRIFT"
+  ][index%8];
 }
 
 function flowStrikeAllowance(index,category){
@@ -6347,8 +6603,7 @@ function flowStrikeAllowance(index,category){
     category==="SHIFT" ||
     category==="WARP" ||
     category==="BREAK" ||
-    category==="DRIFT" ||
-    category==="HOLD";
+    category==="DRIFT";
 
   if(n<=100){
     return ((n-31)%6===0)?2:null;
@@ -6382,7 +6637,7 @@ function applyFlowStrikeAllowance(flow,index){
 function createFlow(index){
   const n=index+1;
   const category=flowCategoryForIndex(index);
-  const categoryStep=Math.floor(index/9); // prototype: nine Flow families
+  const categoryStep=Math.floor(index/8); // eight permanent Flow families
   const name="CURRENT FLOW";
 
   /*
@@ -6538,19 +6793,36 @@ function createFlow(index){
   }
 
   if(category==="BREAK"){
-    const target=Math.min(90,12+categoryStep*2);
-    flow={id:`break_${n}`,name,category,label:`BREAK ${target.toLocaleString()} VOIDS`,target,metric:"break"};
+    const target=Math.min(
+      60,
+      12+Math.floor(categoryStep*1.5)
+    );
+
+    flow={
+      id:`break_${n}`,
+      name,
+      category,
+      label:`BREAK ${target.toLocaleString()} HOLLOW VOIDS`,
+      target,
+      metric:"break"
+    };
+
     return applyFlowStrikeAllowance(flow,index);
   }
 
-  if(category==="DRIFT"){
-    const target=750+categoryStep*175;
-    flow={id:`drift_${n}`,name,category,label:`DRIFT ${target.toLocaleString()}m IN OPEN SPACE`,target,metric:"drift"};
-    return applyFlowStrikeAllowance(flow,index);
-  }
+  const target=
+    750+
+    categoryStep*175;
 
-  const target=Math.min(90,20+categoryStep*2);
-  flow={id:`hold_${n}`,name,category:"HOLD",label:`HOLD THE TARGET LANE FOR ${target}s`,target,metric:"hold"};
+  flow={
+    id:`drift_${n}`,
+    name,
+    category:"DRIFT",
+    label:`DRIFT ${target.toLocaleString()}m IN OPEN SPACE`,
+    target,
+    metric:"drift"
+  };
+
   return applyFlowStrikeAllowance(flow,index);
 }
 function beginCurrentFlow(){
@@ -6570,7 +6842,6 @@ function beginCurrentFlow(){
         warps:warpCollectedThisRun,
         breaks:breakVoidsDestroyed,
         drift:driftDistance,
-        hold:holdSeconds,
         tierCounts:{...tierCounts}
     };
 
@@ -6583,13 +6854,8 @@ function beginCurrentFlow(){
         showModeBanner("WARP");
     }else{
         warpFlowNextWarpDistance=Infinity;
-    }
-
-    if(activeChallenge.metric==="hold"){
-        chooseNewHoldLane();
-        showModeBanner(`HOLD: ${holdLaneName()}`);
-    }else if(activeChallenge.metric==="break"){
-        showModeBanner("BREAK: ATTACK THE VOIDS");
+    }    if(activeChallenge.metric==="break"){
+        showModeBanner("BREAK: FLY THROUGH THE HOLLOW VOIDS");
     }else if(activeChallenge.metric==="drift"){
         showModeBanner("DRIFT: FIND OPEN SPACE");
     }
@@ -6616,7 +6882,6 @@ function challengeBaseValue(ch){
   if(ch.metric==="warp")return Math.max(0,warpCollectedThisRun-(challengeStart.warps||0));
   if(ch.metric==="break")return Math.max(0,breakVoidsDestroyed-(challengeStart.breaks||0));
   if(ch.metric==="drift")return Math.max(0,driftDistance-(challengeStart.drift||0));
-  if(ch.metric==="hold")return Math.max(0,holdSeconds-(challengeStart.hold||0));
 
   return 0;
 }
@@ -6886,8 +7151,6 @@ if(replayReturnFlowIndex !== null){
     activeChallenge =
         createFlow(currentFlowIndex);
 
-    if(activeChallenge.metric==="hold")chooseNewHoldLane();
-
     objectiveOrbsCollected = 0;
 
         challengeStart = {
@@ -6900,7 +7163,6 @@ if(replayReturnFlowIndex !== null){
         warps:warpCollectedThisRun,
         breaks:breakVoidsDestroyed,
         drift:driftDistance,
-        hold:holdSeconds,
         tierCounts:{...tierCounts}
     };
 
@@ -6952,7 +7214,6 @@ if(replayReturnFlowIndex !== null){
         warps:warpCollectedThisRun,
         breaks:breakVoidsDestroyed,
         drift:driftDistance,
-        hold:holdSeconds,
         tierCounts:{...tierCounts}
     };
 
@@ -6977,7 +7238,7 @@ function updateChallenge(){
   updateHUD();
   if(!activeChallenge){
     activeChallenge=createFlow(currentFlowIndex);
-    challengeStart={found:foundCount,score,distance,strikes,rings:goldRingsPassed,shifts:shiftCountRun,warps:warpCollectedThisRun,breaks:breakVoidsDestroyed,drift:driftDistance,hold:holdSeconds,tierCounts:{...tierCounts}};
+    challengeStart={found:foundCount,score,distance,strikes,rings:goldRingsPassed,shifts:shiftCountRun,warps:warpCollectedThisRun,breaks:breakVoidsDestroyed,drift:driftDistance,tierCounts:{...tierCounts}};
     updateHUD();
   }
   const raw=challengeValue(activeChallenge);
@@ -6986,7 +7247,7 @@ function updateChallenge(){
   // Keep the active-play HUD minimal. Full flow number, category, title,
   // completion history, and exact totals remain available inside FLOW PATH.
   updateFlowHeading();
-  document.getElementById("challengeText").textContent=activeChallenge.metric==="hold" ? `${activeChallenge.label} • ${holdLaneName()}` : activeChallenge.label;
+  document.getElementById("challengeText").textContent=activeChallenge.label;
   document.getElementById("challengeFill").style.width=pct+"%";
   const challengePct=document.getElementById("challengePct");
   if(challengePct)challengePct.textContent=`${Math.floor(pct)}%`;
@@ -7111,46 +7372,62 @@ function flowHubStatusHtml(){
 function todayPickHtml(){
   refreshTodayVector();
 
-  const flow=createFlow(
-    Number(todayVector?.flowIndex)||0
-  );
+  const flow=
+    createFlow(
+      Number(
+        todayVector?.flowIndex
+      )||0
+    );
 
   const category=flow.category;
-  const color=FLOW_COLOR_MAP[category];
+
+  const cleared=
+    Math.max(
+      0,
+      Number(
+        todayVector?.completedCount
+      )||0
+    );
 
   return `
-    <div
+    <button
       class="todayPickCard"
+      id="todayVectorPlay"
+      type="button"
+      data-family-flow="${category}"
       style="
-        --flow-color:${color};
+        --flow-color:${FLOW_COLOR_MAP[category]};
         --flow-glow:${FLOW_GLOW_MAP[category]};
       "
     >
       <div class="todayPickTop">
         <span>TODAY'S PICK</span>
-        <span>${
-          todayVector?.completed
-            ?"COMPLETE ✓"
-            :"RECOMMENDED"
-        }</span>
+
+        <span>
+          ${
+            cleared
+              ?`${cleared} CLEARED TODAY`
+              :"RANDOM CHALLENGE"
+          }
+        </span>
       </div>
 
-      <div class="todayPickName">${category}</div>
-      <div class="todayPickObjective">${flow.label}</div>
+      <div class="todayPickName">
+        ${category}
+      </div>
 
-      <button
-        class="todayPickButton"
-        id="todayVectorPlay"
-        type="button"
-        data-family-flow="${category}"
-      >
-        ${
-          todayVector?.completed
-            ?"PLAY AGAIN"
-            :"PLAY TODAY'S PICK"
-        }
-      </button>
-    </div>
+      <div class="todayPickObjective">
+        ${flow.label}
+      </div>
+
+      <div class="todayPickBottom">
+        <span>
+          BEAT IT → GET A NEW PICK
+        </span>
+
+        <strong>PLAY</strong>
+      </div>
+    </button>
   `;
 }
 
@@ -7191,12 +7468,10 @@ function renderFlowArchive(){
 
     <div class="hubChooseHeader">
       <span>CHOOSE A FLOW</span>
-      <small>ALL NINE ARE ALWAYS OPEN</small>
+      <small>8 CORE FLOWS · TODAY'S PICK = 9TH EXPERIENCE</small>
     </div>
 
-    ${nineIndependentFlowCardsHtml()}
-
-    ${flowRecordsHtml()}
+    ${eightIndependentFlowCardsHtml()}
   `;
 
   list
@@ -7293,7 +7568,6 @@ function loadSelectedFlow(
         warps:warpCollectedThisRun,
         breaks:breakVoidsDestroyed,
         drift:driftDistance,
-        hold:holdSeconds,
         tierCounts:{...tierCounts}
     };
 
@@ -8394,18 +8668,11 @@ function passGoldRing(b){
 
   b.userData.state="collected";
   b.userData.fade=1;
-
-  // BREAK Flow inverts the Void: touching it destroys it instead of costing a life.
-  if(activeChallenge?.metric==="break"){
-    breakVoidsDestroyed++;
-    score+=250;
-    playRingPass();
-    pulseObjectiveHud();
-    if(navigator.vibrate)navigator.vibrate(18);
-    updateChallenge();
-    return;
-  }
   goldRingsPassed++;
+
+  if(activeChallenge?.category==="RINGS"){
+    addPrototypeTotal("RINGS",1);
+  }
 
   const ringPoints=
     awardBonusScore(
@@ -8432,11 +8699,15 @@ function passGoldRing(b){
   updateChallenge();
 }
 
-function makeVoidHazard(reason="normal",forcedLane=null){
+function makeVoidHazard(reason="normal",forcedLane=null,options={}){
   const activeVoids=beacons.filter(
     b=>b?.userData?.isVoid && b.userData.state==="active"
   ).length;
-  if(activeVoids>=5)return false;
+
+  // At most six Void bodies can be active at once.
+  if(activeVoids>=6)return false;
+
+  const isBreakTarget=!!options.breakTarget;
 
   trainId++;
 
@@ -8456,17 +8727,35 @@ function makeVoidHazard(reason="normal",forcedLane=null){
 
   const group=new THREE.Group();
 
-  // SHIFTVIX 2.9 — VOID SPIKE METEOR
-  // Fully opaque pitch-black center.
-  const core=new THREE.Mesh(
-    new THREE.SphereGeometry(7.45,28,28),
-    new THREE.MeshBasicMaterial({
-      color:0x000000,
-      transparent:false,
-      opacity:1,
-      depthWrite:false
-    })
-  );
+  /*
+    SOLID BLACK CENTER = lethal Void.
+    HOLLOW CYAN CENTER = BREAK target.
+  */
+  const core=isBreakTarget
+    ? new THREE.Mesh(
+        new THREE.TorusGeometry(
+          5.05,
+          .72,
+          12,
+          56
+        ),
+        new THREE.MeshBasicMaterial({
+          color:0x8ffcff,
+          transparent:true,
+          opacity:.98,
+          blending:THREE.AdditiveBlending,
+          depthWrite:false
+        })
+      )
+    : new THREE.Mesh(
+        new THREE.SphereGeometry(7.45,28,28),
+        new THREE.MeshBasicMaterial({
+          color:0x000000,
+          transparent:false,
+          opacity:1,
+          depthWrite:false
+        })
+      );
 
   // Fiery orange ring.
   const corona=new THREE.Mesh(
@@ -8575,11 +8864,30 @@ function makeVoidHazard(reason="normal",forcedLane=null){
     spikes.add(spike);
   }
 
+const breakHalo=isBreakTarget
+  ? new THREE.Mesh(
+      new THREE.TorusGeometry(
+        5.10,
+        1.45,
+        12,
+        56
+      ),
+      new THREE.MeshBasicMaterial({
+        color:0x35f2ff,
+        transparent:true,
+        opacity:.26,
+        blending:THREE.AdditiveBlending,
+        depthWrite:false
+      })
+    )
+  : null;
+
 group.add(aura);
   group.add(heat);
   group.add(spikes);
   group.add(corona);
   group.add(ring);
+  if(breakHalo)group.add(breakHalo);
   group.add(core);
 
   group.position.set(x,y,FAR_Z+135);
@@ -8593,7 +8901,9 @@ group.add(aura);
     aura,
     glow:aura,
     spikes,
+    breakHalo,
     isVoid:true,
+    isBreakTarget,
     state:"active",
     fade:1,
     train:trainId,
@@ -8717,13 +9027,30 @@ function spawnVoidVolley(reason="normal"){
 
   let spawned=0;
 
+  const breakFlow=
+    activeChallenge?.metric==="break";
+
+  const breakTargetCount=
+    breakFlow
+      ? (
+          count>=4 && Math.random()<.58
+            ? 2
+            : 1
+        )
+      : 0;
+
   for(let i=0;i<count;i++){
     if(
       makeVoidHazard(
         i===0
           ? reason
           : `meteor_group_${count}`,
-        allLanes[i]
+        allLanes[i],
+        {
+          breakTarget:
+            breakFlow &&
+            i<breakTargetCount
+        }
       )
     ){
       spawned++;
@@ -8731,6 +9058,49 @@ function spawnVoidVolley(reason="normal"){
   }
 
   return spawned;
+}
+
+
+const BREAK_VOID_PASS_RADIUS=7.1;
+const BREAK_VOID_DAMAGE_RADIUS=17.5;
+
+function breakHollowVoid(b){
+  if(
+    !b?.userData ||
+    b.userData.state!=="active" ||
+    !b.userData.isBreakTarget
+  ){
+    return false;
+  }
+
+  b.userData.state="collected";
+  b.userData.fade=1;
+
+  breakVoidsDestroyed++;
+
+  const points=
+    awardBonusScore(
+      400,
+      "break_void"
+    );
+
+  if(activeChallenge?.category==="BREAK"){
+    addPrototypeTotal("BREAK",1);
+  }
+
+  playRingPass();
+  pulseObjectiveHud();
+  showModeBanner(
+    `BREAK +1  +${points}`
+  );
+
+  if(navigator.vibrate){
+    navigator.vibrate([12,22,24]);
+  }
+
+  updateHUD();
+  updateChallenge();
+  return true;
 }
 
 function hitVoidHazard(b){
@@ -8858,6 +9228,10 @@ function activateWarp(reason,tier=1){
     isWarpFlowActive()
       ? warpFlowJumpDistance()
       : warpTierDistance(tier);
+
+  if(activeChallenge?.category==="WARP"){
+    addPrototypeTotal("WARP",1);
+  }
 
   const before=distance;
 
@@ -9306,6 +9680,10 @@ function scoreTrainToTrainShift(
 
   shiftCountRun++;
 
+  if(activeChallenge?.category==="SHIFT"){
+    addPrototypeTotal("SHIFT",1);
+  }
+
   trackGame(
     "lane_shift",
     {
@@ -9665,7 +10043,10 @@ function collectBeacon(b){
  if(b.userData.state!=="active")return;
 
  if(b.userData.isVoid){
-   hitVoidHazard(b);
+   // Hollow BREAK targets use center-hole crossing logic below.
+   if(!b.userData.isBreakTarget){
+     hitVoidHazard(b);
+   }
    return;
  }
 
@@ -9764,6 +10145,11 @@ if(fluxCollectionStreak>=FLUX_COLLECTION_STREAK_TARGET){
 }
 
 objectiveOrbsCollected++;
+
+if(activeChallenge?.category==="COLLECT"){
+  addPrototypeTotal("COLLECT",1);
+}
+
 if(environmentEngine?.current?.onCollect)environmentEngine.current.onCollect();
 
 tierCounts[b.userData.tier.name] =
@@ -9908,7 +10294,6 @@ function flowDisplayLabel(flow){
   if(flow.metric==="warp")return "WARP";
   if(flow.metric==="break")return "BREAK";
   if(flow.metric==="drift")return "DRIFT";
-  if(flow.metric==="hold")return `HOLD • ${holdLaneName()}`;
   if(flow.metric==="distance")return "DISTANCE";
   if(flow.metric==="score")return "SCORE";
   if(flow.metric==="level")return "LEVEL";
@@ -9922,9 +10307,6 @@ function formatRunFlowProgress(flow,value){
 
   if(flow.metric==="distance" || flow.metric==="drift"){
     return `${whole.toLocaleString()}m / ${target.toLocaleString()}m`;
-  }
-  if(flow.metric==="hold"){
-    return `${current.toFixed(1)}s / ${flow.target.toFixed(0)}s`;
   }
 
   if(flow.metric==="level"){
@@ -10201,22 +10583,48 @@ vix.style.transform = "translateY(0)";
 
 title.style.transform = "translate(-50%,-50%)";
 
-const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;shiftCountRun=0;shiftLastArrivalLane=null;shiftPreviousArrivalLane=null;lastRegularTrainContact=null;pendingTrainShift=null;warpFlowNextWarpDistance=Infinity;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=1.25;voidCountRun=0;goldRingsPassed=0;breakVoidsDestroyed=0;driftDistance=0;holdSeconds=0;chooseNewHoldLane();goldRingSpawnCooldown=2.5;goldRingSpawnedThisRun=0;goldRingSequenceRemaining=0;goldRingSequenceDelay=0;goldRingLastLane=null;goldRingSequenceAnchor=null;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
+const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;shiftCountRun=0;shiftLastArrivalLane=null;shiftPreviousArrivalLane=null;lastRegularTrainContact=null;pendingTrainShift=null;warpFlowNextWarpDistance=Infinity;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=1.25;voidCountRun=0;goldRingsPassed=0;breakVoidsDestroyed=0;driftDistance=0;prototypeLastScore=0;goldRingSpawnCooldown=2.5;goldRingSpawnedThisRun=0;goldRingSequenceRemaining=0;goldRingSequenceDelay=0;goldRingLastLane=null;goldRingSequenceAnchor=null;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
 
 lastLevel = 1;strikes = 0;milestonesReached = {};lastWarpBreakthrough=0;starColorUpdateFrame=0;launchSurge=0;runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;resetWarpBanking();applyFrozenGameViewport(stableViewportWidth,stableViewportHeight);resetEnvironmentForRun();beginCurrentFlow();updateStrikes();updateHUD();spawnWave();if(!musicStarted){startMusic();}else if(!musicTimer&&audioCtx){nextNoteTime=Math.max(nextNoteTime,audioCtx.currentTime+0.035);nextDrumTime=Math.max(nextDrumTime,audioCtx.currentTime+0.05);musicTimer=setInterval(musicScheduler,25);}}
 const title = document.getElementById("gameTitle");
 const shift = document.getElementById("shift");
 const vix = document.getElementById("vix");
 function animate(){requestAnimationFrame(animate);updateGamepad();const dt = Math.min(clock.getDelta(), .05);if(gameStarted&&!gameOver&&!paused){updateFluxBoost(dt);updateChronoState(dt);updateMidasState(dt);updateIonicThruster(dt);const worldTimeScale=THREE.MathUtils.lerp(1,CHRONO_WORLD_SCALE,chronoAmount);const worldDt=dt*worldTimeScale;const baseRunSpeed=SPEED_START+Math.min(150,distance*.018);speed=baseRunSpeed*(1+fluxBoostAmount*FLUX_SPEED_BOOST);const prototypeDistanceDelta=speed*worldDt*.08;distance+=prototypeDistanceDelta;
-// DRIFT counts only while the player is not in recent contact with a real train.
-if(activeChallenge?.metric==="drift"){
-  const recentTrain=lastRegularTrainContact && (performance.now()-lastRegularTrainContact.at)<=TRAIN_CONTACT_GRACE_MS;
-  if(!recentTrain)driftDistance+=prototypeDistanceDelta;
+
+if(activeChallenge?.category==="TRAVEL"){
+  addPrototypeTotal(
+    "TRAVEL",
+    prototypeDistanceDelta
+  );
 }
-// HOLD rewards deliberate positional control. Dodge a Void, then return to the target lane.
-if(activeChallenge?.metric==="hold" && laneX===holdTargetX && laneY===holdTargetY){
-  holdSeconds+=worldDt;
+
+if(
+  activeChallenge?.category==="DRIFT" &&
+  playerIsInOpenSpace()
+){
+  driftDistance+=prototypeDistanceDelta;
+  addPrototypeTotal(
+    "DRIFT",
+    prototypeDistanceDelta
+  );
 }
+
+if(activeChallenge?.category==="SCORE"){
+  const scoreDelta=Math.max(
+    0,
+    score-prototypeLastScore
+  );
+
+  if(scoreDelta>0){
+    addPrototypeTotal(
+      "SCORE",
+      scoreDelta
+    );
+  }
+}
+
+prototypeLastScore=score;
+
 level = Math.floor(distance / 500) + 1;
 heroMode = ((performance.now()-runStartTime)/1000) < HERO_SECONDS;
 if(!heroMode && heroBannerShown){heroBannerShown=false;}
@@ -10304,7 +10712,7 @@ if(
   scheduleNextPowerOrbOpportunity(false);
 }
 
-if(silentTutorialComplete){
+if(silentTutorialComplete || PROTOTYPE_FORCE_GAMEPLAY_SYSTEMS){
   voidSpawnCooldown-=worldDt;
 
   if(
@@ -10659,11 +11067,29 @@ if(b.userData.isVoid){
   if(b.userData.ring)b.userData.ring.material.opacity=.84+pulse*.14;
   if(b.userData.aura)b.userData.aura.material.opacity=.07+pulse*.09;
 
-  // Keep the VOID center absolutely pitch black.
   if(b.userData.core){
-    b.userData.core.material.transparent=false;
-    b.userData.core.material.opacity=1;
-    b.userData.core.material.color.setHex(0x000000);
+    if(b.userData.isBreakTarget){
+      const attackPulse=
+        .5+
+        .5*Math.sin(t*1.45);
+
+      b.userData.core.material.transparent=true;
+      b.userData.core.material.opacity=
+        .76+
+        attackPulse*.24;
+      b.userData.core.material.color.setHex(0x8ffcff);
+
+      if(b.userData.breakHalo){
+        b.userData.breakHalo.material.opacity=
+          .16+
+          attackPulse*.28;
+        b.userData.breakHalo.rotation.z-=worldDt*1.4;
+      }
+    }else{
+      b.userData.core.material.transparent=false;
+      b.userData.core.material.opacity=1;
+      b.userData.core.material.color.setHex(0x000000);
+    }
   }
 
   const approach=THREE.MathUtils.clamp(
@@ -10735,7 +11161,26 @@ const voidInFrontHitWindow=
 
 const voidCanHit=
   b.userData.isVoid &&
+  !b.userData.isBreakTarget &&
   (voidInFrontHitWindow||voidCrossedPlayer);
+
+/*
+  HOLLOW BREAK VOID:
+  center hole = destroy.
+  fiery body = damage.
+  miss it = safe.
+*/
+if(
+  b.userData.isBreakTarget &&
+  b.userData.state==="active" &&
+  voidCrossedPlayer
+){
+  if(dxy<=BREAK_VOID_PASS_RADIUS){
+    breakHollowVoid(b);
+  }else if(dxy<=BREAK_VOID_DAMAGE_RADIUS){
+    hitVoidHazard(b);
+  }
+}
 
 if(
   midasAutoCollect ||
