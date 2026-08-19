@@ -1,18 +1,114 @@
 <!DOCTYPE html>
 <html>
-<!-- SHIFTVIX WORKING PROTOTYPE V2 — NO GOOGLE ANALYTICS -->
+<!-- Google Analytics — SHIFTVIX Retention Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-M88902RHLE"></script>
 <script>
-const isDeveloper=true;
-function gtag(){ return; }
-function track(){ return; }
-const ANALYTICS_EVENT_ALIASES={};
-const ANALYTICS_ALLOWED_EVENTS=new Set();
+window.dataLayer = window.dataLayer || [];
+
+function gtag(){
+  dataLayer.push(arguments);
+}
+
+gtag("js",new Date());
+
+const analyticsParams=
+  new URLSearchParams(
+    window.location.search
+  );
+
+/*
+  Developer testing never reaches GA4.
+  ?developer=true persists developer mode on this browser.
+  ?developer=false clears it again.
+*/
+if(analyticsParams.get("developer")==="true"){
+  localStorage.setItem(
+    "shiftvixDeveloper",
+    "true"
+  );
+}
+
+if(analyticsParams.get("developer")==="false"){
+  localStorage.removeItem(
+    "shiftvixDeveloper"
+  );
+}
+
+const isDeveloper=
+  analyticsParams.get("developer")==="true" ||
+  (
+    analyticsParams.get("developer")!=="false" &&
+    localStorage.getItem(
+      "shiftvixDeveloper"
+    )==="true"
+  );
+
+/*
+  GA4 already supplies page/session/user engagement.
+  Keep custom events limited to questions that matter for:
+  retention, Flow preference/difficulty, run health, and core mechanics.
+*/
+const ANALYTICS_EVENT_ALIASES={
+  flow_family_selected:"flow_selected",
+  current_flow_completed:"flow_completed",
+  today_vector_completed:"today_pick_completed",
+  vector_personal_record:"personal_best",
+  gold_ring_passed:"ring_passed",
+  warp_orb_collected:"warp_collected"
+};
+
+const ANALYTICS_ALLOWED_EVENTS=new Set([
+  "first_run",
+  "game_started",
+  "player_returned",
+  "flow_selected",
+  "flow_completed",
+  "flow_attempt_ended",
+  "run_ended",
+  "today_pick_started",
+  "today_pick_completed",
+  "personal_best",
+  "void_hit",
+  "ring_passed",
+  "warp_collected"
+]);
+
+gtag("config","G-M88902RHLE",{
+  developer_mode:isDeveloper,
+  send_page_view:!isDeveloper
+});
+
+function track(eventName,data={}){
+  const cleanName=
+    ANALYTICS_EVENT_ALIASES[eventName] ||
+    eventName;
+
+  if(isDeveloper){
+    console.log(
+      "[Developer analytics blocked]",
+      cleanName,
+      data
+    );
+    return;
+  }
+
+  if(!ANALYTICS_ALLOWED_EVENTS.has(cleanName)){
+    return;
+  }
+
+  if(typeof gtag==="function"){
+    gtag(
+      "event",
+      cleanName,
+      data
+    );
+  }
+}
 </script>
 
 
 <head>
-<!-- STANDALONE WORKING PROTOTYPE: 9 LANES / 9 FLOWS. DO NOT USE AS PRODUCTION INDEX. -->
-<!-- SHIFTVIX WORKING PROTOTYPE V5 — FLOW COUNTS + FAMILIAR DRIFT COINS -->
+<!-- SHIFTVIX — 8 CORE FLOWS + RANDOM DAILY PICK + DRIFT -->
 <meta charset="utf-8">
 <link rel="icon" type="image/png" href="icon-512.png">
 
@@ -27,7 +123,7 @@ const ANALYTICS_ALLOWED_EVENTS=new Set();
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <!-- SHIFTVIX 2.11 — GOLD RINGS + FIVE EVEN OBJECTIVE TYPES -->
-<title>SHIFTVIX — 9 FLOW WORKING PROTOTYPE</title>
+<title>SHIFTVIX</title>
 <style>
 html,body{
   margin:0;
@@ -3396,8 +3492,8 @@ let goldRingSequenceAnchor=null;
 const GOLD_RING_PASS_RADIUS=16;
 
 // =========================
-// SHIFTVIX 8 FLOWS + DAILY PICK — WORKING PROTOTYPE V2
-// Production analytics are intentionally disabled.
+// SHIFTVIX — 8 CORE FLOWS + RANDOM DAILY PICK
+// Production retention analytics are enabled above; developer mode is excluded.
 // =========================
 const PROTOTYPE_FORCE_GAMEPLAY_SYSTEMS=true;
 const PROTOTYPE_TOTALS_KEY="shiftvixProtoV2Totals";
@@ -4979,7 +5075,8 @@ function playCoin(tier){if(!audioCtx)return;const now=audioCtx.currentTime,osc=a
 // The nine spatial lanes are mapped across the existing six coin tiers.
 // This keeps DRIFT recognizable as SHIFTVIX while making empty space
 // feel like an invisible lane of collectibles.
-const DRIFT_AUDIO_STEP_METERS=5.2;
+// Match the cadence of one normal orb immediately following another.
+const DRIFT_AUDIO_STEP_METERS=TRAIN_GAP*.08;
 
 // Existing coin tiers:
 // 0 WHITE, 1 BLUE, 2 GREEN, 3 PURPLE, 4 ORANGE, 5 RED
@@ -5712,6 +5809,17 @@ function chooseFlowFamily(
   }
 
   const flowIndex=currentFamilyFlowIndex(category);
+  const selectedFlow=createFlow(flowIndex);
+
+  trackGame("flow_selected",{
+    category:selectedFlow.category,
+    flow_number:flowIndex+1,
+    source:"flow_hub",
+    family_completed:
+      familyCompletedCount(
+        selectedFlow.category
+      )
+  });
 
   playingTodayPick=false;
   currentFlowIndex=flowIndex;
@@ -6101,6 +6209,30 @@ function revealAndLaunchTodayPick(){
   const flowIndex=randomDailyFlowIndex(excluded);
   const flow=createFlow(flowIndex);
 
+  trackGame("today_pick_started",{
+    category:flow.category,
+    flow_number:flowIndex+1,
+    excluded_previous_category:
+      excluded||"none",
+    picks_completed_today:
+      Math.max(
+        0,
+        Number(
+          todayVector?.completedCount
+        )||0
+      )
+  });
+
+  trackGame("flow_selected",{
+    category:flow.category,
+    flow_number:flowIndex+1,
+    source:"today_pick",
+    family_completed:
+      familyCompletedCount(
+        flow.category
+      )
+  });
+
   playingTodayPick=true;
   currentFlowIndex=flowIndex;
   replayReturnFlowIndex=null;
@@ -6144,6 +6276,17 @@ function markTodayVectorComplete(flowIndex){
   todayVector.lastCompletedCategory=flow.category;
 
   saveTodayVector();
+
+  trackGame("today_pick_completed",{
+    category:flow.category,
+    flow_number:Number(flowIndex)+1,
+    picks_completed_today:
+      todayVector.completedCount,
+    family_completed:
+      familyCompletedCount(
+        flow.category
+      )
+  });
 
   playingTodayPick=false;
   return true;
