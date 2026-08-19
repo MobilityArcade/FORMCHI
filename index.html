@@ -12,7 +12,7 @@ const ANALYTICS_ALLOWED_EVENTS=new Set();
 
 <head>
 <!-- STANDALONE WORKING PROTOTYPE: 9 LANES / 9 FLOWS. DO NOT USE AS PRODUCTION INDEX. -->
-<!-- SHIFTVIX WORKING PROTOTYPE V2 — 8 FLOWS + DAILY PICK -->
+<!-- SHIFTVIX WORKING PROTOTYPE V4 — RANDOM PICK + DRIFT COINS -->
 <meta charset="utf-8">
 <link rel="icon" type="image/png" href="icon-512.png">
 
@@ -4940,63 +4940,94 @@ const TIERS=[{name:"WHITE",color:0xffffff,value:10,size:3.8,freq:880},{name:"BLU
 function initAudio(){if(audioCtx){if(audioCtx.state!=="running")audioCtx.resume();return;}audioCtx=new (window.AudioContext||window.webkitAudioContext)();}
 function playCoin(tier){if(!audioCtx)return;const now=audioCtx.currentTime,osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type="square";osc.frequency.setValueAtTime(tier.freq,now);osc.frequency.exponentialRampToValueAtTime(tier.freq*1.55,now+.055);gain.gain.setValueAtTime(.0001,now);gain.gain.linearRampToValueAtTime(.018,now+.008);gain.gain.exponentialRampToValueAtTime(.0001,now+.105);osc.connect(gain).connect(audioCtx.destination);osc.start(now);osc.stop(now+.13);if(tier.value>=100){const osc2=audioCtx.createOscillator(),gain2=audioCtx.createGain();osc2.type="sine";osc2.frequency.setValueAtTime(tier.freq*2,now+.035);gain2.gain.setValueAtTime(.0001,now+.035);gain2.gain.linearRampToValueAtTime(.018,now+.045);gain2.gain.exponentialRampToValueAtTime(.0001,now+.16);osc2.connect(gain2).connect(audioCtx.destination);osc2.start(now+.035);osc2.stop(now+.18);}}
 
-// SHIFTVIX DRIFT AUDIO V3
-// In DRIFT, ordinary orb collection is intentionally silent.
-// Open space becomes the reward: frequent, soft lane-dependent tones.
-const DRIFT_AUDIO_STEP_METERS=7.5;
-const DRIFT_LANE_FREQS=[164.81,185.00,207.65,220.00,246.94,277.18,311.13,329.63,369.99];
+// SHIFTVIX DRIFT AUDIO V4
+// Negative space becomes the reward.
+// Normal orb pickup sounds remain muted during DRIFT.
+const DRIFT_AUDIO_STEP_METERS=5.2;
+const DRIFT_LANE_FREQS=[
+  174.61,196.00,220.00,
+  233.08,261.63,293.66,
+  329.63,349.23,392.00
+];
+
 let driftAudioMeterCarry=0;
 let driftAudioLastLane=-1;
+let driftAudioPhraseStep=0;
 
 function driftAudioLaneIndex(){
-  // Map the current 3x3 position to the same nine spatial lanes.
   const col=playerX<-16?0:(playerX>16?2:1);
   const row=playerY>16?0:(playerY<-16?2:1);
   return row*3+col;
 }
 
-function playDriftTone(laneIndex){
+function playDriftCoin(laneIndex,phraseStep=0){
   if(!audioCtx)return;
+
   const now=audioCtx.currentTime;
-  const freq=DRIFT_LANE_FREQS[Math.max(0,Math.min(8,laneIndex|0))];
+  const lane=Math.max(0,Math.min(8,laneIndex|0));
+  const root=DRIFT_LANE_FREQS[lane];
+
+  // Four-note alternating phrase gives the same satisfying repetition
+  // as coin lanes, but with a softer/rounder identity.
+  const intervalPattern=[1,1.12246,1.25992,1.12246];
+  const freq=root*intervalPattern[phraseStep%intervalPattern.length];
 
   const osc=audioCtx.createOscillator();
+  const overtone=audioCtx.createOscillator();
   const gain=audioCtx.createGain();
+  const overtoneGain=audioCtx.createGain();
   const filter=audioCtx.createBiquadFilter();
 
-  osc.type="sine";
+  osc.type="triangle";
+  overtone.type="sine";
+
   osc.frequency.setValueAtTime(freq,now);
-  osc.frequency.exponentialRampToValueAtTime(freq*1.025,now+.085);
+  osc.frequency.exponentialRampToValueAtTime(freq*1.035,now+.095);
+  overtone.frequency.setValueAtTime(freq*2,now);
 
   filter.type="lowpass";
-  filter.frequency.setValueAtTime(1150,now);
-  filter.Q.setValueAtTime(.35,now);
+  filter.frequency.setValueAtTime(1700,now);
+  filter.Q.setValueAtTime(.45,now);
 
   gain.gain.setValueAtTime(.0001,now);
-  gain.gain.linearRampToValueAtTime(.0105,now+.012);
-  gain.gain.exponentialRampToValueAtTime(.0001,now+.145);
+  gain.gain.linearRampToValueAtTime(.026,now+.008);
+  gain.gain.exponentialRampToValueAtTime(.0001,now+.18);
+
+  overtoneGain.gain.setValueAtTime(.0001,now);
+  overtoneGain.gain.linearRampToValueAtTime(.0068,now+.01);
+  overtoneGain.gain.exponentialRampToValueAtTime(.0001,now+.11);
 
   osc.connect(filter).connect(gain).connect(audioCtx.destination);
+  overtone.connect(overtoneGain).connect(audioCtx.destination);
+
   osc.start(now);
-  osc.stop(now+.17);
+  overtone.start(now);
+  osc.stop(now+.20);
+  overtone.stop(now+.13);
 }
 
 function updateDriftAudio(distanceDelta,isOpenSpace){
   if(activeChallenge?.category!=="DRIFT" || !isOpenSpace){
     driftAudioMeterCarry=0;
     driftAudioLastLane=-1;
+    driftAudioPhraseStep=0;
     return;
   }
 
   driftAudioMeterCarry+=Math.max(0,Number(distanceDelta)||0);
   const lane=driftAudioLaneIndex();
 
-  while(driftAudioMeterCarry>=DRIFT_AUDIO_STEP_METERS){
-    driftAudioMeterCarry-=DRIFT_AUDIO_STEP_METERS;
-    playDriftTone(lane);
+  // Changing lanes gives a tiny extra reward accent.
+  if(driftAudioLastLane!==-1 && lane!==driftAudioLastLane){
+    playDriftCoin(lane,driftAudioPhraseStep++);
   }
 
   driftAudioLastLane=lane;
+
+  while(driftAudioMeterCarry>=DRIFT_AUDIO_STEP_METERS){
+    driftAudioMeterCarry-=DRIFT_AUDIO_STEP_METERS;
+    playDriftCoin(lane,driftAudioPhraseStep++);
+  }
 }
 
 function playStrike(){if(!audioCtx)return;const now=audioCtx.currentTime,osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type="sawtooth";osc.frequency.setValueAtTime(180,now);osc.frequency.exponentialRampToValueAtTime(70,now+.22);gain.gain.setValueAtTime(.0001,now);gain.gain.linearRampToValueAtTime(.05,now+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+.28);osc.connect(gain).connect(audioCtx.destination);osc.start(now);osc.stop(now+.3);}
@@ -5595,52 +5626,18 @@ function chooseFlowFamily(
     return false;
   }
 
-  let flowIndex;
+  const flowIndex=currentFamilyFlowIndex(category);
 
-  if(source==="today_pick"){
-    refreshTodayVector();
-
-    flowIndex=
-      Math.max(
-        0,
-        Math.min(
-          FLOW_TOTAL-1,
-          Number(
-            todayVector?.flowIndex
-          )||0
-        )
-      );
-
-    playingTodayPick=true;
-  }else{
-    flowIndex=
-      currentFamilyFlowIndex(
-        category
-      );
-
-    playingTodayPick=false;
-  }
-
+  playingTodayPick=false;
   currentFlowIndex=flowIndex;
   replayReturnFlowIndex=null;
   saveFlowProgress();
 
   if(gameOver){
-    const archive=
-      document.getElementById(
-        "flowArchive"
-      );
-
+    const archive=document.getElementById("flowArchive");
     archive?.classList.remove("show");
-    archive?.setAttribute(
-      "aria-hidden",
-      "true"
-    );
-
-    document.body.classList.remove(
-      "uiModalOpen"
-    );
-
+    archive?.setAttribute("aria-hidden","true");
+    document.body.classList.remove("uiModalOpen");
     resetRun();
     return true;
   }
@@ -5923,56 +5920,10 @@ function selectableDailyFlowIndexes(){
   return currentEightFlowIndexes();
 }
 
-function prototypeDailySeed(
-  date,
-  sequence
-){
+function prototypeDailySeed(date,sequence){
   return hashDateKey(
-    `${date}|${sequence}|SHIFTVIX-PROTO-V2`
+    `${date}|${sequence}|SHIFTVIX-PROTO-V4`
   );
-}
-
-function createPrototypeDailyPick(
-  date,
-  sequence=0,
-  previousCategory=""
-){
-  let choices=
-    selectableDailyFlowIndexes();
-
-  if(previousCategory && choices.length>1){
-    const alternatives=choices.filter(index=>
-      createFlow(index).category!==previousCategory
-    );
-    if(alternatives.length){
-      choices=alternatives;
-    }
-  }
-
-  // A fresh shuffle after every completed Today's Pick.
-  // The just-completed category is excluded, so the next challenge is visibly new.
-  const cryptoValue=(()=>{
-    try{
-      const a=new Uint32Array(1);
-      crypto.getRandomValues(a);
-      return a[0]>>>0;
-    }catch(e){
-      return Math.floor(Math.random()*0xFFFFFFFF)>>>0;
-    }
-  })();
-
-  const mixed=(
-    cryptoValue ^
-    prototypeDailySeed(date,sequence) ^
-    ((sequence+1)*2654435761)
-  )>>>0;
-
-  return {
-    date,
-    sequence,
-    completedCount:sequence,
-    flowIndex:choices[mixed%choices.length]
-  };
 }
 
 function loadTodayVector(){
@@ -5980,123 +5931,134 @@ function loadTodayVector(){
 
   try{
     const saved=JSON.parse(
-      localStorage.getItem(
-        PROTOTYPE_DAILY_KEY
-      )||"null"
+      localStorage.getItem(PROTOTYPE_DAILY_KEY)||"null"
     );
 
-    if(
-      saved &&
-      saved.date===date &&
-      Number.isFinite(
-        saved.flowIndex
-      )
-    ){
-      return saved;
+    if(saved && saved.date===date){
+      return {
+        date,
+        sequence:Math.max(0,Number(saved.sequence)||0),
+        completedCount:Math.max(0,Number(saved.completedCount)||0),
+        lastCompletedCategory:String(saved.lastCompletedCategory||"")
+      };
     }
   }catch(e){}
 
-  const today=
-    createPrototypeDailyPick(
-      date,
-      0,
-      ""
-    );
+  const fresh={
+    date,
+    sequence:0,
+    completedCount:0,
+    lastCompletedCategory:""
+  };
 
   localStorage.setItem(
     PROTOTYPE_DAILY_KEY,
-    JSON.stringify(today)
+    JSON.stringify(fresh)
   );
 
-  return today;
+  return fresh;
 }
 
 let todayVector=null;
 
 function refreshTodayVector(){
-  todayVector=
-    loadTodayVector();
-
-  if(todayVector){
-    const savedFlow=
-      createFlow(
-        Math.max(
-          0,
-          Math.min(
-            FLOW_TOTAL-1,
-            Number(
-              todayVector.flowIndex
-            )||0
-          )
-        )
-      );
-
-    todayVector.flowIndex=
-      currentFamilyFlowIndex(
-        savedFlow.category
-      );
-  }
-
+  todayVector=loadTodayVector();
   return todayVector;
 }
 
-function advanceTodayVector(
-  previousCategory
-){
-  const date=localDateKey();
-
-  const sequence=
-    Math.max(
-      0,
-      Number(
-        todayVector?.sequence
-      )||0
-    )+1;
-
-  todayVector=
-    createPrototypeDailyPick(
-      date,
-      sequence,
-      previousCategory
+function saveTodayVector(){
+  try{
+    localStorage.setItem(
+      PROTOTYPE_DAILY_KEY,
+      JSON.stringify(todayVector)
     );
-
-  localStorage.setItem(
-    PROTOTYPE_DAILY_KEY,
-    JSON.stringify(todayVector)
-  );
-
-  return todayVector;
+  }catch(e){}
 }
 
-function markTodayVectorComplete(
-  flowIndex
-){
+function randomDailyFlowIndex(excludedCategory=""){
+  let choices=selectableDailyFlowIndexes();
+
+  if(excludedCategory && choices.length>1){
+    const alternatives=choices.filter(
+      index=>createFlow(index).category!==excludedCategory
+    );
+    if(alternatives.length)choices=alternatives;
+  }
+
+  let randomValue;
+
+  try{
+    const a=new Uint32Array(1);
+    crypto.getRandomValues(a);
+    randomValue=a[0]>>>0;
+  }catch(e){
+    randomValue=Math.floor(Math.random()*0xFFFFFFFF)>>>0;
+  }
+
+  const sequence=Math.max(0,Number(todayVector?.sequence)||0);
+
+  const mixed=(
+    randomValue ^
+    prototypeDailySeed(localDateKey(),sequence) ^
+    ((sequence+1)*2654435761)
+  )>>>0;
+
+  return choices[mixed%choices.length];
+}
+
+function revealAndLaunchTodayPick(){
   refreshTodayVector();
 
-  if(
-    !playingTodayPick ||
-    !todayVector
-  ){
-    return false;
-  }
-
-  if(
-    Number(flowIndex)!==
-    Number(todayVector.flowIndex)
-  ){
-    return false;
-  }
-
-  const finishedCategory=
-    createFlow(flowIndex).category;
-
-  advanceTodayVector(
-    finishedCategory
+  const excluded=String(
+    todayVector?.lastCompletedCategory||""
   );
 
-  // Re-read the new card immediately so the completed Today's Pick
-  // can never remain displayed as the next challenge.
+  const flowIndex=randomDailyFlowIndex(excluded);
+  const flow=createFlow(flowIndex);
+
+  playingTodayPick=true;
+  currentFlowIndex=flowIndex;
+  replayReturnFlowIndex=null;
+  saveFlowProgress();
+
+  if(gameOver){
+    const archive=document.getElementById("flowArchive");
+    archive?.classList.remove("show");
+    archive?.setAttribute("aria-hidden","true");
+    document.body.classList.remove("uiModalOpen");
+    resetRun();
+    return true;
+  }
+
+  loadSelectedFlow(
+    flowIndex,
+    {
+      replay:false,
+      announce:false
+    }
+  );
+
+  return true;
+}
+
+function markTodayVectorComplete(flowIndex){
   refreshTodayVector();
+
+  if(!playingTodayPick){
+    return false;
+  }
+
+  const flow=createFlow(Number(flowIndex)||0);
+
+  todayVector.sequence=
+    Math.max(0,Number(todayVector.sequence)||0)+1;
+
+  todayVector.completedCount=
+    Math.max(0,Number(todayVector.completedCount)||0)+1;
+
+  todayVector.lastCompletedCategory=flow.category;
+
+  saveTodayVector();
 
   playingTodayPick=false;
   return true;
@@ -7440,37 +7402,25 @@ function flowHubStatusHtml(){
 function todayPickHtml(){
   refreshTodayVector();
 
-  const flow=
-    createFlow(
-      Number(
-        todayVector?.flowIndex
-      )||0
-    );
-
-  const category=flow.category;
-
   const cleared=
     Math.max(
       0,
-      Number(
-        todayVector?.completedCount
-      )||0
+      Number(todayVector?.completedCount)||0
     );
 
   return `
     <button
-      class="todayPickCard"
+      class="todayPickCard todayPickMystery"
       id="todayVectorPlay"
       type="button"
-      data-family-flow="${category}"
+      aria-label="Today's Pick: Random Challenge"
       style="
-        --flow-color:${FLOW_COLOR_MAP[category]};
-        --flow-glow:${FLOW_GLOW_MAP[category]};
+        --flow-color:#ffd36a;
+        --flow-glow:rgba(255,211,106,.24);
       "
     >
       <div class="todayPickTop">
         <span>TODAY'S PICK</span>
-
         <span>
           ${
             cleared
@@ -7481,18 +7431,15 @@ function todayPickHtml(){
       </div>
 
       <div class="todayPickName">
-        ${category}
+        RANDOM CHALLENGE
       </div>
 
       <div class="todayPickObjective">
-        ${flow.label}
+        TAP PLAY TO REVEAL YOUR NEXT FLOW
       </div>
 
       <div class="todayPickBottom">
-        <span>
-          BEAT IT → GET A NEW PICK
-        </span>
-
+        <span>NO BACK-TO-BACK CATEGORY REPEATS</span>
         <strong>PLAY</strong>
       </div>
     </button>
@@ -7542,22 +7489,26 @@ function renderFlowArchive(){
     ${eightIndependentFlowCardsHtml()}
   `;
 
+  // Eight permanent Flow cards.
   list
     .querySelectorAll("[data-family-flow]")
     .forEach(button=>{
       button.addEventListener("click",event=>{
         event.stopPropagation();
 
-        const category=
-          button.dataset.familyFlow;
-
         chooseFlowFamily(
-          category,
-          button.id==="todayVectorPlay"
-            ?"today_pick"
-            :"flow_hub"
+          button.dataset.familyFlow,
+          "flow_hub"
         );
       });
+    });
+
+  // Ninth experience: true random surprise Flow.
+  document
+    .getElementById("todayVectorPlay")
+    ?.addEventListener("click",event=>{
+      event.stopPropagation();
+      revealAndLaunchTodayPick();
     });
 
   document
@@ -10653,7 +10604,7 @@ vix.style.transform = "translateY(0)";
 
 title.style.transform = "translate(-50%,-50%)";
 
-const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;shiftCountRun=0;shiftLastArrivalLane=null;shiftPreviousArrivalLane=null;lastRegularTrainContact=null;pendingTrainShift=null;warpFlowNextWarpDistance=Infinity;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=1.25;voidCountRun=0;goldRingsPassed=0;breakVoidsDestroyed=0;driftDistance=0;driftAudioMeterCarry=0;driftAudioLastLane=-1;prototypeLastScore=0;goldRingSpawnCooldown=2.5;goldRingSpawnedThisRun=0;goldRingSequenceRemaining=0;goldRingSequenceDelay=0;goldRingLastLane=null;goldRingSequenceAnchor=null;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
+const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;shiftCountRun=0;shiftLastArrivalLane=null;shiftPreviousArrivalLane=null;lastRegularTrainContact=null;pendingTrainShift=null;warpFlowNextWarpDistance=Infinity;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=1.25;voidCountRun=0;goldRingsPassed=0;breakVoidsDestroyed=0;driftDistance=0;driftAudioMeterCarry=0;driftAudioLastLane=-1;driftAudioPhraseStep=0;prototypeLastScore=0;goldRingSpawnCooldown=2.5;goldRingSpawnedThisRun=0;goldRingSequenceRemaining=0;goldRingSequenceDelay=0;goldRingLastLane=null;goldRingSequenceAnchor=null;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
 
 lastLevel = 1;strikes = 0;milestonesReached = {};lastWarpBreakthrough=0;starColorUpdateFrame=0;launchSurge=0;runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;resetWarpBanking();applyFrozenGameViewport(stableViewportWidth,stableViewportHeight);resetEnvironmentForRun();beginCurrentFlow();updateStrikes();updateHUD();spawnWave();if(!musicStarted){startMusic();}else if(!musicTimer&&audioCtx){nextNoteTime=Math.max(nextNoteTime,audioCtx.currentTime+0.035);nextDrumTime=Math.max(nextDrumTime,audioCtx.currentTime+0.05);musicTimer=setInterval(musicScheduler,25);}}
 const title = document.getElementById("gameTitle");
