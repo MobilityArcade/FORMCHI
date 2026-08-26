@@ -28,7 +28,7 @@ const ANALYTICS_ALLOWED_EVENTS=new Set();
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <!-- SHIFTVIX 2.11 — GOLD RINGS + FIVE EVEN OBJECTIVE TYPES -->
-<title>SHIFTVIX — TRAVELER LAB V3 — SHIFTVIX — TRAVELER LAB V2 · THIRD EYE FLIGHT</title>
+<title>SHIFTVIX — TRAVELER LAB V5 BREATH + AURA V3 — SHIFTVIX — TRAVELER LAB V2 · THIRD EYE FLIGHT</title>
 <style>
 html,body{
   margin:0;
@@ -3227,6 +3227,88 @@ body.uiModalOpen #center{pointer-events:none}
   }
 }
 
+
+/* ============================================================
+   SHIFTVIX TRAVELER LAB V5 — BREATH + SILVER AURA
+   Keeps the exact user-drawn silhouette geometry from V4.
+   Adds only a restrained neutral aura and near-subliminal breath.
+   ============================================================ */
+#center .travelerExact{
+  --traveler-state-rgb:248,252,255;
+}
+#center.reactorNormal .travelerExact{--traveler-state-rgb:248,252,255;}
+#center.reactorDamage .travelerExact{--traveler-state-rgb:255,48,48;}
+#center.reactorMidas .travelerExact{--traveler-state-rgb:255,190,45;}
+#center.reactorChrono .travelerExact{--traveler-state-rgb:170,135,255;}
+#center.reactorFlux .travelerExact{--traveler-state-rgb:70,225,255;}
+
+/* Crisp drawing: still quiet, readable, and transparent through the body. */
+#center .travelerBody.travelerExact.travelerFigure{
+  background:rgba(var(--traveler-state-rgb),.62);
+  opacity:.62;
+  filter:drop-shadow(0 0 2px rgba(var(--traveler-state-rgb),.28));
+  scale:1 1;
+  animation:travelerFigureBreath 4.4s ease-in-out infinite;
+  z-index:-2;
+}
+
+/* Aura: same exact silhouette, softened behind the crisp line.
+   It should read as emitted energy rather than a second body. */
+#center .travelerBody.travelerExact.travelerAura{
+  background:rgba(var(--traveler-state-rgb),.30);
+  opacity:.18;
+  filter:
+    blur(1.6px)
+    drop-shadow(0 0 4px rgba(var(--traveler-state-rgb),.28))
+    drop-shadow(0 0 10px rgba(var(--traveler-state-rgb),.12));
+  scale:1.004 1.008;
+  animation:travelerAuraBreath 4.4s ease-in-out infinite;
+  z-index:-3;
+}
+
+/* The breath is intentionally tiny: shoulders/body expand about 1%. */
+@keyframes travelerFigureBreath{
+  0%,100%{scale:1 1;margin-top:2px;}
+  50%{scale:1.007 1.011;margin-top:-2px;}
+}
+@keyframes travelerAuraBreath{
+  0%,100%{scale:1.004 1.008;opacity:.14;margin-top:2px;}
+  50%{scale:1.016 1.022;opacity:.23;margin-top:-3px;}
+}
+
+/* State reactions keep the same body shape; only light behavior changes. */
+#center.reactorDamage .travelerFigure{
+  opacity:.92;
+  filter:drop-shadow(0 0 5px rgba(255,48,48,.70)) drop-shadow(0 0 11px rgba(255,20,20,.30));
+  animation:travelerDamagePulse .38s ease-out;
+}
+#center.reactorDamage .travelerAura{
+  opacity:.42;
+  filter:blur(2px) drop-shadow(0 0 8px rgba(255,35,35,.68)) drop-shadow(0 0 18px rgba(255,0,0,.24));
+  animation:travelerDamageAura .38s ease-out;
+}
+#center.reactorMidas .travelerFigure{opacity:.76;filter:drop-shadow(0 0 4px rgba(255,190,45,.46));}
+#center.reactorMidas .travelerAura{opacity:.27;filter:blur(1.8px) drop-shadow(0 0 7px rgba(255,178,25,.42)) drop-shadow(0 0 15px rgba(255,160,0,.15));}
+#center.reactorChrono .travelerFigure{opacity:.67;filter:drop-shadow(0 0 3px rgba(170,135,255,.36));animation-duration:5.8s;}
+#center.reactorChrono .travelerAura{opacity:.21;filter:blur(2px) drop-shadow(0 0 7px rgba(145,105,255,.34));animation-duration:5.8s;}
+#center.reactorFlux .travelerFigure{opacity:.71;filter:drop-shadow(0 0 4px rgba(70,225,255,.40));animation-duration:2.1s;}
+#center.reactorFlux .travelerAura{opacity:.25;filter:blur(1.8px) drop-shadow(0 0 8px rgba(45,220,255,.40));animation-duration:2.1s;}
+
+@keyframes travelerDamagePulse{
+  0%{scale:.985 .985;opacity:.26;}
+  28%{scale:1.012 1.012;opacity:1;}
+  100%{scale:1 1;opacity:.92;}
+}
+@keyframes travelerDamageAura{
+  0%{scale:.99 .99;opacity:.08;}
+  30%{scale:1.025 1.035;opacity:.58;}
+  100%{scale:1.008 1.012;opacity:.42;}
+}
+
+@media(prefers-reduced-motion:reduce){
+  #center .travelerFigure,#center .travelerAura{animation:none!important;scale:1 1!important;}
+}
+
 </style>
 </head>
 <body>
@@ -3241,7 +3323,7 @@ body.uiModalOpen #center{pointer-events:none}
 </div>
 <div style="display:none"><span id="world">Distance Run</span>
 <span id="found">0</span><span id="score">0</span><span id="bestScore">0</span><span id="combo">1x</span><div id="signal"></div></div></div>
-<div id="center" class="reactorNormal" aria-label="Pause"><div class="travelerBody travelerExact" aria-hidden="true"></div><span class="reactorPlume"></span><span class="reactorMiddle"></span><span class="reactorOuter"></span><span class="reactorCore"></span></div><div id="pauseText">PAUSED</div><div id="laneLabel">CENTER</div><div id="roundComplete"></div>
+<div id="center" class="reactorNormal" aria-label="Pause"><div class="travelerBody travelerExact travelerAura" aria-hidden="true"></div><div class="travelerBody travelerExact travelerFigure" aria-hidden="true"></div><span class="reactorPlume"></span><span class="reactorMiddle"></span><span class="reactorOuter"></span><span class="reactorCore"></span></div><div id="pauseText">PAUSED</div><div id="laneLabel">CENTER</div><div id="roundComplete"></div>
 <div id="pauseMenu" aria-hidden="true">
   <div class="pausePanel" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
     <div class="pauseTitle" id="pauseTitle">PAUSED</div>
