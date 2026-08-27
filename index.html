@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+<!-- SHIFTVIX TRAVELER LAB V7 — PORTRAIT PHONE / 75% FLOW TUNING / DENSE SHIFT AUDIO -->
 <!-- SHIFTVIX WORKING PROTOTYPE V2 — NO GOOGLE ANALYTICS -->
 <script>
 const isDeveloper=true;
@@ -28,7 +29,7 @@ const ANALYTICS_ALLOWED_EVENTS=new Set();
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <!-- SHIFTVIX 2.11 — GOLD RINGS + FIVE EVEN OBJECTIVE TYPES -->
-<title>SHIFTVIX — TRAVELER LAB V6 QUICK FLOW + PORTRAIT OVERSCAN — SHIFTVIX — TRAVELER LAB V2 · THIRD EYE FLIGHT</title>
+<title>SHIFTVIX — TRAVELER LAB V7 · PORTRAIT PHONE + 75% FLOWS + DENSE SHIFT AUDIO</title>
 <style>
 html,body{
   margin:0;
@@ -3313,28 +3314,68 @@ body.uiModalOpen #center{pointer-events:none}
 
 <style>
 /* ============================================================
-   SHIFTVIX TRAVELER LAB V6 — PORTRAIT OVERSCAN
-   Lock the third-eye/gameplay origin; enlarge only the silhouette around it.
-   The body intentionally exits the viewport so portrait reads as first-person flight.
-   Landscape remains V5.
+   SHIFTVIX TRAVELER LAB V7 — PORTRAIT CAMERA OVERSCAN
+   Same user-drawn Traveler. No added anatomy.
+   The third-eye/gameplay origin stays fixed while the silhouette is
+   deliberately cropped by the viewport so the body feels larger than screen.
    ============================================================ */
 @media (orientation:portrait) and (max-width:699px){
   #center .travelerBody.travelerExact{
-    width:clamp(760px,190vw,1120px)!important;
+    width:clamp(980px,280vw,1400px)!important;
     transform:translate(-50%,-6%) rotateZ(var(--traveler-bank-x))!important;
     transform-origin:50% 31%!important;
   }
 }
 @media (orientation:portrait) and (min-width:700px){
   #center .travelerBody.travelerExact{
-    width:clamp(1500px,145vw,2300px)!important;
+    width:clamp(2000px,210vw,3000px)!important;
     transform:translate(-50%,-8%) rotateZ(var(--traveler-bank-x))!important;
     transform-origin:50% 32%!important;
   }
 }
+
+/* Phones are intentionally portrait-only. Tablets keep both orientations. */
+#phonePortraitGate{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:10000;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:28px;
+  box-sizing:border-box;
+  background:#000;
+  color:#fff;
+  font-weight:900;
+  letter-spacing:2px;
+  pointer-events:auto;
+}
+#phonePortraitGate .gateInner{
+  width:min(360px,82vw);
+  padding:28px 22px;
+  border:1px solid rgba(255,211,106,.42);
+  border-radius:22px;
+  background:rgba(0,0,0,.94);
+  box-shadow:0 0 45px rgba(255,211,106,.10);
+}
+#phonePortraitGate .gateTitle{
+  color:#ffd36a;
+  font-size:18px;
+  letter-spacing:4px;
+  margin-bottom:10px;
+}
+#phonePortraitGate .gateText{
+  color:rgba(255,255,255,.72);
+  font-size:12px;
+  line-height:1.55;
+  letter-spacing:1.2px;
+}
+body.phone-device.phone-landscape-blocked #phonePortraitGate{display:flex;}
 </style>
 </head>
 <body>
+<div id="phonePortraitGate" aria-live="polite"><div class="gateInner"><div class="gateTitle">PORTRAIT MODE</div><div class="gateText">Rotate your phone upright to continue the Traveler journey.</div></div></div>
 <div id="gameTitle"><span id="shift">SHIFT</span><span id="vix">VIX</span></div>
 <div id="strikes"><div class="strikeDot" id="s0"></div><div class="strikeDot" id="s1"></div><div class="strikeDot" id="s2"></div></div>
 <div id="hud">
@@ -3387,6 +3428,15 @@ const SHIFTVIX_MOBILE_DEVICE =
     navigator.maxTouchPoints>1 &&
     Math.min(innerWidth,innerHeight)<1400
   );
+
+const SHIFTVIX_PHONE_DEVICE =
+  SHIFTVIX_MOBILE_DEVICE &&
+  Math.min(
+    Number(screen?.width)||innerWidth,
+    Number(screen?.height)||innerHeight
+  ) < 700;
+
+let phoneOrientationAutoPaused=false;
 
 const SHIFTVIX_DESKTOP_DPR_CAP=2;
 const SHIFTVIX_MOBILE_DPR_CAP=1.4;
@@ -3495,6 +3545,40 @@ function currentPhysicalOrientation(){
   const w=window.innerWidth || document.documentElement.clientWidth;
   const h=window.innerHeight || document.documentElement.clientHeight;
   return w>=h ? "landscape" : "portrait";
+}
+
+function syncPhonePortraitOnly(){
+  const blocked=
+    SHIFTVIX_PHONE_DEVICE &&
+    currentPhysicalOrientation()==="landscape";
+
+  document.body.classList.toggle(
+    "phone-device",
+    SHIFTVIX_PHONE_DEVICE
+  );
+  document.body.classList.toggle(
+    "phone-landscape-blocked",
+    blocked
+  );
+
+  if(
+    blocked &&
+    gameStarted &&
+    !gameOver &&
+    !paused
+  ){
+    phoneOrientationAutoPaused=true;
+    pauseGame("phone_landscape_blocked");
+  }else if(
+    !blocked &&
+    phoneOrientationAutoPaused &&
+    gameStarted &&
+    !gameOver &&
+    paused
+  ){
+    phoneOrientationAutoPaused=false;
+    resumeGame("phone_portrait_restored");
+  }
 }
 
 function commitStableViewport(force=false){
@@ -6991,7 +7075,7 @@ function createFlow(index){
     const variant=categoryStep%4;
 
     if(variant===0 || variant===3){
-      const target=300+categoryStep*35;
+      const target=Math.round((300+categoryStep*35)*1.5);
 
       flow={
         id:`collect_${n}`,
@@ -7024,7 +7108,7 @@ function createFlow(index){
       RED:5
     }[color];
 
-    const target=base+categoryStep*growth;
+    const target=Math.round((base+categoryStep*growth)*1.5);
 
     flow={
       id:`collect_${color.toLowerCase()}_${n}`,
@@ -7040,7 +7124,7 @@ function createFlow(index){
   }
 
   if(category==="TRAVEL"){
-    const target=750+categoryStep*175;
+    const target=Math.round((750+categoryStep*175)*1.5);
 
     flow={
       id:`travel_${n}`,
@@ -7055,7 +7139,7 @@ function createFlow(index){
   }
 
   if(category==="SCORE"){
-    const target=7500+categoryStep*2600;
+    const target=Math.round((7500+categoryStep*2600)*1.5);
 
     flow={
       id:`score_${n}`,
@@ -7071,8 +7155,8 @@ function createFlow(index){
 
   if(category==="RINGS"){
     const target=Math.min(
-      40,
-      10+Math.floor(categoryStep*.65)
+      60,
+      Math.round((10+Math.floor(categoryStep*.65))*1.5)
     );
 
     flow={
@@ -7100,8 +7184,8 @@ function createFlow(index){
       A SHIFT still counts ONLY after a real train-to-train reconnection.
     */
     const target=Math.min(
-      200,
-      50 + categoryStep*5
+      300,
+      Math.round((50 + categoryStep*5)*1.5)
     );
 
     flow={
@@ -7117,15 +7201,15 @@ function createFlow(index){
   }
 
   if(category==="WARP"){
-    const target=Math.min(12,5+categoryStep);
+    const target=Math.min(18,Math.round((5+categoryStep)*1.5));
     flow={id:`warp_${n}`,name,category,label:`HIT ${target.toLocaleString()} WARPS`,target,metric:"warp"};
     return applyFlowStrikeAllowance(flow,index);
   }
 
   if(category==="BREAK"){
     const target=Math.min(
-      30,
-      6+Math.floor(categoryStep*.75)
+      45,
+      Math.round((6+Math.floor(categoryStep*.75))*1.5)
     );
 
     flow={
@@ -7140,9 +7224,10 @@ function createFlow(index){
     return applyFlowStrikeAllowance(flow,index);
   }
 
-  const target=
+  const target=Math.round((
     375+
-    categoryStep*88;
+    categoryStep*88
+  )*1.5);
 
   flow={
     id:`drift_${n}`,
@@ -10477,21 +10562,32 @@ tierCounts[b.userData.tier.name] =
  if(score>bestScore){bestScore=score;localStorage.setItem("sourceLaneBestScore",String(bestScore));}
  if(activeChallenge?.category!=="DRIFT"){
    playCoin(b.userData.tier);
-   // V6: SHIFT must read as a continuous ding-ding-ding stream on dense trains.
-   // A very quiet delayed transient keeps adjacent iOS/WebAudio pickups perceptually distinct.
+   // V7: SHIFT reward density. One physical pickup keeps its normal familiar coin
+   // and adds three tiny, rapidly staggered coin transients. This makes a dense
+   // train sound like a continuous stream rather than isolated pickups.
    if(activeChallenge?.category==="SHIFT" && audioCtx){
      const shiftTier=b.userData.tier;
-     const shiftNow=audioCtx.currentTime+.045;
-     const shiftOsc=audioCtx.createOscillator();
-     const shiftGain=audioCtx.createGain();
-     shiftOsc.type="sine";
-     shiftOsc.frequency.setValueAtTime(shiftTier.freq*1.08,shiftNow);
-     shiftGain.gain.setValueAtTime(.0001,shiftNow);
-     shiftGain.gain.linearRampToValueAtTime(.0075,shiftNow+.004);
-     shiftGain.gain.exponentialRampToValueAtTime(.0001,shiftNow+.052);
-     shiftOsc.connect(shiftGain).connect(audioCtx.destination);
-     shiftOsc.start(shiftNow);
-     shiftOsc.stop(shiftNow+.06);
+     const baseTime=audioCtx.currentTime;
+     [0.020,0.043,0.068].forEach((offset,i)=>{
+       const t=baseTime+offset;
+       const osc=audioCtx.createOscillator();
+       const gain=audioCtx.createGain();
+       osc.type=i===1?"triangle":"square";
+       osc.frequency.setValueAtTime(
+         shiftTier.freq*(1.04+i*.045),
+         t
+       );
+       osc.frequency.exponentialRampToValueAtTime(
+         shiftTier.freq*(1.18+i*.05),
+         t+.032
+       );
+       gain.gain.setValueAtTime(.0001,t);
+       gain.gain.linearRampToValueAtTime(.0056,t+.003);
+       gain.gain.exponentialRampToValueAtTime(.0001,t+.040);
+       osc.connect(gain).connect(audioCtx.destination);
+       osc.start(t);
+       osc.stop(t+.045);
+     });
    }
  }
  showScorePopup("+"+gained,chronoScoring);
@@ -11997,6 +12093,7 @@ window.addEventListener("orientationchange",()=>{
 
   viewportResizeTimer=setTimeout(()=>{
     recaptureViewportForOrientation();
+    syncPhonePortraitOnly();
   },420);
 });
 
@@ -12018,7 +12115,7 @@ window.addEventListener("pageshow",()=>{
   },120);
 });
 
-makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();updateStrikes();updateHUD();startGame();animate();
+makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();updateStrikes();updateHUD();startGame();syncPhonePortraitOnly();animate();
 </script>
 </body>
 </html>
