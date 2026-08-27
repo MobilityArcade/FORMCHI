@@ -29,7 +29,7 @@ const ANALYTICS_ALLOWED_EVENTS=new Set();
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <!-- SHIFTVIX 2.11 — GOLD RINGS + FIVE EVEN OBJECTIVE TYPES -->
-<title>SHIFTVIX — TRAVELER LAB V8 · FULL BODY THIRD-EYE</title>
+<title>SHIFTVIX — TRAVELER LAB V9 · FULL BODY THIRD-EYE</title>
 <style>
 html,body{
   margin:0;
@@ -3375,7 +3375,7 @@ body.phone-device.phone-landscape-blocked #phonePortraitGate{display:flex;}
 </style>
 
 <style>
-/* SHIFTVIX TRAVELER LAB V8 — FULL FLYING BODY / FOREHEAD THIRD-EYE */
+/* SHIFTVIX TRAVELER LAB V9 — FULL FLYING BODY / FOREHEAD THIRD-EYE */
 #center .travelerExact{display:none!important;}
 #center .travelerV8{
   --traveler-state-rgb:248,252,255;
@@ -3414,7 +3414,132 @@ body.phone-device.phone-landscape-blocked #phonePortraitGate{display:flex;}
 </div>
 <div style="display:none"><span id="world">Distance Run</span>
 <span id="found">0</span><span id="score">0</span><span id="bestScore">0</span><span id="combo">1x</span><div id="signal"></div></div></div>
-<div id="center" class="reactorNormal" aria-label="Pause"><img class="travelerV8 travelerAura" src="traveler_v8_mask.png" aria-hidden="true"><img class="travelerV8 travelerFigure" src="traveler_v8_mask.png" aria-hidden="true"><span class="reactorPlume"></span><span class="reactorMiddle"></span><span class="reactorOuter"></span><span class="reactorCore"></span></div><div id="pauseText">PAUSED</div><div id="laneLabel">CENTER</div><div id="roundComplete"></div>
+
+<style>
+/* ============================================================
+   SHIFTVIX TRAVELER LAB V9 — CLEAN BODY / FOREHEAD THIRD-EYE
+   Uses one PNG only: no duplicate aura layer, eliminating the
+   double-shadow read. The gameplay center is anchored to the
+   center of the Traveler's forehead/head while the body extends
+   downward and beyond the portrait viewport.
+   ============================================================ */
+#center .travelerV8{display:none!important;}
+
+#center .travelerV9{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:clamp(760px,68vw,1180px);
+  height:auto;
+  aspect-ratio:853/831;
+  object-fit:contain;
+  pointer-events:none;
+  z-index:-2;
+  opacity:.72;
+
+  /* Source head/forehead center is ~10.7% down the image. */
+  transform-origin:50% 10.7%;
+  transform:
+    translate(-50%,-10.7%)
+    rotateZ(var(--traveler-bank-x));
+
+  /* One restrained glow only — no duplicate image layer. */
+  filter:
+    brightness(.96)
+    drop-shadow(0 0 2px rgba(248,252,255,.24))
+    drop-shadow(0 0 7px rgba(210,225,235,.10));
+
+  animation:travelerV9Breath 4.4s ease-in-out infinite;
+  transition:
+    transform .22s cubic-bezier(.2,.8,.2,1),
+    opacity .18s ease,
+    filter .18s ease;
+}
+
+@keyframes travelerV9Breath{
+  0%,100%{
+    scale:1 1;
+    margin-top:2px;
+  }
+  50%{
+    scale:1.006 1.010;
+    margin-top:-2px;
+  }
+}
+
+/* State color is carried by the single visible body, not a ghost copy. */
+#center.reactorNormal .travelerV9{
+  filter:
+    brightness(.96)
+    drop-shadow(0 0 2px rgba(248,252,255,.24))
+    drop-shadow(0 0 7px rgba(210,225,235,.10));
+}
+#center.reactorDamage .travelerV9{
+  opacity:.88;
+  filter:
+    sepia(1) saturate(7) hue-rotate(325deg) brightness(1.12)
+    drop-shadow(0 0 7px rgba(255,35,35,.68));
+}
+#center.reactorMidas .travelerV9{
+  opacity:.80;
+  filter:
+    sepia(1) saturate(4.8) hue-rotate(350deg) brightness(1.12)
+    drop-shadow(0 0 6px rgba(255,190,45,.42));
+}
+#center.reactorChrono .travelerV9{
+  opacity:.72;
+  filter:
+    sepia(.7) saturate(4.6) hue-rotate(205deg) brightness(1.02)
+    drop-shadow(0 0 6px rgba(170,135,255,.36));
+  animation-duration:5.8s;
+}
+#center.reactorFlux .travelerV9{
+  opacity:.76;
+  filter:
+    sepia(.6) saturate(4.5) hue-rotate(135deg) brightness(1.10)
+    drop-shadow(0 0 6px rgba(70,225,255,.38));
+  animation-duration:2.1s;
+}
+
+/* Phone portrait: let the body read fully and intentionally overscan. */
+@media (orientation:portrait) and (max-width:699px){
+  #center .travelerV9{
+    width:clamp(440px,122vw,580px);
+    transform-origin:50% 10.7%;
+    transform:
+      translate(-50%,-10.7%)
+      rotateZ(var(--traveler-bank-x));
+    opacity:.70;
+  }
+}
+
+/* Tablet portrait keeps more surrounding field while still showing torso. */
+@media (orientation:portrait) and (min-width:700px){
+  #center .travelerV9{
+    width:clamp(760px,108vw,1240px);
+    transform:
+      translate(-50%,-10.7%)
+      rotateZ(var(--traveler-bank-x));
+  }
+}
+
+/* Tablet / desktop landscape: same body, wider environmental framing. */
+@media (orientation:landscape){
+  #center .travelerV9{
+    width:clamp(720px,68vw,1180px);
+    transform:
+      translate(-50%,-10.7%)
+      rotateZ(var(--traveler-bank-x));
+    opacity:.68;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  #center .travelerV9{animation:none!important;}
+}
+</style>
+
+<div id="center" class="reactorNormal" aria-label="Pause"><img class="travelerV9" src="traveler_v9_clean_body.png" aria-hidden="true"><span class="reactorPlume"></span><span class="reactorMiddle"></span><span class="reactorOuter"></span><span class="reactorCore"></span></div><div id="pauseText">PAUSED</div><div id="laneLabel">CENTER</div><div id="roundComplete"></div>
 <div id="pauseMenu" aria-hidden="true">
   <div class="pausePanel" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
     <div class="pauseTitle" id="pauseTitle">PAUSED</div>
