@@ -28,7 +28,7 @@ const ANALYTICS_ALLOWED_EVENTS=new Set();
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <!-- SHIFTVIX 2.11 — GOLD RINGS + FIVE EVEN OBJECTIVE TYPES -->
-<title>SHIFTVIX — TRAVELER LAB V5 BREATH + AURA V3 — SHIFTVIX — TRAVELER LAB V2 · THIRD EYE FLIGHT</title>
+<title>SHIFTVIX — TRAVELER LAB V6 QUICK FLOW + PORTRAIT OVERSCAN — SHIFTVIX — TRAVELER LAB V2 · THIRD EYE FLIGHT</title>
 <style>
 html,body{
   margin:0;
@@ -3309,6 +3309,29 @@ body.uiModalOpen #center{pointer-events:none}
   #center .travelerFigure,#center .travelerAura{animation:none!important;scale:1 1!important;}
 }
 
+</style>
+
+<style>
+/* ============================================================
+   SHIFTVIX TRAVELER LAB V6 — PORTRAIT OVERSCAN
+   Lock the third-eye/gameplay origin; enlarge only the silhouette around it.
+   The body intentionally exits the viewport so portrait reads as first-person flight.
+   Landscape remains V5.
+   ============================================================ */
+@media (orientation:portrait) and (max-width:699px){
+  #center .travelerBody.travelerExact{
+    width:clamp(760px,190vw,1120px)!important;
+    transform:translate(-50%,-6%) rotateZ(var(--traveler-bank-x))!important;
+    transform-origin:50% 31%!important;
+  }
+}
+@media (orientation:portrait) and (min-width:700px){
+  #center .travelerBody.travelerExact{
+    width:clamp(1500px,145vw,2300px)!important;
+    transform:translate(-50%,-8%) rotateZ(var(--traveler-bank-x))!important;
+    transform-origin:50% 32%!important;
+  }
+}
 </style>
 </head>
 <body>
@@ -6968,7 +6991,7 @@ function createFlow(index){
     const variant=categoryStep%4;
 
     if(variant===0 || variant===3){
-      const target=600+categoryStep*70;
+      const target=300+categoryStep*35;
 
       flow={
         id:`collect_${n}`,
@@ -6986,19 +7009,19 @@ function createFlow(index){
     const color=colors[categoryStep%colors.length];
 
     const base={
-      BLUE:500,
-      GREEN:450,
-      PURPLE:320,
-      ORANGE:200,
-      RED:120
+      BLUE:250,
+      GREEN:225,
+      PURPLE:160,
+      ORANGE:100,
+      RED:60
     }[color];
 
     const growth={
-      BLUE:32,
-      GREEN:29,
-      PURPLE:21,
-      ORANGE:14,
-      RED:10
+      BLUE:16,
+      GREEN:15,
+      PURPLE:11,
+      ORANGE:7,
+      RED:5
     }[color];
 
     const target=base+categoryStep*growth;
@@ -7017,7 +7040,7 @@ function createFlow(index){
   }
 
   if(category==="TRAVEL"){
-    const target=1500+categoryStep*350;
+    const target=750+categoryStep*175;
 
     flow={
       id:`travel_${n}`,
@@ -7032,7 +7055,7 @@ function createFlow(index){
   }
 
   if(category==="SCORE"){
-    const target=15000+categoryStep*5200;
+    const target=7500+categoryStep*2600;
 
     flow={
       id:`score_${n}`,
@@ -7048,8 +7071,8 @@ function createFlow(index){
 
   if(category==="RINGS"){
     const target=Math.min(
-      80,
-      20+Math.floor(categoryStep*1.3)
+      40,
+      10+Math.floor(categoryStep*.65)
     );
 
     flow={
@@ -7077,8 +7100,8 @@ function createFlow(index){
       A SHIFT still counts ONLY after a real train-to-train reconnection.
     */
     const target=Math.min(
-      400,
-      100 + categoryStep*10
+      200,
+      50 + categoryStep*5
     );
 
     flow={
@@ -7094,15 +7117,15 @@ function createFlow(index){
   }
 
   if(category==="WARP"){
-    const target=Math.min(24,8+Math.floor(categoryStep/3));
+    const target=Math.min(12,5+categoryStep);
     flow={id:`warp_${n}`,name,category,label:`HIT ${target.toLocaleString()} WARPS`,target,metric:"warp"};
     return applyFlowStrikeAllowance(flow,index);
   }
 
   if(category==="BREAK"){
     const target=Math.min(
-      60,
-      12+Math.floor(categoryStep*1.5)
+      30,
+      6+Math.floor(categoryStep*.75)
     );
 
     flow={
@@ -7118,8 +7141,8 @@ function createFlow(index){
   }
 
   const target=
-    750+
-    categoryStep*175;
+    375+
+    categoryStep*88;
 
   flow={
     id:`drift_${n}`,
@@ -10454,6 +10477,22 @@ tierCounts[b.userData.tier.name] =
  if(score>bestScore){bestScore=score;localStorage.setItem("sourceLaneBestScore",String(bestScore));}
  if(activeChallenge?.category!=="DRIFT"){
    playCoin(b.userData.tier);
+   // V6: SHIFT must read as a continuous ding-ding-ding stream on dense trains.
+   // A very quiet delayed transient keeps adjacent iOS/WebAudio pickups perceptually distinct.
+   if(activeChallenge?.category==="SHIFT" && audioCtx){
+     const shiftTier=b.userData.tier;
+     const shiftNow=audioCtx.currentTime+.045;
+     const shiftOsc=audioCtx.createOscillator();
+     const shiftGain=audioCtx.createGain();
+     shiftOsc.type="sine";
+     shiftOsc.frequency.setValueAtTime(shiftTier.freq*1.08,shiftNow);
+     shiftGain.gain.setValueAtTime(.0001,shiftNow);
+     shiftGain.gain.linearRampToValueAtTime(.0075,shiftNow+.004);
+     shiftGain.gain.exponentialRampToValueAtTime(.0001,shiftNow+.052);
+     shiftOsc.connect(shiftGain).connect(audioCtx.destination);
+     shiftOsc.start(shiftNow);
+     shiftOsc.stop(shiftNow+.06);
+   }
  }
  showScorePopup("+"+gained,chronoScoring);
  updateHUD();updateChallenge();
