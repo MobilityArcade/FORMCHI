@@ -29,7 +29,7 @@ const ANALYTICS_ALLOWED_EVENTS=new Set();
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <!-- SHIFTVIX 2.11 — GOLD RINGS + FIVE EVEN OBJECTIVE TYPES -->
-<title>SHIFTVIX — TRAVELER LAB V7 · PORTRAIT PHONE + 75% FLOWS + DENSE SHIFT AUDIO</title>
+<title>SHIFTVIX — TRAVELER LAB V8 · FULL BODY THIRD-EYE</title>
 <style>
 html,body{
   margin:0;
@@ -3373,6 +3373,33 @@ body.uiModalOpen #center{pointer-events:none}
 }
 body.phone-device.phone-landscape-blocked #phonePortraitGate{display:flex;}
 </style>
+
+<style>
+/* SHIFTVIX TRAVELER LAB V8 — FULL FLYING BODY / FOREHEAD THIRD-EYE */
+#center .travelerExact{display:none!important;}
+#center .travelerV8{
+  --traveler-state-rgb:248,252,255;
+  position:absolute; left:50%; top:50%; width:clamp(520px,74vw,1100px); height:auto;
+  transform:translate(-50%,-15%) rotateZ(var(--traveler-bank-x)); transform-origin:50% 19%;
+  pointer-events:none; object-fit:contain; opacity:.58; z-index:-2;
+  filter:drop-shadow(0 0 3px rgba(var(--traveler-state-rgb),.30));
+  animation:travelerV8Breath 4.4s ease-in-out infinite;
+  transition:transform .22s cubic-bezier(.2,.8,.2,1),opacity .14s ease,filter .14s ease;
+}
+#center .travelerV8.travelerAura{opacity:.15;filter:blur(1.5px) drop-shadow(0 0 9px rgba(var(--traveler-state-rgb),.24));transform:translate(-50%,-15%) scale(1.012) rotateZ(var(--traveler-bank-x));z-index:-3;}
+#center.reactorNormal .travelerV8{--traveler-state-rgb:248,252,255;}
+#center.reactorDamage .travelerV8{--traveler-state-rgb:255,48,48;opacity:.90;filter:drop-shadow(0 0 7px rgba(255,35,35,.72));}
+#center.reactorMidas .travelerV8{--traveler-state-rgb:255,190,45;opacity:.76;}
+#center.reactorChrono .travelerV8{--traveler-state-rgb:170,135,255;opacity:.67;}
+#center.reactorFlux .travelerV8{--traveler-state-rgb:70,225,255;opacity:.71;}
+@keyframes travelerV8Breath{0%,100%{scale:1 1;margin-top:2px}50%{scale:1.007 1.011;margin-top:-2px}}
+@media (orientation:portrait) and (max-width:699px){#center .travelerV8{width:clamp(700px,190vw,980px);transform:translate(-50%,-12%) rotateZ(var(--traveler-bank-x));transform-origin:50% 18%;}}
+@media (orientation:portrait) and (min-width:700px){#center .travelerV8{width:clamp(1000px,125vw,1700px);transform:translate(-50%,-14%) rotateZ(var(--traveler-bank-x));}}
+@media (orientation:landscape){#center .travelerV8{width:clamp(760px,82vw,1280px);transform:translate(-50%,-18%) rotateZ(var(--traveler-bank-x));}}
+/* The gameplay gem is now explicitly the forehead/third-eye anchor. No torso dot/rings. */
+#center .reactorMiddle,#center .reactorOuter,#center .reactorPlume{display:none!important;}
+#center .reactorCore{display:block!important;width:13px!important;height:13px!important;z-index:9!important;}
+</style>
 </head>
 <body>
 <div id="phonePortraitGate" aria-live="polite"><div class="gateInner"><div class="gateTitle">PORTRAIT MODE</div><div class="gateText">Rotate your phone upright to continue the Traveler journey.</div></div></div>
@@ -3387,7 +3414,7 @@ body.phone-device.phone-landscape-blocked #phonePortraitGate{display:flex;}
 </div>
 <div style="display:none"><span id="world">Distance Run</span>
 <span id="found">0</span><span id="score">0</span><span id="bestScore">0</span><span id="combo">1x</span><div id="signal"></div></div></div>
-<div id="center" class="reactorNormal" aria-label="Pause"><div class="travelerBody travelerExact travelerAura" aria-hidden="true"></div><div class="travelerBody travelerExact travelerFigure" aria-hidden="true"></div><span class="reactorPlume"></span><span class="reactorMiddle"></span><span class="reactorOuter"></span><span class="reactorCore"></span></div><div id="pauseText">PAUSED</div><div id="laneLabel">CENTER</div><div id="roundComplete"></div>
+<div id="center" class="reactorNormal" aria-label="Pause"><img class="travelerV8 travelerAura" src="traveler_v8_mask.png" aria-hidden="true"><img class="travelerV8 travelerFigure" src="traveler_v8_mask.png" aria-hidden="true"><span class="reactorPlume"></span><span class="reactorMiddle"></span><span class="reactorOuter"></span><span class="reactorCore"></span></div><div id="pauseText">PAUSED</div><div id="laneLabel">CENTER</div><div id="roundComplete"></div>
 <div id="pauseMenu" aria-hidden="true">
   <div class="pausePanel" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
     <div class="pauseTitle" id="pauseTitle">PAUSED</div>
