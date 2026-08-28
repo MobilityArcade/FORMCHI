@@ -3213,53 +3213,24 @@ body.uiModalOpen #center{pointer-events:none}
   }
 }
 
+</style>
 
-
-/* ============================================================
-   SHIFTVIX TRAVELER V21 — WHITE-HOT ORB + RETRACTING LIGHT STROKE
-   Built on the original SHIFTVIX index. No humanoid/comet tail.
-   ============================================================ */
-#travelerStrokeCanvas{
-  position:fixed;
-  inset:0;
-  width:100%;
-  height:100%;
-  pointer-events:none;
-  z-index:12;
-  mix-blend-mode:screen;
-}
+<style id="cometTravelerPrototypeStyle">
+/* COMET TRAVELER PROTOTYPE — built on the supplied original SHIFTVIX index. */
 #center{
-  width:28px !important;
-  height:28px !important;
-  border:0 !important;
-  background:radial-gradient(circle,
-    rgba(255,255,255,1) 0 32%,
-    rgba(255,255,255,.98) 44%,
-    rgba(235,249,255,.82) 58%,
-    rgba(190,230,255,.28) 72%,
-    rgba(255,255,255,0) 100%) !important;
-  box-shadow:
-    0 0 8px rgba(255,255,255,1),
-    0 0 18px rgba(255,255,255,.92),
-    0 0 34px rgba(190,230,255,.52) !important;
-  animation:travelerOrbPulse 1.28s ease-in-out infinite !important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  isolation:auto!important;
 }
-#center .reactorCore,
-#center .reactorMiddle,
-#center .reactorOuter,
-#center .reactorPlume{display:none !important;}
-@keyframes travelerOrbPulse{
-  0%,100%{transform:translate(-50%,-50%) scale(.94);filter:brightness(.95)}
-  50%{transform:translate(-50%,-50%) scale(1.08);filter:brightness(1.18)}
-}
-@media(max-width:520px){
-  #center{width:30px !important;height:30px !important;}
+#center .reactorCore,#center .reactorMiddle,#center .reactorOuter,#center .reactorPlume{display:none!important;}
+#cometTravelerCanvas{
+  position:fixed!important;inset:0!important;width:100%!important;height:100%!important;
+  pointer-events:none!important;z-index:12!important;
 }
 </style>
 </head>
 <body>
-<canvas id="travelerStrokeCanvas" aria-hidden="true"></canvas>
-
 <div id="gameTitle"><span id="shift">SHIFT</span><span id="vix">VIX</span></div>
 <div id="strikes"><div class="strikeDot" id="s0"></div><div class="strikeDot" id="s1"></div><div class="strikeDot" id="s2"></div></div>
 <div id="hud">
@@ -10041,123 +10012,6 @@ function noteRegularTrainContact(beacon){
   }
 }
 
-
-
-// ============================================================
-// SHIFTVIX TRAVELER V21 — RETRACTING LIGHT-STROKE MOVEMENT
-// Rest = one white-hot orb. A successful lane change draws one
-// constant-width light stroke in that movement direction. The stroke
-// extends quickly, hangs for a beat, then retracts back into the orb.
-// ============================================================
-const travelerStrokeCanvas=document.getElementById('travelerStrokeCanvas');
-const travelerStrokeCtx=travelerStrokeCanvas ? travelerStrokeCanvas.getContext('2d') : null;
-let travelerStrokeDpr=1;
-let travelerStrokeBursts=[];
-
-function resizeTravelerStrokeCanvas(){
-  if(!travelerStrokeCanvas||!travelerStrokeCtx)return;
-  const w=Math.max(1,window.innerWidth||document.documentElement.clientWidth||1);
-  const h=Math.max(1,window.innerHeight||document.documentElement.clientHeight||1);
-  travelerStrokeDpr=Math.min(window.devicePixelRatio||1,1.75);
-  travelerStrokeCanvas.width=Math.round(w*travelerStrokeDpr);
-  travelerStrokeCanvas.height=Math.round(h*travelerStrokeDpr);
-  travelerStrokeCanvas.style.width=w+'px';
-  travelerStrokeCanvas.style.height=h+'px';
-  travelerStrokeCtx.setTransform(travelerStrokeDpr,0,0,travelerStrokeDpr,0,0);
-}
-resizeTravelerStrokeCanvas();
-window.addEventListener('resize',resizeTravelerStrokeCanvas,{passive:true});
-window.addEventListener('orientationchange',()=>setTimeout(resizeTravelerStrokeCanvas,140),{passive:true});
-
-function travelerStrokePulse(dx,dy){
-  if(!dx&&!dy)return;
-  const mag=Math.hypot(dx,dy)||1;
-  const nx=dx/mag;
-  const ny=dy/mag;
-  const shortSide=Math.min(window.innerWidth||390,window.innerHeight||844);
-  const len=Math.max(76,Math.min(132,shortSide*.27));
-  travelerStrokeBursts.push({
-    born:performance.now(),
-    nx,ny,len,
-    seed:Math.random()*1000
-  });
-  if(travelerStrokeBursts.length>4)travelerStrokeBursts.shift();
-}
-
-function drawTravelerStroke(now=performance.now()){
-  if(!travelerStrokeCtx||!travelerStrokeCanvas)return;
-  const ctx=travelerStrokeCtx;
-  const w=(travelerStrokeCanvas.width/travelerStrokeDpr)||window.innerWidth;
-  const h=(travelerStrokeCanvas.height/travelerStrokeDpr)||window.innerHeight;
-  ctx.clearRect(0,0,w,h);
-
-  const cx=w*.5;
-  const cy=h*.5;
-  const lineW=(w<520?30:28); // same visual mass as the Traveler orb
-  const next=[];
-
-  for(const b of travelerStrokeBursts){
-    const age=now-b.born;
-    const total=500;
-    if(age>=total)continue;
-    next.push(b);
-
-    // Extend rapidly, hold briefly, then retract smoothly back into the core.
-    let reach;
-    if(age<90){
-      const t=age/90;
-      reach=1-Math.pow(1-t,3);
-    }else if(age<155){
-      reach=1;
-    }else{
-      const t=(age-155)/(total-155);
-      reach=Math.pow(1-t,1.45);
-    }
-
-    const len=b.len*reach;
-    if(len<2)continue;
-    const ex=cx+b.nx*len;
-    const ey=cy+b.ny*len;
-    const alpha=Math.min(1,age/45)*Math.min(1,(total-age)/115);
-
-    ctx.save();
-    ctx.lineCap='round';
-    ctx.lineJoin='round';
-
-    // soft aura, still constant width — no taper/comet silhouette
-    ctx.strokeStyle=`rgba(210,238,255,${0.20*alpha})`;
-    ctx.lineWidth=lineW+16;
-    ctx.shadowColor='rgba(190,225,255,.8)';
-    ctx.shadowBlur=22;
-    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(ex,ey);ctx.stroke();
-
-    // pure white body of the light stroke
-    ctx.strokeStyle=`rgba(255,255,255,${0.96*alpha})`;
-    ctx.lineWidth=lineW;
-    ctx.shadowColor='rgba(255,255,255,1)';
-    ctx.shadowBlur=10;
-    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(ex,ey);ctx.stroke();
-
-    // small hot center line gives the stroke a living light-paint feel
-    ctx.strokeStyle=`rgba(255,255,255,${0.72*alpha})`;
-    ctx.lineWidth=Math.max(4,lineW*.22);
-    ctx.shadowBlur=5;
-    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(ex,ey);ctx.stroke();
-
-    // restrained spark flecks only while the connector is active
-    const sparkCount=age<190?3:1;
-    for(let i=0;i<sparkCount;i++){
-      const q=((now*.0017)+(i*.31)+b.seed)%1;
-      const px=cx+(ex-cx)*q + Math.sin(now*.013+b.seed+i)*5;
-      const py=cy+(ey-cy)*q + Math.cos(now*.011+b.seed+i)*5;
-      ctx.fillStyle=`rgba(255,245,205,${0.46*alpha})`;
-      ctx.beginPath();ctx.arc(px,py,1.1+(i%2)*.7,0,Math.PI*2);ctx.fill();
-    }
-    ctx.restore();
-  }
-  travelerStrokeBursts=next;
-}
-
 function moveLane(dx,dy){
   if(!gameStarted||gameOver||paused)return;
 
@@ -10172,7 +10026,6 @@ function moveLane(dx,dy){
     laneY!==oldLaneY;
 
   if(changed){
-    travelerStrokePulse(laneX-oldLaneX,laneY-oldLaneY);
     const fromLaneKey=
       laneKeyFromIndexes(
         oldLaneX,
@@ -11000,7 +10853,180 @@ lastLevel = 1;strikes = 0;milestonesReached = {};lastWarpBreakthrough=0;starColo
 const title = document.getElementById("gameTitle");
 const shift = document.getElementById("shift");
 const vix = document.getElementById("vix");
-function animate(){requestAnimationFrame(animate);drawTravelerStroke(performance.now());updateGamepad();const dt = Math.min(clock.getDelta(), .05);if(gameStarted&&!gameOver&&!paused){updateFluxBoost(dt);updateChronoState(dt);updateMidasState(dt);updateIonicThruster(dt);const worldTimeScale=THREE.MathUtils.lerp(1,CHRONO_WORLD_SCALE,chronoAmount);const worldDt=dt*worldTimeScale;const baseRunSpeed=SPEED_START+Math.min(150,distance*.018);speed=baseRunSpeed*(1+fluxBoostAmount*FLUX_SPEED_BOOST);const prototypeDistanceDelta=speed*worldDt*.08;distance+=prototypeDistanceDelta;
+
+// =========================
+// SHIFTVIX TRAVELER V22 — ORGANIC LONG-EXPOSURE LIGHT RIBBON
+// One white-hot core + long-exposure light painting + sparkler inertia.
+// =========================
+const cometTraveler={
+  canvas:null,ctx:null,dpr:1,history:[],sparks:[],lastSampleAt:0,
+  lastPlayerX:0,lastPlayerY:0
+};
+function initCometTraveler(){
+  if(cometTraveler.canvas)return;
+  const c=document.createElement('canvas');
+  c.id='cometTravelerCanvas';
+  c.setAttribute('aria-hidden','true');
+  document.body.appendChild(c);
+  cometTraveler.canvas=c;
+  cometTraveler.ctx=c.getContext('2d',{alpha:true});
+  resizeCometTraveler();
+  window.addEventListener('resize',resizeCometTraveler,{passive:true});
+  window.addEventListener('orientationchange',()=>setTimeout(resizeCometTraveler,80),{passive:true});
+}
+function resizeCometTraveler(){
+  if(!cometTraveler.canvas)return;
+  const w=Math.max(1,window.innerWidth||document.documentElement.clientWidth||1);
+  const h=Math.max(1,window.innerHeight||document.documentElement.clientHeight||1);
+  const dpr=Math.min(window.devicePixelRatio||1,1.5);
+  cometTraveler.dpr=dpr;
+  cometTraveler.canvas.width=Math.round(w*dpr);
+  cometTraveler.canvas.height=Math.round(h*dpr);
+  cometTraveler.canvas.style.width=w+'px';
+  cometTraveler.canvas.style.height=h+'px';
+  cometTraveler.ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+function cometState(){
+  const centerEl=document.getElementById('center');
+  if(centerEl?.classList.contains('reactorDamage'))return 'damage';
+  if(typeof midasTime!=='undefined' && midasTime>0)return 'midas';
+  if(typeof fluxBoostTime!=='undefined' && fluxBoostTime>0)return 'flux';
+  if(typeof chronoTime!=='undefined' && chronoTime>0)return 'chrono';
+  return 'normal';
+}
+function cometPalette(state){
+  if(state==='midas') return {core:'#fffdf0',inner:'rgba(255,246,190,.98)',outer:'rgba(255,188,45,.82)',spark:'rgba(255,197,55,.95)'};
+  if(state==='flux')  return {core:'#ffffff',inner:'rgba(225,255,255,.98)',outer:'rgba(80,225,255,.76)',spark:'rgba(110,235,255,.95)'};
+  if(state==='chrono')return {core:'#ffffff',inner:'rgba(232,247,255,.98)',outer:'rgba(170,135,255,.62)',spark:'rgba(205,190,255,.9)'};
+  if(state==='damage')return {core:'#ffffff',inner:'rgba(255,225,225,.98)',outer:'rgba(255,55,55,.78)',spark:'rgba(255,80,65,.95)'};
+  return {core:'#ffffff',inner:'rgba(255,255,255,.98)',outer:'rgba(255,244,215,.34)',spark:'rgba(255,238,190,.82)'};
+}
+function cometPointForSample(sample,now,cx,cy,tailPx,life){
+  const age=Math.max(0,(now-sample.t)/1000);
+  const u=Math.min(1,age/life);
+  const lateralScale=Math.min(window.innerWidth,window.innerHeight)*0.0105;
+  const verticalScale=Math.min(window.innerWidth,window.innerHeight)*0.0085;
+  const dx=(sample.x-playerX)*lateralScale;
+  const dy=-(sample.y-playerY)*verticalScale;
+  // V22: the wake is true movement history. It stays BEHIND the moving core
+  // instead of projecting a tail in the swipe direction. No artificial
+  // downward drag: when the Traveler holds a lane, the ribbon naturally dies away.
+  const inertiaDrift=tailPx*0.035*(u*u);
+  return {x:cx+dx,y:cy+dy+inertiaDrift,u};
+}
+function spawnCometSpark(x,y,palette,intensity){
+  if(cometTraveler.sparks.length>110)return;
+  const n=Math.random()<(0.45+intensity*.35)?2:1;
+  for(let i=0;i<n;i++){
+    cometTraveler.sparks.push({
+      x:x+(Math.random()-.5)*8,
+      y:y+(Math.random()-.5)*8,
+      vx:(Math.random()-.5)*(18+intensity*20),
+      vy:12+Math.random()*(30+intensity*35),
+      life:.18+Math.random()*.34,
+      age:0,
+      r:.45+Math.random()*1.35,
+      color:palette.spark
+    });
+  }
+}
+function updateCometTraveler(dt){
+  initCometTraveler();
+  const ctx=cometTraveler.ctx;
+  if(!ctx)return;
+  const now=performance.now();
+  const w=(cometTraveler.canvas.width/cometTraveler.dpr)||window.innerWidth;
+  const h=(cometTraveler.canvas.height/cometTraveler.dpr)||window.innerHeight;
+  const cx=w*.5, cy=h*.5;
+  const state=cometState();
+  const palette=cometPalette(state);
+  const flux=(typeof fluxBoostAmount!=='undefined'?fluxBoostAmount:0);
+  const chrono=(typeof chronoAmount!=='undefined'?chronoAmount:0);
+  const warp=(typeof warpAmount!=='undefined'?warpAmount:0);
+  const moveMag=Math.min(1,Math.hypot(targetX-playerX,targetY-playerY)/34);
+  const intensity=Math.min(1,0.18+flux*.72+warp*.28+moveMag*.32);
+  const base=Math.min(w,h);
+  // V22: longer visual memory so two or three quick turns can coexist.
+  // tailPx now contributes only a tiny inertia drift; shape comes from actual motion history.
+  const tailPx=base*(0.10+flux*.08+warp*.06)*(1-chrono*.18);
+  const life=(1.08+flux*.28+warp*.18)*(1+chrono*.18);
+
+  if(now-cometTraveler.lastSampleAt>14){
+    cometTraveler.history.unshift({x:playerX,y:playerY,t:now});
+    cometTraveler.lastSampleAt=now;
+  }
+  cometTraveler.history=cometTraveler.history.filter(s=>(now-s.t)/1000<life*1.08).slice(0,110);
+  if(cometTraveler.history.length<2){
+    cometTraveler.history.push({x:playerX,y:playerY,t:now-16});
+  }
+
+  ctx.clearRect(0,0,w,h);
+  ctx.save();
+  ctx.globalCompositeOperation='lighter';
+  ctx.lineCap='round';ctx.lineJoin='round';
+
+  const pts=cometTraveler.history.map(s=>cometPointForSample(s,now,cx,cy,tailPx,life));
+
+  // Soft atmospheric wake.
+  for(let i=0;i<pts.length-1;i++){
+    const a=pts[i],b=pts[i+1];
+    const fade=Math.pow(1-a.u,1.35);
+    if(fade<=.01)continue;
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+    ctx.strokeStyle=palette.outer;
+    ctx.globalAlpha=.18*fade;
+    // Broad wake: only a gentle taper, never a needle point.
+    ctx.lineWidth=(20-12*a.u)*(1+intensity*.18);
+    ctx.shadowBlur=18;ctx.shadowColor=palette.inner;
+    ctx.stroke();
+  }
+
+  // Bright long-exposure ribbon: thick through most of its life, then softens to ~1/3 width.
+  for(let i=0;i<pts.length-1;i++){
+    const a=pts[i],b=pts[i+1];
+    const fade=Math.pow(1-a.u,1.08);
+    if(fade<=.012)continue;
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+    ctx.strokeStyle=palette.inner;
+    ctx.globalAlpha=.88*fade;
+    ctx.lineWidth=(11.5-7.4*a.u)*(1+intensity*.12);
+    ctx.shadowBlur=9;ctx.shadowColor=palette.core;
+    ctx.stroke();
+  }
+
+  // Fine gold/white sparkler residuals shed from the recent path.
+  const sparkIndex=Math.min(pts.length-1,Math.max(1,Math.floor(pts.length*(.15+Math.random()*.45))));
+  const sparkPt=pts[sparkIndex]||{x:cx,y:cy};
+  if(gameStarted&&!paused&&!gameOver && Math.random()<(.24+intensity*.32)){
+    spawnCometSpark(sparkPt.x,sparkPt.y,palette,intensity);
+  }
+  for(const s of cometTraveler.sparks){
+    s.age+=dt;s.x+=s.vx*dt;s.y+=s.vy*dt;
+    const f=Math.max(0,1-s.age/s.life);
+    ctx.globalAlpha=f*.82;
+    ctx.fillStyle=s.color;
+    ctx.shadowBlur=5;ctx.shadowColor=s.color;
+    ctx.beginPath();ctx.arc(s.x,s.y,s.r*(.5+f),0,Math.PI*2);ctx.fill();
+  }
+  cometTraveler.sparks=cometTraveler.sparks.filter(s=>s.age<s.life);
+
+  // The Traveler itself: one focal point, pure hot white, no rings.
+  const pulse=1+Math.sin(now*.006)*.055;
+  // About 20% larger than V20 so the Traveler reads as the focal object.
+  const coreR=(6.8+intensity*2.0)*pulse;
+  const glow=ctx.createRadialGradient(cx,cy,0,cx,cy,coreR*4.1);
+  glow.addColorStop(0,'rgba(255,255,255,1)');
+  glow.addColorStop(.16,palette.core);
+  glow.addColorStop(.38,palette.inner);
+  glow.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.globalAlpha=1;ctx.fillStyle=glow;ctx.shadowBlur=0;
+  ctx.beginPath();ctx.arc(cx,cy,coreR*4.1,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#fff';ctx.shadowBlur=14;ctx.shadowColor='#fff';
+  ctx.beginPath();ctx.arc(cx,cy,coreR,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+
+function animate(){requestAnimationFrame(animate);updateGamepad();const dt = Math.min(clock.getDelta(), .05);if(gameStarted&&!gameOver&&!paused){updateFluxBoost(dt);updateChronoState(dt);updateMidasState(dt);updateIonicThruster(dt);const worldTimeScale=THREE.MathUtils.lerp(1,CHRONO_WORLD_SCALE,chronoAmount);const worldDt=dt*worldTimeScale;const baseRunSpeed=SPEED_START+Math.min(150,distance*.018);speed=baseRunSpeed*(1+fluxBoostAmount*FLUX_SPEED_BOOST);const prototypeDistanceDelta=speed*worldDt*.08;distance+=prototypeDistanceDelta;
 
 if(activeChallenge?.category==="TRAVEL"){
   addPrototypeTotal(
@@ -11259,6 +11285,7 @@ if(runStarted){
 playerX+=(targetX-playerX)*(1-Math.pow(.0009,dt));playerY+=(targetY-playerY)*(1-Math.pow(.0009,dt));
 camera.position.x=playerX;
 camera.position.y=playerY;
+updateCometTraveler(dt);
 // Camera Z is finalized below after warp offsets.
 // =========================
 // SHIFTVIX 5.3.2 — EXTENDED WARP BUILD
