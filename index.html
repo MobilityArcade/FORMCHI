@@ -10855,13 +10855,16 @@ const shift = document.getElementById("shift");
 const vix = document.getElementById("vix");
 
 // =========================
-// SHIFTVIX TRAVELER V23 — TRANSLUCENT NEON LIGHT RIBBON
-// One translucent neon core + transparent long-exposure light painting + sparkler inertia.
+// SHIFTVIX TRAVELER V24 — SCALED TRANSLUCENT NEON LIGHT RIBBON
+// Larger translucent neon core + proportionally scaled transparent long-exposure ribbon + sparkler inertia.
 // =========================
 const cometTraveler={
   canvas:null,ctx:null,dpr:1,history:[],sparks:[],lastSampleAt:0,
   lastPlayerX:0,lastPlayerY:0
 };
+// V24: scale Traveler presence without changing its motion language.
+// Chosen to read at roughly two-thirds the apparent size of nearby collectible orbs on phone screens.
+const TRAVELER_VISUAL_SCALE=1.38;
 function initCometTraveler(){
   if(cometTraveler.canvas)return;
   const c=document.createElement('canvas');
@@ -10926,7 +10929,7 @@ function spawnCometSpark(x,y,palette,intensity){
       vy:12+Math.random()*(30+intensity*35),
       life:.18+Math.random()*.34,
       age:0,
-      r:.45+Math.random()*1.35,
+      r:(.45+Math.random()*1.35)*TRAVELER_VISUAL_SCALE,
       color:palette.spark
     });
   }
@@ -10976,7 +10979,7 @@ function updateCometTraveler(dt){
     ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
     ctx.strokeStyle=palette.outer;
     ctx.globalAlpha=.20*fade;
-    ctx.lineWidth=(22-13*a.u)*(1+intensity*.16);
+    ctx.lineWidth=(22-13*a.u)*(1+intensity*.16)*TRAVELER_VISUAL_SCALE;
     ctx.shadowBlur=16;ctx.shadowColor=palette.rim;
     ctx.stroke();
   }
@@ -10989,7 +10992,7 @@ function updateCometTraveler(dt){
     ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
     ctx.strokeStyle=palette.inner;
     ctx.globalAlpha=.34*fade;
-    ctx.lineWidth=(12.8-7.9*a.u)*(1+intensity*.10);
+    ctx.lineWidth=(12.8-7.9*a.u)*(1+intensity*.10)*TRAVELER_VISUAL_SCALE;
     ctx.shadowBlur=10;ctx.shadowColor=palette.rim;
     ctx.stroke();
 
@@ -10997,7 +11000,7 @@ function updateCometTraveler(dt){
     ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
     ctx.strokeStyle=palette.rim;
     ctx.globalAlpha=.30*fade;
-    ctx.lineWidth=Math.max(1.2,(3.1-1.8*a.u)*(1+intensity*.08));
+    ctx.lineWidth=Math.max(1.2*TRAVELER_VISUAL_SCALE,(3.1-1.8*a.u)*(1+intensity*.08)*TRAVELER_VISUAL_SCALE);
     ctx.shadowBlur=6;ctx.shadowColor=palette.rim;
     ctx.stroke();
   }
@@ -11020,7 +11023,7 @@ function updateCometTraveler(dt){
 
   // The Traveler itself: translucent neon plasma orb, no opaque white disk and no extra rings.
   const pulse=1+Math.sin(now*.006)*.055;
-  const coreR=(7.2+intensity*2.1)*pulse;
+  const coreR=(7.2+intensity*2.1)*pulse*TRAVELER_VISUAL_SCALE;
 
   // Outer atmosphere.
   const glow=ctx.createRadialGradient(cx,cy,0,cx,cy,coreR*4.2);
@@ -11041,7 +11044,7 @@ function updateCometTraveler(dt){
   ctx.beginPath();ctx.arc(cx,cy,coreR*1.22,0,Math.PI*2);ctx.fill();
 
   // Bright rim supplies identity while the interior remains transparent.
-  ctx.globalAlpha=.78;ctx.strokeStyle=palette.rim;ctx.lineWidth=1.8;
+  ctx.globalAlpha=.78;ctx.strokeStyle=palette.rim;ctx.lineWidth=1.8*TRAVELER_VISUAL_SCALE;
   ctx.shadowBlur=10;ctx.shadowColor=palette.rim;
   ctx.beginPath();ctx.arc(cx,cy,coreR*1.10,0,Math.PI*2);ctx.stroke();
 
