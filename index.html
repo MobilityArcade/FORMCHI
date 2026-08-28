@@ -12372,6 +12372,10 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
    return [A[0]+(B[0]-A[0])*q,A[1]+(B[1]-A[1])*q,A,B];
  }
  function sampleParticle(pt,t){
+   // V15.1 runtime guard: resize/re-init can briefly leave a missing sample target.
+   // Falling back to the third-eye anchor keeps the render loop alive instead of
+   // taking the entire Traveler off-screen with a TypeError.
+   if(!pt) return [.5,.105];
    let u,v;
    if(pt.type==='ellipse'){
      let cx=pt.cx,cy=pt.cy,rx=pt.rx,ry=pt.ry;
@@ -12399,6 +12403,7 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
    return [u,v];
  }
  function frame(now){
+   if(!particles.length) seed();
    const t=(now-t0)/1000;ctx.clearRect(0,0,W,H);
    let vx=0,vy=0;
    try{vx=(typeof targetX!=='undefined'&&typeof playerX!=='undefined')?(targetX-playerX):0;vy=(typeof targetY!=='undefined'&&typeof playerY!=='undefined')?(targetY-playerY):0;}catch(e){}
@@ -12445,7 +12450,15 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
 
    // restrained spine/third-eye shimmer, still see-through.
    const spineA=.08+.04*Math.sin(t*1.7);ctx.strokeStyle=`rgba(210,242,255,${spineA})`;ctx.lineWidth=Math.max(.45,W/1200);ctx.beginPath();ctx.moveTo(W*.5,H*.105);ctx.lineTo(W*.5,H*.45);ctx.stroke();
-   for(let i=0;i<8;i++){const pt=particles[(i*97+Math.floor(t*5))%particles.length],[u,v]=sampleParticle(pt,t),px=u*W,py=v*H,rr=(1.2+(i%3)*.35)*(W/700);ctx.strokeStyle='rgba(255,255,255,.16)';ctx.beginPath();ctx.moveTo(px-rr*2.5,py);ctx.lineTo(px+rr*2.5,py);ctx.moveTo(px,py-rr*2.5);ctx.lineTo(px,py+rr*2.5);ctx.stroke();}
+   if(particles.length){
+     for(let i=0;i<8;i++){
+       const idx=(i*97+Math.floor(t*5))%particles.length;
+       const pt=particles[idx];
+       if(!pt) continue;
+       const [u,v]=sampleParticle(pt,t),px=u*W,py=v*H,rr=(1.2+(i%3)*.35)*(W/700);
+       ctx.strokeStyle='rgba(255,255,255,.16)';ctx.beginPath();ctx.moveTo(px-rr*2.5,py);ctx.lineTo(px+rr*2.5,py);ctx.moveTo(px,py-rr*2.5);ctx.lineTo(px,py+rr*2.5);ctx.stroke();
+     }
+   }
    ctx.restore();requestAnimationFrame(frame);
  }
  new ResizeObserver(resize).observe(c);resize();requestAnimationFrame(frame);
