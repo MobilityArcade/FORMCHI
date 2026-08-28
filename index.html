@@ -12286,29 +12286,30 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
 
 
 
-<style id="travelerEntityV16Styles">
-/* V16 — Gold Energy Traveler: readable upper-body perimeter + transparent particle core + continuous energy wake. */
+<style id="travelerEntityV17Styles">
+/* V18 — Refined Gold Energy Traveler: stronger arms, egg head, rectangular torso, dense wake, Chronos pressure shimmer. */
 #center .travelerV12,#center .travelerBody,#travelerEntityV15{display:none!important}
-#travelerEntityV16{
-  position:absolute;left:50%;top:50%;width:min(1080px,92vw);height:min(1120px,90vh);
+#travelerEntityV17{
+  position:absolute;left:50%;top:50%;width:min(1280px,112vw);height:min(1280px,104vh);
   transform:translate(-50%,-3%);transform-origin:50% 9%;pointer-events:none;z-index:-2;
   opacity:.94;mix-blend-mode:screen;filter:drop-shadow(0 0 3px rgba(255,190,48,.18));
 }
-@media (orientation:portrait) and (max-width:699px){#travelerEntityV16{width:178vw;height:88vh;transform:translate(-50%,-1%);}}
-@media (orientation:landscape){#travelerEntityV16{width:min(980px,72vw);height:84vh;transform:translate(-50%,-5%);}}
+@media (orientation:portrait) and (max-width:699px){#travelerEntityV17{width:225vw;height:104vh;transform:translate(-50%,-4%);}}
+@media (orientation:landscape){#travelerEntityV17{width:min(1280px,90vw);height:100vh;transform:translate(-50%,-7%);}}
 </style>
-<script id="travelerEntityV16Script">
+<script id="travelerEntityV17Script">
 (()=>{
  const center=document.getElementById('center'); if(!center)return;
- ['travelerEntityV13','travelerEntityV14','travelerEntityV15','travelerEntityV16'].forEach(id=>{const old=document.getElementById(id);if(old)old.remove();});
- const c=document.createElement('canvas'); c.id='travelerEntityV16'; c.setAttribute('aria-hidden','true'); center.prepend(c);
+ ['travelerEntityV13','travelerEntityV14','travelerEntityV15','travelerEntityV16','travelerEntityV17'].forEach(id=>{const old=document.getElementById(id);if(old)old.remove();});
+ const c=document.createElement('canvas'); c.id='travelerEntityV17'; c.setAttribute('aria-hidden','true'); center.prepend(c);
  const x=c.getContext('2d',{alpha:true}); const DPR=Math.min(devicePixelRatio||1,2);
  let W=1,H=1,t0=performance.now(),bank=0,pitch=0,warpAmt=0,chronoAmt=0,fluxAmt=0,midasAmt=0,armOpen=.12;
  const pts=[], sparks=[]; const rand=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  function addEllipse(tag,cx,cy,rx,ry,n){for(let i=0;i<n;i++){const a=Math.random()*6.283,r=Math.sqrt(Math.random());pts.push({type:'ellipse',tag,cx,cy,rx,ry,a,r,phase:Math.random()*6.283,size:rand(.45,1.25),alpha:rand(.16,.54),z:Math.random(),accent:Math.random()});}}
- function addSeg(tag,n,w){for(let i=0;i<n;i++)pts.push({type:'seg',tag,q:Math.random(),off:(Math.random()*2-1)*w*Math.sqrt(Math.random()),phase:Math.random()*6.283,size:rand(.45,1.2),alpha:rand(.15,.55),z:Math.random(),accent:Math.random()});}
+ function addSeg(tag,n,w){for(let i=0;i<n;i++)pts.push({type:'seg',tag,q:Math.random(),off:(Math.random()*2-1)*w*Math.sqrt(Math.random()),phase:Math.random()*6.283,size:rand(.55,1.45),alpha:rand(.18,.62),z:Math.random(),accent:Math.random()});}
+ function addBox(tag,cx,cy,hw,hh,n){for(let i=0;i<n;i++){let u=(Math.random()*2-1),v=(Math.random()*2-1);const edgeBias=Math.random();if(edgeBias<.46){if(Math.random()<.5)u=Math.sign(u||1)*(0.72+Math.random()*.28);else v=Math.sign(v||1)*(0.72+Math.random()*.28);}pts.push({type:'box',tag,cx,cy,hw,hh,u,v,phase:Math.random()*6.283,size:rand(.45,1.3),alpha:rand(.14,.52),z:Math.random(),accent:Math.random()});}}
  function addTail(n){for(let i=0;i<n;i++){const q=Math.pow(Math.random(),.82);pts.push({type:'tail',q,off:(Math.random()*2-1)*Math.sqrt(Math.random()),phase:Math.random()*6.283,size:rand(.4,1.25),alpha:rand(.10,.50),z:Math.random(),accent:Math.random()});}}
- function seed(){pts.length=0;addEllipse('head',.5,.105,.034,.044,78);addEllipse('chest',.5,.255,.104,.135,220);addEllipse('core',.5,.405,.078,.082,105);addSeg('upperL',96,.030);addSeg('lowerL',92,.023);addSeg('upperR',96,.030);addSeg('lowerR',92,.023);addTail(410);}
+ function seed(){pts.length=0;addEllipse('head',.5,.115,.038,.068,150);addBox('chest',.5,.292,.122,.145,390);addEllipse('core',.5,.425,.078,.074,110);addSeg('upperL',150,.044);addSeg('lowerL',142,.036);addSeg('upperR',150,.044);addSeg('lowerR',142,.036);addTail(2050);}
  function resize(){const r=c.getBoundingClientRect();W=Math.max(1,r.width);H=Math.max(1,r.height);c.width=W*DPR;c.height=H*DPR;x.setTransform(DPR,0,0,DPR,0,0);seed();}
  function state(){
    const mid=center.classList.contains('reactorMidas'),chr=center.classList.contains('reactorChrono'),flx=center.classList.contains('reactorFlux'),dmg=center.classList.contains('reactorDamage');
@@ -12325,12 +12326,12 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
  }
  function armPoints(side){
    const sg=side<0?-1:1, w=warpAmt, ch=chronoAmt;
-   const shoulder=[.5+sg*.082,.225];
+   const shoulder=[.5+sg*.118,.245];
    // Warp: elbows remain OUTSIDE the torso while forearms stream backward.
-   let elbow=[.5+sg*(.145+.035*armOpen-.020*w), .335-.020*pitch+.018*w];
-   let hand=[.5+sg*(.235+.080*armOpen-.030*w), .455+.035*pitch+.105*w];
+   let elbow=[.5+sg*(.205+.052*armOpen-.026*w), .345-.020*pitch+.018*w];
+   let hand=[.5+sg*(.345+.115*armOpen-.055*w), .475+.035*pitch+.105*w];
    // Chronos: goal-post / STOP gesture — elbows out, forearms and hands drive forward/up.
-   if(ch>.001){elbow=[.5+sg*(.185+.020*ch),.315-.060*ch];hand=[.5+sg*(.205+.018*ch),.430*(1-ch)+.205*ch];}
+   if(ch>.001){elbow=[.5+sg*(.220-.025*ch),.335-.075*ch];hand=[.5+sg*(.350*(1-ch)+.155*ch),.470*(1-ch)+.185*ch];}
    return [shoulder,elbow,hand];
  }
  function onSeg(tag,q){const left=tag.endsWith('L'), side=left?-1:1, [S,E,Hd]=armPoints(side);let A,B;if(tag.startsWith('upper')){A=S;B=E}else{A=E;B=Hd}return [A[0]+(B[0]-A[0])*q,A[1]+(B[1]-A[1])*q,A,B];}
@@ -12339,8 +12340,10 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
    let u=.5,v=.1;
    if(p.type==='ellipse'){
      let rx=p.rx,ry=p.ry;
-     if(p.tag==='chest'){rx*=1+.018*Math.sin(t*1.2);ry*=1+.012*warpAmt;}
      u=p.cx+Math.cos(p.a)*rx*p.r;v=p.cy+Math.sin(p.a)*ry*p.r;
+   } else if(p.type==='box'){
+     const depth=.5+.5*Math.sin(t*1.18+p.phase);
+     u=p.cx+p.u*p.hw*(.985+.012*depth); v=p.cy+p.v*p.hh*(.985+.016*depth);
    } else if(p.type==='seg'){
      const [sx,sy,A,B]=onSeg(p.tag,p.q),ang=Math.atan2(B[1]-A[1],B[0]-A[0])+Math.PI/2;u=sx+Math.cos(ang)*p.off;v=sy+Math.sin(ang)*p.off;
    } else {
@@ -12358,19 +12361,22 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
    return perspective(u,v);
  }
  function contour(t,s){
-   const [LS,LE,LH]=armPoints(-1),[RS,RE,RH]=armPoints(1); const map=p=>{const z=perspective(p[0],p[1]);return[z[0]*W,z[1]*H]};
-   const head=[];for(let i=0;i<=24;i++){const a=6.283*i/24;head.push(map([.5+Math.cos(a)*.035,.105+Math.sin(a)*.045]));}
-   const waistL=map([.448,.455]),waistR=map([.552,.455]);
-   const left=[...head.slice(12,19),map(LS),map(LE),map(LH)]; const right=[...head.slice(0,7),map(RS),map(RE),map(RH)];
-   x.save();x.globalCompositeOperation='screen';x.lineCap='round';x.lineJoin='round';
-   // Thin energetic perimeter: broken, irregular, readable in screenshots but not a solid wall.
-   x.lineWidth=Math.max(.9,W/1050);x.setLineDash([Math.max(2,W/360),Math.max(3,W/280)]);x.lineDashOffset=-t*10;
-   const aa=.42+.08*Math.sin(t*1.7);x.strokeStyle=`rgba(255,196,64,${aa})`;x.shadowColor='rgba(255,176,30,.55)';x.shadowBlur=Math.max(2,W/260);
-   [left,right].forEach(arr=>{x.beginPath();arr.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));x.stroke();});
-   // shoulder/chest arcs close the readable upper-body silhouette without filling it.
-   const shL=map([.418,.225]),shR=map([.582,.225]);x.beginPath();x.moveTo(shL[0],shL[1]);x.quadraticCurveTo(W*.5,H*.185,shR[0],shR[1]);x.stroke();
-   x.beginPath();x.moveTo(shL[0],shL[1]);x.quadraticCurveTo(W*.445,H*.36,waistL[0],waistL[1]);x.stroke();x.beginPath();x.moveTo(shR[0],shR[1]);x.quadraticCurveTo(W*.555,H*.36,waistR[0],waistR[1]);x.stroke();
-   x.setLineDash([]);x.restore();
+   // V17 perimeter is PARTICLES ONLY. The invisible joint rig still drives motion,
+   // but no shoulder/elbow/torso connector line is ever rendered.
+   const rgb=s.mid?[255,205,72]:[255,188,44];
+   const dot=(u,v,a=.52,sz=1.15)=>{const P=perspective(u,v),r=sz*(W/700);x.fillStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`;x.beginPath();x.arc(P[0]*W,P[1]*H,r,0,6.283);x.fill();};
+   const scatterLine=(A,B,n,seed)=>{for(let i=0;i<=n;i++){if(((i+seed)%4)===1)continue;const q=i/n,j=Math.sin(t*1.1+i*2.17+seed)*.0018;dot(A[0]+(B[0]-A[0])*q+j,A[1]+(B[1]-A[1])*q,.34+.18*((i+seed)%3===0),.85+((i+seed)%5)*.08);}};
+   // Head halo: broken dotted oval, with empty transparent interior.
+   for(let i=0;i<42;i++){if(i%5===2)continue;const a=6.283*i/42;dot(.5+Math.cos(a)*.050,.115+Math.sin(a)*.060,.42+(i%3)*.07,.9);}
+   const [LS,LE,LH]=armPoints(-1),[RS,RE,RH]=armPoints(1);
+   scatterLine(LS,LE,18,1);scatterLine(LE,LH,20,2);scatterLine(RS,RE,18,3);scatterLine(RE,RH,20,4);
+   // Open torso perimeter only — never connect across the body like a puppet.
+   const leftShould=[.378,.245],rightShould=[.622,.245],leftWaist=[.432,.455],rightWaist=[.568,.455];
+   for(let i=0;i<=30;i++){const q=i/30;if(i%6===1)continue;const sideEase=Math.sin(q*Math.PI)*.012;dot(leftShould[0]+(leftWaist[0]-leftShould[0])*q-sideEase,leftShould[1]+(leftWaist[1]-leftShould[1])*q,.38+(i%4===0)*.18,1.0);dot(rightShould[0]+(rightWaist[0]-rightShould[0])*q+sideEase,rightShould[1]+(rightWaist[1]-rightShould[1])*q,.38+(i%4===0)*.18,1.0);}
+   // Embedded third-eye / navigation core: INSIDE the head, not floating above it.
+   const C=perspective(.5,.115),cx=C[0]*W,cy=C[1]*H,rr=3.8*(W/700);
+   x.fillStyle='rgba(255,248,214,.95)';x.beginPath();x.arc(cx,cy,rr,0,6.283);x.fill();
+   x.strokeStyle='rgba(255,194,54,.62)';x.lineWidth=Math.max(.8,W/1100);x.beginPath();x.arc(cx,cy,rr*2.3,0,6.283);x.stroke();
  }
  function emitSpark(u,v,intensity=1){if(sparks.length>190)sparks.shift();sparks.push({u,v,vx:rand(-.002,.002)-bank*.004,vy:rand(.003,.010)*(1+warpAmt*2),life:1,size:rand(.5,1.6)*intensity});}
  function frame(now){
@@ -12392,12 +12398,15 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
    }
    contour(t,s);
    // Energy continually sheds from arms/waist and streams backward; stronger in Warp/Flux/Midas.
-   const emitN=1+(warpAmt>.2?2:0)+(fluxAmt>.2?1:0)+(midasAmt>.2?1:0);for(let i=0;i<emitN;i++){
-     const side=Math.random()<.5?-1:1,[S,E,Hd]=armPoints(side),pick=Math.random()<.55?Hd:[.5+rand(-.045,.045),.455];const p=perspective(pick[0],pick[1]);emitSpark(p[0],p[1],1+warpAmt*.5);
+   const emitN=4+(warpAmt>.2?4:0)+(fluxAmt>.2?3:0)+(midasAmt>.2?3:0);for(let i=0;i<emitN;i++){
+     const side=Math.random()<.5?-1:1,[S,E,Hd]=armPoints(side);
+     // Shed energy from the BACK/inside edge of the arm (tricep -> torso), never from fingertips.
+     let pick;if(Math.random()<.68){const q=rand(.18,.78);pick=[S[0]+(E[0]-S[0])*q-side*rand(.006,.018),S[1]+(E[1]-S[1])*q+rand(.006,.020)];}else{pick=[.5+rand(-.060,.060),.448+rand(-.006,.020)];}
+     const p=perspective(pick[0],pick[1]);emitSpark(p[0],p[1],1.05+warpAmt*.55);
    }
    for(let i=sparks.length-1;i>=0;i--){const q=sparks[i];q.life-=.018;q.u+=q.vx;q.v+=q.vy*(.75+warpAmt*.8);q.vx+=Math.sin(t*2+i)*.00003;const a=Math.max(0,q.life)*(.32+.28*midasAmt),rr=q.size*(W/700);x.fillStyle=`rgba(255,180,30,${a})`;x.beginPath();x.arc(q.u*W,q.v*H,rr,0,6.283);x.fill();if(q.life<=0||q.v>1.1)sparks.splice(i,1);}
    // Chronos hands flare as pressure surfaces, clearly showing the STOP gesture.
-   if(chronoAmt>.03){for(const side of [-1,1]){const Hd=armPoints(side)[2],p=perspective(Hd[0],Hd[1]),rr=(5+8*chronoAmt)*(W/700);x.strokeStyle=`rgba(255,222,132,${.18+.38*chronoAmt})`;x.lineWidth=Math.max(1,W/900);x.beginPath();x.arc(p[0]*W,p[1]*H,rr,0,6.283);x.stroke();}}
+   if(chronoAmt>.03){for(const side of [-1,1]){const Hd=armPoints(side)[2],p=perspective(Hd[0],Hd[1]);const cx=p[0]*W,cy=p[1]*H;for(let j=0;j<18;j++){const a=j*2.399+t*1.7,spread=(4+Math.sqrt(j)*4.2)*chronoAmt*(W/700),rr=(.65+(j%4)*.28)*(W/700);x.fillStyle=`rgba(255,218,112,${(.12+.34*chronoAmt)*(1-j/24)})`;x.beginPath();x.arc(cx+Math.cos(a)*spread,cy+Math.sin(a)*spread*.62,rr,0,6.283);x.fill();}const g=x.createRadialGradient(cx,cy,0,cx,cy,18*chronoAmt*(W/700));g.addColorStop(0,`rgba(255,246,200,${.34*chronoAmt})`);g.addColorStop(.35,`rgba(255,199,70,${.18*chronoAmt})`);g.addColorStop(1,'rgba(255,190,40,0)');x.fillStyle=g;x.beginPath();x.ellipse(cx,cy,18*chronoAmt*(W/700),11*chronoAmt*(W/700),0,0,6.283);x.fill();}}
    x.restore();requestAnimationFrame(frame);
  }
  new ResizeObserver(resize).observe(c);resize();requestAnimationFrame(frame);
