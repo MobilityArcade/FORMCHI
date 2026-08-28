@@ -12286,22 +12286,22 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
 
 
 
-<style id="travelerEntityV14Styles">
-/* V14 — articulated procedural particle Traveler. */
+<style id="travelerEntityV15Styles">
+/* V15 — flight-perspective articulated particle Traveler: foreshortening, contour, pressure recovery. */
 #center .travelerV12,#center .travelerBody{display:none!important}
-#travelerEntityV14{
+#travelerEntityV15{
   position:absolute;left:50%;top:50%;width:min(1080px,92vw);height:min(1100px,88vh);
   transform:translate(-50%,-4%);transform-origin:50% 8%;pointer-events:none;z-index:-2;
-  opacity:.72;mix-blend-mode:screen;filter:drop-shadow(0 0 2px rgba(255,255,255,.10));
+  opacity:.78;mix-blend-mode:screen;filter:drop-shadow(0 0 2px rgba(255,255,255,.12));
 }
-@media (orientation:portrait) and (max-width:699px){#travelerEntityV14{width:178vw;height:86vh;transform:translate(-50%,-1%);}}
-@media (orientation:landscape){#travelerEntityV14{width:min(980px,72vw);height:82vh;transform:translate(-50%,-5%);}}
+@media (orientation:portrait) and (max-width:699px){#travelerEntityV15{width:178vw;height:86vh;transform:translate(-50%,-1%);}}
+@media (orientation:landscape){#travelerEntityV15{width:min(980px,72vw);height:82vh;transform:translate(-50%,-5%);}}
 </style>
-<script id="travelerEntityV14Script">
+<script id="travelerEntityV15Script">
 (()=>{
  const center=document.getElementById('center'); if(!center)return;
- const old=document.getElementById('travelerEntityV13'); if(old)old.remove();
- const c=document.createElement('canvas'); c.id='travelerEntityV14'; c.setAttribute('aria-hidden','true'); center.prepend(c);
+ ['travelerEntityV13','travelerEntityV14'].forEach(id=>{const old=document.getElementById(id);if(old)old.remove();});
+ const c=document.createElement('canvas'); c.id='travelerEntityV15'; c.setAttribute('aria-hidden','true'); center.prepend(c);
  const ctx=c.getContext('2d',{alpha:true}); const DPR=Math.min(devicePixelRatio||1,2);
  let W=1,H=1,t0=performance.now();
  const particles=[];
@@ -12320,9 +12320,9 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
  }
  function seed(){
    particles.length=0;
-   ellipse('head',.5,.105,.047,.060,72);
-   ellipse('torso',.5,.275,.118,.145,205);
-   ellipse('core',.5,.39,.088,.098,120);
+   ellipse('head',.5,.105,.034,.044,64);
+   ellipse('torso',.5,.275,.105,.140,190);
+   ellipse('core',.5,.39,.082,.094,112);
    segment('upperL',82,.036);segment('lowerL',78,.027);segment('upperR',82,.036);segment('lowerR',78,.027);
    segment('thighL',102,.048);segment('calfL',94,.036);segment('thighR',102,.048);segment('calfR',94,.036);
  }
@@ -12343,21 +12343,27 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
  }
  function pointOnSeg(tag,q){
    const b=bank, p=pitch, w=warpAmt, ch=chronoAmt;
-   const shoulderY=.235, shoulderSpread=.098;
-   const tuck=.09*w;
-   const resistance=.10*ch;
-   // airplane-like articulation: opposite arm opens while inside arm tucks.
+   // Permanent third-person flight pose: distant/narrow head and shoulders,
+   // body widening toward the camera. The entity is never an upright standing figure.
+   const shoulderY=.225, shoulderSpread=.082;
+   const tuck=.105*w;
    const leftOpen=armOpen - armSweep*b;
    const rightOpen=armOpen + armSweep*b;
    const Ls=[.5-shoulderSpread,shoulderY], Rs=[.5+shoulderSpread,shoulderY];
-   const Le=[.355-leftOpen*.060+tuck,.34-p*.035-resistance*.020];
-   const Re=[.645+rightOpen*.060-tuck,.34-p*.035-resistance*.020];
-   const Lh=[.255-leftOpen*.105+tuck,.46+p*.025-resistance*.050];
-   const Rh=[.745+rightOpen*.105-tuck,.46+p*.025-resistance*.050];
-   if(ch>.02){Lh[1]-=.055*ch;Rh[1]-=.055*ch;Lh[0]-=.045*ch;Rh[0]+=.045*ch;}
-   const hipL=[.458,.49], hipR=[.542,.49];
-   const kneeL=[.415+tuck*.35,.73+w*.015],kneeR=[.585-tuck*.35,.73+w*.015];
-   const footL=[.38+tuck*.55,.965+w*.025],footR=[.62-tuck*.55,.965+w*.025];
+   let Le=[.370-leftOpen*.060+tuck,.335-p*.030];
+   let Re=[.630+rightOpen*.060-tuck,.335-p*.030];
+   let Lh=[.270-leftOpen*.115+tuck,.455+p*.022];
+   let Rh=[.730+rightOpen*.115-tuck,.455+p*.022];
+   // CHRONOS = meeting a wall of time: upper arms rise, elbows bend,
+   // forearms press forward toward the vanishing point rather than bird-flapping.
+   if(ch>.001){
+     Le[0]-=.060*ch; Re[0]+=.060*ch; Le[1]-=.050*ch; Re[1]-=.050*ch;
+     Lh[0]=Lh[0]*(1-ch)+(.285)*ch; Rh[0]=Rh[0]*(1-ch)+(.715)*ch;
+     Lh[1]=Lh[1]*(1-ch)+(.245)*ch; Rh[1]=Rh[1]*(1-ch)+(.245)*ch;
+   }
+   const hipL=[.452,.485], hipR=[.548,.485];
+   const kneeL=[.400+tuck*.32,.725+w*.018],kneeR=[.600-tuck*.32,.725+w*.018];
+   const footL=[.350+tuck*.50,.975+w*.025],footR=[.650-tuck*.50,.975+w*.025];
    let A,B;
    if(tag==='upperL'){A=Ls;B=Le}else if(tag==='lowerL'){A=Le;B=Lh}
    else if(tag==='upperR'){A=Rs;B=Re}else if(tag==='lowerR'){A=Re;B=Rh}
@@ -12384,6 +12390,12 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
    v+=pitch*(v-.1)*.008;
    if(warpAmt>0){v+=(v-.1)*.045*warpAmt + Math.sin(pt.phase+t*8)*.0025*warpAmt;}
    if(chronoAmt>0){u+=Math.sin(t*3+pt.phase)*.006*chronoAmt;v+=Math.cos(t*2.3+pt.phase)*.0045*chronoAmt;}
+   // Forced-perspective camera: the vanishing point is the third-eye/head.
+   // Lower anatomy grows toward the viewer, creating the old PNG's piercing-flight read.
+   const depth=clamp((v-.08)/.92,0,1);
+   const perspective=.70 + .48*Math.pow(depth,.82);
+   u=.5+(u-.5)*perspective;
+   v=.095+(v-.095)*(0.90+0.10*depth);
    return [u,v];
  }
  function frame(now){
@@ -12393,11 +12405,16 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
    const targetBank=clamp(vx/22,-1,1), targetPitch=clamp(vy/22,-1,1);
    const warpOn=(typeof travelerWarpPoseUntil!=='undefined' && performance.now()<travelerWarpPoseUntil);
    const chronoOn=center.classList.contains('reactorChrono') || (typeof chronoTime!=='undefined'&&chronoTime>0);
-   bank+=(targetBank-bank)*.12; pitch+=(targetPitch-pitch)*.11;
-   warpAmt+=((warpOn?1:0)-warpAmt)*.075; chronoAmt+=((chronoOn?1:0)-chronoAmt)*.08;
-   const targetOpen=.18 + Math.abs(bank)*.30 + Math.max(0,-pitch)*.18 + chronoAmt*.72 - warpAmt*.62;
-   armOpen+=(targetOpen-armOpen)*.10;
-   armSweep+=(.95-armSweep)*.06;
+   bank+=(targetBank-bank)*(Math.abs(targetBank)>Math.abs(bank)?.12:.065);
+   pitch+=(targetPitch-pitch)*(Math.abs(targetPitch)>Math.abs(pitch)?.11:.055);
+   // Acceleration tucks quickly; deceleration releases with pressure/drag instead of springing open.
+   const warpTarget=warpOn?1:0, chronoTarget=chronoOn?1:0;
+   warpAmt+=(warpTarget-warpAmt)*(warpTarget>warpAmt?.085:.026);
+   chronoAmt+=(chronoTarget-chronoAmt)*(chronoTarget>chronoAmt?.085:.038);
+   const targetOpen=.20 + Math.abs(bank)*.31 + Math.max(0,-pitch)*.16 + chronoAmt*.68 - warpAmt*.58;
+   const openRate=targetOpen<armOpen?.095:.032;
+   armOpen+=(targetOpen-armOpen)*openRate;
+   armSweep+=(.95-armSweep)*.045;
    const state=stateRGB();
    ctx.save();ctx.globalCompositeOperation='lighter';
    // subtle body roll/float; articulation does most of the storytelling.
@@ -12411,6 +12428,21 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
      ctx.fillStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`;ctx.beginPath();ctx.arc(px,py,r,0,Math.PI*2);ctx.fill();
      if(pt.alpha>.43){ctx.fillStyle=`rgba(255,255,255,${a*.28})`;ctx.beginPath();ctx.arc(px,py,r*.32,0,Math.PI*2);ctx.fill();}
    }
+   // V15 implied perimeter: ultra-thin, broken warm-white/gold constellation trace.
+   // It defines hands/feet/joints on phone without filling or blocking the playfield.
+   function P(tag,q){const [u,v]=sampleParticle({type:'segment',tag,q,off:0,phase:0},t);return [u*W,v*H];}
+   function E(cx,cy){
+     const depth=clamp((cy-.08)/.92,0,1),pers=.70+.48*Math.pow(depth,.82);
+     return [(.5+(cx-.5)*pers)*W,(.095+(cy-.095)*(.90+.10*depth))*H];
+   }
+   const head=[];for(let i=0;i<=18;i++){const a=Math.PI*2*i/18;head.push(E(.5+Math.cos(a)*.035,.105+Math.sin(a)*.045));}
+   const left=[...head.slice(9,14),P('upperL',0),P('upperL',.52),P('upperL',1),P('lowerL',.5),P('lowerL',1),E(.452,.485),P('thighL',.45),P('thighL',1),P('calfL',.55),P('calfL',1)];
+   const right=[...head.slice(0,5),P('upperR',0),P('upperR',.52),P('upperR',1),P('lowerR',.5),P('lowerR',1),E(.548,.485),P('thighR',.45),P('thighR',1),P('calfR',.55),P('calfR',1)];
+   ctx.save();ctx.globalCompositeOperation='screen';ctx.lineWidth=Math.max(.55,W/1500);ctx.setLineDash([Math.max(2,W/310),Math.max(5,W/180)]);ctx.lineCap='round';
+   const ca=.18+.045*Math.sin(t*1.3);ctx.strokeStyle=`rgba(255,211,112,${ca})`;
+   for(const arr of [left,right]){ctx.beginPath();arr.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.stroke();}
+   ctx.setLineDash([]);ctx.restore();
+
    // restrained spine/third-eye shimmer, still see-through.
    const spineA=.08+.04*Math.sin(t*1.7);ctx.strokeStyle=`rgba(210,242,255,${spineA})`;ctx.lineWidth=Math.max(.45,W/1200);ctx.beginPath();ctx.moveTo(W*.5,H*.105);ctx.lineTo(W*.5,H*.45);ctx.stroke();
    for(let i=0;i<8;i++){const pt=particles[(i*97+Math.floor(t*5))%particles.length],[u,v]=sampleParticle(pt,t),px=u*W,py=v*H,rr=(1.2+(i%3)*.35)*(W/700);ctx.strokeStyle='rgba(255,255,255,.16)';ctx.beginPath();ctx.moveTo(px-rr*2.5,py);ctx.lineTo(px+rr*2.5,py);ctx.moveTo(px,py-rr*2.5);ctx.lineTo(px,py+rr*2.5);ctx.stroke();}
