@@ -12286,53 +12286,135 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
 
 
 
-<style id="travelerEntityV13Styles">
-/* V13 — procedural transparent particle Traveler. Replaces PNG sprites only. */
-#center .travelerV12{display:none!important}
-#travelerEntityV13{position:absolute;left:50%;top:50%;width:min(1080px,92vw);height:min(1100px,88vh);transform:translate(-50%,-4%);transform-origin:50% 8%;pointer-events:none;z-index:-2;opacity:.82;mix-blend-mode:screen;filter:drop-shadow(0 0 3px rgba(255,255,255,.16));}
-@media (orientation:portrait) and (max-width:699px){#travelerEntityV13{width:178vw;height:86vh;transform:translate(-50%,-1%);}}
-@media (orientation:landscape){#travelerEntityV13{width:min(980px,72vw);height:82vh;transform:translate(-50%,-5%);}}
-#center.reactorMidas #travelerEntityV13{filter:drop-shadow(0 0 4px rgba(255,190,45,.24))}
-#center.reactorChrono #travelerEntityV13{filter:drop-shadow(0 0 5px rgba(170,135,255,.22))}
-#center.reactorFlux #travelerEntityV13{filter:drop-shadow(0 0 5px rgba(70,225,255,.22))}
-#center.reactorDamage #travelerEntityV13{filter:drop-shadow(0 0 6px rgba(255,48,48,.35))}
+<style id="travelerEntityV14Styles">
+/* V14 — articulated procedural particle Traveler. */
+#center .travelerV12,#center .travelerBody{display:none!important}
+#travelerEntityV14{
+  position:absolute;left:50%;top:50%;width:min(1080px,92vw);height:min(1100px,88vh);
+  transform:translate(-50%,-4%);transform-origin:50% 8%;pointer-events:none;z-index:-2;
+  opacity:.72;mix-blend-mode:screen;filter:drop-shadow(0 0 2px rgba(255,255,255,.10));
+}
+@media (orientation:portrait) and (max-width:699px){#travelerEntityV14{width:178vw;height:86vh;transform:translate(-50%,-1%);}}
+@media (orientation:landscape){#travelerEntityV14{width:min(980px,72vw);height:82vh;transform:translate(-50%,-5%);}}
 </style>
-<script id="travelerEntityV13Script">
+<script id="travelerEntityV14Script">
 (()=>{
  const center=document.getElementById('center'); if(!center)return;
- const c=document.createElement('canvas'); c.id='travelerEntityV13'; c.setAttribute('aria-hidden','true'); center.prepend(c);
- const x=c.getContext('2d',{alpha:true}); const DPR=Math.min(devicePixelRatio||1,2);
- let W=0,H=0,t0=performance.now(), pts=[];
- function resize(){const r=c.getBoundingClientRect();W=Math.max(1,r.width);H=Math.max(1,r.height);c.width=W*DPR;c.height=H*DPR;x.setTransform(DPR,0,0,DPR,0,0);seed();}
+ const old=document.getElementById('travelerEntityV13'); if(old)old.remove();
+ const c=document.createElement('canvas'); c.id='travelerEntityV14'; c.setAttribute('aria-hidden','true'); center.prepend(c);
+ const ctx=c.getContext('2d',{alpha:true}); const DPR=Math.min(devicePixelRatio||1,2);
+ let W=1,H=1,t0=performance.now();
+ const particles=[];
  const rand=(a,b)=>a+Math.random()*(b-a);
- function addEllipse(cx,cy,rx,ry,n,density=1){for(let i=0;i<n;i++){let a=Math.random()*Math.PI*2, rr=Math.sqrt(Math.random())*density;pts.push({u:cx+Math.cos(a)*rx*rr,v:cy+Math.sin(a)*ry*rr,p:Math.random()*6.28,s:rand(.45,1.25),a:rand(.16,.58)});}}
- function addLimb(x1,y1,x2,y2,w1,w2,n){for(let i=0;i<n;i++){let q=Math.random(), cx=x1+(x2-x1)*q,cy=y1+(y2-y1)*q,w=w1+(w2-w1)*q,ang=Math.atan2(y2-y1,x2-x1)+Math.PI/2,off=(Math.random()*2-1)*w*Math.sqrt(Math.random());pts.push({u:cx+Math.cos(ang)*off,v:cy+Math.sin(ang)*off,p:Math.random()*6.28,s:rand(.45,1.2),a:rand(.13,.52)});}}
- function seed(){pts=[]; /* normalized home silhouette: third-person, slight forward flight perspective */
-  addEllipse(.5,.105,.050,.062,80); addEllipse(.5,.245,.145,.125,230,.95); addEllipse(.5,.405,.105,.135,190,.95);
-  addLimb(.405,.22,.27,.43,.048,.026,115); addLimb(.595,.22,.73,.43,.048,.026,115);
-  addLimb(.455,.48,.405,.73,.060,.044,130); addLimb(.545,.48,.595,.73,.060,.044,130);
-  addLimb(.405,.73,.37,.96,.044,.030,105); addLimb(.595,.73,.63,.96,.044,.030,105);
+ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+ let bank=0,pitch=0,warpAmt=0,chronoAmt=0,armOpen=0,armSweep=0;
+
+ function ellipse(tag,cx,cy,rx,ry,n){
+   for(let i=0;i<n;i++){
+     const a=Math.random()*Math.PI*2,r=Math.sqrt(Math.random());
+     particles.push({type:'ellipse',tag,cx,cy,rx,ry,a,r,phase:Math.random()*6.283,size:rand(.45,1.2),alpha:rand(.15,.52),accent:Math.random()});
+   }
  }
- function stateColor(){if(center.classList.contains('reactorMidas'))return [255,196,72];if(center.classList.contains('reactorChrono'))return [188,155,255];if(center.classList.contains('reactorFlux'))return [95,235,255];if(center.classList.contains('reactorDamage'))return [255,72,72];return [245,250,255];}
- function frame(now){let t=(now-t0)/1000, col=stateColor();x.clearRect(0,0,W,H);
-  let bank=0; try{bank=parseFloat(getComputedStyle(center).getPropertyValue('--traveler-bank-x'))||0}catch(e){} bank=Math.max(-18,Math.min(18,bank));
-  let chrono=center.classList.contains('reactorChrono'), flux=center.classList.contains('reactorFlux');
-  let warp=(typeof travelerWarpPoseUntil!=='undefined' && performance.now()<travelerWarpPoseUntil);
-  let breath=1+Math.sin(t*1.45)*.006, lean=bank/18;
-  x.save(); x.translate(W*.5,H*.105); x.rotate(bank*Math.PI/180*.42); x.translate(-W*.5,-H*.105);
-  x.globalCompositeOperation='lighter';
-  for(let p of pts){let u=(p.u-.5)*breath+.5,v=(p.v-.105)*breath+.105; let flow=Math.sin(t*1.7+p.p)*.0035;
-   let px=(u+flow*(.25+v)+lean*(v-.1)*.018)*W, py=(v+Math.cos(t*1.25+p.p)*.0025)*H;
-   if(warp){py+=(v-.1)*H*.025*Math.sin(t*8+p.p);px+=(Math.sin(p.p+t*5))*W*.002;}
-   if(chrono){px+=Math.sin(t*2+p.p)*W*.006;py+=Math.cos(t*1.7+p.p)*H*.004;}
-   if(flux){px+=Math.sin(t*5+p.p)*W*.003;}
-   let alpha=p.a*(warp?.72:1)*(chrono?.78:1); let rad=p.s*(W/700)*(warp?1.08:1);
-   x.fillStyle=`rgba(${col[0]},${col[1]},${col[2]},${alpha})`;x.beginPath();x.arc(px,py,rad,0,Math.PI*2);x.fill();
-   if(p.a>.43){x.fillStyle=`rgba(255,255,255,${alpha*.36})`;x.beginPath();x.arc(px,py,rad*.34,0,Math.PI*2);x.fill();}
-  }
-  /* sparse shimmer — never a solid body */
-  for(let i=0;i<10;i++){let p=pts[(i*83+Math.floor(t*3))%pts.length],px=p.u*W,py=p.v*H,r=rand(1.2,2.2)*(W/700);x.strokeStyle=`rgba(${col[0]},${col[1]},${col[2]},.22)`;x.beginPath();x.moveTo(px-r*3,py);x.lineTo(px+r*3,py);x.moveTo(px,py-r*3);x.lineTo(px,py+r*3);x.stroke();}
-  x.restore(); requestAnimationFrame(frame);
+ function segment(tag,n,offW=.024){
+   for(let i=0;i<n;i++)particles.push({type:'segment',tag,q:Math.random(),off:(Math.random()*2-1)*offW*Math.sqrt(Math.random()),phase:Math.random()*6.283,size:rand(.45,1.15),alpha:rand(.13,.5),accent:Math.random()});
+ }
+ function seed(){
+   particles.length=0;
+   ellipse('head',.5,.105,.047,.060,72);
+   ellipse('torso',.5,.275,.118,.145,205);
+   ellipse('core',.5,.39,.088,.098,120);
+   segment('upperL',82,.036);segment('lowerL',78,.027);segment('upperR',82,.036);segment('lowerR',78,.027);
+   segment('thighL',102,.048);segment('calfL',94,.036);segment('thighR',102,.048);segment('calfR',94,.036);
+ }
+ function resize(){const r=c.getBoundingClientRect();W=Math.max(1,r.width);H=Math.max(1,r.height);c.width=W*DPR;c.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);seed();}
+
+ function stateRGB(){
+   if(center.classList.contains('reactorMidas')) return [255,196,72];
+   if(center.classList.contains('reactorChrono')) return [188,160,255];
+   if(center.classList.contains('reactorFlux')) return [90,232,255];
+   if(center.classList.contains('reactorDamage')) return [255,74,74];
+   return null;
+ }
+ function neutralRGB(p){
+   // Mostly neutral white with sparse cool accents to define the silhouette.
+   if(p.accent>.94)return [160,125,255];
+   if(p.accent>.84)return [105,220,255];
+   return [242,248,255];
+ }
+ function pointOnSeg(tag,q){
+   const b=bank, p=pitch, w=warpAmt, ch=chronoAmt;
+   const shoulderY=.235, shoulderSpread=.098;
+   const tuck=.09*w;
+   const resistance=.10*ch;
+   // airplane-like articulation: opposite arm opens while inside arm tucks.
+   const leftOpen=armOpen - armSweep*b;
+   const rightOpen=armOpen + armSweep*b;
+   const Ls=[.5-shoulderSpread,shoulderY], Rs=[.5+shoulderSpread,shoulderY];
+   const Le=[.355-leftOpen*.060+tuck,.34-p*.035-resistance*.020];
+   const Re=[.645+rightOpen*.060-tuck,.34-p*.035-resistance*.020];
+   const Lh=[.255-leftOpen*.105+tuck,.46+p*.025-resistance*.050];
+   const Rh=[.745+rightOpen*.105-tuck,.46+p*.025-resistance*.050];
+   if(ch>.02){Lh[1]-=.055*ch;Rh[1]-=.055*ch;Lh[0]-=.045*ch;Rh[0]+=.045*ch;}
+   const hipL=[.458,.49], hipR=[.542,.49];
+   const kneeL=[.415+tuck*.35,.73+w*.015],kneeR=[.585-tuck*.35,.73+w*.015];
+   const footL=[.38+tuck*.55,.965+w*.025],footR=[.62-tuck*.55,.965+w*.025];
+   let A,B;
+   if(tag==='upperL'){A=Ls;B=Le}else if(tag==='lowerL'){A=Le;B=Lh}
+   else if(tag==='upperR'){A=Rs;B=Re}else if(tag==='lowerR'){A=Re;B=Rh}
+   else if(tag==='thighL'){A=hipL;B=kneeL}else if(tag==='calfL'){A=kneeL;B=footL}
+   else if(tag==='thighR'){A=hipR;B=kneeR}else {A=kneeR;B=footR}
+   return [A[0]+(B[0]-A[0])*q,A[1]+(B[1]-A[1])*q,A,B];
+ }
+ function sampleParticle(pt,t){
+   let u,v;
+   if(pt.type==='ellipse'){
+     let cx=pt.cx,cy=pt.cy,rx=pt.rx,ry=pt.ry;
+     if(pt.tag==='torso'){rx*=1+armOpen*.025-chronoAmt*.02;ry*=1+Math.sin(t*1.45)*.006+warpAmt*.018;}
+     if(pt.tag==='core'){ry*=1+warpAmt*.025;}
+     u=cx+Math.cos(pt.a)*rx*pt.r;v=cy+Math.sin(pt.a)*ry*pt.r;
+   }else{
+     const [sx,sy,A,B]=pointOnSeg(pt.tag,pt.q); const ang=Math.atan2(B[1]-A[1],B[0]-A[0])+Math.PI/2;
+     u=sx+Math.cos(ang)*pt.off;v=sy+Math.sin(ang)*pt.off;
+   }
+   const drift=.0023+v*.0014;
+   u+=Math.sin(t*1.55+pt.phase)*drift;
+   v+=Math.cos(t*1.18+pt.phase)*drift*.68;
+   // inertia trails opposite movement, strongest at extremities.
+   u-=bank*(v-.1)*.012;
+   v+=pitch*(v-.1)*.008;
+   if(warpAmt>0){v+=(v-.1)*.045*warpAmt + Math.sin(pt.phase+t*8)*.0025*warpAmt;}
+   if(chronoAmt>0){u+=Math.sin(t*3+pt.phase)*.006*chronoAmt;v+=Math.cos(t*2.3+pt.phase)*.0045*chronoAmt;}
+   return [u,v];
+ }
+ function frame(now){
+   const t=(now-t0)/1000;ctx.clearRect(0,0,W,H);
+   let vx=0,vy=0;
+   try{vx=(typeof targetX!=='undefined'&&typeof playerX!=='undefined')?(targetX-playerX):0;vy=(typeof targetY!=='undefined'&&typeof playerY!=='undefined')?(targetY-playerY):0;}catch(e){}
+   const targetBank=clamp(vx/22,-1,1), targetPitch=clamp(vy/22,-1,1);
+   const warpOn=(typeof travelerWarpPoseUntil!=='undefined' && performance.now()<travelerWarpPoseUntil);
+   const chronoOn=center.classList.contains('reactorChrono') || (typeof chronoTime!=='undefined'&&chronoTime>0);
+   bank+=(targetBank-bank)*.12; pitch+=(targetPitch-pitch)*.11;
+   warpAmt+=((warpOn?1:0)-warpAmt)*.075; chronoAmt+=((chronoOn?1:0)-chronoAmt)*.08;
+   const targetOpen=.18 + Math.abs(bank)*.30 + Math.max(0,-pitch)*.18 + chronoAmt*.72 - warpAmt*.62;
+   armOpen+=(targetOpen-armOpen)*.10;
+   armSweep+=(.95-armSweep)*.06;
+   const state=stateRGB();
+   ctx.save();ctx.globalCompositeOperation='lighter';
+   // subtle body roll/float; articulation does most of the storytelling.
+   ctx.translate(W*.5,H*.105);ctx.rotate(bank*.10);ctx.translate(-W*.5,-H*.105);
+   for(const pt of particles){
+     const [u,v]=sampleParticle(pt,t); const px=u*W,py=v*H;
+     const rgb=state||neutralRGB(pt);
+     let a=pt.alpha*(state?.95:1)*(warpAmt?(.92-.12*warpAmt):1)*(chronoAmt?(.95-.10*chronoAmt):1);
+     const pulse=.88+.12*Math.sin(t*2.2+pt.phase); a*=pulse;
+     let r=pt.size*(W/700)*(1+warpAmt*.06);
+     ctx.fillStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`;ctx.beginPath();ctx.arc(px,py,r,0,Math.PI*2);ctx.fill();
+     if(pt.alpha>.43){ctx.fillStyle=`rgba(255,255,255,${a*.28})`;ctx.beginPath();ctx.arc(px,py,r*.32,0,Math.PI*2);ctx.fill();}
+   }
+   // restrained spine/third-eye shimmer, still see-through.
+   const spineA=.08+.04*Math.sin(t*1.7);ctx.strokeStyle=`rgba(210,242,255,${spineA})`;ctx.lineWidth=Math.max(.45,W/1200);ctx.beginPath();ctx.moveTo(W*.5,H*.105);ctx.lineTo(W*.5,H*.45);ctx.stroke();
+   for(let i=0;i<8;i++){const pt=particles[(i*97+Math.floor(t*5))%particles.length],[u,v]=sampleParticle(pt,t),px=u*W,py=v*H,rr=(1.2+(i%3)*.35)*(W/700);ctx.strokeStyle='rgba(255,255,255,.16)';ctx.beginPath();ctx.moveTo(px-rr*2.5,py);ctx.lineTo(px+rr*2.5,py);ctx.moveTo(px,py-rr*2.5);ctx.lineTo(px,py+rr*2.5);ctx.stroke();}
+   ctx.restore();requestAnimationFrame(frame);
  }
  new ResizeObserver(resize).observe(c);resize();requestAnimationFrame(frame);
 })();
