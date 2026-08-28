@@ -3465,7 +3465,7 @@ body.phone-device.phone-landscape-blocked #phonePortraitGate{display:flex;}
 @media(prefers-reduced-motion:reduce){#center .travelerV12{animation:none!important}}
 </style>
 <script>
-/* SHIFTVIX V12 — state-driven Traveler sprite system.
+/* SHIFTVIX V12.1 — event-driven Traveler sprite system.
    Priority: Chronos > Warp 3 > bank left/right > neutral.
    All five images share the same 1024×1536 canvas and 9% third-eye anchor. */
 const TRAVELER_POSE_IMAGES={
@@ -3479,6 +3479,24 @@ Object.values(TRAVELER_POSE_IMAGES).forEach(src=>{const i=new Image();i.src=src;
 let travelerPose='neutral';
 let travelerFront='A';
 let travelerLastSwap=0;
+// V12.1: event-driven pose holds. The previous build inferred banking from targetX,
+// which was too easy to miss visually. These timers are set directly by the
+// actual lane / Warp events so the sprite performance is unmistakably connected
+// to the player's action.
+let travelerBankPose='neutral';
+let travelerBankPoseUntil=0;
+let travelerWarpPoseUntil=0;
+function cueTravelerBank(dx){
+  if(!dx)return;
+  travelerBankPose=dx<0?'left':'right';
+  travelerBankPoseUntil=performance.now()+520;
+}
+function cueTravelerWarp(tier=1){
+  // We currently have one streamlined max-speed drawing. Hold it long enough
+  // to read on every Warp event; tier 3 gets the longest hold.
+  travelerWarpPoseUntil=performance.now()+(tier>=3?1150:tier===2?900:720);
+}
+
 function travelerEls(){return [document.getElementById('travelerSpriteA'),document.getElementById('travelerSpriteB')];}
 function initTravelerSprites(){
   const [a,b]=travelerEls(); if(!a||!b)return;
@@ -3501,13 +3519,17 @@ function setTravelerPose(next){
   travelerPose=next; travelerLastSwap=performance.now();
 }
 function updateTravelerPoseState(){
+  const now=performance.now();
   let next='neutral';
-  if(typeof chronoAmount!=='undefined' && chronoAmount>.08) next='chronos';
-  else if(typeof warpAmount!=='undefined' && warpAmount>.76) next='warp3';
-  else if(typeof targetX!=='undefined' && typeof playerX!=='undefined'){
-    const dx=targetX-playerX;
-    if(dx<-4.0) next='left';
-    else if(dx>4.0) next='right';
+  // Use the actual active legendary timer first; chronoAmount eases in/out and
+  // remains as a visual fallback during the transition.
+  if((typeof chronoTime!=='undefined' && chronoTime>0) ||
+     (typeof chronoAmount!=='undefined' && chronoAmount>.025)){
+    next='chronos';
+  }else if(now<travelerWarpPoseUntil){
+    next='warp3';
+  }else if(now<travelerBankPoseUntil){
+    next=travelerBankPose;
   }
   setTravelerPose(next);
 }
@@ -9789,6 +9811,7 @@ function activateWarp(reason,tier=1){
   lastWarpBreakthrough=Math.floor(distance/3000);
 
   warpCollectedThisRun++;
+  cueTravelerWarp(tier);
 
   if(isWarpFlowActive()){
     warpCooldownUntilDistance=
@@ -10308,6 +10331,9 @@ function moveLane(dx,dy){
     laneY!==oldLaneY;
 
   if(changed){
+    // V12.1 Traveler performance: horizontal lane changes directly cue the
+    // corresponding bank sprite. Diagonal moves still bank by their X component.
+    cueTravelerBank(laneX-oldLaneX);
     const fromLaneKey=
       laneKeyFromIndexes(
         oldLaneX,
@@ -11156,7 +11182,7 @@ vix.style.transform = "translateY(0)";
 
 title.style.transform = "translate(-50%,-50%)";
 
-const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}setTravelerPose("neutral");reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;shiftCountRun=0;shiftLastArrivalLane=null;shiftPreviousArrivalLane=null;lastRegularTrainContact=null;pendingTrainShift=null;warpFlowNextWarpDistance=Infinity;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=1.25;voidCountRun=0;goldRingsPassed=0;breakVoidsDestroyed=0;driftDistance=0;driftAudioMeterCarry=0;driftAudioLastLane=-1;driftAudioPhraseStep=0;prototypeLastScore=0;goldRingSpawnCooldown=2.5;goldRingSpawnedThisRun=0;goldRingSequenceRemaining=0;goldRingSequenceDelay=0;goldRingLastLane=null;goldRingSequenceAnchor=null;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
+const pauseText=document.getElementById("pauseText");if(pauseText)pauseText.style.display="none";const center=document.getElementById("center");if(center){center.classList.remove("reactorFlux","reactorChrono","reactorMidas","reactorDamage");center.classList.add("reactorNormal");center.style.setProperty("--thrust-power","0");}setTravelerPose("neutral");travelerBankPose="neutral";travelerBankPoseUntil=0;travelerWarpPoseUntil=0;reactorDamageUntil=0;ionicThrustPower=0;ionicThrustAngle=90;document.getElementById("roundComplete").style.display="none";beacons.forEach(disposeBeaconObject);beacons.length=0;score=0;foundCount=0;combo=1;distance=0;level=1;shiftCountRun=0;shiftLastArrivalLane=null;shiftPreviousArrivalLane=null;lastRegularTrainContact=null;pendingTrainShift=null;warpFlowNextWarpDistance=Infinity;tierCounts={WHITE:0,BLUE:0,GREEN:0,PURPLE:0,ORANGE:0,RED:0};heroMode=true;heroBannerShown=true;pendingModeBanner=null;fluxCollectionStreak=0;fluxPendingReasons.length=0;fluxOrbActive=false;fluxBoostTime=0;fluxBoostAmount=0;fluxDustVisualPower=0;if(fluxDust)fluxDust.material.opacity=0;fluxNextDistanceTrigger=1000+Math.random()*500;fluxCooldownUntilDistance=0;fluxCollectedThisRun=0;const fluxFx=document.getElementById("fluxFx");if(fluxFx){fluxFx.classList.remove("active");fluxFx.style.setProperty("--flux-power","0");}chronoPendingReasons.length=0;chronoOrbActive=false;chronoTime=0;chronoAmount=0;chronoNextDistanceTrigger=2000+Math.random()*650;chronoCooldownUntilDistance=0;chronoCollectedThisRun=0;chronoMultiplierRevealAt=0;const chronoFx=document.getElementById("chronoFx");if(chronoFx){chronoFx.classList.remove("active");chronoFx.style.setProperty("--chrono-power","0");}midasPendingReasons.length=0;midasOrbActive=false;midasTime=0;midasAmount=0;midasNextDistanceTrigger=900+Math.random()*500;midasCooldownUntilDistance=0;midasCollectedThisRun=0;midasAbsorbedThisState=0;warpOrbActive=false;warpCollectedThisRun=0;warpCooldownUntilDistance=0;voidSpawnCooldown=1.25;voidCountRun=0;goldRingsPassed=0;breakVoidsDestroyed=0;driftDistance=0;driftAudioMeterCarry=0;driftAudioLastLane=-1;driftAudioPhraseStep=0;prototypeLastScore=0;goldRingSpawnCooldown=2.5;goldRingSpawnedThisRun=0;goldRingSequenceRemaining=0;goldRingSequenceDelay=0;goldRingLastLane=null;goldRingSequenceAnchor=null;const midasFx=document.getElementById("midasFx");if(midasFx){midasFx.classList.remove("active");midasFx.style.setProperty("--midas-power","0");}legendarySpawnCount=0;legendaryNextAllowedAt=performance.now()+5000+Math.random()*5000;const prismFx=document.getElementById("prismFx");if(prismFx){prismFx.classList.remove("active");prismFx.style.setProperty("--chrono-prism-power","0");}const chronoMultiplier=document.getElementById("chronoMultiplier");if(chronoMultiplier)chronoMultiplier.classList.remove("show");playerX=0;playerY=0;
 
 lastLevel = 1;strikes = 0;milestonesReached = {};lastWarpBreakthrough=0;starColorUpdateFrame=0;launchSurge=0;runStarted=false;gameOver=false;gameStarted=true;breakTimer=0;speed=SPEED_START;laneX=1;laneY=1;targetX=0;targetY=0;resetWarpBanking();applyFrozenGameViewport(stableViewportWidth,stableViewportHeight);resetEnvironmentForRun();beginCurrentFlow();updateStrikes();updateHUD();spawnWave();if(!musicStarted){startMusic();}else if(!musicTimer&&audioCtx){nextNoteTime=Math.max(nextNoteTime,audioCtx.currentTime+0.035);nextDrumTime=Math.max(nextDrumTime,audioCtx.currentTime+0.05);musicTimer=setInterval(musicScheduler,25);}}
 const title = document.getElementById("gameTitle");
@@ -12259,5 +12285,57 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
 </script>
 
 
+
+<style id="travelerEntityV13Styles">
+/* V13 — procedural transparent particle Traveler. Replaces PNG sprites only. */
+#center .travelerV12{display:none!important}
+#travelerEntityV13{position:absolute;left:50%;top:50%;width:min(1080px,92vw);height:min(1100px,88vh);transform:translate(-50%,-4%);transform-origin:50% 8%;pointer-events:none;z-index:-2;opacity:.82;mix-blend-mode:screen;filter:drop-shadow(0 0 3px rgba(255,255,255,.16));}
+@media (orientation:portrait) and (max-width:699px){#travelerEntityV13{width:178vw;height:86vh;transform:translate(-50%,-1%);}}
+@media (orientation:landscape){#travelerEntityV13{width:min(980px,72vw);height:82vh;transform:translate(-50%,-5%);}}
+#center.reactorMidas #travelerEntityV13{filter:drop-shadow(0 0 4px rgba(255,190,45,.24))}
+#center.reactorChrono #travelerEntityV13{filter:drop-shadow(0 0 5px rgba(170,135,255,.22))}
+#center.reactorFlux #travelerEntityV13{filter:drop-shadow(0 0 5px rgba(70,225,255,.22))}
+#center.reactorDamage #travelerEntityV13{filter:drop-shadow(0 0 6px rgba(255,48,48,.35))}
+</style>
+<script id="travelerEntityV13Script">
+(()=>{
+ const center=document.getElementById('center'); if(!center)return;
+ const c=document.createElement('canvas'); c.id='travelerEntityV13'; c.setAttribute('aria-hidden','true'); center.prepend(c);
+ const x=c.getContext('2d',{alpha:true}); const DPR=Math.min(devicePixelRatio||1,2);
+ let W=0,H=0,t0=performance.now(), pts=[];
+ function resize(){const r=c.getBoundingClientRect();W=Math.max(1,r.width);H=Math.max(1,r.height);c.width=W*DPR;c.height=H*DPR;x.setTransform(DPR,0,0,DPR,0,0);seed();}
+ const rand=(a,b)=>a+Math.random()*(b-a);
+ function addEllipse(cx,cy,rx,ry,n,density=1){for(let i=0;i<n;i++){let a=Math.random()*Math.PI*2, rr=Math.sqrt(Math.random())*density;pts.push({u:cx+Math.cos(a)*rx*rr,v:cy+Math.sin(a)*ry*rr,p:Math.random()*6.28,s:rand(.45,1.25),a:rand(.16,.58)});}}
+ function addLimb(x1,y1,x2,y2,w1,w2,n){for(let i=0;i<n;i++){let q=Math.random(), cx=x1+(x2-x1)*q,cy=y1+(y2-y1)*q,w=w1+(w2-w1)*q,ang=Math.atan2(y2-y1,x2-x1)+Math.PI/2,off=(Math.random()*2-1)*w*Math.sqrt(Math.random());pts.push({u:cx+Math.cos(ang)*off,v:cy+Math.sin(ang)*off,p:Math.random()*6.28,s:rand(.45,1.2),a:rand(.13,.52)});}}
+ function seed(){pts=[]; /* normalized home silhouette: third-person, slight forward flight perspective */
+  addEllipse(.5,.105,.050,.062,80); addEllipse(.5,.245,.145,.125,230,.95); addEllipse(.5,.405,.105,.135,190,.95);
+  addLimb(.405,.22,.27,.43,.048,.026,115); addLimb(.595,.22,.73,.43,.048,.026,115);
+  addLimb(.455,.48,.405,.73,.060,.044,130); addLimb(.545,.48,.595,.73,.060,.044,130);
+  addLimb(.405,.73,.37,.96,.044,.030,105); addLimb(.595,.73,.63,.96,.044,.030,105);
+ }
+ function stateColor(){if(center.classList.contains('reactorMidas'))return [255,196,72];if(center.classList.contains('reactorChrono'))return [188,155,255];if(center.classList.contains('reactorFlux'))return [95,235,255];if(center.classList.contains('reactorDamage'))return [255,72,72];return [245,250,255];}
+ function frame(now){let t=(now-t0)/1000, col=stateColor();x.clearRect(0,0,W,H);
+  let bank=0; try{bank=parseFloat(getComputedStyle(center).getPropertyValue('--traveler-bank-x'))||0}catch(e){} bank=Math.max(-18,Math.min(18,bank));
+  let chrono=center.classList.contains('reactorChrono'), flux=center.classList.contains('reactorFlux');
+  let warp=(typeof travelerWarpPoseUntil!=='undefined' && performance.now()<travelerWarpPoseUntil);
+  let breath=1+Math.sin(t*1.45)*.006, lean=bank/18;
+  x.save(); x.translate(W*.5,H*.105); x.rotate(bank*Math.PI/180*.42); x.translate(-W*.5,-H*.105);
+  x.globalCompositeOperation='lighter';
+  for(let p of pts){let u=(p.u-.5)*breath+.5,v=(p.v-.105)*breath+.105; let flow=Math.sin(t*1.7+p.p)*.0035;
+   let px=(u+flow*(.25+v)+lean*(v-.1)*.018)*W, py=(v+Math.cos(t*1.25+p.p)*.0025)*H;
+   if(warp){py+=(v-.1)*H*.025*Math.sin(t*8+p.p);px+=(Math.sin(p.p+t*5))*W*.002;}
+   if(chrono){px+=Math.sin(t*2+p.p)*W*.006;py+=Math.cos(t*1.7+p.p)*H*.004;}
+   if(flux){px+=Math.sin(t*5+p.p)*W*.003;}
+   let alpha=p.a*(warp?.72:1)*(chrono?.78:1); let rad=p.s*(W/700)*(warp?1.08:1);
+   x.fillStyle=`rgba(${col[0]},${col[1]},${col[2]},${alpha})`;x.beginPath();x.arc(px,py,rad,0,Math.PI*2);x.fill();
+   if(p.a>.43){x.fillStyle=`rgba(255,255,255,${alpha*.36})`;x.beginPath();x.arc(px,py,rad*.34,0,Math.PI*2);x.fill();}
+  }
+  /* sparse shimmer — never a solid body */
+  for(let i=0;i<10;i++){let p=pts[(i*83+Math.floor(t*3))%pts.length],px=p.u*W,py=p.v*H,r=rand(1.2,2.2)*(W/700);x.strokeStyle=`rgba(${col[0]},${col[1]},${col[2]},.22)`;x.beginPath();x.moveTo(px-r*3,py);x.lineTo(px+r*3,py);x.moveTo(px,py-r*3);x.lineTo(px,py+r*3);x.stroke();}
+  x.restore(); requestAnimationFrame(frame);
+ }
+ new ResizeObserver(resize).observe(c);resize();requestAnimationFrame(frame);
+})();
+</script>
 </body>
 </html>
