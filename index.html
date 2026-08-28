@@ -12286,180 +12286,119 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
 
 
 
-<style id="travelerEntityV15Styles">
-/* V15 — flight-perspective articulated particle Traveler: foreshortening, contour, pressure recovery. */
-#center .travelerV12,#center .travelerBody{display:none!important}
-#travelerEntityV15{
-  position:absolute;left:50%;top:50%;width:min(1080px,92vw);height:min(1100px,88vh);
-  transform:translate(-50%,-4%);transform-origin:50% 8%;pointer-events:none;z-index:-2;
-  opacity:.78;mix-blend-mode:screen;filter:drop-shadow(0 0 2px rgba(255,255,255,.12));
+<style id="travelerEntityV16Styles">
+/* V16 — Gold Energy Traveler: readable upper-body perimeter + transparent particle core + continuous energy wake. */
+#center .travelerV12,#center .travelerBody,#travelerEntityV15{display:none!important}
+#travelerEntityV16{
+  position:absolute;left:50%;top:50%;width:min(1080px,92vw);height:min(1120px,90vh);
+  transform:translate(-50%,-3%);transform-origin:50% 9%;pointer-events:none;z-index:-2;
+  opacity:.94;mix-blend-mode:screen;filter:drop-shadow(0 0 3px rgba(255,190,48,.18));
 }
-@media (orientation:portrait) and (max-width:699px){#travelerEntityV15{width:178vw;height:86vh;transform:translate(-50%,-1%);}}
-@media (orientation:landscape){#travelerEntityV15{width:min(980px,72vw);height:82vh;transform:translate(-50%,-5%);}}
+@media (orientation:portrait) and (max-width:699px){#travelerEntityV16{width:178vw;height:88vh;transform:translate(-50%,-1%);}}
+@media (orientation:landscape){#travelerEntityV16{width:min(980px,72vw);height:84vh;transform:translate(-50%,-5%);}}
 </style>
-<script id="travelerEntityV15Script">
+<script id="travelerEntityV16Script">
 (()=>{
  const center=document.getElementById('center'); if(!center)return;
- ['travelerEntityV13','travelerEntityV14'].forEach(id=>{const old=document.getElementById(id);if(old)old.remove();});
- const c=document.createElement('canvas'); c.id='travelerEntityV15'; c.setAttribute('aria-hidden','true'); center.prepend(c);
- const ctx=c.getContext('2d',{alpha:true}); const DPR=Math.min(devicePixelRatio||1,2);
- let W=1,H=1,t0=performance.now();
- const particles=[];
- const rand=(a,b)=>a+Math.random()*(b-a);
- const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
- let bank=0,pitch=0,warpAmt=0,chronoAmt=0,armOpen=0,armSweep=0;
-
- function ellipse(tag,cx,cy,rx,ry,n){
-   for(let i=0;i<n;i++){
-     const a=Math.random()*Math.PI*2,r=Math.sqrt(Math.random());
-     particles.push({type:'ellipse',tag,cx,cy,rx,ry,a,r,phase:Math.random()*6.283,size:rand(.45,1.2),alpha:rand(.15,.52),accent:Math.random()});
+ ['travelerEntityV13','travelerEntityV14','travelerEntityV15','travelerEntityV16'].forEach(id=>{const old=document.getElementById(id);if(old)old.remove();});
+ const c=document.createElement('canvas'); c.id='travelerEntityV16'; c.setAttribute('aria-hidden','true'); center.prepend(c);
+ const x=c.getContext('2d',{alpha:true}); const DPR=Math.min(devicePixelRatio||1,2);
+ let W=1,H=1,t0=performance.now(),bank=0,pitch=0,warpAmt=0,chronoAmt=0,fluxAmt=0,midasAmt=0,armOpen=.12;
+ const pts=[], sparks=[]; const rand=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+ function addEllipse(tag,cx,cy,rx,ry,n){for(let i=0;i<n;i++){const a=Math.random()*6.283,r=Math.sqrt(Math.random());pts.push({type:'ellipse',tag,cx,cy,rx,ry,a,r,phase:Math.random()*6.283,size:rand(.45,1.25),alpha:rand(.16,.54),z:Math.random(),accent:Math.random()});}}
+ function addSeg(tag,n,w){for(let i=0;i<n;i++)pts.push({type:'seg',tag,q:Math.random(),off:(Math.random()*2-1)*w*Math.sqrt(Math.random()),phase:Math.random()*6.283,size:rand(.45,1.2),alpha:rand(.15,.55),z:Math.random(),accent:Math.random()});}
+ function addTail(n){for(let i=0;i<n;i++){const q=Math.pow(Math.random(),.82);pts.push({type:'tail',q,off:(Math.random()*2-1)*Math.sqrt(Math.random()),phase:Math.random()*6.283,size:rand(.4,1.25),alpha:rand(.10,.50),z:Math.random(),accent:Math.random()});}}
+ function seed(){pts.length=0;addEllipse('head',.5,.105,.034,.044,78);addEllipse('chest',.5,.255,.104,.135,220);addEllipse('core',.5,.405,.078,.082,105);addSeg('upperL',96,.030);addSeg('lowerL',92,.023);addSeg('upperR',96,.030);addSeg('lowerR',92,.023);addTail(410);}
+ function resize(){const r=c.getBoundingClientRect();W=Math.max(1,r.width);H=Math.max(1,r.height);c.width=W*DPR;c.height=H*DPR;x.setTransform(DPR,0,0,DPR,0,0);seed();}
+ function state(){
+   const mid=center.classList.contains('reactorMidas'),chr=center.classList.contains('reactorChrono'),flx=center.classList.contains('reactorFlux'),dmg=center.classList.contains('reactorDamage');
+   return {mid,chr,flx,dmg};
+ }
+ function palette(p,s){
+   // Gold is identity; powers tint/amplify rather than replacing the Traveler.
+   let a=[255,190,48], b=[255,231,150];
+   if(s.mid){a=[255,177,18];b=[255,247,176];}
+   else if(s.chr){a=[230,174,82];b=[214,190,255];}
+   else if(s.flx){a=[230,188,72];b=[104,235,255];}
+   else if(s.dmg){a=[255,118,42];b=[255,72,72];}
+   const k=p.accent>.82?1:0; return k?b:a;
+ }
+ function armPoints(side){
+   const sg=side<0?-1:1, w=warpAmt, ch=chronoAmt;
+   const shoulder=[.5+sg*.082,.225];
+   // Warp: elbows remain OUTSIDE the torso while forearms stream backward.
+   let elbow=[.5+sg*(.145+.035*armOpen-.020*w), .335-.020*pitch+.018*w];
+   let hand=[.5+sg*(.235+.080*armOpen-.030*w), .455+.035*pitch+.105*w];
+   // Chronos: goal-post / STOP gesture — elbows out, forearms and hands drive forward/up.
+   if(ch>.001){elbow=[.5+sg*(.185+.020*ch),.315-.060*ch];hand=[.5+sg*(.205+.018*ch),.430*(1-ch)+.205*ch];}
+   return [shoulder,elbow,hand];
+ }
+ function onSeg(tag,q){const left=tag.endsWith('L'), side=left?-1:1, [S,E,Hd]=armPoints(side);let A,B;if(tag.startsWith('upper')){A=S;B=E}else{A=E;B=Hd}return [A[0]+(B[0]-A[0])*q,A[1]+(B[1]-A[1])*q,A,B];}
+ function perspective(u,v){const d=clamp((v-.07)/.93,0,1), scale=.66+.52*Math.pow(d,.82);return [.5+(u-.5)*scale,.092+(v-.092)*(.88+.12*d)];}
+ function sample(p,t){
+   let u=.5,v=.1;
+   if(p.type==='ellipse'){
+     let rx=p.rx,ry=p.ry;
+     if(p.tag==='chest'){rx*=1+.018*Math.sin(t*1.2);ry*=1+.012*warpAmt;}
+     u=p.cx+Math.cos(p.a)*rx*p.r;v=p.cy+Math.sin(p.a)*ry*p.r;
+   } else if(p.type==='seg'){
+     const [sx,sy,A,B]=onSeg(p.tag,p.q),ang=Math.atan2(B[1]-A[1],B[0]-A[0])+Math.PI/2;u=sx+Math.cos(ang)*p.off;v=sy+Math.sin(ang)*p.off;
+   } else {
+     // One continuous paintbrush/comet wake from the waist — no legs or feet.
+     const q=p.q, tailLen=.46+.20*warpAmt+.07*fluxAmt;
+     v=.455+q*tailLen;
+     const width=(.075*(1-q)+.008)*(.92+.18*Math.sin(t*1.05+p.phase));
+     u=.5+p.off*width;
+     // Wake bends opposite bank/pitch like a fluid rudder trail.
+     u-=bank*q*q*.105; v+=pitch*q*.035;
+     u+=Math.sin(t*2.1+p.phase+q*5)*(.002+.006*q);
    }
+   // Breath is DEPTH, not side-to-side slosh: z oscillation changes scale/brightness later.
+   if(p.type!=='tail'){u-=bank*(v-.1)*.018;v+=pitch*(v-.1)*.012;if(warpAmt)v+=(v-.1)*.035*warpAmt;}
+   return perspective(u,v);
  }
- function segment(tag,n,offW=.024){
-   for(let i=0;i<n;i++)particles.push({type:'segment',tag,q:Math.random(),off:(Math.random()*2-1)*offW*Math.sqrt(Math.random()),phase:Math.random()*6.283,size:rand(.45,1.15),alpha:rand(.13,.5),accent:Math.random()});
+ function contour(t,s){
+   const [LS,LE,LH]=armPoints(-1),[RS,RE,RH]=armPoints(1); const map=p=>{const z=perspective(p[0],p[1]);return[z[0]*W,z[1]*H]};
+   const head=[];for(let i=0;i<=24;i++){const a=6.283*i/24;head.push(map([.5+Math.cos(a)*.035,.105+Math.sin(a)*.045]));}
+   const waistL=map([.448,.455]),waistR=map([.552,.455]);
+   const left=[...head.slice(12,19),map(LS),map(LE),map(LH)]; const right=[...head.slice(0,7),map(RS),map(RE),map(RH)];
+   x.save();x.globalCompositeOperation='screen';x.lineCap='round';x.lineJoin='round';
+   // Thin energetic perimeter: broken, irregular, readable in screenshots but not a solid wall.
+   x.lineWidth=Math.max(.9,W/1050);x.setLineDash([Math.max(2,W/360),Math.max(3,W/280)]);x.lineDashOffset=-t*10;
+   const aa=.42+.08*Math.sin(t*1.7);x.strokeStyle=`rgba(255,196,64,${aa})`;x.shadowColor='rgba(255,176,30,.55)';x.shadowBlur=Math.max(2,W/260);
+   [left,right].forEach(arr=>{x.beginPath();arr.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));x.stroke();});
+   // shoulder/chest arcs close the readable upper-body silhouette without filling it.
+   const shL=map([.418,.225]),shR=map([.582,.225]);x.beginPath();x.moveTo(shL[0],shL[1]);x.quadraticCurveTo(W*.5,H*.185,shR[0],shR[1]);x.stroke();
+   x.beginPath();x.moveTo(shL[0],shL[1]);x.quadraticCurveTo(W*.445,H*.36,waistL[0],waistL[1]);x.stroke();x.beginPath();x.moveTo(shR[0],shR[1]);x.quadraticCurveTo(W*.555,H*.36,waistR[0],waistR[1]);x.stroke();
+   x.setLineDash([]);x.restore();
  }
- function seed(){
-   particles.length=0;
-   ellipse('head',.5,.105,.034,.044,64);
-   ellipse('torso',.5,.275,.105,.140,190);
-   ellipse('core',.5,.39,.082,.094,112);
-   segment('upperL',82,.036);segment('lowerL',78,.027);segment('upperR',82,.036);segment('lowerR',78,.027);
-   segment('thighL',102,.048);segment('calfL',94,.036);segment('thighR',102,.048);segment('calfR',94,.036);
- }
- function resize(){const r=c.getBoundingClientRect();W=Math.max(1,r.width);H=Math.max(1,r.height);c.width=W*DPR;c.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);seed();}
-
- function stateRGB(){
-   if(center.classList.contains('reactorMidas')) return [255,196,72];
-   if(center.classList.contains('reactorChrono')) return [188,160,255];
-   if(center.classList.contains('reactorFlux')) return [90,232,255];
-   if(center.classList.contains('reactorDamage')) return [255,74,74];
-   return null;
- }
- function neutralRGB(p){
-   // Mostly neutral white with sparse cool accents to define the silhouette.
-   if(p.accent>.94)return [160,125,255];
-   if(p.accent>.84)return [105,220,255];
-   return [242,248,255];
- }
- function pointOnSeg(tag,q){
-   const b=bank, p=pitch, w=warpAmt, ch=chronoAmt;
-   // Permanent third-person flight pose: distant/narrow head and shoulders,
-   // body widening toward the camera. The entity is never an upright standing figure.
-   const shoulderY=.225, shoulderSpread=.082;
-   const tuck=.105*w;
-   const leftOpen=armOpen - armSweep*b;
-   const rightOpen=armOpen + armSweep*b;
-   const Ls=[.5-shoulderSpread,shoulderY], Rs=[.5+shoulderSpread,shoulderY];
-   let Le=[.370-leftOpen*.060+tuck,.335-p*.030];
-   let Re=[.630+rightOpen*.060-tuck,.335-p*.030];
-   let Lh=[.270-leftOpen*.115+tuck,.455+p*.022];
-   let Rh=[.730+rightOpen*.115-tuck,.455+p*.022];
-   // CHRONOS = meeting a wall of time: upper arms rise, elbows bend,
-   // forearms press forward toward the vanishing point rather than bird-flapping.
-   if(ch>.001){
-     Le[0]-=.060*ch; Re[0]+=.060*ch; Le[1]-=.050*ch; Re[1]-=.050*ch;
-     Lh[0]=Lh[0]*(1-ch)+(.285)*ch; Rh[0]=Rh[0]*(1-ch)+(.715)*ch;
-     Lh[1]=Lh[1]*(1-ch)+(.245)*ch; Rh[1]=Rh[1]*(1-ch)+(.245)*ch;
-   }
-   const hipL=[.452,.485], hipR=[.548,.485];
-   const kneeL=[.400+tuck*.32,.725+w*.018],kneeR=[.600-tuck*.32,.725+w*.018];
-   const footL=[.350+tuck*.50,.975+w*.025],footR=[.650-tuck*.50,.975+w*.025];
-   let A,B;
-   if(tag==='upperL'){A=Ls;B=Le}else if(tag==='lowerL'){A=Le;B=Lh}
-   else if(tag==='upperR'){A=Rs;B=Re}else if(tag==='lowerR'){A=Re;B=Rh}
-   else if(tag==='thighL'){A=hipL;B=kneeL}else if(tag==='calfL'){A=kneeL;B=footL}
-   else if(tag==='thighR'){A=hipR;B=kneeR}else {A=kneeR;B=footR}
-   return [A[0]+(B[0]-A[0])*q,A[1]+(B[1]-A[1])*q,A,B];
- }
- function sampleParticle(pt,t){
-   // V15.1 runtime guard: resize/re-init can briefly leave a missing sample target.
-   // Falling back to the third-eye anchor keeps the render loop alive instead of
-   // taking the entire Traveler off-screen with a TypeError.
-   if(!pt) return [.5,.105];
-   let u,v;
-   if(pt.type==='ellipse'){
-     let cx=pt.cx,cy=pt.cy,rx=pt.rx,ry=pt.ry;
-     if(pt.tag==='torso'){rx*=1+armOpen*.025-chronoAmt*.02;ry*=1+Math.sin(t*1.45)*.006+warpAmt*.018;}
-     if(pt.tag==='core'){ry*=1+warpAmt*.025;}
-     u=cx+Math.cos(pt.a)*rx*pt.r;v=cy+Math.sin(pt.a)*ry*pt.r;
-   }else{
-     const [sx,sy,A,B]=pointOnSeg(pt.tag,pt.q); const ang=Math.atan2(B[1]-A[1],B[0]-A[0])+Math.PI/2;
-     u=sx+Math.cos(ang)*pt.off;v=sy+Math.sin(ang)*pt.off;
-   }
-   const drift=.0023+v*.0014;
-   u+=Math.sin(t*1.55+pt.phase)*drift;
-   v+=Math.cos(t*1.18+pt.phase)*drift*.68;
-   // inertia trails opposite movement, strongest at extremities.
-   u-=bank*(v-.1)*.012;
-   v+=pitch*(v-.1)*.008;
-   if(warpAmt>0){v+=(v-.1)*.045*warpAmt + Math.sin(pt.phase+t*8)*.0025*warpAmt;}
-   if(chronoAmt>0){u+=Math.sin(t*3+pt.phase)*.006*chronoAmt;v+=Math.cos(t*2.3+pt.phase)*.0045*chronoAmt;}
-   // Forced-perspective camera: the vanishing point is the third-eye/head.
-   // Lower anatomy grows toward the viewer, creating the old PNG's piercing-flight read.
-   const depth=clamp((v-.08)/.92,0,1);
-   const perspective=.70 + .48*Math.pow(depth,.82);
-   u=.5+(u-.5)*perspective;
-   v=.095+(v-.095)*(0.90+0.10*depth);
-   return [u,v];
- }
+ function emitSpark(u,v,intensity=1){if(sparks.length>190)sparks.shift();sparks.push({u,v,vx:rand(-.002,.002)-bank*.004,vy:rand(.003,.010)*(1+warpAmt*2),life:1,size:rand(.5,1.6)*intensity});}
  function frame(now){
-   if(!particles.length) seed();
-   const t=(now-t0)/1000;ctx.clearRect(0,0,W,H);
-   let vx=0,vy=0;
+   if(!pts.length)seed();const t=(now-t0)/1000;x.clearRect(0,0,W,H);let vx=0,vy=0;
    try{vx=(typeof targetX!=='undefined'&&typeof playerX!=='undefined')?(targetX-playerX):0;vy=(typeof targetY!=='undefined'&&typeof playerY!=='undefined')?(targetY-playerY):0;}catch(e){}
-   const targetBank=clamp(vx/22,-1,1), targetPitch=clamp(vy/22,-1,1);
-   const warpOn=(typeof travelerWarpPoseUntil!=='undefined' && performance.now()<travelerWarpPoseUntil);
-   const chronoOn=center.classList.contains('reactorChrono') || (typeof chronoTime!=='undefined'&&chronoTime>0);
-   bank+=(targetBank-bank)*(Math.abs(targetBank)>Math.abs(bank)?.12:.065);
-   pitch+=(targetPitch-pitch)*(Math.abs(targetPitch)>Math.abs(pitch)?.11:.055);
-   // Acceleration tucks quickly; deceleration releases with pressure/drag instead of springing open.
-   const warpTarget=warpOn?1:0, chronoTarget=chronoOn?1:0;
-   warpAmt+=(warpTarget-warpAmt)*(warpTarget>warpAmt?.085:.026);
-   chronoAmt+=(chronoTarget-chronoAmt)*(chronoTarget>chronoAmt?.085:.038);
-   const targetOpen=.20 + Math.abs(bank)*.31 + Math.max(0,-pitch)*.16 + chronoAmt*.68 - warpAmt*.58;
-   const openRate=targetOpen<armOpen?.095:.032;
-   armOpen+=(targetOpen-armOpen)*openRate;
-   armSweep+=(.95-armSweep)*.045;
-   const state=stateRGB();
-   ctx.save();ctx.globalCompositeOperation='lighter';
-   // subtle body roll/float; articulation does most of the storytelling.
-   ctx.translate(W*.5,H*.105);ctx.rotate(bank*.10);ctx.translate(-W*.5,-H*.105);
-   for(const pt of particles){
-     const [u,v]=sampleParticle(pt,t); const px=u*W,py=v*H;
-     const rgb=state||neutralRGB(pt);
-     let a=pt.alpha*(state?.95:1)*(warpAmt?(.92-.12*warpAmt):1)*(chronoAmt?(.95-.10*chronoAmt):1);
-     const pulse=.88+.12*Math.sin(t*2.2+pt.phase); a*=pulse;
-     let r=pt.size*(W/700)*(1+warpAmt*.06);
-     ctx.fillStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`;ctx.beginPath();ctx.arc(px,py,r,0,Math.PI*2);ctx.fill();
-     if(pt.alpha>.43){ctx.fillStyle=`rgba(255,255,255,${a*.28})`;ctx.beginPath();ctx.arc(px,py,r*.32,0,Math.PI*2);ctx.fill();}
+   const tb=clamp(vx/22,-1,1),tp=clamp(vy/22,-1,1),warpOn=(typeof travelerWarpPoseUntil!=='undefined'&&performance.now()<travelerWarpPoseUntil),s=state(),chronoOn=s.chr||(typeof chronoTime!=='undefined'&&chronoTime>0);
+   bank+=(tb-bank)*(Math.abs(tb)>Math.abs(bank)?.12:.055);pitch+=(tp-pitch)*(Math.abs(tp)>Math.abs(pitch)?.11:.05);
+   const wt=warpOn?1:0,ct=chronoOn?1:0,ft=s.flx?1:0,mt=s.mid?1:0;warpAmt+=(wt-warpAmt)*(wt>warpAmt?.09:.022);chronoAmt+=(ct-chronoAmt)*(ct>chronoAmt?.09:.034);fluxAmt+=(ft-fluxAmt)*.045;midasAmt+=(mt-midasAmt)*.05;
+   const openTarget=.14+Math.abs(bank)*.38+Math.max(0,-pitch)*.18+chronoAmt*.72-warpAmt*.42;armOpen+=(openTarget-armOpen)*(openTarget<armOpen?.085:.032);
+   x.save();x.globalCompositeOperation='lighter';x.translate(W*.5,H*.105);x.rotate(bank*.095);x.translate(-W*.5,-H*.105);
+   for(const p of pts){
+     const [u,v]=sample(p,t),px=u*W,py=v*H,rgb=palette(p,s);
+     // Simulated Z breathing: particles move toward/away from viewer via radius/alpha, not lateral displacement.
+     const zBreath=.5+.5*Math.sin(t*1.28+p.phase+p.z*4.0);let a=p.alpha*(.70+.42*zBreath),r=p.size*(W/700)*(.78+.52*zBreath);
+     if(p.type==='tail'){a*=.72*(1-.48*p.q);r*=1+.18*warpAmt;}
+     if(s.mid){a*=1.22;r*=1.05;} if(warpAmt){a*=.94;r*=1+.08*warpAmt;}
+     x.fillStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},${clamp(a,0,.82)})`;x.beginPath();x.arc(px,py,r,0,6.283);x.fill();
+     if(p.alpha>.45){x.fillStyle=`rgba(255,248,214,${clamp(a*.34,0,.34)})`;x.beginPath();x.arc(px,py,r*.32,0,6.283);x.fill();}
    }
-   // V15 implied perimeter: ultra-thin, broken warm-white/gold constellation trace.
-   // It defines hands/feet/joints on phone without filling or blocking the playfield.
-   function P(tag,q){const [u,v]=sampleParticle({type:'segment',tag,q,off:0,phase:0},t);return [u*W,v*H];}
-   function E(cx,cy){
-     const depth=clamp((cy-.08)/.92,0,1),pers=.70+.48*Math.pow(depth,.82);
-     return [(.5+(cx-.5)*pers)*W,(.095+(cy-.095)*(.90+.10*depth))*H];
+   contour(t,s);
+   // Energy continually sheds from arms/waist and streams backward; stronger in Warp/Flux/Midas.
+   const emitN=1+(warpAmt>.2?2:0)+(fluxAmt>.2?1:0)+(midasAmt>.2?1:0);for(let i=0;i<emitN;i++){
+     const side=Math.random()<.5?-1:1,[S,E,Hd]=armPoints(side),pick=Math.random()<.55?Hd:[.5+rand(-.045,.045),.455];const p=perspective(pick[0],pick[1]);emitSpark(p[0],p[1],1+warpAmt*.5);
    }
-   const head=[];for(let i=0;i<=18;i++){const a=Math.PI*2*i/18;head.push(E(.5+Math.cos(a)*.035,.105+Math.sin(a)*.045));}
-   const left=[...head.slice(9,14),P('upperL',0),P('upperL',.52),P('upperL',1),P('lowerL',.5),P('lowerL',1),E(.452,.485),P('thighL',.45),P('thighL',1),P('calfL',.55),P('calfL',1)];
-   const right=[...head.slice(0,5),P('upperR',0),P('upperR',.52),P('upperR',1),P('lowerR',.5),P('lowerR',1),E(.548,.485),P('thighR',.45),P('thighR',1),P('calfR',.55),P('calfR',1)];
-   ctx.save();ctx.globalCompositeOperation='screen';ctx.lineWidth=Math.max(.55,W/1500);ctx.setLineDash([Math.max(2,W/310),Math.max(5,W/180)]);ctx.lineCap='round';
-   const ca=.18+.045*Math.sin(t*1.3);ctx.strokeStyle=`rgba(255,211,112,${ca})`;
-   for(const arr of [left,right]){ctx.beginPath();arr.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.stroke();}
-   ctx.setLineDash([]);ctx.restore();
-
-   // restrained spine/third-eye shimmer, still see-through.
-   const spineA=.08+.04*Math.sin(t*1.7);ctx.strokeStyle=`rgba(210,242,255,${spineA})`;ctx.lineWidth=Math.max(.45,W/1200);ctx.beginPath();ctx.moveTo(W*.5,H*.105);ctx.lineTo(W*.5,H*.45);ctx.stroke();
-   if(particles.length){
-     for(let i=0;i<8;i++){
-       const idx=(i*97+Math.floor(t*5))%particles.length;
-       const pt=particles[idx];
-       if(!pt) continue;
-       const [u,v]=sampleParticle(pt,t),px=u*W,py=v*H,rr=(1.2+(i%3)*.35)*(W/700);
-       ctx.strokeStyle='rgba(255,255,255,.16)';ctx.beginPath();ctx.moveTo(px-rr*2.5,py);ctx.lineTo(px+rr*2.5,py);ctx.moveTo(px,py-rr*2.5);ctx.lineTo(px,py+rr*2.5);ctx.stroke();
-     }
-   }
-   ctx.restore();requestAnimationFrame(frame);
+   for(let i=sparks.length-1;i>=0;i--){const q=sparks[i];q.life-=.018;q.u+=q.vx;q.v+=q.vy*(.75+warpAmt*.8);q.vx+=Math.sin(t*2+i)*.00003;const a=Math.max(0,q.life)*(.32+.28*midasAmt),rr=q.size*(W/700);x.fillStyle=`rgba(255,180,30,${a})`;x.beginPath();x.arc(q.u*W,q.v*H,rr,0,6.283);x.fill();if(q.life<=0||q.v>1.1)sparks.splice(i,1);}
+   // Chronos hands flare as pressure surfaces, clearly showing the STOP gesture.
+   if(chronoAmt>.03){for(const side of [-1,1]){const Hd=armPoints(side)[2],p=perspective(Hd[0],Hd[1]),rr=(5+8*chronoAmt)*(W/700);x.strokeStyle=`rgba(255,222,132,${.18+.38*chronoAmt})`;x.lineWidth=Math.max(1,W/900);x.beginPath();x.arc(p[0]*W,p[1]*H,rr,0,6.283);x.stroke();}}
+   x.restore();requestAnimationFrame(frame);
  }
  new ResizeObserver(resize).observe(c);resize();requestAnimationFrame(frame);
 })();
