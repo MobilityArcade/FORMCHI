@@ -10855,8 +10855,8 @@ const shift = document.getElementById("shift");
 const vix = document.getElementById("vix");
 
 // =========================
-// SHIFTVIX TRAVELER V25 — LARGE TRANSLUCENT NEON LIGHT RIBBON
-// Larger translucent neon core + proportionally scaled transparent long-exposure ribbon + sparkler inertia.
+// SHIFTVIX TRAVELER V26 — GLASS DISTORTION RIBBON
+// V25 scale and motion preserved; material shifted to near-clear tempered-glass / invisibility-cloak wake.
 // =========================
 const cometTraveler={
   canvas:null,ctx:null,dpr:1,history:[],sparks:[],lastSampleAt:0,
@@ -10866,6 +10866,8 @@ const cometTraveler={
 // Target: roughly 60–80% of the apparent diameter of a nearby collectible orb.
 // Ribbon, rim, glow, nucleus and sparks scale with the same multiplier.
 const TRAVELER_VISUAL_SCALE=2.35;
+// V27: widen only the glass wake; preserve orb size, transparency, motion, taper, and lifetime.
+const TRAVELER_RIBBON_WIDTH_SCALE=3.0;
 function initCometTraveler(){
   if(cometTraveler.canvas)return;
   const c=document.createElement('canvas');
@@ -10899,12 +10901,12 @@ function cometState(){
   return 'normal';
 }
 function cometPalette(state){
-  // V23 material language: luminous edges + transparent plasma interior.
-  if(state==='midas') return {core:'rgba(255,252,220,.82)',inner:'rgba(255,222,95,.44)',outer:'rgba(255,175,35,.22)',rim:'rgba(255,240,165,.92)',spark:'rgba(255,205,70,.70)'};
-  if(state==='flux')  return {core:'rgba(235,255,255,.82)',inner:'rgba(80,230,255,.40)',outer:'rgba(70,150,255,.18)',rim:'rgba(165,250,255,.92)',spark:'rgba(105,235,255,.68)'};
-  if(state==='chrono')return {core:'rgba(245,250,255,.80)',inner:'rgba(185,155,255,.34)',outer:'rgba(125,100,255,.15)',rim:'rgba(220,205,255,.88)',spark:'rgba(205,190,255,.62)'};
-  if(state==='damage')return {core:'rgba(255,245,245,.82)',inner:'rgba(255,75,75,.38)',outer:'rgba(255,25,25,.18)',rim:'rgba(255,170,170,.92)',spark:'rgba(255,85,70,.70)'};
-  return {core:'rgba(238,255,255,.80)',inner:'rgba(115,235,255,.32)',outer:'rgba(85,180,255,.13)',rim:'rgba(205,252,255,.90)',spark:'rgba(190,245,255,.55)'};
+  // V26: near-clear tempered-glass material. State colors are only faint edge tints.
+  if(state==='midas') return {core:'rgba(255,248,215,.18)',inner:'rgba(255,220,120,.10)',outer:'rgba(255,205,95,.045)',rim:'rgba(255,238,185,.42)',spark:'rgba(255,225,155,.30)'};
+  if(state==='flux')  return {core:'rgba(235,255,255,.17)',inner:'rgba(150,245,255,.09)',outer:'rgba(100,220,255,.04)',rim:'rgba(205,252,255,.40)',spark:'rgba(185,248,255,.28)'};
+  if(state==='chrono')return {core:'rgba(250,248,255,.16)',inner:'rgba(210,195,255,.08)',outer:'rgba(175,155,255,.035)',rim:'rgba(235,228,255,.38)',spark:'rgba(220,210,255,.25)'};
+  if(state==='damage')return {core:'rgba(255,245,245,.18)',inner:'rgba(255,160,160,.09)',outer:'rgba(255,100,100,.04)',rim:'rgba(255,205,205,.42)',spark:'rgba(255,175,165,.28)'};
+  return {core:'rgba(245,255,255,.15)',inner:'rgba(205,250,255,.075)',outer:'rgba(170,235,255,.03)',rim:'rgba(225,252,255,.36)',spark:'rgba(220,250,255,.22)'};
 }
 function cometPointForSample(sample,now,cx,cy,tailPx,life){
   const age=Math.max(0,(now-sample.t)/1000);
@@ -10979,9 +10981,9 @@ function updateCometTraveler(dt){
     if(fade<=.01)continue;
     ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
     ctx.strokeStyle=palette.outer;
-    ctx.globalAlpha=.20*fade;
-    ctx.lineWidth=(22-13*a.u)*(1+intensity*.16)*TRAVELER_VISUAL_SCALE;
-    ctx.shadowBlur=16;ctx.shadowColor=palette.rim;
+    ctx.globalAlpha=.075*fade;
+    ctx.lineWidth=(22-13*a.u)*(1+intensity*.16)*TRAVELER_VISUAL_SCALE*TRAVELER_RIBBON_WIDTH_SCALE;
+    ctx.shadowBlur=9;ctx.shadowColor=palette.rim;
     ctx.stroke();
   }
 
@@ -10992,17 +10994,17 @@ function updateCometTraveler(dt){
     if(fade<=.012)continue;
     ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
     ctx.strokeStyle=palette.inner;
-    ctx.globalAlpha=.34*fade;
-    ctx.lineWidth=(12.8-7.9*a.u)*(1+intensity*.10)*TRAVELER_VISUAL_SCALE;
-    ctx.shadowBlur=10;ctx.shadowColor=palette.rim;
+    ctx.globalAlpha=.105*fade;
+    ctx.lineWidth=(12.8-7.9*a.u)*(1+intensity*.10)*TRAVELER_VISUAL_SCALE*TRAVELER_RIBBON_WIDTH_SCALE;
+    ctx.shadowBlur=5;ctx.shadowColor=palette.rim;
     ctx.stroke();
 
     // Thin luminous rim nested inside the transparent body gives definition without opacity.
     ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
     ctx.strokeStyle=palette.rim;
-    ctx.globalAlpha=.30*fade;
-    ctx.lineWidth=Math.max(1.2*TRAVELER_VISUAL_SCALE,(3.1-1.8*a.u)*(1+intensity*.08)*TRAVELER_VISUAL_SCALE);
-    ctx.shadowBlur=6;ctx.shadowColor=palette.rim;
+    ctx.globalAlpha=.16*fade;
+    ctx.lineWidth=Math.max(1.2*TRAVELER_VISUAL_SCALE*TRAVELER_RIBBON_WIDTH_SCALE,(3.1-1.8*a.u)*(1+intensity*.08)*TRAVELER_VISUAL_SCALE*TRAVELER_RIBBON_WIDTH_SCALE);
+    ctx.shadowBlur=3;ctx.shadowColor=palette.rim;
     ctx.stroke();
   }
 
@@ -11015,43 +11017,47 @@ function updateCometTraveler(dt){
   for(const s of cometTraveler.sparks){
     s.age+=dt;s.x+=s.vx*dt;s.y+=s.vy*dt;
     const f=Math.max(0,1-s.age/s.life);
-    ctx.globalAlpha=f*.82;
+    ctx.globalAlpha=f*.28;
     ctx.fillStyle=s.color;
     ctx.shadowBlur=5;ctx.shadowColor=s.color;
     ctx.beginPath();ctx.arc(s.x,s.y,s.r*(.5+f),0,Math.PI*2);ctx.fill();
   }
   cometTraveler.sparks=cometTraveler.sparks.filter(s=>s.age<s.life);
 
-  // The Traveler itself: translucent neon plasma orb, no opaque white disk and no extra rings.
-  const pulse=1+Math.sin(now*.006)*.055;
+  // V27 Traveler: V26 glass lens unchanged; wake widened 3× while retaining the same taper/fade behavior.
+  // Presence comes from a faint perimeter, soft internal sheen and motion wake — not a solid neon fill.
+  const pulse=1+Math.sin(now*.006)*.035;
   const coreR=(7.2+intensity*2.1)*pulse*TRAVELER_VISUAL_SCALE;
 
-  // Outer atmosphere.
-  const glow=ctx.createRadialGradient(cx,cy,0,cx,cy,coreR*4.2);
-  glow.addColorStop(0,'rgba(220,255,255,.28)');
-  glow.addColorStop(.20,palette.inner);
-  glow.addColorStop(.48,palette.outer);
+  // Extremely faint atmospheric lens halo.
+  const glow=ctx.createRadialGradient(cx,cy,coreR*.45,cx,cy,coreR*2.8);
+  glow.addColorStop(0,'rgba(255,255,255,.018)');
+  glow.addColorStop(.45,palette.outer);
   glow.addColorStop(1,'rgba(255,255,255,0)');
-  ctx.globalAlpha=.82;ctx.fillStyle=glow;ctx.shadowBlur=0;
-  ctx.beginPath();ctx.arc(cx,cy,coreR*4.2,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=.42;ctx.fillStyle=glow;ctx.shadowBlur=0;
+  ctx.beginPath();ctx.arc(cx,cy,coreR*2.8,0,Math.PI*2);ctx.fill();
 
-  // Glass/plasma body: intentionally see-through.
-  const body=ctx.createRadialGradient(cx-coreR*.18,cy-coreR*.18,coreR*.08,cx,cy,coreR*1.25);
-  body.addColorStop(0,'rgba(255,255,255,.30)');
-  body.addColorStop(.36,palette.core);
-  body.addColorStop(.76,palette.inner);
-  body.addColorStop(1,'rgba(90,210,255,.08)');
-  ctx.globalAlpha=.55;ctx.fillStyle=body;
+  // Clear glass body: barely-there interior so gameplay remains visible through it.
+  const body=ctx.createRadialGradient(cx-coreR*.28,cy-coreR*.30,coreR*.08,cx,cy,coreR*1.20);
+  body.addColorStop(0,'rgba(255,255,255,.13)');
+  body.addColorStop(.24,'rgba(235,255,255,.045)');
+  body.addColorStop(.72,'rgba(190,245,255,.018)');
+  body.addColorStop(1,'rgba(255,255,255,.006)');
+  ctx.globalAlpha=.72;ctx.fillStyle=body;
   ctx.beginPath();ctx.arc(cx,cy,coreR*1.22,0,Math.PI*2);ctx.fill();
 
-  // Bright rim supplies identity while the interior remains transparent.
-  ctx.globalAlpha=.78;ctx.strokeStyle=palette.rim;ctx.lineWidth=1.8*TRAVELER_VISUAL_SCALE;
-  ctx.shadowBlur=10;ctx.shadowColor=palette.rim;
-  ctx.beginPath();ctx.arc(cx,cy,coreR*1.10,0,Math.PI*2);ctx.stroke();
+  // Double whisper-thin glass edge creates the cloak silhouette without blocking the world.
+  ctx.shadowBlur=4;ctx.shadowColor=palette.rim;
+  ctx.globalAlpha=.34;ctx.strokeStyle=palette.rim;ctx.lineWidth=.72*TRAVELER_VISUAL_SCALE;
+  ctx.beginPath();ctx.arc(cx,cy,coreR*1.12,0,Math.PI*2);ctx.stroke();
+  ctx.globalAlpha=.16;ctx.strokeStyle='rgba(255,255,255,.72)';ctx.lineWidth=.34*TRAVELER_VISUAL_SCALE;
+  ctx.beginPath();ctx.arc(cx-coreR*.04,cy-coreR*.04,coreR*.94,Math.PI*1.06,Math.PI*1.72);ctx.stroke();
 
-  // Tiny hot nucleus rather than an opaque full-size center.
-  ctx.globalAlpha=.72;ctx.fillStyle='rgba(255,255,255,.80)';ctx.shadowBlur=8;ctx.shadowColor=palette.rim;
-  ctx.beginPath();ctx.arc(cx,cy,Math.max(1.6,coreR*.24),0,Math.PI*2);ctx.fill();
+  // Tiny moving glint: enough to reveal the lens in motion, never an opaque center point.
+  const glintA=now*.0018;
+  const gx=cx+Math.cos(glintA)*coreR*.58, gy=cy+Math.sin(glintA)*coreR*.58;
+  ctx.globalAlpha=.24;ctx.fillStyle='rgba(255,255,255,.72)';ctx.shadowBlur=4;ctx.shadowColor=palette.rim;
+  ctx.beginPath();ctx.arc(gx,gy,Math.max(.7,coreR*.055),0,Math.PI*2);ctx.fill();
   ctx.restore();
 }
 
