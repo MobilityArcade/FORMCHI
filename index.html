@@ -10855,16 +10855,17 @@ const shift = document.getElementById("shift");
 const vix = document.getElementById("vix");
 
 // =========================
-// SHIFTVIX TRAVELER V24 — SCALED TRANSLUCENT NEON LIGHT RIBBON
+// SHIFTVIX TRAVELER V25 — LARGE TRANSLUCENT NEON LIGHT RIBBON
 // Larger translucent neon core + proportionally scaled transparent long-exposure ribbon + sparkler inertia.
 // =========================
 const cometTraveler={
   canvas:null,ctx:null,dpr:1,history:[],sparks:[],lastSampleAt:0,
   lastPlayerX:0,lastPlayerY:0
 };
-// V24: scale Traveler presence without changing its motion language.
-// Chosen to read at roughly two-thirds the apparent size of nearby collectible orbs on phone screens.
-const TRAVELER_VISUAL_SCALE=1.38;
+// V25: substantially larger Traveler presence without changing motion or transparency.
+// Target: roughly 60–80% of the apparent diameter of a nearby collectible orb.
+// Ribbon, rim, glow, nucleus and sparks scale with the same multiplier.
+const TRAVELER_VISUAL_SCALE=2.35;
 function initCometTraveler(){
   if(cometTraveler.canvas)return;
   const c=document.createElement('canvas');
