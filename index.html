@@ -10868,6 +10868,8 @@ const cometTraveler={
 const TRAVELER_VISUAL_SCALE=2.35;
 // V27: widen only the glass wake; preserve orb size, transparency, motion, taper, and lifetime.
 const TRAVELER_RIBBON_WIDTH_SCALE=3.0;
+// V28: +10% visual substance for iPhone/iPad readability. Geometry and motion unchanged.
+const TRAVELER_GLASS_PRESENCE=1.10;
 function initCometTraveler(){
   if(cometTraveler.canvas)return;
   const c=document.createElement('canvas');
@@ -10981,7 +10983,7 @@ function updateCometTraveler(dt){
     if(fade<=.01)continue;
     ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
     ctx.strokeStyle=palette.outer;
-    ctx.globalAlpha=.075*fade;
+    ctx.globalAlpha=.075*TRAVELER_GLASS_PRESENCE*fade;
     ctx.lineWidth=(22-13*a.u)*(1+intensity*.16)*TRAVELER_VISUAL_SCALE*TRAVELER_RIBBON_WIDTH_SCALE;
     ctx.shadowBlur=9;ctx.shadowColor=palette.rim;
     ctx.stroke();
@@ -10994,7 +10996,7 @@ function updateCometTraveler(dt){
     if(fade<=.012)continue;
     ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
     ctx.strokeStyle=palette.inner;
-    ctx.globalAlpha=.105*fade;
+    ctx.globalAlpha=.105*TRAVELER_GLASS_PRESENCE*fade;
     ctx.lineWidth=(12.8-7.9*a.u)*(1+intensity*.10)*TRAVELER_VISUAL_SCALE*TRAVELER_RIBBON_WIDTH_SCALE;
     ctx.shadowBlur=5;ctx.shadowColor=palette.rim;
     ctx.stroke();
@@ -11002,7 +11004,7 @@ function updateCometTraveler(dt){
     // Thin luminous rim nested inside the transparent body gives definition without opacity.
     ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
     ctx.strokeStyle=palette.rim;
-    ctx.globalAlpha=.16*fade;
+    ctx.globalAlpha=.16*TRAVELER_GLASS_PRESENCE*fade;
     ctx.lineWidth=Math.max(1.2*TRAVELER_VISUAL_SCALE*TRAVELER_RIBBON_WIDTH_SCALE,(3.1-1.8*a.u)*(1+intensity*.08)*TRAVELER_VISUAL_SCALE*TRAVELER_RIBBON_WIDTH_SCALE);
     ctx.shadowBlur=3;ctx.shadowColor=palette.rim;
     ctx.stroke();
@@ -11017,14 +11019,14 @@ function updateCometTraveler(dt){
   for(const s of cometTraveler.sparks){
     s.age+=dt;s.x+=s.vx*dt;s.y+=s.vy*dt;
     const f=Math.max(0,1-s.age/s.life);
-    ctx.globalAlpha=f*.28;
+    ctx.globalAlpha=f*.28*TRAVELER_GLASS_PRESENCE;
     ctx.fillStyle=s.color;
     ctx.shadowBlur=5;ctx.shadowColor=s.color;
     ctx.beginPath();ctx.arc(s.x,s.y,s.r*(.5+f),0,Math.PI*2);ctx.fill();
   }
   cometTraveler.sparks=cometTraveler.sparks.filter(s=>s.age<s.life);
 
-  // V27 Traveler: V26 glass lens unchanged; wake widened 3× while retaining the same taper/fade behavior.
+  // V28 Traveler: V27 geometry/motion unchanged; glass material presence raised 10% for small-screen readability.
   // Presence comes from a faint perimeter, soft internal sheen and motion wake — not a solid neon fill.
   const pulse=1+Math.sin(now*.006)*.035;
   const coreR=(7.2+intensity*2.1)*pulse*TRAVELER_VISUAL_SCALE;
@@ -11034,7 +11036,7 @@ function updateCometTraveler(dt){
   glow.addColorStop(0,'rgba(255,255,255,.018)');
   glow.addColorStop(.45,palette.outer);
   glow.addColorStop(1,'rgba(255,255,255,0)');
-  ctx.globalAlpha=.42;ctx.fillStyle=glow;ctx.shadowBlur=0;
+  ctx.globalAlpha=.42*TRAVELER_GLASS_PRESENCE;ctx.fillStyle=glow;ctx.shadowBlur=0;
   ctx.beginPath();ctx.arc(cx,cy,coreR*2.8,0,Math.PI*2);ctx.fill();
 
   // Clear glass body: barely-there interior so gameplay remains visible through it.
@@ -11043,20 +11045,20 @@ function updateCometTraveler(dt){
   body.addColorStop(.24,'rgba(235,255,255,.045)');
   body.addColorStop(.72,'rgba(190,245,255,.018)');
   body.addColorStop(1,'rgba(255,255,255,.006)');
-  ctx.globalAlpha=.72;ctx.fillStyle=body;
+  ctx.globalAlpha=.72*TRAVELER_GLASS_PRESENCE;ctx.fillStyle=body;
   ctx.beginPath();ctx.arc(cx,cy,coreR*1.22,0,Math.PI*2);ctx.fill();
 
   // Double whisper-thin glass edge creates the cloak silhouette without blocking the world.
   ctx.shadowBlur=4;ctx.shadowColor=palette.rim;
-  ctx.globalAlpha=.34;ctx.strokeStyle=palette.rim;ctx.lineWidth=.72*TRAVELER_VISUAL_SCALE;
+  ctx.globalAlpha=.34*TRAVELER_GLASS_PRESENCE;ctx.strokeStyle=palette.rim;ctx.lineWidth=.72*TRAVELER_VISUAL_SCALE;
   ctx.beginPath();ctx.arc(cx,cy,coreR*1.12,0,Math.PI*2);ctx.stroke();
-  ctx.globalAlpha=.16;ctx.strokeStyle='rgba(255,255,255,.72)';ctx.lineWidth=.34*TRAVELER_VISUAL_SCALE;
+  ctx.globalAlpha=.16*TRAVELER_GLASS_PRESENCE;ctx.strokeStyle='rgba(255,255,255,.72)';ctx.lineWidth=.34*TRAVELER_VISUAL_SCALE;
   ctx.beginPath();ctx.arc(cx-coreR*.04,cy-coreR*.04,coreR*.94,Math.PI*1.06,Math.PI*1.72);ctx.stroke();
 
   // Tiny moving glint: enough to reveal the lens in motion, never an opaque center point.
   const glintA=now*.0018;
   const gx=cx+Math.cos(glintA)*coreR*.58, gy=cy+Math.sin(glintA)*coreR*.58;
-  ctx.globalAlpha=.24;ctx.fillStyle='rgba(255,255,255,.72)';ctx.shadowBlur=4;ctx.shadowColor=palette.rim;
+  ctx.globalAlpha=.24*TRAVELER_GLASS_PRESENCE;ctx.fillStyle='rgba(255,255,255,.72)';ctx.shadowBlur=4;ctx.shadowColor=palette.rim;
   ctx.beginPath();ctx.arc(gx,gy,Math.max(.7,coreR*.055),0,Math.PI*2);ctx.fill();
   ctx.restore();
 }
