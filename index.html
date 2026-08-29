@@ -10868,8 +10868,13 @@ const cometTraveler={
 const TRAVELER_VISUAL_SCALE=2.35;
 // V27: widen only the glass wake; preserve orb size, transparency, motion, taper, and lifetime.
 const TRAVELER_RIBBON_WIDTH_SCALE=3.0;
-// V28: +10% visual substance for iPhone/iPad readability. Geometry and motion unchanged.
-const TRAVELER_GLASS_PRESENCE=1.10;
+// V29: responsive glass presence. Desktop keeps V28; phones/tablets get ~30% more perceptual substance.
+// This strengthens refraction/wake visibility on iPhone/iPad without changing geometry, motion, color, taper, or lifetime.
+function travelerGlassPresence(){
+  const shortSide=Math.min(window.innerWidth||9999,window.innerHeight||9999);
+  const touchLike=(navigator.maxTouchPoints||0)>0;
+  return (touchLike && shortSide<=1100) ? 1.43 : 1.10;
+}
 function initCometTraveler(){
   if(cometTraveler.canvas)return;
   const c=document.createElement('canvas');
@@ -10949,6 +10954,7 @@ function updateCometTraveler(dt){
   const cx=w*.5, cy=h*.5;
   const state=cometState();
   const palette=cometPalette(state);
+  const TRAVELER_GLASS_PRESENCE=travelerGlassPresence();
   const flux=(typeof fluxBoostAmount!=='undefined'?fluxBoostAmount:0);
   const chrono=(typeof chronoAmount!=='undefined'?chronoAmount:0);
   const warp=(typeof warpAmount!=='undefined'?warpAmount:0);
@@ -11026,7 +11032,7 @@ function updateCometTraveler(dt){
   }
   cometTraveler.sparks=cometTraveler.sparks.filter(s=>s.age<s.life);
 
-  // V28 Traveler: V27 geometry/motion unchanged; glass material presence raised 10% for small-screen readability.
+  // V29 Traveler: V27 geometry/motion unchanged; responsive glass presence raised on iPhone/iPad for readability.
   // Presence comes from a faint perimeter, soft internal sheen and motion wake — not a solid neon fill.
   const pulse=1+Math.sin(now*.006)*.035;
   const coreR=(7.2+intensity*2.1)*pulse*TRAVELER_VISUAL_SCALE;
