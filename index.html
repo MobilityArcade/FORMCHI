@@ -159,6 +159,7 @@ function track(eventName,data={}){
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <!-- SHIFTVIX 2.11 — GOLD RINGS + FIVE EVEN OBJECTIVE TYPES -->
+<!-- SHIFTVIX V73 — VIX FLIGHT PERSPECTIVE: over-the-shoulder pitch, animated hands, directional exhaust, cleaner head silhouette, closer world projection; gameplay/Flows/scoring preserved -->
 <!-- SHIFTVIX V72 — VIX THE TRAVELER MASCOT UPGRADE: larger foreground mascot, true dark visor/body separation, reduced body bloom, stronger silhouette; gameplay/Flows/scoring preserved -->
 <!-- SHIFTVIX V71 — VIX THE TRAVELER MASCOT: procedural neon character replaces abstract glass core; gameplay/Flows/scoring preserved -->
 <!-- SHIFTVIX V70.4 — CLEAN UI CLICK: V70.3 audio-context fix preserved; shorter button click at roughly half perceived volume; gameplay unchanged -->
@@ -3660,7 +3661,7 @@ button:active{transform:scale(.985)}
 <script type="module">
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x000000,0.0011);
-const camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,0.1,5000);camera.position.set(0,0,48);camera.lookAt(0,0,-500);
+const camera=new THREE.PerspectiveCamera(56.00,innerWidth/innerHeight,0.1,5000);camera.position.set(0,0,48);camera.lookAt(0,0,-500);
 let playerX=0,playerY=0;
 const PLAYER_Z=72;
 const renderer=new THREE.WebGLRenderer({
@@ -3851,7 +3852,7 @@ renderer.domElement.addEventListener("webglcontextrestored",()=>{
   applyPermanentChronoWorldGrade();
 });
 
-const LANE_X=[-40,0,40], LANE_Y=[30,0,-30], FAR_Z=-920, NEAR_Z=72, SPEED_START=170, COLLECT_RADIUS=18, TRAIN_GAP=20, BREAK_GRACE=.72;
+const LANE_X=[-40,0,40], LANE_Y=[30,0,-30], FAR_Z=-920, NEAR_Z=82, SPEED_START=170, COLLECT_RADIUS=18, TRAIN_GAP=20, BREAK_GRACE=.72;
 const HERO_SECONDS = 15;
 let laneX=1,laneY=1,targetX=0,targetY=0,score=0,bestScore=Number(localStorage.getItem("sourceLaneBestScore")||0),bestDistance=Number(localStorage.getItem("sourceLaneBestDistance")||0),foundCount=0,combo=1,lastFoundAt=0,distance=0,speed=SPEED_START,spawnTimer=0,trainId=0,strikes=0,runStarted=false,gameStarted=false,gameOver=false,breakTimer=0,audioCtx=null;
 let paused = false;
@@ -11691,6 +11692,7 @@ const shift = document.getElementById("shift");
 const vix = document.getElementById("vix");
 
 // =========================
+// SHIFTVIX V73 — VIX FLIGHT PERSPECTIVE + CLOSER WORLD PROJECTION
 // SHIFTVIX V72 — VIX FOREGROUND MASCOT + RESTRAINED WAKE
 // SHIFTVIX TRAVELER V26 — GLASS DISTORTION RIBBON
 // V25 scale and motion preserved; material shifted to near-clear tempered-glass / invisibility-cloak wake.
@@ -11810,7 +11812,10 @@ function drawVixTraveler(ctx,cx,cy,state,palette,now,moveX,moveY,intensity){
 
   const lean=Math.max(-.44,Math.min(.44,moveX/30));
   const pitch=Math.max(-.10,Math.min(.10,-moveY/55));
-  const bob=Math.sin(now*.0056)*1.05*S;
+  const bob=Math.sin(now*.0056)*.9*S;
+  const flightWave=Math.sin(now*.0075);
+  const flightWave2=Math.sin(now*.0061+1.7);
+  const flightPitch=-.18 + pitch*.65;
 
   let mood=performance.now()<cometTraveler.moodUntil?cometTraveler.mood:"focused";
   if(state==="damage")mood="intense";
@@ -11825,7 +11830,8 @@ function drawVixTraveler(ctx,cx,cy,state,palette,now,moveX,moveY,intensity){
   ctx.globalCompositeOperation="source-over";
 
   ctx.translate(cx,cy+bob);
-  ctx.rotate(lean*.30+pitch);
+  // V73 — flying away from the viewer: slight forward pitch + bank.
+  ctx.rotate(lean*.34+flightPitch);
 
   // Tight restrained aura: glow stays around the silhouette instead of washing it out.
   const aura=ctx.createRadialGradient(0,-3*S,8*S,0,-3*S,31*S);
@@ -11835,28 +11841,6 @@ function drawVixTraveler(ctx,cx,cy,state,palette,now,moveX,moveY,intensity){
   ctx.fillStyle=aura;
   ctx.beginPath();ctx.arc(0,-3*S,31*S,0,Math.PI*2);ctx.fill();
 
-  // Swept Vix crest/hair — cyan/blue/purple with a white highlight.
-  ctx.save();
-  ctx.translate(1.5*S,-20*S);
-  ctx.rotate(-.12-lean*.15);
-  ctx.beginPath();
-  ctx.moveTo(-13*S,4*S);
-  ctx.bezierCurveTo(-10*S,-9*S,4*S,-17*S,20*S,-24*S);
-  ctx.bezierCurveTo(17*S,-13*S,12*S,-7*S,6*S,-2*S);
-  ctx.bezierCurveTo(14*S,-4*S,21*S,-1*S,24*S,4*S);
-  ctx.bezierCurveTo(13*S,3*S,2*S,8*S,-13*S,4*S);
-  ctx.closePath();
-  const crest=ctx.createLinearGradient(-13*S,6*S,24*S,-22*S);
-  crest.addColorStop(0,state==="midas"?"#ffad22":"#5a62ff");
-  crest.addColorStop(.32,state==="midas"?"#ffd85c":"#27dfff");
-  crest.addColorStop(.66,"#f9fbff");
-  crest.addColorStop(.82,state==="midas"?"#ffd44a":"#76efff");
-  crest.addColorStop(1,state==="midas"?"#ff9b1d":"#9b4dff");
-  ctx.fillStyle=crest;
-  ctx.shadowBlur=6*S;
-  ctx.shadowColor=state==="midas"?"rgba(255,200,60,.75)":"rgba(74,220,255,.70)";
-  ctx.fill();
-  ctx.restore();
 
   // Arms first so the head/body overlap them naturally.
   // Upper arms stay dark; oversized mitten hands carry the cyan identity.
@@ -11867,7 +11851,10 @@ function drawVixTraveler(ctx,cx,cy,state,palette,now,moveX,moveY,intensity){
   function drawArm(side){
     ctx.save();
     ctx.scale(side,1);
-    ctx.rotate(-lean*.13*side);
+
+    const bankInfluence=lean*side;
+    const armSwing=(flightWave*.10 + flightWave2*.055)*side;
+    ctx.rotate(-.16 + armSwing - bankInfluence*.16);
 
     ctx.strokeStyle=armDark;
     ctx.lineCap="round";
@@ -11875,11 +11862,18 @@ function drawVixTraveler(ctx,cx,cy,state,palette,now,moveX,moveY,intensity){
     ctx.shadowBlur=0;
     ctx.beginPath();
     ctx.moveTo(8*S,2*S);
-    ctx.quadraticCurveTo(14*S,9*S,17*S,17*S);
+    ctx.quadraticCurveTo(
+      (14 + bankInfluence*2.0)*S,
+      (8 + flightWave*1.8)*S,
+      (17 + bankInfluence*4.2)*S,
+      (17 + flightWave2*2.2)*S
+    );
     ctx.stroke();
 
-    // Mitten hand / paddle.
-    const hg=ctx.createLinearGradient(13*S,14*S,23*S,26*S);
+    // Mitten hand / paddle with living flight motion.
+    const hx=(19.5 + bankInfluence*4.5)*S;
+    const hy=(21 + flightWave2*2.5 - bankInfluence*1.3)*S;
+    const hg=ctx.createLinearGradient(13*S,14*S,24*S,28*S);
     hg.addColorStop(0,handEdge);
     hg.addColorStop(.28,handColor);
     hg.addColorStop(1,state==="midas"?"#ff9f22":"#3d7fff");
@@ -11889,13 +11883,13 @@ function drawVixTraveler(ctx,cx,cy,state,palette,now,moveX,moveY,intensity){
     ctx.shadowBlur=4*S;
     ctx.shadowColor=handColor;
     ctx.beginPath();
-    ctx.ellipse(19.5*S,21*S,6.1*S,8.3*S,-.42,0,Math.PI*2);
+    ctx.ellipse(hx,hy,6.1*S,8.3*S,-.48-bankInfluence*.16,0,Math.PI*2);
     ctx.fill();
     ctx.stroke();
 
     // Tiny thumb gives the mitten a playful readable shape.
     ctx.beginPath();
-    ctx.ellipse(14.9*S,19.0*S,2.3*S,3.3*S,-.65,0,Math.PI*2);
+    ctx.ellipse(hx-4.3*S,hy-1.8*S,2.3*S,3.3*S,-.65,0,Math.PI*2);
     ctx.fill();
     ctx.restore();
   }
@@ -11910,7 +11904,7 @@ function drawVixTraveler(ctx,cx,cy,state,palette,now,moveX,moveY,intensity){
   ctx.fillStyle=body;
   ctx.shadowBlur=0;
   ctx.beginPath();
-  ctx.ellipse(0,13*S,10.7*S,15.4*S,0,0,Math.PI*2);
+  ctx.ellipse(0,15.5*S,11.0*S,15.0*S,0,0,Math.PI*2);
   ctx.fill();
 
   ctx.strokeStyle=state==="midas"?"rgba(255,211,74,.92)":"rgba(81,225,255,.92)";
@@ -11932,7 +11926,7 @@ function drawVixTraveler(ctx,cx,cy,state,palette,now,moveX,moveY,intensity){
   ctx.shadowBlur=4.2*S;
   ctx.shadowColor=state==="midas"?"rgba(255,207,72,.8)":"rgba(72,221,255,.78)";
   ctx.fillStyle=state==="midas"?"#5a3b04":"#071126";
-  ctx.beginPath();ctx.ellipse(0,-7*S,18.4*S,16.5*S,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(0,-10.5*S,18.7*S,16.2*S,0,0,Math.PI*2);ctx.fill();
 
   // True black face/visor.
   const visor=ctx.createRadialGradient(-5*S,-12*S,1*S,0,-7*S,16*S);
@@ -11941,7 +11935,7 @@ function drawVixTraveler(ctx,cx,cy,state,palette,now,moveX,moveY,intensity){
   visor.addColorStop(1,"#000105");
   ctx.shadowBlur=0;
   ctx.fillStyle=visor;
-  ctx.beginPath();ctx.ellipse(0,-7*S,15.4*S,13.2*S,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(0,-10.5*S,15.7*S,13.0*S,0,0,Math.PI*2);ctx.fill();
 
   // Signature cyan/purple/gold rim.
   const rim=ctx.createLinearGradient(-18*S,-12*S,18*S,2*S);
@@ -11955,7 +11949,7 @@ function drawVixTraveler(ctx,cx,cy,state,palette,now,moveX,moveY,intensity){
   ctx.lineWidth=1.55*S;
   ctx.shadowBlur=4.5*S;
   ctx.shadowColor=state==="midas"?"#ffd34a":"#5eeaff";
-  ctx.beginPath();ctx.ellipse(0,-7*S,17.7*S,15.8*S,0,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.ellipse(0,-10.5*S,18.0*S,15.5*S,0,0,Math.PI*2);ctx.stroke();
 
   // Face: large simple eyes are the mascot anchor.
   ctx.globalAlpha=1;
@@ -11979,41 +11973,48 @@ function drawVixTraveler(ctx,cx,cy,state,palette,now,moveX,moveY,intensity){
     ctx.moveTo(10*S,-10.5*S);ctx.lineTo(3*S,-7*S);ctx.lineTo(9*S,-3.3*S);
     ctx.stroke();
   }else{
-    ctx.beginPath();ctx.ellipse(-6.2*S,-7*S,2.35*S,5.1*S,-.08,0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.ellipse(6.2*S,-7*S,2.35*S,5.1*S,.08,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(-6.2*S,-10.5*S,2.35*S,5.1*S,-.08,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(6.2*S,-10.5*S,2.35*S,5.1*S,.08,0,Math.PI*2);ctx.fill();
   }
 
-  // V72 propulsion: strong below Vix, not across Vix.
+  // V73 propulsion: exhaust trails behind Vix's flight vector, not straight down.
   ctx.globalCompositeOperation="lighter";
-  const jet=ctx.createLinearGradient(0,23*S,0,68*S);
+  ctx.save();
+  const exhaustAngle=(Math.PI/2) - lean*.42 + pitch*.22;
+  ctx.rotate(exhaustAngle-Math.PI/2);
+
+  const jet=ctx.createLinearGradient(0,24*S,0,78*S);
   jet.addColorStop(0,"rgba(255,255,255,.96)");
-  jet.addColorStop(.15,state==="midas"?"rgba(255,221,110,.90)":"rgba(106,242,255,.90)");
-  jet.addColorStop(.48,state==="midas"?"rgba(255,173,36,.58)":"rgba(91,133,255,.60)");
+  jet.addColorStop(.14,state==="midas"?"rgba(255,221,110,.90)":"rgba(106,242,255,.90)");
+  jet.addColorStop(.44,state==="midas"?"rgba(255,173,36,.58)":"rgba(91,133,255,.60)");
   jet.addColorStop(.72,state==="midas"?"rgba(255,108,24,.18)":"rgba(255,78,226,.28)");
   jet.addColorStop(1,"rgba(255,255,255,0)");
   ctx.fillStyle=jet;
   ctx.shadowBlur=7*S;
   ctx.shadowColor=state==="midas"?"#ffd34a":"#55eaff";
   ctx.beginPath();
-  ctx.moveTo(-6.0*S,24*S);
-  ctx.quadraticCurveTo(-8*S,43*S,-12*S,68*S);
-  ctx.quadraticCurveTo(0,59*S,12*S,68*S);
-  ctx.quadraticCurveTo(8*S,43*S,6.0*S,24*S);
+  ctx.moveTo(-6.4*S,25*S);
+  ctx.quadraticCurveTo((-8-lean*5)*S,49*S,(-13-lean*10)*S,78*S);
+  ctx.quadraticCurveTo(0,66*S,(13-lean*10)*S,78*S);
+  ctx.quadraticCurveTo((8-lean*5)*S,49*S,6.4*S,25*S);
   ctx.closePath();
   ctx.fill();
 
-  // White-hot center of exhaust.
-  const hotJet=ctx.createLinearGradient(0,24*S,0,56*S);
-  hotJet.addColorStop(0,"rgba(255,255,255,.98)");
-  hotJet.addColorStop(.45,"rgba(255,255,255,.72)");
+  const hotJet=ctx.createLinearGradient(0,24*S,0,63*S);
+  hotJet.addColorStop(0,"rgba(255,255,255,.99)");
+  hotJet.addColorStop(.48,"rgba(255,255,255,.76)");
   hotJet.addColorStop(1,"rgba(255,255,255,0)");
-  ctx.fillStyle=hotJet;ctx.shadowBlur=3*S;ctx.shadowColor="#fff";
+  ctx.fillStyle=hotJet;
+  ctx.shadowBlur=3*S;
+  ctx.shadowColor="#fff";
   ctx.beginPath();
-  ctx.moveTo(-2.4*S,24*S);
-  ctx.quadraticCurveTo(-3*S,39*S,-3.8*S,56*S);
-  ctx.quadraticCurveTo(0,51*S,3.8*S,56*S);
-  ctx.quadraticCurveTo(3*S,39*S,2.4*S,24*S);
-  ctx.closePath();ctx.fill();
+  ctx.moveTo(-2.6*S,25*S);
+  ctx.quadraticCurveTo((-3.4-lean*2)*S,43*S,(-4.4-lean*4)*S,63*S);
+  ctx.quadraticCurveTo(0,57*S,(4.4-lean*4)*S,63*S);
+  ctx.quadraticCurveTo((3.4-lean*2)*S,43*S,2.6*S,25*S);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
 
   ctx.restore();
 }
