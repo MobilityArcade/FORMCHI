@@ -159,6 +159,7 @@ function track(eventName,data={}){
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <!-- SHIFTVIX 2.11 — GOLD RINGS + FIVE EVEN OBJECTIVE TYPES -->
+<!-- SHIFTVIX V75 — VIX TRUE FLIGHT PERSPECTIVE: foreshortened rear-flight body, larger Vix foreground presence, moderated world scale, preserved transparent visor/eyes/rudder hands; gameplay/collisions/Flows/scoring preserved -->
 <!-- SHIFTVIX V74 — VIX LARGER-THAN-LIFE FLIGHT: smoked-glass head/body, expressive opaque eyes, rudder hands, straight rear-flight perspective, larger near-field world; gameplay/collisions/Flows/scoring preserved -->
 <!-- SHIFTVIX V73 — VIX FLIGHT PERSPECTIVE: over-the-shoulder pitch, animated hands, directional exhaust, cleaner head silhouette, closer world projection; gameplay/Flows/scoring preserved -->
 <!-- SHIFTVIX V72 — VIX THE TRAVELER MASCOT UPGRADE: larger foreground mascot, true dark visor/body separation, reduced body bloom, stronger silhouette; gameplay/Flows/scoring preserved -->
@@ -11693,6 +11694,7 @@ const shift = document.getElementById("shift");
 const vix = document.getElementById("vix");
 
 // =========================
+// SHIFTVIX V75 — TRUE FORESHORTENED FLIGHT + MODERATED WORLD SCALE
 // SHIFTVIX V74 — SMOKED-GLASS VIX + RUDDER HANDS + LARGER NEAR FIELD
 // SHIFTVIX V73 — VIX FLIGHT PERSPECTIVE + CLOSER WORLD PROJECTION
 // SHIFTVIX V72 — VIX FOREGROUND MASCOT + RESTRAINED WAKE
@@ -11807,18 +11809,17 @@ function drawVixTraveler(ctx,cx,cy,state,palette,now,moveX,moveY,intensity){
     (cometTraveler.canvas.height/cometTraveler.dpr)||window.innerHeight
   );
 
-  // V74 — foreground mascot scale. Large enough to feel like "you",
-  // but the transparent smoked-glass body keeps the course readable through Vix.
+  // V75 — Vix is larger and visibly foreshortened:
+  // head farther toward the vanishing point, hips/thruster closer to the viewer.
   const responsive=Math.max(.94,Math.min(1.30,base/520));
-  const S=responsive*2.34*(1+intensity*.018);
+  const S=responsive*2.52*(1+intensity*.015);
 
-  const lean=Math.max(-.48,Math.min(.48,moveX/30));
+  const lean=Math.max(-.52,Math.min(.52,moveX/30));
   const pitch=Math.max(-.12,Math.min(.12,-moveY/55));
-  const bob=Math.sin(now*.0055)*.72*S;
-  const flightWave=Math.sin(now*.0072);
-  const flightWave2=Math.sin(now*.0057+1.6);
+  const bob=Math.sin(now*.0053)*.62*S;
+  const flightWave=Math.sin(now*.0070);
+  const flightWave2=Math.sin(now*.0056+1.5);
 
-  // Hands behave like flight control surfaces.
   const rawSpeed=(typeof speed!=="undefined"&&typeof SPEED_START!=="undefined")
     ? Math.max(0,speed-SPEED_START)
     : 0;
@@ -11826,9 +11827,9 @@ function drawVixTraveler(ctx,cx,cy,state,palette,now,moveX,moveY,intensity){
     0,
     Math.min(
       1,
-      rawSpeed/150 +
-      (typeof fluxBoostAmount!=="undefined"?fluxBoostAmount*.48:0) +
-      (typeof warpBoostAmount!=="undefined"?warpBoostAmount*.62:0)
+      rawSpeed/155 +
+      (typeof fluxBoostAmount!=="undefined"?fluxBoostAmount*.45:0) +
+      (typeof warpBoostAmount!=="undefined"?warpBoostAmount*.58:0)
     )
   );
 
@@ -11839,88 +11840,83 @@ function drawVixTraveler(ctx,cx,cy,state,palette,now,moveX,moveY,intensity){
 
   ctx.save();
   ctx.globalCompositeOperation="source-over";
-
   ctx.translate(cx,cy+bob);
 
-  // Straight rear-flight framing. We bank around the travel axis,
-  // but do NOT tilt the whole character forward in 2D.
-  // Depth is created by foreshortened proportions: lower body/hands closer,
-  // smaller head farther toward the vanishing point.
-  ctx.rotate(lean*.30);
+  // Roll around the travel axis; keep vertical screen alignment while geometry itself creates depth.
+  ctx.rotate(lean*.28);
 
-  // Soft halo only around silhouette.
-  const aura=ctx.createRadialGradient(0,0,8*S,0,0,34*S);
-  aura.addColorStop(0,"rgba(255,255,255,.025)");
-  aura.addColorStop(.50,state==="midas"?"rgba(255,198,62,.085)":"rgba(72,214,255,.075)");
+  // Subtle perspective squeeze at the far/head end.
+  ctx.save();
+  ctx.scale(1, .97);
+
+  // Tight aura
+  const aura=ctx.createRadialGradient(0,5*S,8*S,0,5*S,36*S);
+  aura.addColorStop(0,"rgba(255,255,255,.020)");
+  aura.addColorStop(.50,state==="midas"?"rgba(255,198,62,.070)":"rgba(72,214,255,.062)");
   aura.addColorStop(1,"rgba(0,0,0,0)");
   ctx.fillStyle=aura;
-  ctx.beginPath();ctx.arc(0,0,34*S,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(0,5*S,36*S,0,Math.PI*2);ctx.fill();
 
   const handColor=state==="midas"?"#ffd44f":state==="damage"?"#ff5b60":"#54e9ff";
   const handEdge=state==="midas"?"#fff0a8":state==="damage"?"#ffd1cd":"#c9fbff";
-  const armDark="rgba(3,8,20,.64)";
+  const armDark="rgba(3,8,20,.60)";
+
+  // Foreshortened depth landmarks:
+  const headY=-18*S;     // far
+  const shoulderY=-2*S;
+  const torsoMidY=14*S;
+  const hipY=31*S;       // near
+  const nozzleY=37*S;    // nearest
 
   function drawArm(side){
     ctx.save();
     ctx.scale(side,1);
 
     const bank=lean*side;
-
-    // High speed pulls both hands close to Vix's sides.
-    // Banking extends the outside hand and tucks the inside hand.
     const outside=Math.max(0,-bank);
     const inside=Math.max(0,bank);
-    const idleFloat=(1-speedNorm)*(flightWave*.75+flightWave2*.42);
+    const idleFloat=(1-speedNorm)*(flightWave*.60+flightWave2*.32);
 
-    const shoulderX=8.2*S;
-    const shoulderY=4.0*S;
-    const elbowX=(14.0 - speedNorm*3.2 + outside*4.6 - inside*2.8)*S;
-    const elbowY=(10.2 + speedNorm*5.0 + idleFloat)*S;
-    const handX=(20.4 - speedNorm*7.0 + outside*7.2 - inside*4.4)*S;
-    const handY=(20.8 + speedNorm*7.4 + flightWave2*(1-speedNorm)*1.7 - bank*2.2)*S;
+    // Arms attach higher/farther and sweep outward/down toward viewer.
+    const shoulderX=7.8*S;
+    const shoulderYLocal=shoulderY+2*S;
+    const elbowX=(14.0 - speedNorm*3.0 + outside*4.8 - inside*2.6)*S;
+    const elbowY=(9.5 + speedNorm*4.4 + idleFloat)*S;
+    const handX=(22.2 - speedNorm*7.4 + outside*8.2 - inside*4.6)*S;
+    const handY=(22.5 + speedNorm*7.1 + flightWave2*(1-speedNorm)*1.4 - bank*2.0)*S;
 
-    ctx.rotate(
-      -.10
-      + (1-speedNorm)*flightWave*.045
-      - bank*.13
-    );
+    ctx.rotate(-.085 + (1-speedNorm)*flightWave*.035 - bank*.12);
 
     ctx.strokeStyle=armDark;
     ctx.lineCap="round";
-    ctx.lineWidth=6.0*S;
+    ctx.lineWidth=5.8*S;
     ctx.shadowBlur=0;
     ctx.beginPath();
-    ctx.moveTo(shoulderX,shoulderY);
-    ctx.quadraticCurveTo(elbowX,elbowY,handX-2.2*S,handY-2*S);
+    ctx.moveTo(shoulderX,shoulderYLocal);
+    ctx.quadraticCurveTo(elbowX,elbowY,handX-2.4*S,handY-2*S);
     ctx.stroke();
 
-    // More solid than head/body so the "rudders" remain readable.
-    ctx.globalAlpha=.88;
-    const hg=ctx.createLinearGradient(handX-7*S,handY-7*S,handX+5*S,handY+8*S);
+    // Rudder mittens: larger than V74 and more lateral for aircraft-like banking.
+    ctx.globalAlpha=.90;
+    const hg=ctx.createLinearGradient(handX-7*S,handY-8*S,handX+6*S,handY+9*S);
     hg.addColorStop(0,handEdge);
-    hg.addColorStop(.26,handColor);
+    hg.addColorStop(.25,handColor);
     hg.addColorStop(1,state==="midas"?"#ff9f22":"#3b74f4");
     ctx.fillStyle=hg;
-    ctx.strokeStyle="rgba(255,255,255,.78)";
-    ctx.lineWidth=.8*S;
-    ctx.shadowBlur=3.8*S;
+    ctx.strokeStyle="rgba(255,255,255,.76)";
+    ctx.lineWidth=.78*S;
+    ctx.shadowBlur=3.4*S;
     ctx.shadowColor=handColor;
 
+    const handW=(6.7+outside*.35-speedNorm*.25)*S;
+    const handH=(8.8+outside*.75-speedNorm*.55)*S;
     ctx.beginPath();
-    ctx.ellipse(
-      handX,
-      handY,
-      (6.1-outside*.4)*S,
-      (8.0+outside*.6)*S,
-      -.40-bank*.18,
-      0,
-      Math.PI*2
-    );
+    ctx.ellipse(handX,handY,handW,handH,-.38-bank*.20,0,Math.PI*2);
     ctx.fill();
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.ellipse(handX-4.2*S,handY-1.6*S,2.25*S,3.25*S,-.62,0,Math.PI*2);
+    ctx.ellipse(handX-4.7*S,handY-1.7*S,2.3*S,3.3*S,-.58,0,Math.PI*2);
     ctx.fill();
 
     ctx.restore();
@@ -11929,55 +11925,75 @@ function drawVixTraveler(ctx,cx,cy,state,palette,now,moveX,moveY,intensity){
   drawArm(-1);
   drawArm(1);
 
-  // V74 torso: smoked transparent "black vein" glass.
-  // Wider/lower near the viewer and narrower toward the head for rear-flight perspective.
-  const torso=ctx.createLinearGradient(0,-1*S,0,31*S);
-  torso.addColorStop(0,"rgba(14,25,55,.36)");
-  torso.addColorStop(.42,"rgba(4,12,30,.48)");
-  torso.addColorStop(1,"rgba(0,3,12,.58)");
+  // V75 torso: explicit trapezoidal/pear-like foreshortening.
+  // Narrow near shoulders, widest near hips/nozzle closest to viewer.
+  const torso=ctx.createLinearGradient(0,shoulderY,0,hipY);
+  torso.addColorStop(0,"rgba(13,24,52,.28)");
+  torso.addColorStop(.45,"rgba(4,12,30,.44)");
+  torso.addColorStop(1,"rgba(0,3,12,.60)");
   ctx.fillStyle=torso;
   ctx.shadowBlur=0;
   ctx.beginPath();
-  ctx.moveTo(-8.2*S,0*S);
-  ctx.bezierCurveTo(-9.5*S,5*S,-12.6*S,17*S,-12.1*S,25*S);
-  ctx.bezierCurveTo(-8.9*S,31*S,8.9*S,31*S,12.1*S,25*S);
-  ctx.bezierCurveTo(12.6*S,17*S,9.5*S,5*S,8.2*S,0*S);
+  ctx.moveTo(-6.5*S,shoulderY);
+  ctx.bezierCurveTo(-7.3*S,4*S,-10.8*S,18*S,-13.8*S,hipY);
+  ctx.bezierCurveTo(-9.3*S,36*S,9.3*S,36*S,13.8*S,hipY);
+  ctx.bezierCurveTo(10.8*S,18*S,7.3*S,4*S,6.5*S,shoulderY);
   ctx.closePath();
   ctx.fill();
 
-  ctx.strokeStyle=state==="midas"?"rgba(255,211,74,.84)":"rgba(81,225,255,.82)";
-  ctx.lineWidth=1.20*S;
-  ctx.shadowBlur=3.0*S;
+  ctx.strokeStyle=state==="midas"?"rgba(255,211,74,.80)":"rgba(81,225,255,.78)";
+  ctx.lineWidth=1.12*S;
+  ctx.shadowBlur=2.8*S;
   ctx.shadowColor=state==="midas"?"#ffd34a":"#52e9ff";
   ctx.stroke();
 
-  // Transparent center "vein" / energy core.
-  const chest=ctx.createRadialGradient(0,15*S,0,0,15*S,8.6*S);
-  chest.addColorStop(0,"rgba(255,255,255,.28)");
-  chest.addColorStop(.25,state==="midas"?"rgba(255,214,90,.24)":"rgba(71,228,255,.21)");
-  chest.addColorStop(.58,state==="midas"?"rgba(255,180,40,.09)":"rgba(106,80,255,.08)");
+  // Shoulder collar ring reinforces depth.
+  ctx.globalAlpha=.72;
+  ctx.strokeStyle=state==="midas"?"rgba(255,224,120,.72)":"rgba(130,235,255,.68)";
+  ctx.lineWidth=.85*S;
+  ctx.shadowBlur=2*S;
+  ctx.beginPath();
+  ctx.ellipse(0,shoulderY+1.5*S,8.3*S,3.0*S,0,0,Math.PI*2);
+  ctx.stroke();
+
+  // Chest/vein remains translucent.
+  const chest=ctx.createRadialGradient(0,torsoMidY,0,0,torsoMidY,9.0*S);
+  chest.addColorStop(0,"rgba(255,255,255,.25)");
+  chest.addColorStop(.25,state==="midas"?"rgba(255,214,90,.22)":"rgba(71,228,255,.19)");
+  chest.addColorStop(.60,state==="midas"?"rgba(255,180,40,.08)":"rgba(106,80,255,.07)");
   chest.addColorStop(1,"rgba(0,0,0,0)");
   ctx.fillStyle=chest;
   ctx.shadowBlur=0;
-  ctx.beginPath();ctx.arc(0,15*S,8.6*S,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(0,torsoMidY,9*S,0,Math.PI*2);ctx.fill();
 
-  // Head is smaller/farther away than the lower body and is also smoked transparent.
-  ctx.shadowBlur=3.2*S;
-  ctx.shadowColor=state==="midas"?"rgba(255,207,72,.66)":"rgba(72,221,255,.64)";
-  ctx.fillStyle=state==="midas"?"rgba(60,39,4,.42)":"rgba(6,15,35,.38)";
-  ctx.beginPath();ctx.ellipse(0,-13.6*S,17.0*S,14.7*S,0,0,Math.PI*2);ctx.fill();
+  // Hip/nozzle collar is visually closest.
+  ctx.globalAlpha=.88;
+  ctx.fillStyle=state==="midas"?"rgba(255,200,55,.20)":"rgba(83,225,255,.18)";
+  ctx.strokeStyle=state==="midas"?"rgba(255,226,140,.82)":"rgba(170,245,255,.82)";
+  ctx.lineWidth=1.05*S;
+  ctx.shadowBlur=3*S;
+  ctx.shadowColor=state==="midas"?"#ffd34a":"#6fefff";
+  ctx.beginPath();
+  ctx.ellipse(0,nozzleY-3*S,10.8*S,5.0*S,0,0,Math.PI*2);
+  ctx.fill();
+  ctx.stroke();
 
-  // Smoked visor: transparent enough to see the world THROUGH Vix.
-  const visor=ctx.createRadialGradient(-4*S,-17*S,1*S,0,-13*S,15*S);
-  visor.addColorStop(0,"rgba(19,29,58,.42)");
-  visor.addColorStop(.40,"rgba(3,8,20,.52)");
-  visor.addColorStop(1,"rgba(0,1,6,.58)");
+  // Head is intentionally smaller and farther away; smoked transparent black vein color.
+  ctx.globalAlpha=.96;
+  ctx.shadowBlur=2.7*S;
+  ctx.shadowColor=state==="midas"?"rgba(255,207,72,.62)":"rgba(72,221,255,.60)";
+  ctx.fillStyle=state==="midas"?"rgba(60,39,4,.36)":"rgba(6,15,35,.34)";
+  ctx.beginPath();ctx.ellipse(0,headY,15.7*S,13.3*S,0,0,Math.PI*2);ctx.fill();
+
+  const visor=ctx.createRadialGradient(-4*S,headY-3*S,1*S,0,headY,14*S);
+  visor.addColorStop(0,"rgba(19,29,58,.36)");
+  visor.addColorStop(.42,"rgba(3,8,20,.46)");
+  visor.addColorStop(1,"rgba(0,1,6,.54)");
   ctx.shadowBlur=0;
   ctx.fillStyle=visor;
-  ctx.beginPath();ctx.ellipse(0,-13.6*S,14.3*S,11.8*S,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(0,headY,13.3*S,10.8*S,0,0,Math.PI*2);ctx.fill();
 
-  // Signature rim remains readable even though the face itself is transparent.
-  const rim=ctx.createLinearGradient(-17*S,-18*S,17*S,-6*S);
+  const rim=ctx.createLinearGradient(-16*S,headY-6*S,16*S,headY+4*S);
   if(state==="midas"){
     rim.addColorStop(0,"#ff9d20");
     rim.addColorStop(.5,"#fff5bf");
@@ -11989,83 +12005,84 @@ function drawVixTraveler(ctx,cx,cy,state,palette,now,moveX,moveY,intensity){
     rim.addColorStop(1,"#ff54e9");
   }
   ctx.strokeStyle=rim;
-  ctx.globalAlpha=.93;
-  ctx.lineWidth=1.50*S;
-  ctx.shadowBlur=4.0*S;
+  ctx.globalAlpha=.91;
+  ctx.lineWidth=1.42*S;
+  ctx.shadowBlur=3.6*S;
   ctx.shadowColor=state==="midas"?"#ffd34a":"#5eeaff";
-  ctx.beginPath();ctx.ellipse(0,-13.6*S,16.3*S,14.1*S,0,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.ellipse(0,headY,15.0*S,12.8*S,0,0,Math.PI*2);ctx.stroke();
 
-  // Eyes remain nearly fully opaque: Vix's emotional identity.
+  // Eyes stay expressive and opaque.
   ctx.globalAlpha=1;
   ctx.strokeStyle="#f7ffff";
   ctx.fillStyle="#f7ffff";
-  ctx.shadowBlur=4.2*S;
+  ctx.shadowBlur=3.8*S;
   ctx.shadowColor=state==="midas"?"#fff0a5":"#6feeff";
-  ctx.lineWidth=2.0*S;
+  ctx.lineWidth=1.9*S;
 
-  const eyeY=-13.7*S;
+  const eyeY=headY+.2*S;
 
   if(mood==="happy"){
-    for(const ex of [-5.7,5.7]){
+    for(const ex of [-5.1,5.1]){
       ctx.beginPath();
-      ctx.arc(ex*S,eyeY+.6*S,3.35*S,Math.PI*1.08,Math.PI*1.92,false);
+      ctx.arc(ex*S,eyeY+.5*S,3.05*S,Math.PI*1.08,Math.PI*1.92,false);
       ctx.stroke();
     }
   }else if(mood==="intense" || mood==="determined"){
     ctx.beginPath();
-    ctx.moveTo(-9*S,eyeY-3.3*S);ctx.lineTo(-2.8*S,eyeY);ctx.lineTo(-8.2*S,eyeY+3.2*S);
+    ctx.moveTo(-8.1*S,eyeY-3*S);ctx.lineTo(-2.5*S,eyeY);ctx.lineTo(-7.4*S,eyeY+2.9*S);
     ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(9*S,eyeY-3.3*S);ctx.lineTo(2.8*S,eyeY);ctx.lineTo(8.2*S,eyeY+3.2*S);
+    ctx.moveTo(8.1*S,eyeY-3*S);ctx.lineTo(2.5*S,eyeY);ctx.lineTo(7.4*S,eyeY+2.9*S);
     ctx.stroke();
   }else{
-    ctx.beginPath();ctx.ellipse(-5.7*S,eyeY,2.25*S,4.7*S,-.06,0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.ellipse(5.7*S,eyeY,2.25*S,4.7*S,.06,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(-5.1*S,eyeY,2.05*S,4.25*S,-.05,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(5.1*S,eyeY,2.05*S,4.25*S,.05,0,Math.PI*2);ctx.fill();
   }
 
-  // Directional exhaust follows the bank/pitch and grows with speed.
+  // Exhaust: broader/nearer at the viewer end, reinforces over-the-shoulder depth.
   ctx.globalCompositeOperation="lighter";
   ctx.save();
-  const exhaustAngle=(Math.PI/2) - lean*.40 + pitch*.18;
+  const exhaustAngle=(Math.PI/2) - lean*.38 + pitch*.16;
   ctx.rotate(exhaustAngle-Math.PI/2);
 
-  const exhaustLength=(74 + speedNorm*30)*S;
-  const exhaustSpread=(6.3 - speedNorm*1.2)*S;
+  const exhaustLength=(82 + speedNorm*32)*S;
+  const startW=(8.4 - speedNorm*.8)*S;
 
-  const jet=ctx.createLinearGradient(0,25*S,0,exhaustLength);
-  jet.addColorStop(0,"rgba(255,255,255,.95)");
-  jet.addColorStop(.13,state==="midas"?"rgba(255,221,110,.88)":"rgba(106,242,255,.86)");
-  jet.addColorStop(.42,state==="midas"?"rgba(255,173,36,.55)":"rgba(91,133,255,.56)");
-  jet.addColorStop(.70,state==="midas"?"rgba(255,108,24,.16)":"rgba(255,78,226,.25)");
+  const jet=ctx.createLinearGradient(0,nozzleY,0,exhaustLength);
+  jet.addColorStop(0,"rgba(255,255,255,.96)");
+  jet.addColorStop(.12,state==="midas"?"rgba(255,221,110,.88)":"rgba(106,242,255,.86)");
+  jet.addColorStop(.42,state==="midas"?"rgba(255,173,36,.54)":"rgba(91,133,255,.55)");
+  jet.addColorStop(.72,state==="midas"?"rgba(255,108,24,.16)":"rgba(255,78,226,.24)");
   jet.addColorStop(1,"rgba(255,255,255,0)");
   ctx.fillStyle=jet;
-  ctx.shadowBlur=6*S;
+  ctx.shadowBlur=5.5*S;
   ctx.shadowColor=state==="midas"?"#ffd34a":"#55eaff";
 
   ctx.beginPath();
-  ctx.moveTo(-exhaustSpread,25*S);
-  ctx.quadraticCurveTo((-7.5-lean*5)*S,49*S,(-11-lean*12)*S,exhaustLength);
-  ctx.quadraticCurveTo(0,exhaustLength*.84,(11-lean*12)*S,exhaustLength);
-  ctx.quadraticCurveTo((7.5-lean*5)*S,49*S,exhaustSpread,25*S);
+  ctx.moveTo(-startW,nozzleY);
+  ctx.quadraticCurveTo((-10-lean*5)*S,58*S,(-15-lean*12)*S,exhaustLength);
+  ctx.quadraticCurveTo(0,exhaustLength*.82,(15-lean*12)*S,exhaustLength);
+  ctx.quadraticCurveTo((10-lean*5)*S,58*S,startW,nozzleY);
   ctx.closePath();
   ctx.fill();
 
-  const hotLength=(55 + speedNorm*20)*S;
-  const hotJet=ctx.createLinearGradient(0,25*S,0,hotLength);
-  hotJet.addColorStop(0,"rgba(255,255,255,.98)");
-  hotJet.addColorStop(.48,"rgba(255,255,255,.72)");
+  const hotLength=(62 + speedNorm*20)*S;
+  const hotJet=ctx.createLinearGradient(0,nozzleY,0,hotLength);
+  hotJet.addColorStop(0,"rgba(255,255,255,.99)");
+  hotJet.addColorStop(.48,"rgba(255,255,255,.74)");
   hotJet.addColorStop(1,"rgba(255,255,255,0)");
   ctx.fillStyle=hotJet;
-  ctx.shadowBlur=2.8*S;
+  ctx.shadowBlur=2.5*S;
   ctx.shadowColor="#fff";
   ctx.beginPath();
-  ctx.moveTo(-2.5*S,25*S);
-  ctx.quadraticCurveTo((-3.2-lean*2)*S,42*S,(-4.0-lean*4)*S,hotLength);
-  ctx.quadraticCurveTo(0,hotLength*.90,(4.0-lean*4)*S,hotLength);
-  ctx.quadraticCurveTo((3.2-lean*2)*S,42*S,2.5*S,25*S);
+  ctx.moveTo(-3.0*S,nozzleY);
+  ctx.quadraticCurveTo((-3.8-lean*2)*S,47*S,(-4.8-lean*4)*S,hotLength);
+  ctx.quadraticCurveTo(0,hotLength*.90,(4.8-lean*4)*S,hotLength);
+  ctx.quadraticCurveTo((3.8-lean*2)*S,47*S,3.0*S,nozzleY);
   ctx.closePath();
   ctx.fill();
 
+  ctx.restore();
   ctx.restore();
   ctx.restore();
 }
@@ -12080,7 +12097,7 @@ function updateCometTraveler(dt){
   // V72 — foreground third-person framing.
   // Physics/collision remain unchanged; this is a visual-only camera-space anchor.
   const cx=w*.5;
-  const cy=h*(h>w ? .715 : .675);
+  const cy=h*(h>w ? .725 : .682);
   const state=cometState();
   const palette=cometPalette(state);
   const TRAVELER_GLASS_PRESENCE=travelerGlassPresence();
@@ -12696,15 +12713,15 @@ playerX,
 playerY,
 -500
 );let targetFov =
-61
+65
 +
-warpAmount*8.5
+warpAmount*9.5
 +
 pulseFovBoost
 +
-fluxBoostAmount*3.5
+fluxBoostAmount*4.0
 -
-chronoAmount*3.5
+chronoAmount*3.8
 +
 Math.sin(distance*0.004)
 *
@@ -12769,7 +12786,7 @@ const v74Approach=THREE.MathUtils.clamp(
 );
 if(isRegularCollectible){
   b.scale.setScalar(
-    introScale*(1.22+v74Approach*.72)
+    introScale*(1.10+v74Approach*.36)
   );
 }
 
@@ -12780,7 +12797,7 @@ if(b.userData.isFlux){
   b.userData.glow.material.color.setHex(fluxColor);
   b.userData.glow.material.opacity=.18+.12*(.5+.5*Math.sin(performance.now()*.025));
   const pulse=1+.08*Math.sin(performance.now()*.018);
-  b.scale.setScalar(introScale*(1.22+v74Approach*.58)*pulse);
+  b.scale.setScalar(introScale*(1.10+v74Approach*.30)*pulse);
 }
 
 if(b.userData.isChrono){
@@ -12789,7 +12806,7 @@ if(b.userData.isChrono){
   b.userData.glow.material.color.setHex(CHRONO_GLOW_COLOR);
   b.userData.glow.material.opacity=.16+breath*.16;
   const pulse=.96+breath*.10;
-  b.scale.setScalar(introScale*(1.22+v74Approach*.58)*pulse);
+  b.scale.setScalar(introScale*(1.10+v74Approach*.30)*pulse);
 }
 
 if(b.userData.isGoldRing){
@@ -12808,7 +12825,7 @@ if(b.userData.isGoldRing){
 
   b.scale.setScalar(
     introScale*
-    (1.24+approach*.66)*
+    (1.11+approach*.34)*
     (1+ringPulse*.018)
   );
 
@@ -12861,7 +12878,7 @@ if(b.userData.isVoid){
 
   const surgeScale=
     introScale*
-    (1.24 + approach*.68)*
+    (1.11 + approach*.34)*
     (1+pulse*.022);
 
   b.scale.setScalar(surgeScale);
@@ -12882,7 +12899,7 @@ if(b.userData.isMidas){
   b.userData.core.material.color.setHex(blink>.52 ? MIDAS_CORE_COLOR : MIDAS_COLOR);
   b.userData.shell.material.opacity=.38+blink*.34;
   b.userData.glow.material.opacity=.17+shimmer*.22;
-  const pulse=.98+blink*.12;b.scale.setScalar(introScale*(1.22+v74Approach*.58)*pulse);
+  const pulse=.98+blink*.12;b.scale.setScalar(introScale*(1.10+v74Approach*.30)*pulse);
 }
 
 if(
@@ -12893,7 +12910,7 @@ if(
   !b.userData.isChrono &&
   !b.userData.isMidas
 ){
-  b.scale.setScalar(introScale*(1.20+v74Approach*.58));
+  b.scale.setScalar(introScale*(1.09+v74Approach*.30));
 }
 
 b.lookAt(playerX,playerY,PLAYER_Z);
