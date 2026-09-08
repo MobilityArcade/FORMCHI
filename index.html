@@ -162,6 +162,7 @@ function track(eventName,data={}){
 <!-- SHIFTVIX V82 — FORWARD-FLIGHT HUMANOID VIX: smaller hip-width head, tapered trapezoid torso, wider forearm gauntlets, tapered lower-leg boots, dark thruster rings with recessed cyan plasma discs, stronger Superman-style forward pitch; game-native satin finish; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V81 — HUMANOID VIX + GAME-NATIVE FINISH: human-readable rear silhouette with neck, shoulders, elbows, waist/hips, thighs/knees, thruster hands and substantial boots; satin neon-game material replaces chrome; four directional ion plumes; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V82.1 — SUPERMAN FLIGHT + THRUSTER UPDATE FIX: removes stale bloom reference crash and locks stronger forward flight pitch; gameplay/world preserved -->
+<!-- SHIFTVIX V86.1 — REACTION CAM FIX: fixes visionRGB ReferenceError, moves ear pods outside head silhouette as simple state-colored side modules, enlarges/lowers black face mask to nearly meet lower rim, preserves Vix Vision and gameplay -->
 <!-- SHIFTVIX V86 — VIX REACTION CAM: keeps minimal first-person Vix Vision, brightens the same cyan translucent POV eyes, adds responsive upper-right canonical Vix head portrait with pearl shell, black face, cyan ear circles and oval eyes; portrait reacts to bank, Midas/Flux/Chrono/Warp and damage; gameplay preserved -->
 <!-- SHIFTVIX V85.2 — MINIMAL VIX VISION: removes full helmet shell for uniform portrait/landscape framing; two responsive neon bars + two larger single-piece translucent eyes become Vix identity; state colors and simple damage squint preserved; gameplay preserved -->
 <!-- SHIFTVIX V85.1 — VIX VISION DISPLAY FIX: repairs malformed escaped-newline visor CSS so helmet, close-set eye reflections and VIX VISION frame actually render; local file manifest/icon CORS warnings are unrelated; gameplay preserved -->
@@ -873,11 +874,11 @@ canvas{
 }
 #vixReactionCam .vixCamFace{
   position:absolute;
-  left:13%;
-  right:13%;
-  top:20%;
-  bottom:21%;
-  border-radius:46% 46% 43% 43%;
+  left:9%;
+  right:9%;
+  top:18%;
+  bottom:8%;
+  border-radius:48% 48% 45% 45%;
   background:
     radial-gradient(circle at 50% 40%,
       rgba(17,29,48,.98) 0%,
@@ -890,22 +891,22 @@ canvas{
 }
 #vixReactionCam .vixCamEar{
   position:absolute;
-  top:42%;
-  width:15%;
-  height:27%;
+  top:41%;
+  width:11%;
+  height:24%;
   border-radius:999px;
-  background:rgba(14,22,34,.98);
-  border:2px solid rgba(var(--vix-cam-rgb),.90);
+  background:rgba(var(--vix-cam-rgb),.88);
+  border:1px solid rgba(255,255,255,.52);
   box-shadow:
-    inset 0 0 7px rgba(var(--vix-cam-rgb),.42),
-    0 0 10px rgba(var(--vix-cam-rgb),.82);
+    0 0 8px rgba(var(--vix-cam-rgb),.88),
+    0 0 16px rgba(var(--vix-cam-rgb),.42);
 }
-#vixReactionCam .vixCamEar.left{left:-2%}
-#vixReactionCam .vixCamEar.right{right:-2%}
+#vixReactionCam .vixCamEar.left{left:-8%}
+#vixReactionCam .vixCamEar.right{right:-8%}
 
 #vixReactionCam .vixCamEye{
   position:absolute;
-  top:42%;
+  top:45%;
   width:15%;
   height:30%;
   border-radius:50%;
@@ -4486,18 +4487,18 @@ function updateVix3D(dt,state){
   const bank=THREE.MathUtils.clamp(dx/34,-1,1);
   const vertical=THREE.MathUtils.clamp(dy/34,-1,1);
 
-  // V85 head-turn illusion: the helmet moves opposite the world just enough to feel
-  // like Vix is banking/looking into the lane change without disturbing the game camera.
+  // V86.1 — shared Vix Vision / Reaction Cam state color.
+  let visionRGB='105,225,255';
+  if(state==='midas') visionRGB='255,205,72';
+  else if(state==='flux') visionRGB='255,98,235';
+  else if(state==='chrono') visionRGB='111,238,255';
+  else if(state==='warp') visionRGB='177,131,255';
+  else if(state==='damage') visionRGB='255,76,76';
+
   if(vixVision){
     vixVision.style.setProperty('--vix-bank',`${(-bank*2.2).toFixed(2)}deg`);
     vixVision.style.setProperty('--vix-look-x',`${(-bank*4.0).toFixed(2)}px`);
     vixVision.style.setProperty('--vix-look-y',`${(vertical*1.6).toFixed(2)}px`);
-    let visionRGB='105,225,255';
-    if(state==='midas') visionRGB='255,205,72';
-    else if(state==='flux') visionRGB='255,98,235';
-    else if(state==='chrono') visionRGB='111,238,255';
-    else if(state==='warp') visionRGB='177,131,255';
-    else if(state==='damage') visionRGB='255,76,76';
     vixVision.style.setProperty('--vix-vision-rgb',visionRGB);
   }
 
