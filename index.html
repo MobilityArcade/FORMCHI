@@ -161,6 +161,7 @@ function track(eventName,data={}){
 <!-- SHIFTVIX 2.11 — GOLD RINGS + FIVE EVEN OBJECTIVE TYPES -->
 <!-- SHIFTVIX V82 — FORWARD-FLIGHT HUMANOID VIX: smaller hip-width head, tapered trapezoid torso, wider forearm gauntlets, tapered lower-leg boots, dark thruster rings with recessed cyan plasma discs, stronger Superman-style forward pitch; game-native satin finish; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V81 — HUMANOID VIX + GAME-NATIVE FINISH: human-readable rear silhouette with neck, shoulders, elbows, waist/hips, thighs/knees, thruster hands and substantial boots; satin neon-game material replaces chrome; four directional ion plumes; gameplay/world/motion preserved -->
+<!-- SHIFTVIX V82.1 — SUPERMAN FLIGHT + THRUSTER UPDATE FIX: removes stale bloom reference crash and locks stronger forward flight pitch; gameplay/world preserved -->
 <!-- SHIFTVIX V80.1 — TRUE SILVER + ENERGY ORBS FIX: visible pearl-silver Vix with dedicated lighting, brighter joints, glowing energy-orb thrusters on both hands and feet; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V80 — SILVER TRAVELER FOUR-THRUSTER REBUILD: hairless humanoid Vix with two arms, two legs, simple clean metallic body, hand + foot ionic thrusters; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V79 — PEARL VIX CAMERA-AXIS THRUST: glossy pearl-white/silver mascot, single-piece arm fins, orb-state body tints, exhaust aligned out of screen with compact rear bloom; gameplay/world/motion preserved -->
@@ -3965,7 +3966,7 @@ function buildVix3D(){
   // head and shoulders sit farther from camera while feet/engines angle toward the player.
   g.position.set(0,-3.42,-15.08);
   g.rotation.order='ZXY';
-  g.rotation.x=-.57;
+  g.rotation.x=-.68;
 }
 function updateVix3D(dt,state){
   buildVix3D();
@@ -3984,7 +3985,9 @@ function updateVix3D(dt,state){
   );
 
   g.rotation.z=THREE.MathUtils.lerp(g.rotation.z,-bank*.45,1-Math.pow(.0025,dt));
-  g.rotation.x=THREE.MathUtils.lerp(g.rotation.x,-.31+vertical*.07-speedNorm*.045,1-Math.pow(.0035,dt));
+  // V82.1 — hold a stronger forward Superman-style flight pitch.
+  // Head stays farther from camera; boots/thruster faces remain more visible to the player.
+  g.rotation.x=THREE.MathUtils.lerp(g.rotation.x,-.68+vertical*.045-speedNorm*.035,1-Math.pow(.0035,dt));
   g.rotation.y=THREE.MathUtils.lerp(g.rotation.y,bank*.07,1-Math.pow(.004,dt));
   const targetScale=innerHeight>innerWidth?1.18:1.04;
   const ss=THREE.MathUtils.lerp(g.scale.x,targetScale,1-Math.pow(.006,dt));
@@ -4020,7 +4023,6 @@ function updateVix3D(dt,state){
 
     j.outer.material.color.setHex(edge);
     j.halo.material.color.setHex(edge);
-    j.bloom.material.color.setHex(edge);
     if(j.light)j.light.color.setHex(edge);
 
     // Speed lengthens the plume along Z without turning it into a giant screen-filling beam.
@@ -4032,7 +4034,6 @@ function updateVix3D(dt,state){
     j.halo.material.opacity=.11+speedNorm*.10+(flicker+1)*.010;
     j.outer.material.opacity=.42+speedNorm*.17+(flicker+1)*.015;
     j.core.material.opacity=.90+speedNorm*.08;
-    j.bloom.material.opacity=.18+speedNorm*.13;
     if(j.light)j.light.intensity=1.6+speedNorm*2.2+(flicker+1)*.18;
   }
 }
