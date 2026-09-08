@@ -162,6 +162,7 @@ function track(eventName,data={}){
 <!-- SHIFTVIX V82 — FORWARD-FLIGHT HUMANOID VIX: smaller hip-width head, tapered trapezoid torso, wider forearm gauntlets, tapered lower-leg boots, dark thruster rings with recessed cyan plasma discs, stronger Superman-style forward pitch; game-native satin finish; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V81 — HUMANOID VIX + GAME-NATIVE FINISH: human-readable rear silhouette with neck, shoulders, elbows, waist/hips, thighs/knees, thruster hands and substantial boots; satin neon-game material replaces chrome; four directional ion plumes; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V82.1 — SUPERMAN FLIGHT + THRUSTER UPDATE FIX: removes stale bloom reference crash and locks stronger forward flight pitch; gameplay/world preserved -->
+<!-- SHIFTVIX V86 — VIX REACTION CAM: keeps minimal first-person Vix Vision, brightens the same cyan translucent POV eyes, adds responsive upper-right canonical Vix head portrait with pearl shell, black face, cyan ear circles and oval eyes; portrait reacts to bank, Midas/Flux/Chrono/Warp and damage; gameplay preserved -->
 <!-- SHIFTVIX V85.2 — MINIMAL VIX VISION: removes full helmet shell for uniform portrait/landscape framing; two responsive neon bars + two larger single-piece translucent eyes become Vix identity; state colors and simple damage squint preserved; gameplay preserved -->
 <!-- SHIFTVIX V85.1 — VIX VISION DISPLAY FIX: repairs malformed escaped-newline visor CSS so helmet, close-set eye reflections and VIX VISION frame actually render; local file manifest/icon CORS warnings are unrelated; gameplay preserved -->
 <!-- SHIFTVIX V85 — VIX VISION: first-person helmet/visor perspective replaces the visible gameplay body; close-set glowing Vix eye lenses, reactive helmet frame, bank/head-turn parallax, orb-state frame colors, damage expression; gameplay/collisions/Flows/scoring preserved -->
@@ -753,13 +754,13 @@ canvas{
   height:clamp(112px,22vmin,220px);
   border:0;
   border-radius:50%;
-  background:rgba(var(--vix-vision-rgb),.34);
+  background:rgba(var(--vix-vision-rgb),.52);
   box-shadow:
     inset 0 0 14px rgba(255,255,255,.42),
     0 0 9px rgba(255,255,255,.62),
-    0 0 20px rgba(var(--vix-vision-rgb),.82),
-    0 0 42px rgba(var(--vix-vision-rgb),.38);
-  opacity:.80;
+    0 0 22px rgba(var(--vix-vision-rgb),.92),
+    0 0 46px rgba(var(--vix-vision-rgb),.48);
+  opacity:.94;
   transform:translate(-50%,-50%);
   transition:
     width .12s ease,
@@ -824,6 +825,160 @@ canvas{
   #vixVision .vixHelmetTop,
   #vixVision .vixHelmetBottom{
     width:clamp(180px,36vmin,380px);
+  }
+}
+
+
+/* =========================
+   SHIFTVIX V86 — VIX REACTION CAM
+   Canonical head portrait: pearl shell, black face, cyan ear circles,
+   close-set glowing oval eyes. Synchronized with Vix Vision state.
+   ========================= */
+#vixReactionCam{
+  --vix-cam-rgb:105,225,255;
+  --vix-cam-bank:0deg;
+  position:fixed;
+  top:clamp(78px,9.5vmin,118px);
+  right:clamp(14px,3.0vmin,34px);
+  width:clamp(82px,13vmin,142px);
+  aspect-ratio:1/1;
+  z-index:21;
+  pointer-events:none;
+  opacity:0;
+  transform:rotate(var(--vix-cam-bank)) scale(.96);
+  transform-origin:50% 55%;
+  transition:
+    opacity .16s ease,
+    transform .12s ease,
+    filter .16s ease;
+}
+#vixReactionCam.active{
+  opacity:1;
+  transform:rotate(var(--vix-cam-bank)) scale(1);
+}
+#vixReactionCam .vixCamHead{
+  position:absolute;
+  inset:2%;
+  border-radius:48% 48% 46% 46%;
+  background:
+    radial-gradient(circle at 35% 22%,
+      rgba(255,255,255,.98) 0 7%,
+      rgba(232,235,245,.98) 18%,
+      rgba(193,202,222,.98) 67%,
+      rgba(130,145,172,.98) 100%);
+  border:2px solid rgba(240,245,255,.88);
+  box-shadow:
+    0 0 8px rgba(255,255,255,.40),
+    0 0 18px rgba(var(--vix-cam-rgb),.44);
+}
+#vixReactionCam .vixCamFace{
+  position:absolute;
+  left:13%;
+  right:13%;
+  top:20%;
+  bottom:21%;
+  border-radius:46% 46% 43% 43%;
+  background:
+    radial-gradient(circle at 50% 40%,
+      rgba(17,29,48,.98) 0%,
+      rgba(4,10,20,.99) 68%,
+      rgba(0,0,0,1) 100%);
+  border:2px solid rgba(var(--vix-cam-rgb),.72);
+  box-shadow:
+    inset 0 0 18px rgba(var(--vix-cam-rgb),.08),
+    0 0 10px rgba(var(--vix-cam-rgb),.30);
+}
+#vixReactionCam .vixCamEar{
+  position:absolute;
+  top:42%;
+  width:15%;
+  height:27%;
+  border-radius:999px;
+  background:rgba(14,22,34,.98);
+  border:2px solid rgba(var(--vix-cam-rgb),.90);
+  box-shadow:
+    inset 0 0 7px rgba(var(--vix-cam-rgb),.42),
+    0 0 10px rgba(var(--vix-cam-rgb),.82);
+}
+#vixReactionCam .vixCamEar.left{left:-2%}
+#vixReactionCam .vixCamEar.right{right:-2%}
+
+#vixReactionCam .vixCamEye{
+  position:absolute;
+  top:42%;
+  width:15%;
+  height:30%;
+  border-radius:50%;
+  background:rgba(244,253,255,.96);
+  box-shadow:
+    0 0 8px rgba(255,255,255,.98),
+    0 0 18px rgba(var(--vix-cam-rgb),.95),
+    0 0 30px rgba(var(--vix-cam-rgb),.42);
+  transform:translateY(-50%);
+  transition:
+    height .10s ease,
+    width .10s ease,
+    transform .10s ease,
+    background .14s ease,
+    box-shadow .14s ease;
+}
+#vixReactionCam .vixCamEye.left{left:29%}
+#vixReactionCam .vixCamEye.right{right:29%}
+
+/* Same Vix, different energy state. The shell stays pearl; light changes. */
+#vixReactionCam.midas .vixCamHead{
+  box-shadow:0 0 8px rgba(255,255,255,.40),0 0 22px rgba(255,205,72,.62);
+}
+#vixReactionCam.flux .vixCamHead{
+  box-shadow:0 0 8px rgba(255,255,255,.40),0 0 22px rgba(255,92,235,.58);
+}
+#vixReactionCam.chrono .vixCamHead{
+  box-shadow:0 0 8px rgba(255,255,255,.40),0 0 22px rgba(105,238,255,.62);
+}
+#vixReactionCam.warp .vixCamHead{
+  box-shadow:0 0 8px rgba(255,255,255,.40),0 0 24px rgba(177,131,255,.68);
+}
+
+/* Damage: quick expressive squint + head jolt. */
+#vixReactionCam.damage{
+  animation:vixCamHit .34s ease-out;
+  filter:brightness(1.08) saturate(1.12);
+}
+#vixReactionCam.damage .vixCamEye{
+  height:10%;
+  width:20%;
+  background:#fff;
+  box-shadow:
+    0 0 9px #fff,
+    0 0 18px rgba(255,75,75,.96),
+    0 0 30px rgba(255,45,45,.48);
+}
+#vixReactionCam.damage .vixCamEye.left{
+  transform:translateY(-50%) rotate(12deg);
+}
+#vixReactionCam.damage .vixCamEye.right{
+  transform:translateY(-50%) rotate(-12deg);
+}
+@keyframes vixCamHit{
+  0%{transform:rotate(var(--vix-cam-bank)) translateX(0) scale(1)}
+  28%{transform:rotate(var(--vix-cam-bank)) translateX(-7px) scale(1.04)}
+  58%{transform:rotate(var(--vix-cam-bank)) translateX(6px) scale(1.02)}
+  100%{transform:rotate(var(--vix-cam-bank)) translateX(0) scale(1)}
+}
+
+/* Responsive PIP placement keeps it clear in portrait and landscape. */
+@media(orientation:portrait){
+  #vixReactionCam{
+    top:clamp(82px,12vw,116px);
+    right:clamp(12px,3.5vw,26px);
+    width:clamp(82px,20vw,124px);
+  }
+}
+@media(orientation:landscape){
+  #vixReactionCam{
+    top:clamp(66px,8vmin,94px);
+    right:clamp(14px,2.2vmin,28px);
+    width:clamp(76px,12vmin,118px);
   }
 }
 
@@ -3778,6 +3933,7 @@ button:active{transform:scale(.985)}
 <div style="display:none"><span id="world">Distance Run</span>
 <span id="found">0</span><span id="score">0</span><span id="bestScore">0</span><span id="combo">1x</span><div id="signal"></div></div></div>
 <div id="vixVision" aria-hidden="true"><div class="vixHelmetShell"></div><div class="vixHelmetTop"></div><div class="vixHelmetBottom"></div><div class="vixEye left"><span class="vixEyeGlow"></span></div><div class="vixEye right"><span class="vixEyeGlow"></span></div><div class="vixVisionTag">VIX VISION</div></div>
+<div id="vixReactionCam" aria-hidden="true"><div class="vixCamHead"></div><div class="vixCamFace"></div><div class="vixCamEar left"></div><div class="vixCamEar right"></div><div class="vixCamEye left"></div><div class="vixCamEye right"></div></div>
 <div id="center" class="reactorNormal" aria-label="Pause"><span class="reactorPlume"></span><span class="reactorMiddle"></span><span class="reactorOuter"></span><span class="reactorCore"></span></div><div id="pauseText">PAUSED</div><div id="laneLabel">CENTER</div><div id="roundComplete"></div>
 <div id="pauseMenu" aria-hidden="true">
   <div class="pausePanel" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
@@ -4308,9 +4464,21 @@ function updateVix3D(dt,state){
   g.visible=false;
 
   const vixVision=document.getElementById('vixVision');
+  const vixReactionCam=document.getElementById('vixReactionCam');
+  const vixActive=!!(gameStarted&&!gameOver);
+
   if(vixVision){
-    vixVision.classList.toggle('active',!!(gameStarted&&!gameOver));
+    vixVision.classList.toggle('active',vixActive);
     vixVision.classList.toggle('damage',state==='damage');
+  }
+
+  if(vixReactionCam){
+    vixReactionCam.classList.toggle('active',vixActive);
+    vixReactionCam.classList.toggle('damage',state==='damage');
+    vixReactionCam.classList.toggle('midas',state==='midas');
+    vixReactionCam.classList.toggle('flux',state==='flux');
+    vixReactionCam.classList.toggle('chrono',state==='chrono');
+    vixReactionCam.classList.toggle('warp',state==='warp');
   }
 
   const dx=targetX-playerX;
@@ -4331,6 +4499,11 @@ function updateVix3D(dt,state){
     else if(state==='warp') visionRGB='177,131,255';
     else if(state==='damage') visionRGB='255,76,76';
     vixVision.style.setProperty('--vix-vision-rgb',visionRGB);
+  }
+
+  if(vixReactionCam){
+    vixReactionCam.style.setProperty('--vix-cam-rgb',visionRGB);
+    vixReactionCam.style.setProperty('--vix-cam-bank',`${(-bank*5.5).toFixed(2)}deg`);
   }
 
   const rawSpeed=
