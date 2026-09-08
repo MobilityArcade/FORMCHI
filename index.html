@@ -162,6 +162,7 @@ function track(eventName,data={}){
 <!-- SHIFTVIX V82 — FORWARD-FLIGHT HUMANOID VIX: smaller hip-width head, tapered trapezoid torso, wider forearm gauntlets, tapered lower-leg boots, dark thruster rings with recessed cyan plasma discs, stronger Superman-style forward pitch; game-native satin finish; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V81 — HUMANOID VIX + GAME-NATIVE FINISH: human-readable rear silhouette with neck, shoulders, elbows, waist/hips, thighs/knees, thruster hands and substantial boots; satin neon-game material replaces chrome; four directional ion plumes; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V82.1 — SUPERMAN FLIGHT + THRUSTER UPDATE FIX: removes stale bloom reference crash and locks stronger forward flight pitch; gameplay/world preserved -->
+<!-- SHIFTVIX V83 — LONG LEAN TRAVELER: smaller head, visible neck, glowing cyan ear circles, compact tapered torso, long youthful limbs, wider forearms, long tapered boots, recessed plasma-disc hand/foot thrusters, stronger Superman flight pitch; gameplay/world preserved -->
 <!-- SHIFTVIX V80.1 — TRUE SILVER + ENERGY ORBS FIX: visible pearl-silver Vix with dedicated lighting, brighter joints, glowing energy-orb thrusters on both hands and feet; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V80 — SILVER TRAVELER FOUR-THRUSTER REBUILD: hairless humanoid Vix with two arms, two legs, simple clean metallic body, hand + foot ionic thrusters; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V79 — PEARL VIX CAMERA-AXIS THRUST: glossy pearl-white/silver mascot, single-piece arm fins, orb-state body tints, exhaust aligned out of screen with compact rear bloom; gameplay/world/motion preserved -->
@@ -3710,17 +3711,17 @@ camera.add(vixFrontGlow);
 const vix3D={
   group:null,head:null,visor:null,neck:null,torso:null,pelvis:null,
   leftArm:null,rightArm:null,leftLeg:null,rightLeg:null,
-  bodyParts:[],jointParts:[],jets:[],materials:{}
+  bodyParts:[],jointParts:[],jets:[],earLights:[],materials:{}
 };
 
 function vixBodyMaterial(){
   return new THREE.MeshStandardMaterial({
-    // Satin pearl / soft cool gray: bright enough for space, but deliberately NOT chrome.
+    // V83 — soft SHIFTVIX-native pearl finish, never chrome.
     color:0xd9dbe6,
     emissive:0x25223a,
-    emissiveIntensity:.13,
-    roughness:.48,
-    metalness:.10,
+    emissiveIntensity:.12,
+    roughness:.52,
+    metalness:.08,
     transparent:false,
     opacity:1,
     depthWrite:true
@@ -3728,26 +3729,25 @@ function vixBodyMaterial(){
 }
 function vixJointMaterial(){
   return new THREE.MeshStandardMaterial({
-    // Dark violet-gray joints echo the lane/world palette instead of metallic hardware.
-    color:0x54566a,
-    emissive:0x25223a,
+    color:0x4b4f63,
+    emissive:0x202337,
     emissiveIntensity:.10,
-    roughness:.56,
-    metalness:.12
+    roughness:.58,
+    metalness:.08
   });
 }
 function vixFaceMaterial(){
   return new THREE.MeshStandardMaterial({
-    color:0x25283a,
+    color:0x24283a,
     emissive:0x16192a,
     emissiveIntensity:.12,
-    roughness:.50,
-    metalness:.08
+    roughness:.52,
+    metalness:.06
   });
 }
 function vixRegisterBody(mesh){vix3D.bodyParts.push(mesh);return mesh;}
 function vixRegisterJoint(mesh){vix3D.jointParts.push(mesh);return mesh;}
-function vixMakeLimb(a,b,r=.28,mat=vixBodyMaterial(),register='body'){
+function vixMakeLimb(a,b,r=.24,mat=vixBodyMaterial(),register='body'){
   const dir=new THREE.Vector3().subVectors(b,a);
   const len=dir.length();
   const mid=new THREE.Vector3().addVectors(a,b).multiplyScalar(.5);
@@ -3757,11 +3757,11 @@ function vixMakeLimb(a,b,r=.28,mat=vixBodyMaterial(),register='body'){
   if(register==='body')vixRegisterBody(mesh); else if(register==='joint')vixRegisterJoint(mesh);
   return mesh;
 }
-function vixMakeJointSphere(parent,pos,r=.27){
+function vixMakeJointSphere(parent,pos,r=.22){
   const joint=vixRegisterJoint(new THREE.Mesh(new THREE.SphereGeometry(r,20,16),vixJointMaterial()));
   joint.position.copy(pos); parent.add(joint); return joint;
 }
-function vixMakeTaperedLimb(a,b,rTop=.24,rBottom=.31,mat=vixBodyMaterial(),register='body'){
+function vixMakeTaperedLimb(a,b,rTop=.22,rBottom=.29,mat=vixBodyMaterial(),register='body'){
   const dir=new THREE.Vector3().subVectors(b,a);
   const len=dir.length();
   const mid=new THREE.Vector3().addVectors(a,b).multiplyScalar(.5);
@@ -3771,165 +3771,192 @@ function vixMakeTaperedLimb(a,b,rTop=.24,rBottom=.31,mat=vixBodyMaterial(),regis
   if(register==='body')vixRegisterBody(mesh); else if(register==='joint')vixRegisterJoint(mesh);
   return mesh;
 }
+function vixMakeEar(parent,side){
+  const ear=new THREE.Group();
+  ear.position.set(side*.69,2.79,-1.92);
+  parent.add(ear);
+
+  const darkMat=new THREE.MeshStandardMaterial({
+    color:0x171b28,emissive:0x101827,emissiveIntensity:.14,roughness:.60,metalness:.06
+  });
+  const cyanMat=new THREE.MeshBasicMaterial({
+    color:0x62eaff,transparent:true,opacity:.92,
+    blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide
+  });
+
+  const base=new THREE.Mesh(new THREE.CylinderGeometry(.205,.205,.13,24),darkMat);
+  base.rotation.z=Math.PI/2;
+  ear.add(base);
+
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(.165,.038,10,26),cyanMat);
+  ring.rotation.y=Math.PI/2;
+  ring.position.x=side*.075;
+  ear.add(ring);
+
+  const glow=new THREE.Mesh(
+    new THREE.CircleGeometry(.135,24),
+    new THREE.MeshBasicMaterial({
+      color:0x8ef4ff,transparent:true,opacity:.30,
+      blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide
+    })
+  );
+  glow.rotation.y=Math.PI/2;
+  glow.position.x=side*.082;
+  ear.add(glow);
+
+  const light=new THREE.PointLight(0x66eaff,.55,2.2,2);
+  light.position.x=side*.14;
+  ear.add(light);
+  vix3D.earLights.push({ear,ring,glow,light,phase:Math.random()*Math.PI*2});
+}
 function vixMakeJet(parent,pos,scale=1){
   const jet=new THREE.Group();
   jet.position.copy(pos);
   parent.add(jet);
 
-  // V82 — mechanical thruster socket: dark ring + recessed cyan plasma disc.
-  // The glow/plume begins INSIDE the ring so hands and boots read as actual engines, not balls.
+  // V83 — clean engine face only: black socket ring + recessed cyan plasma core.
+  // No glass tube and no protruding cylindrical exhaust geometry.
   const darkMat=new THREE.MeshStandardMaterial({
-    color:0x171b28,emissive:0x111827,emissiveIntensity:.14,roughness:.58,metalness:.10
+    color:0x151925,emissive:0x101722,emissiveIntensity:.14,roughness:.60,metalness:.07
   });
 
   const socket=new THREE.Mesh(
-    new THREE.CylinderGeometry(.34*scale,.34*scale,.20*scale,24,1,false),darkMat
+    new THREE.CylinderGeometry(.34*scale,.34*scale,.18*scale,24,1,false),darkMat
   );
   socket.rotation.x=Math.PI/2;
-  socket.position.z=.02*scale;
+  socket.position.z=.01*scale;
   jet.add(socket);
 
-  const rim=new THREE.Mesh(
-    new THREE.TorusGeometry(.255*scale,.070*scale,12,28),darkMat
-  );
-  rim.position.z=.13*scale;
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(.255*scale,.070*scale,12,28),darkMat);
+  rim.position.z=.12*scale;
   jet.add(rim);
 
   const disc=new THREE.Mesh(
     new THREE.CircleGeometry(.235*scale,28),
     new THREE.MeshBasicMaterial({
-      color:0x62eaff,transparent:true,opacity:.95,
+      color:0x62eaff,transparent:true,opacity:.96,
       blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide
     })
   );
-  disc.position.z=.145*scale;
+  disc.position.z=.14*scale;
   jet.add(disc);
 
   const core=new THREE.Mesh(
-    new THREE.CircleGeometry(.105*scale,24),
+    new THREE.CircleGeometry(.115*scale,24),
     new THREE.MeshBasicMaterial({
-      color:0xffffff,transparent:true,opacity:1,
+      color:0xd9fbff,transparent:true,opacity:.95,
       blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide
     })
   );
-  core.position.z=.152*scale;
+  core.position.z=.148*scale;
   jet.add(core);
 
-  const halo=new THREE.Mesh(
-    new THREE.RingGeometry(.22*scale,.43*scale,30),
+  // A tiny soft orb just outside the engine face gives the "emitting plasma" look without a tube.
+  const orb=new THREE.Mesh(
+    new THREE.SphereGeometry(.17*scale,18,14),
     new THREE.MeshBasicMaterial({
-      color:0x6feaff,transparent:true,opacity:.18,
+      color:0x70eaff,transparent:true,opacity:.34,
+      blending:THREE.AdditiveBlending,depthWrite:false
+    })
+  );
+  orb.position.z=.24*scale;
+  jet.add(orb);
+
+  const halo=new THREE.Mesh(
+    new THREE.RingGeometry(.23*scale,.43*scale,30),
+    new THREE.MeshBasicMaterial({
+      color:0x6feaff,transparent:true,opacity:.15,
       blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide
     })
   );
   halo.position.z=.16*scale;
   jet.add(halo);
 
-  // Short tapered plasma exhaust — enough to show propulsion without hiding the socket/disc.
-  const outer=new THREE.Mesh(
-    new THREE.CylinderGeometry(.18*scale,.055*scale,1.34*scale,18,1,true),
-    new THREE.MeshBasicMaterial({
-      color:0x65e8ff,transparent:true,opacity:.42,
-      blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide
-    })
-  );
-  outer.rotation.x=Math.PI/2;
-  outer.position.z=.78*scale;
-  jet.add(outer);
-
-  const plumeCore=new THREE.Mesh(
-    new THREE.CylinderGeometry(.080*scale,.025*scale,1.06*scale,14,1,true),
-    new THREE.MeshBasicMaterial({
-      color:0xffffff,transparent:true,opacity:.82,
-      blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide
-    })
-  );
-  plumeCore.rotation.x=Math.PI/2;
-  plumeCore.position.z=.64*scale;
-  jet.add(plumeCore);
-
-  const light=new THREE.PointLight(0x70eaff,1.55*scale,4.2*scale,2);
+  const light=new THREE.PointLight(0x70eaff,1.35*scale,3.6*scale,2);
   light.position.z=.24*scale;
   jet.add(light);
 
-  vix3D.jets.push({group:jet,halo,outer,core:plumeCore,disc,rim,light,phase:Math.random()*Math.PI*2,baseScale:scale});
+  vix3D.jets.push({group:jet,halo,orb,core,disc,rim,light,phase:Math.random()*Math.PI*2,baseScale:scale});
 }
 function buildVix3D(){
   if(vix3D.group)return;
   const g=new THREE.Group();
-  g.name='VixTraveler3D_V82_ForwardFlight';
+  g.name='VixTraveler3D_V83_LongLean';
   g.visible=false;
   camera.add(g);
   vix3D.group=g;
 
-  // HEAD — reduced to approximately hip-width from the rear.
-  // Still mascot-proportioned, but no longer dominates the whole body.
-  const head=vixRegisterBody(new THREE.Mesh(new THREE.SphereGeometry(.87,34,26),vixBodyMaterial()));
-  head.scale.set(1.00,.98,.92);
-  head.position.set(0,2.47,-1.96);
+  // V83 PROPORTION TARGET:
+  // youthful / long-limbed / Astro-inspired body logic without copying the character design.
+  // Smaller head, clear neck, compact torso, narrow hips, long arms and legs, substantial thruster boots.
+
+  const head=vixRegisterBody(new THREE.Mesh(new THREE.SphereGeometry(.64,34,26),vixBodyMaterial()));
+  head.scale.set(1.00,.98,.94);
+  head.position.set(0,2.79,-1.91);
   g.add(head); vix3D.head=head;
 
-  // Front-only face panel, facing away from gameplay camera. No gameplay eyes.
-  const visor=new THREE.Mesh(new THREE.SphereGeometry(.875,30,22,0,Math.PI*2,0,Math.PI*.46),vixFaceMaterial());
-  visor.scale.set(.76,.53,.25);
-  visor.position.set(0,2.44,-2.66);
+  // Front-only visor faces away from the gameplay camera. No gameplay eyes are visible from behind.
+  const visor=new THREE.Mesh(new THREE.SphereGeometry(.645,30,22,0,Math.PI*2,0,Math.PI*.46),vixFaceMaterial());
+  visor.scale.set(.77,.54,.24);
+  visor.position.set(0,2.77,-2.43);
   visor.rotation.x=Math.PI;
   g.add(visor); vix3D.visor=visor;
 
-  // Visible narrow neck keeps head and torso as two distinct forms.
-  const neck=vixRegisterJoint(new THREE.Mesh(new THREE.CylinderGeometry(.31,.38,.46,20),vixJointMaterial()));
-  neck.position.set(0,1.68,-1.46);
+  // Signature glowing cyan ear circles, visible as side accents from the rear view.
+  vixMakeEar(g,-1);
+  vixMakeEar(g,1);
+
+  // Clearly visible neck gap between head and torso.
+  const neck=vixRegisterJoint(new THREE.Mesh(new THREE.CylinderGeometry(.245,.31,.42,20),vixJointMaterial()));
+  neck.position.set(0,2.08,-1.57);
   g.add(neck); vix3D.neck=neck;
 
-  // TORSO — softly rounded trapezoid: wide at shoulders, narrow at waist.
-  // CylinderGeometry gives the exact shoulder-to-waist taper while flattened depth keeps it character-like.
+  // Compact rounded trapezoid torso: wider shoulders, narrow waist, much smaller than V82.
   const torso=vixRegisterBody(new THREE.Mesh(
-    new THREE.CylinderGeometry(1.00,.63,1.62,30,1,false),vixBodyMaterial()
+    new THREE.CylinderGeometry(.86,.48,1.38,30,1,false),vixBodyMaterial()
   ));
-  torso.scale.set(1.00,1.00,.72);
-  torso.position.set(0,.77,-1.08);
+  torso.scale.set(1.00,1.00,.70);
+  torso.position.set(0,1.26,-1.15);
   g.add(torso); vix3D.torso=torso;
 
-  // Small shoulder caps soften the trapezoid corners without making the torso round again.
   for(const side of [-1,1]){
-    const shoulder=vixRegisterBody(new THREE.Mesh(new THREE.SphereGeometry(.34,20,16),vixBodyMaterial()));
-    shoulder.scale.set(1.18,.82,.78);
-    shoulder.position.set(side*.91,1.33,-1.09);
+    const shoulder=vixRegisterBody(new THREE.Mesh(new THREE.SphereGeometry(.285,20,16),vixBodyMaterial()));
+    shoulder.scale.set(1.16,.80,.76);
+    shoulder.position.set(side*.79,1.70,-1.16);
     g.add(shoulder);
   }
 
-  const waist=vixRegisterJoint(new THREE.Mesh(new THREE.CylinderGeometry(.55,.60,.32,22),vixJointMaterial()));
-  waist.position.set(0,-.12,-.84);
+  const waist=vixRegisterJoint(new THREE.Mesh(new THREE.CylinderGeometry(.43,.49,.30,22),vixJointMaterial()));
+  waist.position.set(0,.47,-.91);
   g.add(waist);
 
-  // Hips stay compact and define the target visual width for Vix's head.
-  const pelvis=vixRegisterBody(new THREE.Mesh(new THREE.SphereGeometry(.88,28,20),vixBodyMaterial()));
-  pelvis.scale.set(.98,.46,.70);
-  pelvis.position.set(0,-.48,-.77);
+  // Compact hips roughly match the head's visual width.
+  const pelvis=vixRegisterBody(new THREE.Mesh(new THREE.SphereGeometry(.84,28,20),vixBodyMaterial()));
+  pelvis.scale.set(.78,.40,.66);
+  pelvis.position.set(0,.13,-.82);
   g.add(pelvis); vix3D.pelvis=pelvis;
 
   function arm(side){
     const pivot=new THREE.Group();
-    pivot.position.set(side*.92,1.27,-1.12);
+    pivot.position.set(side*.80,1.67,-1.16);
     g.add(pivot);
 
-    const elbow=new THREE.Vector3(side*.34,-.63,.34);
-    const wrist=new THREE.Vector3(side*.46,-1.48,.70);
+    const elbow=new THREE.Vector3(side*.30,-.91,.35);
+    const wrist=new THREE.Vector3(side*.43,-1.82,.72);
 
-    // Slimmer bicep / upper arm.
-    pivot.add(vixMakeLimb(new THREE.Vector3(0,0,0),elbow,.225,vixBodyMaterial(),'body'));
-    vixMakeJointSphere(pivot,elbow,.245);
+    // Long, slim upper arm.
+    pivot.add(vixMakeLimb(new THREE.Vector3(0,0,0),elbow,.19,vixBodyMaterial(),'body'));
+    vixMakeJointSphere(pivot,elbow,.215);
 
-    // Wider forearm/gauntlet than bicep, as established in the Vix model sheet.
-    pivot.add(vixMakeTaperedLimb(elbow,wrist,.265,.325,vixBodyMaterial(),'body'));
+    // Forearm/gauntlet is longer and slightly wider than the bicep.
+    pivot.add(vixMakeTaperedLimb(elbow,wrist,.225,.305,vixBodyMaterial(),'body'));
 
-    const cuff=vixRegisterJoint(new THREE.Mesh(new THREE.CylinderGeometry(.325,.305,.20,20),vixJointMaterial()));
+    const cuff=vixRegisterJoint(new THREE.Mesh(new THREE.CylinderGeometry(.305,.29,.18,20),vixJointMaterial()));
     cuff.rotation.x=Math.PI/2;
-    cuff.position.set(wrist.x,wrist.y,wrist.z-.10);
+    cuff.position.set(wrist.x,wrist.y,wrist.z-.08);
     pivot.add(cuff);
 
-    // Engine face replaces the old glowing ball hand.
-    vixMakeJet(pivot,new THREE.Vector3(wrist.x,wrist.y,wrist.z+.10),.78);
+    vixMakeJet(pivot,new THREE.Vector3(wrist.x,wrist.y,wrist.z+.08),.72);
     return pivot;
   }
   vix3D.leftArm=arm(-1);
@@ -3937,36 +3964,35 @@ function buildVix3D(){
 
   function leg(side){
     const pivot=new THREE.Group();
-    pivot.position.set(side*.46,-.48,-.72);
+    pivot.position.set(side*.39,.09,-.78);
     g.add(pivot);
 
-    const knee=new THREE.Vector3(side*.045,-.82,.27);
-    const ankle=new THREE.Vector3(side*.085,-1.66,.60);
+    const knee=new THREE.Vector3(side*.035,-1.12,.30);
+    const ankle=new THREE.Vector3(side*.07,-2.30,.69);
 
-    // Compact thigh and visible knee.
-    pivot.add(vixMakeLimb(new THREE.Vector3(0,0,0),knee,.32,vixBodyMaterial(),'body'));
-    vixMakeJointSphere(pivot,knee,.285);
+    // Long lean thigh — key V83 change.
+    pivot.add(vixMakeLimb(new THREE.Vector3(0,0,0),knee,.255,vixBodyMaterial(),'body'));
+    vixMakeJointSphere(pivot,knee,.245);
 
-    // Lower leg / boot shell: narrower by the knee, progressively wider toward the engine end.
-    pivot.add(vixMakeTaperedLimb(knee,ankle,.285,.405,vixBodyMaterial(),'body'));
+    // Long lower-leg / boot shell: tapered at knee, wider at engine end.
+    pivot.add(vixMakeTaperedLimb(knee,ankle,.255,.39,vixBodyMaterial(),'body'));
 
-    const ankleRing=vixRegisterJoint(new THREE.Mesh(new THREE.CylinderGeometry(.405,.385,.22,22),vixJointMaterial()));
+    const ankleRing=vixRegisterJoint(new THREE.Mesh(new THREE.CylinderGeometry(.39,.37,.20,22),vixJointMaterial()));
     ankleRing.rotation.x=Math.PI/2;
-    ankleRing.position.set(ankle.x,ankle.y,ankle.z+.02);
+    ankleRing.position.set(ankle.x,ankle.y,ankle.z+.01);
     pivot.add(ankleRing);
 
-    // Foot engine uses the same dark ring + recessed cyan disc language as the hand engine.
-    vixMakeJet(pivot,new THREE.Vector3(ankle.x,ankle.y,ankle.z+.15),1.08);
+    vixMakeJet(pivot,new THREE.Vector3(ankle.x,ankle.y,ankle.z+.13),1.02);
     return pivot;
   }
   vix3D.leftLeg=leg(-1);
   vix3D.rightLeg=leg(1);
 
-  // Stronger Superman/rocket-flight pitch:
-  // head and shoulders sit farther from camera while feet/engines angle toward the player.
-  g.position.set(0,-3.42,-15.08);
+  // V83 — stronger forward Superman / rocket-flight presentation.
+  // Head/chest lead into the world; feet and engine faces sit closer to the player.
+  g.position.set(0,-3.35,-15.05);
   g.rotation.order='ZXY';
-  g.rotation.x=-.68;
+  g.rotation.x=-.88;
 }
 function updateVix3D(dt,state){
   buildVix3D();
@@ -3984,29 +4010,25 @@ function updateVix3D(dt,state){
     (typeof warpBoostAmount!=='undefined'?warpBoostAmount*.58:0),0,1
   );
 
-  g.rotation.z=THREE.MathUtils.lerp(g.rotation.z,-bank*.45,1-Math.pow(.0025,dt));
-  // V82.1 — hold a stronger forward Superman-style flight pitch.
-  // Head stays farther from camera; boots/thruster faces remain more visible to the player.
-  g.rotation.x=THREE.MathUtils.lerp(g.rotation.x,-.68+vertical*.045-speedNorm*.035,1-Math.pow(.0035,dt));
-  g.rotation.y=THREE.MathUtils.lerp(g.rotation.y,bank*.07,1-Math.pow(.004,dt));
-  const targetScale=innerHeight>innerWidth?1.18:1.04;
+  g.rotation.z=THREE.MathUtils.lerp(g.rotation.z,-bank*.42,1-Math.pow(.0025,dt));
+  g.rotation.x=THREE.MathUtils.lerp(g.rotation.x,-.88+vertical*.035-speedNorm*.025,1-Math.pow(.0035,dt));
+  g.rotation.y=THREE.MathUtils.lerp(g.rotation.y,bank*.06,1-Math.pow(.004,dt));
+  const targetScale=innerHeight>innerWidth?1.14:1.02;
   const ss=THREE.MathUtils.lerp(g.scale.x,targetScale,1-Math.pow(.006,dt));
   g.scale.setScalar(ss);
 
-  // Athletic but restrained response. Elbows/knees remain visually readable while banking.
-  if(vix3D.leftArm)vix3D.leftArm.rotation.z=THREE.MathUtils.lerp(vix3D.leftArm.rotation.z,-.08-bank*.13,1-Math.pow(.003,dt));
-  if(vix3D.rightArm)vix3D.rightArm.rotation.z=THREE.MathUtils.lerp(vix3D.rightArm.rotation.z,.08-bank*.13,1-Math.pow(.003,dt));
-  if(vix3D.leftLeg)vix3D.leftLeg.rotation.z=THREE.MathUtils.lerp(vix3D.leftLeg.rotation.z,.028+bank*.03,1-Math.pow(.004,dt));
-  if(vix3D.rightLeg)vix3D.rightLeg.rotation.z=THREE.MathUtils.lerp(vix3D.rightLeg.rotation.z,-.028+bank*.03,1-Math.pow(.004,dt));
+  // Long-limbed flight pose stays streamlined instead of splayed.
+  if(vix3D.leftArm)vix3D.leftArm.rotation.z=THREE.MathUtils.lerp(vix3D.leftArm.rotation.z,-.055-bank*.11,1-Math.pow(.003,dt));
+  if(vix3D.rightArm)vix3D.rightArm.rotation.z=THREE.MathUtils.lerp(vix3D.rightArm.rotation.z,.055-bank*.11,1-Math.pow(.003,dt));
+  if(vix3D.leftLeg)vix3D.leftLeg.rotation.z=THREE.MathUtils.lerp(vix3D.leftLeg.rotation.z,.018+bank*.022,1-Math.pow(.004,dt));
+  if(vix3D.rightLeg)vix3D.rightLeg.rotation.z=THREE.MathUtils.lerp(vix3D.rightLeg.rotation.z,-.018+bank*.022,1-Math.pow(.004,dt));
 
-  // Keep Vix mostly the same pearl-gray in every power state so he belongs to the game.
-  // Legendary states only tint him slightly; the world + thrusters carry the stronger color change.
-  let edge=0x70eaff, body=0xd9dbe6, joint=0x54566a;
-  if(state==='midas'){edge=0xffd45f;body=0xe2dcc8;joint=0x665f55;}
-  else if(state==='flux'){edge=0xff62eb;body=0xdfd6e5;joint=0x60546a;}
-  else if(state==='chrono'){edge=0x6feeff;body=0xd6e1e7;joint=0x4f5f6b;}
-  else if(state==='warp'){edge=0xb183ff;body=0xdcd6e8;joint=0x5c536c;}
-  else if(state==='damage'){edge=0xff5c5c;body=0xe0d1d4;joint=0x694f56;}
+  let edge=0x70eaff, body=0xd9dbe6, joint=0x4b4f63;
+  if(state==='midas'){edge=0xffd45f;body=0xe2dcc8;joint=0x625b52;}
+  else if(state==='flux'){edge=0xff62eb;body=0xdfd6e5;joint=0x5c5265;}
+  else if(state==='chrono'){edge=0x6feeff;body=0xd6e1e7;joint=0x4b5965;}
+  else if(state==='warp'){edge=0xb183ff;body=0xdcd6e8;joint=0x575064;}
+  else if(state==='damage'){edge=0xff5c5c;body=0xe0d1d4;joint=0x644c53;}
 
   for(const part of vix3D.bodyParts){
     if(part?.material?.color)part.material.color.setHex(body);
@@ -4016,25 +4038,33 @@ function updateVix3D(dt,state){
   }
 
   const t=performance.now()*.001;
+
+  // Ear circles keep their signature cyan identity and gently pulse.
+  for(const e of vix3D.earLights){
+    const ep=(Math.sin(t*3.8+e.phase)+1)*.5;
+    e.ring.material.opacity=.78+ep*.18;
+    e.glow.material.opacity=.16+ep*.16;
+    if(e.light)e.light.intensity=.42+ep*.30;
+  }
+
   for(const j of vix3D.jets){
-    const flicker=Math.sin(t*19+j.phase);
-    const pulse=1+flicker*.035+speedNorm*.055;
+    const flicker=Math.sin(t*18+j.phase);
+    const pulse=1+flicker*.025+speedNorm*.035;
     j.group.scale.setScalar(pulse);
 
-    j.outer.material.color.setHex(edge);
+    j.disc.material.color.setHex(edge);
     j.halo.material.color.setHex(edge);
+    j.orb.material.color.setHex(edge);
     if(j.light)j.light.color.setHex(edge);
 
-    // Speed lengthens the plume along Z without turning it into a giant screen-filling beam.
-    const beamStretch=1+speedNorm*.55;
-    j.halo.scale.z=beamStretch;
-    j.outer.scale.z=beamStretch;
-    j.core.scale.z=1+speedNorm*.42;
-
-    j.halo.material.opacity=.11+speedNorm*.10+(flicker+1)*.010;
-    j.outer.material.opacity=.42+speedNorm*.17+(flicker+1)*.015;
-    j.core.material.opacity=.90+speedNorm*.08;
-    if(j.light)j.light.intensity=1.6+speedNorm*2.2+(flicker+1)*.18;
+    // V83: propulsion is an emitting core, not a tube/beam attached to Vix.
+    const orbPulse=1+speedNorm*.22+(flicker+1)*.025;
+    j.orb.scale.setScalar(orbPulse);
+    j.halo.scale.setScalar(1+speedNorm*.10);
+    j.halo.material.opacity=.10+speedNorm*.08+(flicker+1)*.008;
+    j.orb.material.opacity=.26+speedNorm*.17+(flicker+1)*.012;
+    j.core.material.opacity=.88+speedNorm*.10;
+    if(j.light)j.light.intensity=1.3+speedNorm*1.8+(flicker+1)*.14;
   }
 }
 
