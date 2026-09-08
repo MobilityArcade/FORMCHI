@@ -162,6 +162,8 @@ function track(eventName,data={}){
 <!-- SHIFTVIX V82 — FORWARD-FLIGHT HUMANOID VIX: smaller hip-width head, tapered trapezoid torso, wider forearm gauntlets, tapered lower-leg boots, dark thruster rings with recessed cyan plasma discs, stronger Superman-style forward pitch; game-native satin finish; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V81 — HUMANOID VIX + GAME-NATIVE FINISH: human-readable rear silhouette with neck, shoulders, elbows, waist/hips, thighs/knees, thruster hands and substantial boots; satin neon-game material replaces chrome; four directional ion plumes; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V82.1 — SUPERMAN FLIGHT + THRUSTER UPDATE FIX: removes stale bloom reference crash and locks stronger forward flight pitch; gameplay/world preserved -->
+<!-- SHIFTVIX V85.1 — VIX VISION DISPLAY FIX: repairs malformed escaped-newline visor CSS so helmet, close-set eye reflections and VIX VISION frame actually render; local file manifest/icon CORS warnings are unrelated; gameplay preserved -->
+<!-- SHIFTVIX V85 — VIX VISION: first-person helmet/visor perspective replaces the visible gameplay body; close-set glowing Vix eye lenses, reactive helmet frame, bank/head-turn parallax, orb-state frame colors, damage expression; gameplay/collisions/Flows/scoring preserved -->
 <!-- SHIFTVIX V84 — LARGER REFINED TRAVELER: larger on-screen Vix, visible neck, slimmer tube torso with shoulder cap, black hip/pelvis shell, 20% slimmer forearms/lower legs, smaller ear modules, camera-facing recessed hand/foot plasma thrusters, stronger readable rear-flight silhouette; gameplay/world preserved -->
 <!-- SHIFTVIX V83 — LONG LEAN TRAVELER: smaller head, visible neck, glowing cyan ear circles, compact tapered torso, long youthful limbs, wider forearms, long tapered boots, recessed plasma-disc hand/foot thrusters, stronger Superman flight pitch; gameplay/world preserved -->
 <!-- SHIFTVIX V80.1 — TRUE SILVER + ENERGY ORBS FIX: visible pearl-silver Vix with dedicated lighting, brighter joints, glowing energy-orb thrusters on both hands and feet; gameplay/world/motion preserved -->
@@ -697,6 +699,70 @@ canvas{
   }
 }
 #laneLabel{display:none}
+
+/* =========================
+   SHIFTVIX V85 — VIX VISION
+   First-person Vix helmet overlay. Pure presentation: no collision/gameplay changes.
+   ========================= */
+#vixVision{
+  --vix-vision-rgb:105,225,255;
+  --vix-bank:0deg;
+  --vix-look-x:0px;
+  --vix-look-y:0px;
+  position:fixed;inset:0;z-index:19;pointer-events:none;overflow:hidden;
+  transform:rotate(var(--vix-bank)) translate(var(--vix-look-x),var(--vix-look-y));
+  transform-origin:50% 52%;
+  transition:filter .16s ease;
+}
+#vixVision .vixHelmetShell{
+  position:absolute;inset:-2.2%;border-radius:47% 47% 43% 43% / 13% 13% 18% 18%;
+  border:clamp(8px,1.6vw,17px) solid rgba(236,240,248,.96);
+  box-shadow:inset 0 0 0 3px rgba(var(--vix-vision-rgb),.86),inset 0 0 22px rgba(var(--vix-vision-rgb),.30),0 0 18px rgba(var(--vix-vision-rgb),.30);
+}
+#vixVision .vixHelmetShell:before{
+  content:'';position:absolute;inset:clamp(8px,1.6vw,18px);border-radius:inherit;
+  border:2px solid rgba(255,255,255,.72);box-shadow:0 0 13px rgba(var(--vix-vision-rgb),.54);
+}
+#vixVision .vixHelmetTop,#vixVision .vixHelmetBottom{
+  position:absolute;left:50%;transform:translateX(-50%);width:34%;height:10px;border-radius:999px;
+  background:rgba(var(--vix-vision-rgb),.82);box-shadow:0 0 12px rgba(var(--vix-vision-rgb),.82);
+}
+#vixVision .vixHelmetTop{top:1.4%} #vixVision .vixHelmetBottom{bottom:1.4%}
+#vixVision .vixEye{
+  position:absolute;top:52%;width:clamp(34px,7.2vw,64px);height:clamp(92px,17vh,154px);
+  border-radius:50%;border:2px solid rgba(255,255,255,.92);
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(var(--vix-vision-rgb),.055));
+  box-shadow:0 0 9px rgba(255,255,255,.62),0 0 22px rgba(var(--vix-vision-rgb),.28),inset 0 0 18px rgba(var(--vix-vision-rgb),.10);
+  transform:translateY(-50%);opacity:.88;transition:height .12s ease,transform .12s ease,opacity .12s ease;
+}
+/* Close-set like Bert's V85 mockup, not pushed to the outside edges. */
+#vixVision .vixEye.left{left:17%} #vixVision .vixEye.right{right:17%}
+#vixVision .vixEyeGlow{
+  position:absolute;
+  inset:11% 22%;
+  border-radius:50%;
+  background:rgba(246,254,255,.92);
+  box-shadow:
+    0 0 10px rgba(255,255,255,.96),
+    0 0 24px rgba(var(--vix-vision-rgb),.86),
+    0 0 46px rgba(var(--vix-vision-rgb),.42);
+}
+#vixVision .vixVisionTag{
+  position:absolute;left:50%;bottom:3.1%;transform:translateX(-50%);font:900 clamp(10px,2.2vw,15px) Arial,sans-serif;
+  letter-spacing:.30em;color:rgba(232,251,255,.86);text-shadow:0 0 10px rgba(var(--vix-vision-rgb),.95);white-space:nowrap;
+}
+#vixVision.damage{filter:brightness(1.15) saturate(1.25)}
+#vixVision.damage .vixEye{height:clamp(24px,4.5vh,42px);transform:translateY(-50%) rotate(5deg);border-color:#fff;box-shadow:0 0 16px rgba(255,70,70,.9)}
+#vixVision.damage .vixEye.right{transform:translateY(-50%) rotate(-5deg)}
+#vixVision.damage .vixHelmetShell{box-shadow:inset 0 0 0 3px rgba(255,70,70,.9),inset 0 0 30px rgba(255,30,30,.28)}
+#vixVision:not(.active){opacity:0}
+#vixVision.active{opacity:1}
+@media(max-width:520px){
+  #vixVision .vixEye{top:53%;width:clamp(30px,10vw,45px);height:clamp(78px,14vh,118px)}
+  #vixVision .vixEye.left{left:15%} #vixVision .vixEye.right{right:15%}
+  #vixVision .vixVisionTag{bottom:2.8%}
+}
+
 #startOverlay{position:absolute;inset:0;display:grid;place-items:center;text-align:center;z-index:80;background:radial-gradient(circle,rgba(255,102,204,.10),rgba(0,0,0,.92))}
 .startCard{width:min(430px,82vw);padding:34px 28px;border-radius:26px;background:rgba(0,0,0,.72);border:1px solid rgba(255,255,255,.16);box-shadow:0 0 70px rgba(255,102,204,.18)}
 .startCard h1{margin:0 0 12px;font-size:30px;letter-spacing:4px;text-shadow:0 0 18px white}
@@ -3647,6 +3713,7 @@ button:active{transform:scale(.985)}
 </div>
 <div style="display:none"><span id="world">Distance Run</span>
 <span id="found">0</span><span id="score">0</span><span id="bestScore">0</span><span id="combo">1x</span><div id="signal"></div></div></div>
+<div id="vixVision" aria-hidden="true"><div class="vixHelmetShell"></div><div class="vixHelmetTop"></div><div class="vixHelmetBottom"></div><div class="vixEye left"><span class="vixEyeGlow"></span></div><div class="vixEye right"><span class="vixEyeGlow"></span></div><div class="vixVisionTag">VIX VISION</div></div>
 <div id="center" class="reactorNormal" aria-label="Pause"><span class="reactorPlume"></span><span class="reactorMiddle"></span><span class="reactorOuter"></span><span class="reactorCore"></span></div><div id="pauseText">PAUSED</div><div id="laneLabel">CENTER</div><div id="roundComplete"></div>
 <div id="pauseMenu" aria-hidden="true">
   <div class="pausePanel" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
@@ -4172,12 +4239,35 @@ function updateVix3D(dt,state){
   const g=vix3D.group;
   if(!g)return;
 
-  g.visible=!!(gameStarted&&!gameOver);
+  // V85 — gameplay is now first-person through Vix's visor. Keep the 3D body built
+  // for compatibility/state materials, but never render it during the run.
+  g.visible=false;
+
+  const vixVision=document.getElementById('vixVision');
+  if(vixVision){
+    vixVision.classList.toggle('active',!!(gameStarted&&!gameOver));
+    vixVision.classList.toggle('damage',state==='damage');
+  }
 
   const dx=targetX-playerX;
   const dy=targetY-playerY;
   const bank=THREE.MathUtils.clamp(dx/34,-1,1);
   const vertical=THREE.MathUtils.clamp(dy/34,-1,1);
+
+  // V85 head-turn illusion: the helmet moves opposite the world just enough to feel
+  // like Vix is banking/looking into the lane change without disturbing the game camera.
+  if(vixVision){
+    vixVision.style.setProperty('--vix-bank',`${(-bank*2.8).toFixed(2)}deg`);
+    vixVision.style.setProperty('--vix-look-x',`${(-bank*5.5).toFixed(2)}px`);
+    vixVision.style.setProperty('--vix-look-y',`${(vertical*2.2).toFixed(2)}px`);
+    let visionRGB='105,225,255';
+    if(state==='midas') visionRGB='255,205,72';
+    else if(state==='flux') visionRGB='255,98,235';
+    else if(state==='chrono') visionRGB='111,238,255';
+    else if(state==='warp') visionRGB='177,131,255';
+    else if(state==='damage') visionRGB='255,76,76';
+    vixVision.style.setProperty('--vix-vision-rgb',visionRGB);
+  }
 
   const rawSpeed=
     (typeof speed!=='undefined'&&typeof SPEED_START!=='undefined')
