@@ -162,6 +162,7 @@ function track(eventName,data={}){
 <!-- SHIFTVIX V82 — FORWARD-FLIGHT HUMANOID VIX: smaller hip-width head, tapered trapezoid torso, wider forearm gauntlets, tapered lower-leg boots, dark thruster rings with recessed cyan plasma discs, stronger Superman-style forward pitch; game-native satin finish; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V81 — HUMANOID VIX + GAME-NATIVE FINISH: human-readable rear silhouette with neck, shoulders, elbows, waist/hips, thighs/knees, thruster hands and substantial boots; satin neon-game material replaces chrome; four directional ion plumes; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V82.1 — SUPERMAN FLIGHT + THRUSTER UPDATE FIX: removes stale bloom reference crash and locks stronger forward flight pitch; gameplay/world preserved -->
+<!-- SHIFTVIX V85.2 — MINIMAL VIX VISION: removes full helmet shell for uniform portrait/landscape framing; two responsive neon bars + two larger single-piece translucent eyes become Vix identity; state colors and simple damage squint preserved; gameplay preserved -->
 <!-- SHIFTVIX V85.1 — VIX VISION DISPLAY FIX: repairs malformed escaped-newline visor CSS so helmet, close-set eye reflections and VIX VISION frame actually render; local file manifest/icon CORS warnings are unrelated; gameplay preserved -->
 <!-- SHIFTVIX V85 — VIX VISION: first-person helmet/visor perspective replaces the visible gameplay body; close-set glowing Vix eye lenses, reactive helmet frame, bank/head-turn parallax, orb-state frame colors, damage expression; gameplay/collisions/Flows/scoring preserved -->
 <!-- SHIFTVIX V84 — LARGER REFINED TRAVELER: larger on-screen Vix, visible neck, slimmer tube torso with shoulder cap, black hip/pelvis shell, 20% slimmer forearms/lower legs, smaller ear modules, camera-facing recessed hand/foot plasma thrusters, stronger readable rear-flight silhouette; gameplay/world preserved -->
@@ -701,66 +702,129 @@ canvas{
 #laneLabel{display:none}
 
 /* =========================
-   SHIFTVIX V85 — VIX VISION
-   First-person Vix helmet overlay. Pure presentation: no collision/gameplay changes.
+   SHIFTVIX V85.2 — MINIMAL VIX VISION
+   Two reactive bars + two single-piece neon eyes.
+   Designed to remain visually consistent in portrait and landscape.
    ========================= */
 #vixVision{
   --vix-vision-rgb:105,225,255;
   --vix-bank:0deg;
   --vix-look-x:0px;
   --vix-look-y:0px;
-  position:fixed;inset:0;z-index:19;pointer-events:none;overflow:hidden;
+  --vix-eye-gap:clamp(150px,34vmin,330px);
+  position:fixed;
+  inset:0;
+  z-index:19;
+  pointer-events:none;
+  overflow:hidden;
   transform:rotate(var(--vix-bank)) translate(var(--vix-look-x),var(--vix-look-y));
   transform-origin:50% 52%;
-  transition:filter .16s ease;
+  transition:filter .16s ease,opacity .16s ease;
 }
-#vixVision .vixHelmetShell{
-  position:absolute;inset:-2.2%;border-radius:47% 47% 43% 43% / 13% 13% 18% 18%;
-  border:clamp(8px,1.6vw,17px) solid rgba(236,240,248,.96);
-  box-shadow:inset 0 0 0 3px rgba(var(--vix-vision-rgb),.86),inset 0 0 22px rgba(var(--vix-vision-rgb),.30),0 0 18px rgba(var(--vix-vision-rgb),.30);
-}
-#vixVision .vixHelmetShell:before{
-  content:'';position:absolute;inset:clamp(8px,1.6vw,18px);border-radius:inherit;
-  border:2px solid rgba(255,255,255,.72);box-shadow:0 0 13px rgba(var(--vix-vision-rgb),.54);
-}
-#vixVision .vixHelmetTop,#vixVision .vixHelmetBottom{
-  position:absolute;left:50%;transform:translateX(-50%);width:34%;height:10px;border-radius:999px;
-  background:rgba(var(--vix-vision-rgb),.82);box-shadow:0 0 12px rgba(var(--vix-vision-rgb),.82);
-}
-#vixVision .vixHelmetTop{top:1.4%} #vixVision .vixHelmetBottom{bottom:1.4%}
-#vixVision .vixEye{
-  position:absolute;top:52%;width:clamp(34px,7.2vw,64px);height:clamp(92px,17vh,154px);
-  border-radius:50%;border:2px solid rgba(255,255,255,.92);
-  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(var(--vix-vision-rgb),.055));
-  box-shadow:0 0 9px rgba(255,255,255,.62),0 0 22px rgba(var(--vix-vision-rgb),.28),inset 0 0 18px rgba(var(--vix-vision-rgb),.10);
-  transform:translateY(-50%);opacity:.88;transition:height .12s ease,transform .12s ease,opacity .12s ease;
-}
-/* Close-set like Bert's V85 mockup, not pushed to the outside edges. */
-#vixVision .vixEye.left{left:17%} #vixVision .vixEye.right{right:17%}
-#vixVision .vixEyeGlow{
+
+/* V85.2 — the large helmet shell is deliberately removed. */
+#vixVision .vixHelmetShell{display:none!important}
+
+/* Minimal helmet signature. Same geometry in every orientation. */
+#vixVision .vixHelmetTop,
+#vixVision .vixHelmetBottom{
   position:absolute;
-  inset:11% 22%;
-  border-radius:50%;
-  background:rgba(246,254,255,.92);
+  left:50%;
+  width:clamp(150px,34vmin,360px);
+  height:clamp(5px,.8vmin,9px);
+  border-radius:999px;
+  transform:translateX(-50%);
+  background:rgba(var(--vix-vision-rgb),.76);
   box-shadow:
-    0 0 10px rgba(255,255,255,.96),
-    0 0 24px rgba(var(--vix-vision-rgb),.86),
-    0 0 46px rgba(var(--vix-vision-rgb),.42);
+    0 0 7px rgba(255,255,255,.38),
+    0 0 14px rgba(var(--vix-vision-rgb),.72),
+    0 0 28px rgba(var(--vix-vision-rgb),.25);
+  opacity:.94;
 }
-#vixVision .vixVisionTag{
-  position:absolute;left:50%;bottom:3.1%;transform:translateX(-50%);font:900 clamp(10px,2.2vw,15px) Arial,sans-serif;
-  letter-spacing:.30em;color:rgba(232,251,255,.86);text-shadow:0 0 10px rgba(var(--vix-vision-rgb),.95);white-space:nowrap;
+#vixVision .vixHelmetTop{top:clamp(14px,3.0vmin,34px)}
+#vixVision .vixHelmetBottom{bottom:clamp(14px,3.0vmin,34px)}
+
+/* One solid translucent neon shape per eye — no outer oval + inner oval. */
+#vixVision .vixEye{
+  position:absolute;
+  left:50%;
+  top:54%;
+  width:clamp(42px,8.5vmin,92px);
+  height:clamp(112px,22vmin,220px);
+  border:0;
+  border-radius:50%;
+  background:rgba(var(--vix-vision-rgb),.34);
+  box-shadow:
+    inset 0 0 14px rgba(255,255,255,.42),
+    0 0 9px rgba(255,255,255,.62),
+    0 0 20px rgba(var(--vix-vision-rgb),.82),
+    0 0 42px rgba(var(--vix-vision-rgb),.38);
+  opacity:.80;
+  transform:translate(-50%,-50%);
+  transition:
+    width .12s ease,
+    height .12s ease,
+    transform .12s ease,
+    opacity .12s ease,
+    background .16s ease,
+    box-shadow .16s ease;
 }
-#vixVision.damage{filter:brightness(1.15) saturate(1.25)}
-#vixVision.damage .vixEye{height:clamp(24px,4.5vh,42px);transform:translateY(-50%) rotate(5deg);border-color:#fff;box-shadow:0 0 16px rgba(255,70,70,.9)}
-#vixVision.damage .vixEye.right{transform:translateY(-50%) rotate(-5deg)}
-#vixVision.damage .vixHelmetShell{box-shadow:inset 0 0 0 3px rgba(255,70,70,.9),inset 0 0 30px rgba(255,30,30,.28)}
+#vixVision .vixEye.left{
+  margin-left:calc(var(--vix-eye-gap) * -.5);
+}
+#vixVision .vixEye.right{
+  margin-left:calc(var(--vix-eye-gap) * .5);
+}
+#vixVision .vixEyeGlow{display:none!important}
+#vixVision .vixVisionTag{display:none!important}
+
+/* Simple expression remains available without bringing back a complex face rig. */
+#vixVision.damage{
+  filter:brightness(1.14) saturate(1.22);
+}
+#vixVision.damage .vixEye{
+  height:clamp(28px,5.5vmin,58px);
+  width:clamp(68px,13vmin,130px);
+  background:rgba(255,92,92,.46);
+  box-shadow:
+    0 0 12px rgba(255,255,255,.82),
+    0 0 26px rgba(255,70,70,.92),
+    0 0 48px rgba(255,30,30,.40);
+}
+#vixVision.damage .vixEye.left{
+  transform:translate(-50%,-50%) rotate(8deg);
+}
+#vixVision.damage .vixEye.right{
+  transform:translate(-50%,-50%) rotate(-8deg);
+}
+
 #vixVision:not(.active){opacity:0}
 #vixVision.active{opacity:1}
-@media(max-width:520px){
-  #vixVision .vixEye{top:53%;width:clamp(30px,10vw,45px);height:clamp(78px,14vh,118px)}
-  #vixVision .vixEye.left{left:15%} #vixVision .vixEye.right{right:15%}
-  #vixVision .vixVisionTag{bottom:2.8%}
+
+/* Portrait: keep eyes high enough to avoid the lower Flow HUD. */
+@media(orientation:portrait){
+  #vixVision{--vix-eye-gap:clamp(145px,43vw,255px)}
+  #vixVision .vixEye{
+    top:55%;
+    width:clamp(42px,11vw,66px);
+    height:clamp(112px,25vw,160px);
+  }
+  #vixVision .vixHelmetTop{top:clamp(18px,4.2vw,34px)}
+  #vixVision .vixHelmetBottom{bottom:clamp(18px,4.2vw,34px)}
+}
+
+/* Landscape: use vmin so iPad/iPhone shapes do not stretch to the screen width. */
+@media(orientation:landscape){
+  #vixVision{--vix-eye-gap:clamp(190px,38vmin,360px)}
+  #vixVision .vixEye{
+    top:55%;
+    width:clamp(46px,8vmin,86px);
+    height:clamp(112px,20vmin,190px);
+  }
+  #vixVision .vixHelmetTop,
+  #vixVision .vixHelmetBottom{
+    width:clamp(180px,36vmin,380px);
+  }
 }
 
 #startOverlay{position:absolute;inset:0;display:grid;place-items:center;text-align:center;z-index:80;background:radial-gradient(circle,rgba(255,102,204,.10),rgba(0,0,0,.92))}
@@ -4257,9 +4321,9 @@ function updateVix3D(dt,state){
   // V85 head-turn illusion: the helmet moves opposite the world just enough to feel
   // like Vix is banking/looking into the lane change without disturbing the game camera.
   if(vixVision){
-    vixVision.style.setProperty('--vix-bank',`${(-bank*2.8).toFixed(2)}deg`);
-    vixVision.style.setProperty('--vix-look-x',`${(-bank*5.5).toFixed(2)}px`);
-    vixVision.style.setProperty('--vix-look-y',`${(vertical*2.2).toFixed(2)}px`);
+    vixVision.style.setProperty('--vix-bank',`${(-bank*2.2).toFixed(2)}deg`);
+    vixVision.style.setProperty('--vix-look-x',`${(-bank*4.0).toFixed(2)}px`);
+    vixVision.style.setProperty('--vix-look-y',`${(vertical*1.6).toFixed(2)}px`);
     let visionRGB='105,225,255';
     if(state==='midas') visionRGB='255,205,72';
     else if(state==='flux') visionRGB='255,98,235';
