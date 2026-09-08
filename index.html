@@ -159,6 +159,7 @@ function track(eventName,data={}){
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <!-- SHIFTVIX 2.11 — GOLD RINGS + FIVE EVEN OBJECTIVE TYPES -->
+<!-- SHIFTVIX V81 — HUMANOID VIX + GAME-NATIVE FINISH: human-readable rear silhouette with neck, shoulders, elbows, waist/hips, thighs/knees, thruster hands and substantial boots; satin neon-game material replaces chrome; four directional ion plumes; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V80.1 — TRUE SILVER + ENERGY ORBS FIX: visible pearl-silver Vix with dedicated lighting, brighter joints, glowing energy-orb thrusters on both hands and feet; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V80 — SILVER TRAVELER FOUR-THRUSTER REBUILD: hairless humanoid Vix with two arms, two legs, simple clean metallic body, hand + foot ionic thrusters; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V79 — PEARL VIX CAMERA-AXIS THRUST: glossy pearl-white/silver mascot, single-piece arm fins, orb-state body tints, exhaust aligned out of screen with compact rear bloom; gameplay/world/motion preserved -->
@@ -3678,203 +3679,311 @@ const renderer=new THREE.WebGLRenderer({
 });
 
 // =========================
-// SHIFTVIX V79 — PEARL METALLIC VIX + CAMERA-AXIS IONIC BLOOM
-// SHIFTVIX V78 — GRAPHITE METALLIC VIX + STRAIGHT IONIC BEAM
-// SHIFTVIX V77 — SOLID BLACK GLASS VIX
-// Visual-only character rebuild. Gameplay, collisions, world scale, Flows and scoring are untouched.
+// SHIFTVIX V81 — HUMANOID VIX + GAME-NATIVE FINISH
+// Vix keeps the new mascot anatomy while sharing SHIFTVIX's soft neon rendering language.
+// Rear-view gameplay priorities: head + neck, shoulders, elbows, short torso, waist/hips,
+// thighs + knees, substantial boots, thruster hands and four readable ion plumes.
+// No gameplay eyes are created. Gameplay, collisions, world scale, Flows and scoring are untouched.
 // =========================
 scene.add(camera);
 
-// V80.1 — dedicated character lighting.
-// Vix uses physically-based metallic materials; without actual scene lights they render nearly black.
-// These lights are attached to the camera so Vix stays readable on every lane and device.
-const vixKeyLight=new THREE.DirectionalLight(0xffffff,4.2);
+// V81 — softer character lighting. The light is still camera-mounted so Vix stays readable,
+// but the lower intensities and rougher materials keep him inside the same arcade-neon world.
+const vixKeyLight=new THREE.DirectionalLight(0xf8fbff,2.15);
 vixKeyLight.position.set(-4,6,7);
 camera.add(vixKeyLight);
 
-const vixFillLight=new THREE.DirectionalLight(0xb9dcff,2.6);
+const vixFillLight=new THREE.DirectionalLight(0xaecfff,1.35);
 vixFillLight.position.set(5,1,5);
 camera.add(vixFillLight);
 
-const vixRimLight=new THREE.PointLight(0x9b72ff,7.0,34,1.7);
+const vixRimLight=new THREE.PointLight(0x9b72ff,3.4,32,1.8);
 vixRimLight.position.set(0,-1,-8);
 camera.add(vixRimLight);
 
-const vixFrontGlow=new THREE.PointLight(0xffffff,5.5,28,1.6);
+const vixFrontGlow=new THREE.PointLight(0x75e8ff,1.75,24,1.8);
 vixFrontGlow.position.set(0,2,-10);
 camera.add(vixFrontGlow);
 
-const vix3D={group:null,head:null,visor:null,torso:null,leftArm:null,rightArm:null,leftLeg:null,rightLeg:null,jets:[],materials:{}};
+const vix3D={
+  group:null,head:null,visor:null,neck:null,torso:null,pelvis:null,
+  leftArm:null,rightArm:null,leftLeg:null,rightLeg:null,
+  bodyParts:[],jointParts:[],jets:[],materials:{}
+};
 
-function vixSilverMaterial(){
-  return new THREE.MeshPhysicalMaterial({
-    // Bright polished silver/pearl — intentionally high-value so Vix cannot disappear into space.
-    color:0xf2f5f8,
-    emissive:0x3b4654,
-    emissiveIntensity:.18,
-    roughness:.12,
-    metalness:.72,
-    clearcoat:1,
-    clearcoatRoughness:.02,
-    reflectivity:1,
+function vixBodyMaterial(){
+  return new THREE.MeshStandardMaterial({
+    // Satin pearl / soft cool gray: bright enough for space, but deliberately NOT chrome.
+    color:0xd9dbe6,
+    emissive:0x25223a,
+    emissiveIntensity:.13,
+    roughness:.48,
+    metalness:.10,
     transparent:false,
     opacity:1,
-    transmission:0,
     depthWrite:true
   });
 }
 function vixJointMaterial(){
-  return new THREE.MeshPhysicalMaterial({
-    color:0xc9d1db,
-    emissive:0x283645,
-    emissiveIntensity:.16,
-    roughness:.15,
-    metalness:.78,
-    clearcoat:1,
-    clearcoatRoughness:.035
+  return new THREE.MeshStandardMaterial({
+    // Dark violet-gray joints echo the lane/world palette instead of metallic hardware.
+    color:0x54566a,
+    emissive:0x25223a,
+    emissiveIntensity:.10,
+    roughness:.56,
+    metalness:.12
   });
 }
-function vixMakeLimb(a,b,r=.31,mat=vixSilverMaterial()){
-  const dir=new THREE.Vector3().subVectors(b,a), len=dir.length(), mid=new THREE.Vector3().addVectors(a,b).multiplyScalar(.5);
+function vixFaceMaterial(){
+  return new THREE.MeshStandardMaterial({
+    color:0x25283a,
+    emissive:0x16192a,
+    emissiveIntensity:.12,
+    roughness:.50,
+    metalness:.08
+  });
+}
+function vixRegisterBody(mesh){vix3D.bodyParts.push(mesh);return mesh;}
+function vixRegisterJoint(mesh){vix3D.jointParts.push(mesh);return mesh;}
+function vixMakeLimb(a,b,r=.28,mat=vixBodyMaterial(),register='body'){
+  const dir=new THREE.Vector3().subVectors(b,a);
+  const len=dir.length();
+  const mid=new THREE.Vector3().addVectors(a,b).multiplyScalar(.5);
   const mesh=new THREE.Mesh(new THREE.CapsuleGeometry(r,Math.max(.08,len-r*2),8,18),mat);
-  mesh.position.copy(mid); mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.clone().normalize());
+  mesh.position.copy(mid);
+  mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.clone().normalize());
+  if(register==='body')vixRegisterBody(mesh); else if(register==='joint')vixRegisterJoint(mesh);
   return mesh;
+}
+function vixMakeJointSphere(parent,pos,r=.27){
+  const joint=vixRegisterJoint(new THREE.Mesh(new THREE.SphereGeometry(r,20,16),vixJointMaterial()));
+  joint.position.copy(pos); parent.add(joint); return joint;
 }
 function vixMakeJet(parent,pos,scale=1){
   const jet=new THREE.Group();
   jet.position.copy(pos);
   parent.add(jet);
 
-  // V80.1 — hand/foot thrusters are luminous ENERGY ORBS, not cones or beams.
+  // V81 — four directional ionic plumes. These are tapered beams, not detached energy balls.
+  // +Z points back toward the gameplay camera, so every plume reads as rear propulsion.
+  const nozzle=new THREE.Mesh(
+    new THREE.CylinderGeometry(.22*scale,.22*scale,.22*scale,20),
+    new THREE.MeshBasicMaterial({color:0xdffcff,transparent:true,opacity:.92})
+  );
+  nozzle.rotation.x=Math.PI/2;
+  nozzle.position.z=.04*scale;
+  jet.add(nozzle);
+
   const halo=new THREE.Mesh(
-    new THREE.SphereGeometry(.48*scale,24,18),
+    new THREE.CylinderGeometry(.30*scale,.12*scale,1.95*scale,18,1,true),
     new THREE.MeshBasicMaterial({
-      color:0x6feaff,
-      transparent:true,
-      opacity:.16,
-      blending:THREE.AdditiveBlending,
-      depthWrite:false
+      color:0x70eaff,transparent:true,opacity:.15,
+      blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide
     })
   );
+  halo.rotation.x=Math.PI/2;
+  halo.position.z=1.00*scale;
   jet.add(halo);
 
   const outer=new THREE.Mesh(
-    new THREE.SphereGeometry(.31*scale,24,18),
+    new THREE.CylinderGeometry(.22*scale,.085*scale,1.72*scale,18,1,true),
     new THREE.MeshBasicMaterial({
-      color:0x65e8ff,
-      transparent:true,
-      opacity:.54,
-      blending:THREE.AdditiveBlending,
-      depthWrite:false
+      color:0x70eaff,transparent:true,opacity:.48,
+      blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide
     })
   );
+  outer.rotation.x=Math.PI/2;
+  outer.position.z=.88*scale;
   jet.add(outer);
 
   const core=new THREE.Mesh(
-    new THREE.SphereGeometry(.145*scale,20,16),
+    new THREE.CylinderGeometry(.095*scale,.045*scale,1.42*scale,14,1,true),
     new THREE.MeshBasicMaterial({
-      color:0xffffff,
-      transparent:true,
-      opacity:1,
-      blending:THREE.AdditiveBlending,
-      depthWrite:false
+      color:0xffffff,transparent:true,opacity:.95,
+      blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide
     })
   );
+  core.rotation.x=Math.PI/2;
+  core.position.z=.74*scale;
   jet.add(core);
 
   const bloom=new THREE.Mesh(
-    new THREE.RingGeometry(.20*scale,.40*scale,28),
+    new THREE.RingGeometry(.13*scale,.30*scale,24),
     new THREE.MeshBasicMaterial({
-      color:0xff6bdc,
-      transparent:true,
-      opacity:.34,
-      blending:THREE.AdditiveBlending,
-      depthWrite:false,
-      side:THREE.DoubleSide
+      color:0xff6bdc,transparent:true,opacity:.25,
+      blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide
     })
   );
-  bloom.position.z=.035;
+  bloom.position.z=.16*scale;
   jet.add(bloom);
 
-  const light=new THREE.PointLight(0x70eaff,2.8*scale,5.2*scale,2);
-  light.position.z=.15;
+  const light=new THREE.PointLight(0x70eaff,1.75*scale,4.6*scale,2);
+  light.position.z=.26*scale;
   jet.add(light);
 
-  vix3D.jets.push({
-    group:jet,
-    halo,
-    outer,
-    core,
-    bloom,
-    light,
-    phase:Math.random()*Math.PI*2
-  });
+  vix3D.jets.push({group:jet,halo,outer,core,bloom,light,phase:Math.random()*Math.PI*2,baseScale:scale});
 }
 function buildVix3D(){
   if(vix3D.group)return;
-  const g=new THREE.Group(); g.name='VixTraveler3D_V80'; g.visible=false; camera.add(g); vix3D.group=g;
+  const g=new THREE.Group();
+  g.name='VixTraveler3D_V81_Humanoid';
+  g.visible=false;
+  camera.add(g);
+  vix3D.group=g;
 
-  // V80: clean hairless humanoid traveler — metallic silver, compact proportions, readable against black space.
-  const head=new THREE.Mesh(new THREE.SphereGeometry(1.18,36,28),vixSilverMaterial());
-  head.scale.set(1.02,.98,1.0); head.position.set(0,2.45,-2.45); g.add(head); vix3D.head=head;
-  const visor=new THREE.Mesh(new THREE.SphereGeometry(1.185,32,24,0,Math.PI*2,0,Math.PI*.48),new THREE.MeshPhysicalMaterial({color:0x596777,emissive:0x182839,emissiveIntensity:.18,roughness:.10,metalness:.82,clearcoat:1,clearcoatRoughness:.03}));
-  visor.scale.set(.78,.55,.34); visor.position.set(0,2.42,-3.38); visor.rotation.x=Math.PI; g.add(visor); vix3D.visor=visor;
+  // HEAD — clean round helmet. No gameplay eyes are created.
+  const head=vixRegisterBody(new THREE.Mesh(new THREE.SphereGeometry(1.12,34,26),vixBodyMaterial()));
+  head.scale.set(1.02,.98,.90);
+  head.position.set(0,2.50,-1.92);
+  g.add(head); vix3D.head=head;
 
-  const torso=new THREE.Mesh(new THREE.SphereGeometry(1.22,34,26),vixSilverMaterial());
-  torso.scale.set(.92,1.24,.82); torso.position.set(0,.55,-1.05); g.add(torso); vix3D.torso=torso;
-  const chest=new THREE.Mesh(new THREE.RingGeometry(.20,.31,28),new THREE.MeshBasicMaterial({color:0x63e8ff,transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
-  chest.position.set(0,.72,-2.03); g.add(chest);
+  // Front-only dark face panel. It points away from the rear gameplay camera and has NO eyes.
+  const visor=new THREE.Mesh(new THREE.SphereGeometry(1.125,30,22,0,Math.PI*2,0,Math.PI*.46),vixFaceMaterial());
+  visor.scale.set(.76,.53,.25);
+  visor.position.set(0,2.46,-2.80);
+  visor.rotation.x=Math.PI;
+  g.add(visor); vix3D.visor=visor;
+
+  // NECK — visible separation between helmet and torso is essential to the new silhouette.
+  const neck=vixRegisterJoint(new THREE.Mesh(new THREE.CylinderGeometry(.37,.43,.50,20),vixJointMaterial()));
+  neck.position.set(0,1.57,-1.43);
+  g.add(neck); vix3D.neck=neck;
+
+  // SHOULDERS / SHORT TORSO — broader upper body, shorter center mass than V80.
+  const shoulderBar=vixMakeLimb(
+    new THREE.Vector3(-.88,1.20,-1.18),new THREE.Vector3(.88,1.20,-1.18),.29,vixBodyMaterial(),'body'
+  );
+  g.add(shoulderBar);
+
+  const torso=vixRegisterBody(new THREE.Mesh(new THREE.SphereGeometry(1.20,32,24),vixBodyMaterial()));
+  torso.scale.set(.94,.88,.76);
+  torso.position.set(0,.52,-1.03);
+  g.add(torso); vix3D.torso=torso;
+
+  // Waist + pelvis make the body read as a small person instead of a long capsule.
+  const waist=vixRegisterJoint(new THREE.Mesh(new THREE.CylinderGeometry(.58,.64,.34,22),vixJointMaterial()));
+  waist.position.set(0,-.30,-.81);
+  g.add(waist);
+
+  const pelvis=vixRegisterBody(new THREE.Mesh(new THREE.SphereGeometry(.88,28,20),vixBodyMaterial()));
+  pelvis.scale.set(.92,.48,.68);
+  pelvis.position.set(0,-.62,-.74);
+  g.add(pelvis); vix3D.pelvis=pelvis;
 
   function arm(side){
-    const pivot=new THREE.Group(); pivot.position.set(side*.92,1.15,-1.02); g.add(pivot);
-    const limb=vixMakeLimb(new THREE.Vector3(0,0,0),new THREE.Vector3(side*.38,-.82,.54),.28); pivot.add(limb);
-    const cuff=new THREE.Mesh(new THREE.CylinderGeometry(.34,.30,.42,20),vixJointMaterial()); cuff.rotation.z=side*Math.PI/2; cuff.position.set(side*.40,-.84,.56); pivot.add(cuff);
-    // Hand is the simple rounded end of the arm — no mitten or extra bulb geometry.
-    vixMakeJet(pivot,new THREE.Vector3(side*.42,-.88,.72),.72);
+    const pivot=new THREE.Group();
+    pivot.position.set(side*.88,1.18,-1.14);
+    g.add(pivot);
+
+    const elbow=new THREE.Vector3(side*.38,-.66,.38);
+    const hand=new THREE.Vector3(side*.48,-1.48,.72);
+
+    // Upper arm + obvious elbow + forearm: V81 arms are deliberately longer than V80.
+    pivot.add(vixMakeLimb(new THREE.Vector3(0,0,0),elbow,.27,vixBodyMaterial(),'body'));
+    vixMakeJointSphere(pivot,elbow,.27);
+    pivot.add(vixMakeLimb(elbow,hand,.245,vixBodyMaterial(),'body'));
+
+    // Thruster hand / gauntlet is a readable body part before the exhaust begins.
+    const gauntlet=vixRegisterBody(new THREE.Mesh(new THREE.CapsuleGeometry(.31,.22,8,18),vixBodyMaterial()));
+    gauntlet.position.copy(hand);
+    gauntlet.rotation.x=Math.PI/2;
+    pivot.add(gauntlet);
+
+    const cuff=vixRegisterJoint(new THREE.Mesh(new THREE.CylinderGeometry(.29,.27,.24,18),vixJointMaterial()));
+    cuff.rotation.x=Math.PI/2;
+    cuff.position.set(hand.x,hand.y,hand.z-.20);
+    pivot.add(cuff);
+
+    vixMakeJet(pivot,new THREE.Vector3(hand.x,hand.y,hand.z+.18),.74);
     return pivot;
   }
-  vix3D.leftArm=arm(-1); vix3D.rightArm=arm(1);
+  vix3D.leftArm=arm(-1);
+  vix3D.rightArm=arm(1);
 
   function leg(side){
-    const pivot=new THREE.Group(); pivot.position.set(side*.47,-.43,-.72); g.add(pivot);
-    const limb=vixMakeLimb(new THREE.Vector3(0,0,0),new THREE.Vector3(side*.10,-1.34,.48),.36); pivot.add(limb);
-    const boot=new THREE.Mesh(new THREE.CylinderGeometry(.43,.36,.58,22),vixJointMaterial()); boot.position.set(side*.10,-1.45,.52); pivot.add(boot);
-    vixMakeJet(pivot,new THREE.Vector3(side*.10,-1.52,.76),1.0);
+    const pivot=new THREE.Group();
+    pivot.position.set(side*.46,-.62,-.70);
+    g.add(pivot);
+
+    const knee=new THREE.Vector3(side*.05,-.82,.30);
+    const ankle=new THREE.Vector3(side*.10,-1.58,.58);
+
+    // Defined thigh + knee + shin.
+    pivot.add(vixMakeLimb(new THREE.Vector3(0,0,0),knee,.34,vixBodyMaterial(),'body'));
+    vixMakeJointSphere(pivot,knee,.30);
+    pivot.add(vixMakeLimb(knee,ankle,.29,vixBodyMaterial(),'body'));
+
+    // Substantial rounded boot, larger than the shin and clearly separate from the leg.
+    const boot=vixRegisterBody(new THREE.Mesh(new THREE.CapsuleGeometry(.39,.34,8,20),vixBodyMaterial()));
+    boot.position.set(ankle.x,ankle.y-.22,ankle.z+.08);
+    boot.rotation.x=Math.PI/2;
+    pivot.add(boot);
+
+    const ankleCuff=vixRegisterJoint(new THREE.Mesh(new THREE.CylinderGeometry(.33,.30,.26,18),vixJointMaterial()));
+    ankleCuff.rotation.x=Math.PI/2;
+    ankleCuff.position.set(ankle.x,ankle.y-.17,ankle.z-.14);
+    pivot.add(ankleCuff);
+
+    vixMakeJet(pivot,new THREE.Vector3(ankle.x,ankle.y-.22,ankle.z+.42),1.02);
     return pivot;
   }
-  vix3D.leftLeg=leg(-1); vix3D.rightLeg=leg(1);
+  vix3D.leftLeg=leg(-1);
+  vix3D.rightLeg=leg(1);
 
-  // Rear-flight pose: limbs and all four exhausts share the same camera/out-of-screen axis.
-  g.position.set(0,-3.72,-15.2); g.rotation.order='ZXY'; g.rotation.x=-.34;
+  // Rear-flight pose: humanoid silhouette first, with all four plumes pointing back toward the camera.
+  g.position.set(0,-3.58,-15.15);
+  g.rotation.order='ZXY';
+  g.rotation.x=-.31;
 }
 function updateVix3D(dt,state){
-  buildVix3D(); const g=vix3D.group; if(!g)return;
+  buildVix3D();
+  const g=vix3D.group;
+  if(!g)return;
   g.visible=!!(gameStarted&&!gameOver);
+
   const dx=targetX-playerX,dy=targetY-playerY;
-  const bank=THREE.MathUtils.clamp(dx/34,-1,1), vertical=THREE.MathUtils.clamp(dy/34,-1,1);
+  const bank=THREE.MathUtils.clamp(dx/34,-1,1);
+  const vertical=THREE.MathUtils.clamp(dy/34,-1,1);
   const rawSpeed=(typeof speed!=='undefined'&&typeof SPEED_START!=='undefined')?Math.max(0,speed-SPEED_START):0;
-  const speedNorm=THREE.MathUtils.clamp(rawSpeed/155+(typeof fluxBoostAmount!=='undefined'?fluxBoostAmount*.45:0)+(typeof warpBoostAmount!=='undefined'?warpBoostAmount*.58:0),0,1);
-  g.rotation.z=THREE.MathUtils.lerp(g.rotation.z,-bank*.48,1-Math.pow(.0025,dt));
-  g.rotation.x=THREE.MathUtils.lerp(g.rotation.x,-.34+vertical*.07-speedNorm*.05,1-Math.pow(.0035,dt));
-  g.rotation.y=THREE.MathUtils.lerp(g.rotation.y,bank*.08,1-Math.pow(.004,dt));
-  const targetScale=innerHeight>innerWidth?1.16:1.02, ss=THREE.MathUtils.lerp(g.scale.x,targetScale,1-Math.pow(.006,dt)); g.scale.setScalar(ss);
+  const speedNorm=THREE.MathUtils.clamp(
+    rawSpeed/155+
+    (typeof fluxBoostAmount!=='undefined'?fluxBoostAmount*.45:0)+
+    (typeof warpBoostAmount!=='undefined'?warpBoostAmount*.58:0),0,1
+  );
 
-  // Small athletic flight response: whole limbs move, keeping Vix simple and human-like.
+  g.rotation.z=THREE.MathUtils.lerp(g.rotation.z,-bank*.45,1-Math.pow(.0025,dt));
+  g.rotation.x=THREE.MathUtils.lerp(g.rotation.x,-.31+vertical*.07-speedNorm*.045,1-Math.pow(.0035,dt));
+  g.rotation.y=THREE.MathUtils.lerp(g.rotation.y,bank*.07,1-Math.pow(.004,dt));
+  const targetScale=innerHeight>innerWidth?1.18:1.04;
+  const ss=THREE.MathUtils.lerp(g.scale.x,targetScale,1-Math.pow(.006,dt));
+  g.scale.setScalar(ss);
+
+  // Athletic but restrained response. Elbows/knees remain visually readable while banking.
+  if(vix3D.leftArm)vix3D.leftArm.rotation.z=THREE.MathUtils.lerp(vix3D.leftArm.rotation.z,-.08-bank*.13,1-Math.pow(.003,dt));
+  if(vix3D.rightArm)vix3D.rightArm.rotation.z=THREE.MathUtils.lerp(vix3D.rightArm.rotation.z,.08-bank*.13,1-Math.pow(.003,dt));
+  if(vix3D.leftLeg)vix3D.leftLeg.rotation.z=THREE.MathUtils.lerp(vix3D.leftLeg.rotation.z,.028+bank*.03,1-Math.pow(.004,dt));
+  if(vix3D.rightLeg)vix3D.rightLeg.rotation.z=THREE.MathUtils.lerp(vix3D.rightLeg.rotation.z,-.028+bank*.03,1-Math.pow(.004,dt));
+
+  // Keep Vix mostly the same pearl-gray in every power state so he belongs to the game.
+  // Legendary states only tint him slightly; the world + thrusters carry the stronger color change.
+  let edge=0x70eaff, body=0xd9dbe6, joint=0x54566a;
+  if(state==='midas'){edge=0xffd45f;body=0xe2dcc8;joint=0x665f55;}
+  else if(state==='flux'){edge=0xff62eb;body=0xdfd6e5;joint=0x60546a;}
+  else if(state==='chrono'){edge=0x6feeff;body=0xd6e1e7;joint=0x4f5f6b;}
+  else if(state==='warp'){edge=0xb183ff;body=0xdcd6e8;joint=0x5c536c;}
+  else if(state==='damage'){edge=0xff5c5c;body=0xe0d1d4;joint=0x694f56;}
+
+  for(const part of vix3D.bodyParts){
+    if(part?.material?.color)part.material.color.setHex(body);
+  }
+  for(const part of vix3D.jointParts){
+    if(part?.material?.color)part.material.color.setHex(joint);
+  }
+
   const t=performance.now()*.001;
-  if(vix3D.leftArm)vix3D.leftArm.rotation.z=THREE.MathUtils.lerp(vix3D.leftArm.rotation.z,-.10-bank*.16,1-Math.pow(.003,dt));
-  if(vix3D.rightArm)vix3D.rightArm.rotation.z=THREE.MathUtils.lerp(vix3D.rightArm.rotation.z,.10-bank*.16,1-Math.pow(.003,dt));
-  if(vix3D.leftLeg)vix3D.leftLeg.rotation.z=THREE.MathUtils.lerp(vix3D.leftLeg.rotation.z,.035+bank*.035,1-Math.pow(.004,dt));
-  if(vix3D.rightLeg)vix3D.rightLeg.rotation.z=THREE.MathUtils.lerp(vix3D.rightLeg.rotation.z,-.035+bank*.035,1-Math.pow(.004,dt));
-
-  let edge=0x70eaff, body=0xf2f5f8;
-  if(state==='midas'){edge=0xffd45f;body=0xf3d27e;} else if(state==='flux'){edge=0xff62eb;body=0xe7a7ef;} else if(state==='chrono'){edge=0x6feeff;body=0xbfeaf3;} else if(state==='warp'){edge=0xb183ff;body=0xc9b9ee;} else if(state==='damage'){edge=0xff5c5c;body=0xedb0b0;}
-  for(const part of [vix3D.head,vix3D.torso]) if(part?.material?.color)part.material.color.setHex(body);
-  for(const limb of [vix3D.leftArm,vix3D.rightArm,vix3D.leftLeg,vix3D.rightLeg]) limb?.traverse(o=>{if(o.isMesh&&o.material?.isMeshPhysicalMaterial&&o.material.color.getHex()!==0xc9d1db)o.material.color.setHex(body);});
   for(const j of vix3D.jets){
-    const flicker=Math.sin(t*20+j.phase);
-    const pulse=1+flicker*.065+speedNorm*.12;
-
-    // Spherical pulse only — no stretching into a cone.
+    const flicker=Math.sin(t*19+j.phase);
+    const pulse=1+flicker*.035+speedNorm*.055;
     j.group.scale.setScalar(pulse);
 
     j.outer.material.color.setHex(edge);
@@ -3882,11 +3991,17 @@ function updateVix3D(dt,state){
     j.bloom.material.color.setHex(edge);
     if(j.light)j.light.color.setHex(edge);
 
-    j.halo.material.opacity=.12+speedNorm*.12+(flicker+1)*.018;
-    j.outer.material.opacity=.48+speedNorm*.20+(flicker+1)*.025;
-    j.core.material.opacity=.96;
-    j.bloom.material.opacity=.24+speedNorm*.16;
-    if(j.light)j.light.intensity=2.4+speedNorm*3.0+(flicker+1)*.35;
+    // Speed lengthens the plume along Z without turning it into a giant screen-filling beam.
+    const beamStretch=1+speedNorm*.55;
+    j.halo.scale.z=beamStretch;
+    j.outer.scale.z=beamStretch;
+    j.core.scale.z=1+speedNorm*.42;
+
+    j.halo.material.opacity=.11+speedNorm*.10+(flicker+1)*.010;
+    j.outer.material.opacity=.42+speedNorm*.17+(flicker+1)*.015;
+    j.core.material.opacity=.90+speedNorm*.08;
+    j.bloom.material.opacity=.18+speedNorm*.13;
+    if(j.light)j.light.intensity=1.6+speedNorm*2.2+(flicker+1)*.18;
   }
 }
 
