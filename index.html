@@ -162,6 +162,11 @@ function track(eventName,data={}){
 <!-- SHIFTVIX V82 — FORWARD-FLIGHT HUMANOID VIX: smaller hip-width head, tapered trapezoid torso, wider forearm gauntlets, tapered lower-leg boots, dark thruster rings with recessed cyan plasma discs, stronger Superman-style forward pitch; game-native satin finish; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V81 — HUMANOID VIX + GAME-NATIVE FINISH: human-readable rear silhouette with neck, shoulders, elbows, waist/hips, thighs/knees, thruster hands and substantial boots; satin neon-game material replaces chrome; four directional ion plumes; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V82.1 — SUPERMAN FLIGHT + THRUSTER UPDATE FIX: removes stale bloom reference crash and locks stronger forward flight pitch; gameplay/world preserved -->
+<!-- SHIFTVIX V92 — VIX STORY NAV:
+GUIDE/FLOWS buttons removed from both main HUD headers; Vix head remains the only learning entry point.
+Tapping Vix opens his Traveler story first, with LEARN ABOUT THE NINE actions at the bottom for VIX GUIDE
+and THE NINE FLOWS. Unified starfield HUD, World Top 9, gameplay, rankings, scoring and V91 guide content preserved. -->
+<!-- SHIFTVIX V91 — LIVING UNIVERSE + VIX STORY + GUIDE + FLOWS: animated starfield on both unified HUDs; clickable living Vix opens Traveler profile; shared GUIDE and FLOWS learning overlays; V90 gameplay preserved -->
 <!-- SHIFTVIX V90 — UNIFIED VIX HUD:
 Flow Hub and World Top 9 now use the exact same Vix head → SHIFTVIX → ENTER THE NINE
 brand header, with a clean black/subtle-starfield space treatment. No speech bubble,
@@ -4399,6 +4404,103 @@ button:active{transform:scale(.985)}
   #archiveList{
     max-height:calc(90vh - 160px)!important;
   }
+}
+</style>
+
+
+<style id="shiftvixV92StoryNav">
+/* =========================================================
+   SHIFTVIX V92 — VIX IS THE ONLY LEARNING ENTRY POINT
+   ========================================================= */
+
+/* Never show GUIDE / FLOWS controls in either shared HUD header. */
+.v90BrandHeader > .v91LearnNav{
+  display:none!important;
+}
+
+/* Story page: learning choices belong at the bottom, after Vix's story. */
+.v92LearnBlock{
+  margin-top:18px;
+  padding:18px;
+  border:1px solid rgba(255,211,106,.26);
+  border-radius:20px;
+  background:linear-gradient(180deg,rgba(255,211,106,.045),rgba(0,0,0,.24));
+  box-shadow:inset 0 0 24px rgba(255,211,106,.025);
+}
+.v92LearnTitle{
+  color:#ffd36a;
+  text-align:center;
+  font-size:15px;
+  font-weight:1000;
+  letter-spacing:3px;
+}
+.v92LearnSub{
+  margin-top:7px;
+  color:rgba(255,255,255,.48);
+  text-align:center;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:1.5px;
+}
+.v92LearnActions{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin-top:14px;
+}
+.v92LearnActions button{
+  min-height:72px;
+  padding:13px 12px;
+  border:1px solid rgba(105,225,255,.34);
+  border-radius:15px;
+  background:rgba(3,9,18,.72);
+  color:#fff;
+  cursor:pointer;
+  box-shadow:inset 0 0 18px rgba(105,225,255,.025);
+}
+.v92LearnActions button:active{
+  transform:scale(.98);
+}
+.v92LearnActions span{
+  display:block;
+  color:#9ff4ff;
+  font-size:13px;
+  font-weight:1000;
+  letter-spacing:1.6px;
+}
+.v92LearnActions small{
+  display:block;
+  margin-top:6px;
+  color:rgba(255,255,255,.48);
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.6px;
+}
+
+/* Guide/Flows can return to the Vix story without re-cluttering the HUD. */
+.v92BackToVix{
+  margin:0 0 14px;
+  padding:8px 12px;
+  border:1px solid rgba(255,211,106,.22);
+  border-radius:999px;
+  background:rgba(0,0,0,.45);
+  color:#ffd36a;
+  font-size:10px;
+  font-weight:1000;
+  letter-spacing:1.5px;
+  cursor:pointer;
+}
+
+/* The top navigation is retired in V92. */
+.v91MiniNav{display:none!important}
+
+/* Remove the old chest hint/button language; Vix's story now leads to the learning choices. */
+.v91ChestHint,
+.v91ChestButton{display:none!important}
+
+@media(max-width:560px){
+  .v92LearnBlock{padding:15px}
+  .v92LearnActions{grid-template-columns:1fr}
 }
 </style>
 
@@ -15022,6 +15124,146 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
     if(!target || target.disabled || target.getAttribute("aria-disabled")==="true")return;
     playV70UIClick();
   },true);
+})();
+</script>
+
+
+<style id="shiftvixV91LivingUniverse">
+/* V91: living space behind BOTH unified HUDs. Interactive cards keep their existing surfaces. */
+#flowArchive,#worldLeaderboard{isolation:isolate!important;overflow:hidden!important;background:#000!important}
+#flowArchive::before,#worldLeaderboard::before,#flowArchive::after,#worldLeaderboard::after{
+ content:"";position:absolute;inset:-12%;pointer-events:none;z-index:0;
+ background-image:
+ radial-gradient(circle,rgba(255,255,255,.92) 0 1px,transparent 1.7px),
+ radial-gradient(circle,rgba(89,220,255,.72) 0 1px,transparent 1.8px),
+ radial-gradient(circle,rgba(255,211,106,.52) 0 1px,transparent 1.7px),
+ radial-gradient(circle,rgba(203,105,255,.48) 0 1px,transparent 1.6px);
+ background-size:83px 91px,137px 151px,191px 173px,229px 211px;
+ background-position:7px 13px,41px 67px,103px 19px,151px 111px;
+ animation:v91StarDrift 34s linear infinite,v91StarTwinkle 4.8s ease-in-out infinite alternate;
+}
+#flowArchive::after,#worldLeaderboard::after{inset:-20%;opacity:.42;filter:blur(.25px);background-size:157px 181px,223px 197px,277px 251px,331px 307px;animation-duration:56s,7.3s;animation-direction:reverse,alternate}
+#flowArchive>* ,#worldLeaderboard>*{position:relative;z-index:1}
+.archiveCard,.worldBoardPanel{background:rgba(0,0,0,.76)!important;backdrop-filter:blur(3px)!important;-webkit-backdrop-filter:blur(3px)!important}
+@keyframes v91StarDrift{from{transform:translate3d(0,0,0)}to{transform:translate3d(-46px,72px,0)}}
+@keyframes v91StarTwinkle{0%{opacity:.42;filter:brightness(.72)}45%{opacity:.82;filter:brightness(1.18)}100%{opacity:.58;filter:brightness(.9)}}
+
+/* Vix is now a real control in both shared headers. */
+.v90Vix.v91VixButton{cursor:pointer;pointer-events:auto;filter:drop-shadow(0 0 10px rgba(105,225,255,.18))}
+.v90Vix.v91VixButton:active{transform:scale(.94) rotate(-2deg)!important}
+.v90Vix.v91Hello{animation:v91Hello .62s ease-out!important}
+@keyframes v91Hello{0%{transform:rotate(0) scale(1)}30%{transform:rotate(-8deg) scale(1.08)}65%{transform:rotate(7deg) scale(1.05)}100%{transform:rotate(0) scale(1)}}
+.v91LearnNav{display:flex;justify-content:center;gap:8px;margin:-3px 0 10px}
+.v91LearnNav button{border:1px solid rgba(255,211,106,.34);border-radius:999px;background:rgba(0,0,0,.68);color:rgba(255,255,255,.82);font-size:10px;font-weight:900;letter-spacing:2px;padding:8px 13px;cursor:pointer}
+.v91LearnNav button:hover{border-color:#ffd36a;color:#ffd36a}
+
+/* Shared learning overlay */
+#v91LearnOverlay{position:fixed;inset:0;z-index:10020;display:none;place-items:center;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));background:rgba(0,0,0,.88);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);overflow:hidden}
+#v91LearnOverlay.show{display:grid}
+#v91LearnOverlay::before{content:"";position:absolute;inset:-10%;background-image:radial-gradient(circle,rgba(255,255,255,.82) 0 1px,transparent 1.7px),radial-gradient(circle,rgba(80,210,255,.55) 0 1px,transparent 1.7px);background-size:97px 113px,173px 149px;animation:v91StarDrift 42s linear infinite,v91StarTwinkle 5s ease-in-out infinite alternate;pointer-events:none}
+.v91Panel{position:relative;width:min(690px,94vw);max-height:92vh;overflow:auto;scrollbar-width:none;border:1px solid rgba(255,211,106,.30);border-radius:26px;background:rgba(2,5,11,.88);box-shadow:0 0 55px rgba(70,180,255,.10);padding:22px;box-sizing:border-box}
+.v91Panel::-webkit-scrollbar{display:none}.v91Close{position:sticky;float:right;top:0;z-index:3;width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:#07090d;color:#fff;font-size:24px;cursor:pointer}.v91View{display:none}.v91View.active{display:block}.v91Title{color:#ffd36a;font-size:clamp(25px,6vw,38px);font-weight:1000;letter-spacing:3px;margin:4px 0 5px}.v91Sub{color:rgba(255,255,255,.52);font-size:10px;font-weight:900;letter-spacing:3px;margin-bottom:18px}.v91MiniNav{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px}.v91MiniNav button{flex:1;min-width:90px;border:1px solid rgba(255,211,106,.25);border-radius:12px;background:rgba(255,255,255,.025);color:#fff;padding:10px;font-weight:900;letter-spacing:1px}.v91MiniNav button.active{color:#ffd36a;border-color:#ffd36a}
+
+/* Vix profile: deliberately game-native, simple, alive. */
+.v91Profile{display:grid;grid-template-columns:minmax(150px,.8fr) 1.2fr;gap:22px;align-items:center}.v91Body{position:relative;height:410px;min-width:150px;filter:drop-shadow(0 0 18px rgba(105,225,255,.22));animation:v91BodyBreathe 4.8s ease-in-out infinite}.v91BodyHead{position:absolute;left:50%;top:5px;width:105px;height:100px;transform:translateX(-50%);border-radius:48%;background:linear-gradient(#f8f9ff,#aab6ce);border:2px solid #eaf8ff}.v91BodyVisor{position:absolute;inset:17px 11px 9px;border-radius:47%;background:#030914;border:2px solid #65dcff}.v91BodyEye{position:absolute;top:53%;width:15px;height:31px;border-radius:50%;background:#d8fbff;box-shadow:0 0 15px #69e1ff;animation:v90VixBlink 6.4s infinite}.v91BodyEye.l{left:31%}.v91BodyEye.r{right:31%;animation-delay:.045s}.v91Torso{position:absolute;left:50%;top:108px;width:88px;height:116px;transform:translateX(-50%);clip-path:polygon(18% 0,82% 0,100% 65%,72% 100%,28% 100%,0 65%);background:linear-gradient(135deg,#f5f7ff,#aebbd1);box-shadow:inset 0 -18px 25px rgba(0,0,0,.16)}.v91Chest{position:absolute;left:50%;top:142px;transform:translateX(-50%);width:7px;height:34px;border-radius:9px;background:#71ecff;box-shadow:0 0 12px #71ecff}.v91Hip{position:absolute;left:50%;top:214px;width:70px;height:57px;transform:translateX(-50%);border-radius:25% 25% 45% 45%;background:#111827}.v91Limb{position:absolute;background:linear-gradient(90deg,#aab7cf,#f7f8ff,#aab7cf);border-radius:999px}.v91Arm{top:120px;width:30px;height:142px}.v91Arm.l{left:17%;transform:rotate(8deg)}.v91Arm.r{right:17%;transform:rotate(-8deg)}.v91Leg{top:250px;width:38px;height:142px}.v91Leg.l{left:31%}.v91Leg.r{right:31%}.v91Joint{position:absolute;background:#121927;border-radius:999px}.v91KneeL,.v91KneeR{top:300px;width:39px;height:28px}.v91KneeL{left:31%}.v91KneeR{right:31%}.v91ProfileText h3{font-size:31px;margin:0 0 4px}.v91ProfileText h4{margin:0 0 22px;color:#8eeeff;letter-spacing:4px;font-size:12px}.v91ProfileText p{font-size:15px;line-height:1.65;color:rgba(255,255,255,.76)}.v91ProfileText strong{color:#fff}.v91ChestButton{border:1px solid #6cecff!important;color:#9ff4ff!important}.v91ChestHint{text-align:center;color:rgba(150,240,255,.68);font-size:9px;letter-spacing:2px;margin-top:5px}
+@keyframes v91BodyBreathe{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+
+.v91Grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.v91Card{position:relative;overflow:hidden;border:1px solid var(--c,rgba(255,255,255,.18));border-radius:18px;background:linear-gradient(135deg,color-mix(in srgb,var(--c) 10%,transparent),rgba(0,0,0,.76) 46%);padding:15px;min-height:115px;box-sizing:border-box}.v91Card h3{margin:0 0 7px;color:var(--c,#fff);font-size:20px;letter-spacing:1px}.v91Card p{margin:0;color:rgba(255,255,255,.70);font-size:12px;line-height:1.45}.v91Card .tag{display:inline-block;margin-top:9px;color:#fff;font-size:9px;font-weight:1000;letter-spacing:1.5px}.v91Orb{float:right;width:34px;height:34px;margin:1px 0 7px 10px;border-radius:50%;background:var(--c);box-shadow:0 0 12px var(--c),0 0 25px color-mix(in srgb,var(--c) 55%,transparent)}.v91RingIcon{float:right;width:38px;height:38px;margin-left:10px;border:5px solid var(--c);border-radius:50%;box-shadow:0 0 12px var(--c),inset 0 0 10px var(--c)}.v91VoidIcon{float:right;width:40px;height:40px;margin-left:10px;border-radius:50%;background:#ff2d2d;box-shadow:0 0 0 6px #160000,0 0 18px #ff2d2d}.v91VoidIcon.hollow{background:#02040a;border:5px solid #78efff;box-shadow:0 0 0 5px rgba(255,60,25,.35),0 0 18px #6cecff;box-sizing:border-box}
+@media(max-width:560px){.v91Panel{padding:17px}.v91Profile{grid-template-columns:1fr}.v91Body{height:360px;transform:scale(.88);transform-origin:50% 0;margin-bottom:-40px}.v91Grid{grid-template-columns:1fr}.v91Card{min-height:100px}.v91LearnNav{margin-top:1px}}
+@media(prefers-reduced-motion:reduce){#flowArchive::before,#flowArchive::after,#worldLeaderboard::before,#worldLeaderboard::after,#v91LearnOverlay::before,.v90Vix,.v90VixEye,.v91Body,.v91BodyEye{animation:none!important}}
+</style>
+
+<div id="v91LearnOverlay" aria-hidden="true">
+ <div class="v91Panel" role="dialog" aria-modal="true" aria-label="SHIFTVIX Guide">
+  <button class="v91Close" id="v91Close" aria-label="Close">×</button>
+  <section class="v91View" id="v91Story">
+   <div class="v91Title">VIX</div><div class="v91Sub">THE TRAVELER · ENTER THE NINE</div>
+   <div class="v91Profile">
+    <div><div class="v91Body"><div class="v91BodyHead"><div class="v91BodyVisor"><i class="v91BodyEye l"></i><i class="v91BodyEye r"></i></div></div><div class="v91Torso"></div><div class="v91Chest"></div><div class="v91Hip"></div><div class="v91Limb v91Arm l"></div><div class="v91Limb v91Arm r"></div><div class="v91Limb v91Leg l"></div><div class="v91Limb v91Leg r"></div><div class="v91Joint v91KneeL"></div><div class="v91Joint v91KneeR"></div></div></div>
+    <div class="v91ProfileText"><h3>VIX</h3><h4>THE TRAVELER</h4><p>A curious explorer navigating <strong>The Nine</strong>.</p><p>Vix shifts through endless lanes, collecting energy, discovering worlds, and pushing the limits of what’s possible.</p><p><strong>How far will you go?</strong></p></div>
+   </div>
+   <div class="v92LearnBlock">
+    <div class="v92LearnTitle">LEARN ABOUT THE NINE</div>
+    <div class="v92LearnSub">Explore the game through Vix.</div>
+    <div class="v92LearnActions">
+      <button type="button" data-v91view="guide"><span>VIX GUIDE</span><small>Objects · values · power-ups</small></button>
+      <button type="button" data-v91view="flows"><span>THE NINE FLOWS</span><small>Learn every way to play</small></button>
+    </div>
+   </div>
+  </section>
+  <section class="v91View" id="v91Guide">
+   <button class="v92BackToVix" type="button" data-v91view="story">← VIX</button>
+   <div class="v91Title">VIX GUIDE</div><div class="v91Sub">WHAT YOU SEE · WHAT IT MEANS · WHAT IT'S WORTH</div>
+   <div class="v91Grid">
+    <div class="v91Card" style="--c:#ffffff"><i class="v91Orb"></i><h3>WHITE ORB</h3><p>Standard energy orb.</p><span class="tag">+10 POINTS</span></div>
+    <div class="v91Card" style="--c:#55ccff"><i class="v91Orb"></i><h3>BLUE ORB</h3><p>Higher-value energy orb.</p><span class="tag">+25 POINTS</span></div>
+    <div class="v91Card" style="--c:#66ff66"><i class="v91Orb"></i><h3>GREEN ORB</h3><p>Higher-value energy orb.</p><span class="tag">+50 POINTS</span></div>
+    <div class="v91Card" style="--c:#cc66ff"><i class="v91Orb"></i><h3>PURPLE ORB</h3><p>Higher-value energy orb.</p><span class="tag">+75 POINTS</span></div>
+    <div class="v91Card" style="--c:#ff8800"><i class="v91Orb"></i><h3>ORANGE ORB</h3><p>High-value energy orb.</p><span class="tag">+100 POINTS</span></div>
+    <div class="v91Card" style="--c:#ff4444"><i class="v91Orb"></i><h3>RED ORB</h3><p>Highest-value standard orb.</p><span class="tag">+200 POINTS</span></div>
+    <div class="v91Card" style="--c:#ffd34e"><i class="v91RingIcon"></i><h3>GOLD RING</h3><p>Fly cleanly through the center.</p><span class="tag">ENTER · +250 POINTS</span></div>
+    <div class="v91Card" style="--c:#ff3434"><i class="v91VoidIcon"></i><h3>SOLID VOID</h3><p>Hot red center means danger. Contact costs a life.</p><span class="tag">DO NOT ENTER</span></div>
+    <div class="v91Card" style="--c:#79efff"><i class="v91VoidIcon hollow"></i><h3>HOLLOW VOID</h3><p>Blue/cyan center is the safe high-risk passage. Clip the fiery body and you lose a life.</p><span class="tag">ENTER CENTER · ESCAPE +500 PTS</span></div>
+    <div class="v91Card" style="--c:#ff66dd"><i class="v91Orb"></i><h3>FLUX</h3><p>Speed surge. Tier rings show power level; Tier I/II/III lasts 4/8/12 seconds.</p><span class="tag">+25 / +50 / +100 PTS</span></div>
+    <div class="v91Card" style="--c:#45cfff"><i class="v91Orb"></i><h3>KRONOS</h3><p>Doubles points from normal orbs for 4/8/12 seconds.</p><span class="tag">×2 SCORE · +25 / +50 / +100 PTS</span></div>
+    <div class="v91Card" style="--c:#ffd36a"><i class="v91Orb"></i><h3>MIDAS</h3><p>Golden Touch pulls normal orbs from all nine lanes for 4/8/12 seconds.</p><span class="tag">+25 / +50 / +100 PTS</span></div>
+    <div class="v91Card" style="--c:#35f2ff"><i class="v91Orb"></i><h3>WARP</h3><p>Instant spatial jump. Tier I/II/III adds 500m / 1000m / 1500m outside the dedicated Warp Flow.</p><span class="tag">+25 / +50 / +100 PTS</span></div>
+    <div class="v91Card" style="--c:#d9fbff"><i class="v91Orb"></i><h3>INVINCIBLE</h3><p>Eight seconds of protection from solid Voids.</p><span class="tag">SHIELD · 8 SECONDS</span></div>
+   </div>
+  </section>
+  <section class="v91View" id="v91Flows">
+   <button class="v92BackToVix" type="button" data-v91view="story">← VIX</button>
+   <div class="v91Title">THE NINE FLOWS</div><div class="v91Sub">NINE SKILLS · ONE TRAVELER · CHASE YOUR BEST</div>
+   <div class="v91Grid">
+    <div class="v91Card" style="--c:#39ff88"><h3>COLLECT</h3><p>Collect as many orbs as possible before your run ends.</p><span class="tag">RECORD · ORBS</span></div>
+    <div class="v91Card" style="--c:#45b7ff"><h3>TRAVEL</h3><p>Earn as much true travel distance as you can.</p><span class="tag">RECORD · METERS</span></div>
+    <div class="v91Card" style="--c:#c86bff"><h3>SCORE</h3><p>Build the highest score using orbs and bonus opportunities.</p><span class="tag">RECORD · POINTS</span></div>
+    <div class="v91Card" style="--c:#ffd34e"><h3>RINGS</h3><p>Fly accurately through as many gold rings as possible.</p><span class="tag">RECORD · RINGS</span></div>
+    <div class="v91Card" style="--c:#ff5f6d"><h3>SHIFT</h3><p>Reconnect from train to train across the nine lanes. Empty air never scores a shift.</p><span class="tag">RECORD · SHIFTS</span></div>
+    <div class="v91Card" style="--c:#35f2ff"><h3>WARP</h3><p>Find and hit as many Warp orbs as you can.</p><span class="tag">RECORD · WARPS</span></div>
+    <div class="v91Card" style="--c:#ff7a35"><h3>VOIDS</h3><p>Enter the cyan hollow centers without clipping the fiery body.</p><span class="tag">RECORD · VOIDS</span></div>
+    <div class="v91Card" style="--c:#72e6d1"><h3>DRIFT</h3><p>Keep moving through negative space to generate Drift distance.</p><span class="tag">RECORD · METERS</span></div>
+    <div class="v91Card" style="--c:#ffffff"><h3>ENDURE</h3><p>Pure survival. Three lives. Push through levels and see how far Vix can go.</p><span class="tag">RECORD · LEVEL</span></div>
+   </div>
+  </section>
+ </div>
+</div>
+<script id="shiftvixV91LivingUniverseScript">
+(()=>{
+ const overlay=document.getElementById('v91LearnOverlay');
+ const views={story:document.getElementById('v91Story'),guide:document.getElementById('v91Guide'),flows:document.getElementById('v91Flows')};
+ function showView(name='story'){
+   Object.entries(views).forEach(([key,el])=>el?.classList.toggle('active',key===name));
+   document.querySelectorAll('[data-v91view]').forEach(b=>b.classList.toggle('active',b.dataset.v91view===name));
+   overlay?.classList.add('show');overlay?.setAttribute('aria-hidden','false');
+   document.body.classList.add('uiModalOpen');
+   const panel=overlay?.querySelector('.v91Panel');if(panel)panel.scrollTop=0;
+ }
+ function close(){overlay?.classList.remove('show');overlay?.setAttribute('aria-hidden','true');if(!document.querySelector('#worldLeaderboard.show,#worldIdentitySetup.show'))document.body.classList.remove('uiModalOpen')}
+ function upgradeHeaders(){
+   document.querySelectorAll('.v90BrandHeader').forEach(header=>{
+     const vix=header.querySelector('.v90Vix');
+     if(vix&&!vix.classList.contains('v91VixButton')){
+       vix.classList.add('v91VixButton');
+       vix.setAttribute('role','button');
+       vix.setAttribute('tabindex','0');
+       vix.setAttribute('aria-label','Meet Vix the Traveler');
+     }
+     // V92: learning buttons live inside Vix's story, never in the main HUD header.
+     header.querySelectorAll('.v91LearnNav').forEach(nav=>nav.remove());
+   });
+ }
+ upgradeHeaders();
+ new MutationObserver(upgradeHeaders).observe(document.body,{childList:true,subtree:true});
+ document.addEventListener('click',e=>{
+   const vix=e.target.closest?.('.v91VixButton');if(vix){vix.classList.remove('v91Hello');void vix.offsetWidth;vix.classList.add('v91Hello');setTimeout(()=>showView('story'),250);return;}
+   const target=e.target.closest?.('[data-v91view]');if(target){showView(target.dataset.v91view);return;}
+   if(e.target===overlay||e.target.closest?.('#v91Close'))close();
+ });
+ document.addEventListener('keydown',e=>{
+   if((e.key==='Enter'||e.key===' ')&&document.activeElement?.classList.contains('v91VixButton')){e.preventDefault();showView('story')}
+   if(e.key==='Escape'&&overlay?.classList.contains('show'))close();
+ });
 })();
 </script>
 
