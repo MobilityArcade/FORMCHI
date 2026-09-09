@@ -162,6 +162,8 @@ function track(eventName,data={}){
 <!-- SHIFTVIX V82 — FORWARD-FLIGHT HUMANOID VIX: smaller hip-width head, tapered trapezoid torso, wider forearm gauntlets, tapered lower-leg boots, dark thruster rings with recessed cyan plasma discs, stronger Superman-style forward pitch; game-native satin finish; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V81 — HUMANOID VIX + GAME-NATIVE FINISH: human-readable rear silhouette with neck, shoulders, elbows, waist/hips, thighs/knees, thruster hands and substantial boots; satin neon-game material replaces chrome; four directional ion plumes; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V82.1 — SUPERMAN FLIGHT + THRUSTER UPDATE FIX: removes stale bloom reference crash and locks stronger forward flight pitch; gameplay/world preserved -->
+<!-- SHIFTVIX V96.1 — STABLE VERTICAL NAVIGATION ONLY:
+Small stability patch on the V96 baseline. Vix Story, Vix Guide, The Nine Flows and World Top 9 are constrained to vertical scrolling only; horizontal drift/rubber-banding is blocked and horizontal scroll position is continuously reset. The dedicated Tap-to-Zoom image viewer is intentionally unchanged so zoom/pan still works only after the user opens it. No gameplay, viewport sizing, scoring, Vix reactions, Midas, Chrono, artwork, starfield or other V96 systems changed. -->
 <!-- SHIFTVIX V96 — IMAGE-BASED VIX GUIDE + NINE FLOWS:
 Replaces the scrolling HTML Guide/Flows cards with the supplied polished poster images.
 Guide and Flows now open as single visual references with tap-to-zoom, pinch zoom, drag pan,
@@ -5123,6 +5125,80 @@ button{
 }
 </style>
 
+
+<style id="shiftvixV96_1VerticalNavLock">
+/* =========================================================
+   SHIFTVIX V96.1 — INNER HUD VERTICAL-ONLY NAVIGATION
+   Important: this patch does NOT alter the outer game viewport.
+   ========================================================= */
+
+/* Vix Story / Guide / Flows: vertical scroll only. */
+#v91LearnOverlay .v91Panel{
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior-y:contain!important;
+  overscroll-behavior-x:none!important;
+  touch-action:pan-y!important;
+  -webkit-overflow-scrolling:touch!important;
+}
+#v91LearnOverlay .v91View{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  overflow-x:hidden!important;
+  box-sizing:border-box!important;
+  touch-action:pan-y!important;
+}
+#v91LearnOverlay .v91View > *{
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+
+/* Story cinema stays fitted to the Story panel; it is not a pinch surface. */
+#v91Story .v94StoryCinema,
+#v91Story .v94StoryFrame,
+#v91Story .v94StorySlide{
+  max-width:100%!important;
+  box-sizing:border-box!important;
+  touch-action:pan-y!important;
+}
+
+/* Guide / Flows posters remain fixed cards until TAP TO ZOOM is pressed. */
+#v91Guide .v96PosterButton,
+#v91Flows .v96PosterButton,
+#v91Guide .v96PosterImage,
+#v91Flows .v96PosterImage{
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+#v91Guide .v96PosterButton,
+#v91Flows .v96PosterButton{
+  touch-action:pan-y!important;
+}
+
+/* World Top 9: same vertical-only behavior, with no sideways rubber-band. */
+#worldLeaderboard .worldBoardPanel{
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior-y:contain!important;
+  overscroll-behavior-x:none!important;
+  touch-action:pan-y!important;
+  -webkit-overflow-scrolling:touch!important;
+}
+#worldLeaderboard .worldBoardPanel > *{
+  max-width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+}
+
+/* Do not change the dedicated full-screen zoom viewer: it needs two-axis gestures. */
+#v96ImageZoom,
+#v96ImageZoom .v96ZoomStage{
+  touch-action:none!important;
+  overscroll-behavior:none!important;
+}
+</style>
+
 </head>
 <body>
 <div id="worldIdentitySetup" aria-hidden="true">
@@ -8639,7 +8715,7 @@ async function openWorldRank(mode="COLLECT"){
   }
   await loadWorldLeaderboard(worldBoardMode);
 }
-function openWorldLeaderboard(mode=null){const modal=document.getElementById("worldLeaderboard");if(!modal)return;modal.classList.add("show");modal.setAttribute("aria-hidden","false");document.body.classList.add("uiModalOpen");updateWorldIdentityDisplay();renderWorldHub();if(mode&&WORLD_MODES.includes(mode))openWorldRank(mode);else showWorldHub();if(!worldIdentityReady())setTimeout(openIdentitySetup,120)}
+function openWorldLeaderboard(mode=null){const modal=document.getElementById("worldLeaderboard");if(!modal)return;modal.classList.add("show");modal.setAttribute("aria-hidden","false");document.body.classList.add("uiModalOpen");updateWorldIdentityDisplay();renderWorldHub();if(mode&&WORLD_MODES.includes(mode))openWorldRank(mode);else showWorldHub();const panel=modal.querySelector(".worldBoardPanel");if(panel)panel.scrollLeft=0;if(!worldIdentityReady())setTimeout(openIdentitySetup,120)}
 function closeWorldLeaderboard(){const modal=document.getElementById("worldLeaderboard");modal?.classList.remove("show");modal?.setAttribute("aria-hidden","true");showWorldHub();if(!document.getElementById("worldIdentitySetup")?.classList.contains("show"))document.body.classList.remove("uiModalOpen")}
 async function loadWorldLeaderboard(mode){
   const rows=document.getElementById("worldBoardRows"),mine=document.getElementById("worldMine"),note=document.getElementById("worldBackendNote");
@@ -15855,6 +15931,23 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
 
 <script id="shiftvixV91LivingUniverseScript">
 (()=>{
+
+
+ // V96.1 — Safari safety lock: the information HUDs may move only on Y.
+ // This deliberately excludes the dedicated full-screen zoom stage.
+ const v961VerticalPanels=[
+   document.querySelector('#v91LearnOverlay .v91Panel'),
+   document.querySelector('#worldLeaderboard .worldBoardPanel')
+ ].filter(Boolean);
+ function v961LockHorizontal(panel){
+   if(panel.scrollLeft!==0) panel.scrollLeft=0;
+ }
+ v961VerticalPanels.forEach(panel=>{
+   panel.scrollLeft=0;
+   panel.addEventListener('scroll',()=>v961LockHorizontal(panel),{passive:true});
+   panel.addEventListener('touchstart',()=>v961LockHorizontal(panel),{passive:true});
+   panel.addEventListener('touchend',()=>v961LockHorizontal(panel),{passive:true});
+ });
  const overlay=document.getElementById('v91LearnOverlay');
  const views={story:document.getElementById('v91Story'),guide:document.getElementById('v91Guide'),flows:document.getElementById('v91Flows')};
  function showView(name='story'){
@@ -15862,7 +15955,7 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
    document.querySelectorAll('[data-v91view]').forEach(b=>b.classList.toggle('active',b.dataset.v91view===name));
    overlay?.classList.add('show');overlay?.setAttribute('aria-hidden','false');
    document.body.classList.add('uiModalOpen');
-   const panel=overlay?.querySelector('.v91Panel');if(panel)panel.scrollTop=0;
+   const panel=overlay?.querySelector('.v91Panel');if(panel){panel.scrollLeft=0;panel.scrollTop=0;}
  }
  function close(){overlay?.classList.remove('show');overlay?.setAttribute('aria-hidden','true');if(!document.querySelector('#worldLeaderboard.show,#worldIdentitySetup.show'))document.body.classList.remove('uiModalOpen')}
  function upgradeHeaders(){
