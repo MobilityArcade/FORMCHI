@@ -162,6 +162,11 @@ function track(eventName,data={}){
 <!-- SHIFTVIX V82 — FORWARD-FLIGHT HUMANOID VIX: smaller hip-width head, tapered trapezoid torso, wider forearm gauntlets, tapered lower-leg boots, dark thruster rings with recessed cyan plasma discs, stronger Superman-style forward pitch; game-native satin finish; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V81 — HUMANOID VIX + GAME-NATIVE FINISH: human-readable rear silhouette with neck, shoulders, elbows, waist/hips, thighs/knees, thruster hands and substantial boots; satin neon-game material replaces chrome; four directional ion plumes; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V82.1 — SUPERMAN FLIGHT + THRUSTER UPDATE FIX: removes stale bloom reference crash and locks stronger forward flight pitch; gameplay/world preserved -->
+<!-- SHIFTVIX V90 — UNIFIED VIX HUD:
+Flow Hub and World Top 9 now use the exact same Vix head → SHIFTVIX → ENTER THE NINE
+brand header, with a clean black/subtle-starfield space treatment. No speech bubble,
+no planet horizon, no competing HUD aesthetic. V88 gameplay, Vix Vision, reaction cam,
+Flows, rankings, scoring and ending systems preserved. -->
 <!-- SHIFTVIX V88 — VIX EYES + EARS: reaction-cam eyes widened slightly, POV eye spacing widened slightly, ear modules rebuilt as pearl-silver half-dome helmet pieces with subtle cyan edge light; V87.2 gameplay/end systems preserved -->
 <!-- SHIFTVIX V87.2 — VIX EAR REFINEMENT: eyes lowered slightly again; ear modules lengthened while staying slim, vertically spanning the eyes, and pitched outward at the top/inward at the bottom for an integrated earmuff-style helmet connection; V87.1 gameplay/end systems preserved -->
 <!-- SHIFTVIX V87.1 — VIX FACE REFINEMENT: reaction-cam eyes lowered, ears lowered/aligned to eye height and made thinner, cyan eye color slightly richer; V87 ending/gameplay preserved -->
@@ -4081,6 +4086,322 @@ button:active{transform:scale(.985)}
 }
 </style>
 
+
+<style id="shiftvixV90UnifiedHud">
+/* =========================================================
+   SHIFTVIX V90 — ONE HUD LANGUAGE
+   Same header on Flow Hub and World Top 9.
+   ========================================================= */
+
+.v90SrOnly{
+  position:absolute!important;
+  width:1px!important;height:1px!important;
+  padding:0!important;margin:-1px!important;
+  overflow:hidden!important;clip:rect(0,0,0,0)!important;
+  white-space:nowrap!important;border:0!important;
+}
+
+/* Clean outer-space background: black with only restrained points of light. */
+#flowArchive,
+#worldLeaderboard{
+  background:
+    radial-gradient(circle at 14% 16%,rgba(72,220,255,.035) 0 1px,transparent 1.8px),
+    radial-gradient(circle at 74% 27%,rgba(255,90,208,.035) 0 1px,transparent 1.7px),
+    radial-gradient(circle at 36% 72%,rgba(255,211,106,.03) 0 1px,transparent 1.8px),
+    radial-gradient(circle at 87% 80%,rgba(100,155,255,.035) 0 1px,transparent 1.7px),
+    rgba(0,0,0,.965)!important;
+  background-size:157px 139px,211px 181px,193px 223px,263px 197px!important;
+  backdrop-filter:blur(10px)!important;
+  -webkit-backdrop-filter:blur(10px)!important;
+}
+
+.archiveCard,
+.worldBoardPanel{
+  background:rgba(0,0,0,.965)!important;
+  border:1px solid rgba(255,211,106,.18)!important;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.02),
+    0 0 42px rgba(255,211,106,.035)!important;
+}
+
+/* ------- THE SHARED BRAND HEADER ------- */
+.v90BrandHeader{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:4px 0 18px;
+  margin:0 0 16px;
+  box-sizing:border-box;
+}
+
+.v90Vix{
+  --v90-rgb:105,225,255;
+  position:relative;
+  width:clamp(82px,13vw,118px);
+  aspect-ratio:1/1;
+  margin:0 auto 7px;
+  transform-origin:50% 58%;
+  animation:v90VixIdle 5.6s ease-in-out infinite;
+}
+
+/* Canonical V88-style pearl shell */
+.v90VixShell{
+  position:absolute;
+  inset:2%;
+  border-radius:48% 48% 46% 46%;
+  background:
+    radial-gradient(circle at 35% 22%,
+      rgba(255,255,255,.99) 0 7%,
+      rgba(232,235,245,.99) 18%,
+      rgba(193,202,222,.99) 67%,
+      rgba(130,145,172,.99) 100%);
+  border:2px solid rgba(240,245,255,.90);
+  box-shadow:
+    0 0 8px rgba(255,255,255,.34),
+    0 0 18px rgba(var(--v90-rgb),.38);
+}
+
+.v90VixFace{
+  position:absolute;
+  left:9%;
+  right:9%;
+  top:18%;
+  bottom:7%;
+  border-radius:48% 48% 45% 45%;
+  background:
+    radial-gradient(circle at 50% 40%,
+      rgba(17,29,48,.99) 0%,
+      rgba(4,10,20,.995) 68%,
+      rgba(0,0,0,1) 100%);
+  border:2px solid rgba(var(--v90-rgb),.60);
+  box-shadow:
+    inset 0 0 16px rgba(var(--v90-rgb),.07),
+    0 0 9px rgba(var(--v90-rgb),.22);
+}
+
+/* V88 pearl half-dome ears */
+.v90VixEar{
+  position:absolute;
+  top:45.5%;
+  width:8%;
+  height:27%;
+  background:
+    linear-gradient(180deg,
+      rgba(252,253,255,.99) 0%,
+      rgba(224,230,242,.99) 34%,
+      rgba(184,195,218,.99) 72%,
+      rgba(128,143,170,.99) 100%);
+  border:1px solid rgba(242,247,255,.90);
+  box-shadow:
+    0 0 4px rgba(255,255,255,.42),
+    0 0 9px rgba(var(--v90-rgb),.28);
+}
+.v90VixEar.left{
+  left:-1.5%;
+  border-radius:999px 20% 20% 999px;
+  transform:rotate(-3deg);
+}
+.v90VixEar.right{
+  right:-1.5%;
+  border-radius:20% 999px 999px 20%;
+  transform:rotate(3deg);
+}
+
+.v90VixEye{
+  position:absolute;
+  top:59%;
+  width:15%;
+  height:30%;
+  border-radius:50%;
+  background:rgba(190,244,255,.99);
+  box-shadow:
+    0 0 7px rgba(255,255,255,.98),
+    0 0 18px rgba(var(--v90-rgb),.96),
+    0 0 30px rgba(var(--v90-rgb),.48);
+  transform:translateY(-50%);
+  transform-origin:50% 50%;
+}
+.v90VixEye.left{left:26.5%}
+.v90VixEye.right{right:26.5%}
+
+/* Very restrained idle life: tiny drift + natural blink. */
+.v90VixEye{
+  animation:v90VixBlink 6.4s infinite;
+}
+.v90VixEye.right{
+  animation-delay:.045s;
+}
+@keyframes v90VixIdle{
+  0%,100%{transform:translateY(0) rotate(0deg)}
+  28%{transform:translateY(-1px) rotate(-.7deg)}
+  57%{transform:translateY(1px) rotate(.6deg)}
+  78%{transform:translateY(0) rotate(-.3deg)}
+}
+@keyframes v90VixBlink{
+  0%,44%,47%,100%{transform:translateY(-50%) scaleY(1)}
+  45.2%,46.1%{transform:translateY(-50%) scaleY(.10)}
+}
+
+.v90BrandWord{
+  margin:0;
+  color:transparent;
+  -webkit-text-fill-color:transparent;
+  -webkit-text-stroke:2px #ffd36a;
+  font-family:Arial Black,Arial,Helvetica,sans-serif;
+  font-size:clamp(42px,8vw,68px);
+  line-height:.92;
+  letter-spacing:3px;
+  text-shadow:0 0 12px rgba(255,211,106,.15);
+}
+
+.v90BrandTag{
+  margin-top:12px;
+  color:#ffd36a;
+  font-size:clamp(10px,1.7vw,14px);
+  font-weight:950;
+  letter-spacing:clamp(4px,.85vw,8px);
+  line-height:1;
+  text-shadow:0 0 9px rgba(255,211,106,.18);
+}
+
+/* Remove old Flow Hub header styling; shared header owns the top. */
+.archiveHeader{display:none!important}
+
+/* Main Hub card spacing below the exact same brand header. */
+.archiveCard{
+  width:min(650px,90vw)!important;
+  max-height:88vh!important;
+  padding:24px!important;
+}
+#archiveList{
+  max-height:calc(88vh - 190px)!important;
+  padding-right:2px!important;
+  scrollbar-width:none!important;
+  -ms-overflow-style:none!important;
+}
+#archiveList::-webkit-scrollbar{display:none!important}
+
+/* World Top 9 uses identical header, not a second design language. */
+.v90WorldHeaderWrap{
+  position:relative;
+}
+.v90WorldHeaderWrap .v90BrandHeader{
+  margin-bottom:10px;
+}
+.v90WorldClose{
+  position:absolute!important;
+  top:0!important;
+  right:0!important;
+  width:38px!important;
+  height:38px!important;
+  border:1px solid rgba(255,255,255,.12)!important;
+  border-radius:50%!important;
+  background:rgba(255,255,255,.025)!important;
+  color:rgba(255,255,255,.72)!important;
+  display:grid!important;
+  place-items:center!important;
+  line-height:1!important;
+  padding:0!important;
+}
+
+.v90WorldSectionTitle{
+  margin:0 0 16px;
+  padding:14px 16px;
+  border:1px solid rgba(255,211,106,.42);
+  border-radius:17px;
+  background:rgba(255,211,106,.035);
+  color:#fff;
+  text-align:center;
+  font-size:clamp(22px,4vw,30px);
+  font-weight:1000;
+  letter-spacing:2.4px;
+  box-shadow:0 0 13px rgba(255,211,106,.035);
+}
+
+.worldBoardPanel{
+  width:min(650px,90vw)!important;
+  max-height:88vh!important;
+  padding:24px!important;
+  scrollbar-width:none!important;
+  -ms-overflow-style:none!important;
+  -webkit-overflow-scrolling:touch;
+}
+.worldBoardPanel::-webkit-scrollbar{
+  display:none!important;
+  width:0!important;
+  height:0!important;
+}
+
+/* Suppress the previous World Top 9 header aesthetic. */
+.worldBoardHead,
+.worldBoardSub{
+  display:none!important;
+}
+
+/* Keep existing content, but harmonize neutral framing. */
+.worldPlayerIdentity{
+  border-color:rgba(255,211,106,.15)!important;
+  background:rgba(255,255,255,.012)!important;
+}
+.worldHubHeader span{
+  color:#ffd36a!important;
+}
+.worldHubHeader small{
+  color:rgba(255,255,255,.38)!important;
+}
+
+/* WORLD TOP 9 launcher inside the Flow Hub stays gold/black and clean. */
+.worldBoardLaunch{
+  border-color:rgba(255,211,106,.46)!important;
+  background:rgba(255,211,106,.035)!important;
+  box-shadow:
+    inset 0 0 20px rgba(255,211,106,.025),
+    0 0 13px rgba(255,211,106,.03)!important;
+}
+.worldBoardLaunch strong{color:#fff!important}
+.worldBoardLaunch span{color:#fff!important}
+
+/* Phone layout: preserve header presence without pushing cards too far down. */
+@media(max-width:699px){
+  .archiveCard,
+  .worldBoardPanel{
+    width:min(94vw,650px)!important;
+    max-height:90vh!important;
+    padding:18px 14px 20px!important;
+  }
+  .v90BrandHeader{
+    padding-top:0;
+    padding-bottom:12px;
+    margin-bottom:11px;
+  }
+  .v90Vix{
+    width:88px;
+    margin-bottom:5px;
+  }
+  .v90BrandWord{
+    font-size:44px;
+    -webkit-text-stroke:1.65px #ffd36a;
+    letter-spacing:2px;
+  }
+  .v90BrandTag{
+    margin-top:9px;
+    font-size:10px;
+    letter-spacing:4px;
+  }
+  .v90WorldSectionTitle{
+    margin-bottom:13px;
+    padding:12px 13px;
+    font-size:21px;
+  }
+  #archiveList{
+    max-height:calc(90vh - 160px)!important;
+  }
+}
+</style>
+
 </head>
 <body>
 <div id="worldIdentitySetup" aria-hidden="true">
@@ -4096,7 +4417,22 @@ button:active{transform:scale(.985)}
 </div>
 <div id="worldLeaderboard" aria-hidden="true">
   <div class="worldBoardPanel" role="dialog" aria-modal="true" aria-labelledby="worldBoardTitle">
-    <div class="worldBoardHead"><div><h2 id="worldBoardTitle">WORLD TOP 9</h2><div class="worldBoardSub">9 LANES · 9 SKILLS · ONE WORLD</div></div><button class="worldBoardClose" id="worldBoardClose" aria-label="Close">×</button></div>
+    <div class="v90WorldHeaderWrap">
+      <div class="v90BrandHeader" aria-label="SHIFTVIX — Enter the Nine">
+  <div class="v90Vix" aria-hidden="true">
+    <div class="v90VixShell"></div>
+    <div class="v90VixFace"></div>
+    <div class="v90VixEar left"></div>
+    <div class="v90VixEar right"></div>
+    <div class="v90VixEye left"></div>
+    <div class="v90VixEye right"></div>
+  </div>
+  <div class="v90BrandWord">SHIFTVIX</div>
+  <div class="v90BrandTag">ENTER THE NINE</div>
+</div>
+      <button class="worldBoardClose v90WorldClose" id="worldBoardClose" aria-label="Close">×</button>
+    </div>
+    <div class="v90WorldSectionTitle" id="worldBoardTitle">WORLD TOP 9</div>
     <div class="worldPlayerIdentity" id="worldPlayerIdentity"><div class="identityText" id="worldIdentityText">PLAYER NOT SET</div><button class="worldEditIdentity" id="worldEditIdentity" type="button">EDIT</button></div>
     <div id="worldHubView" class="worldHubView">
       <div class="worldHubHeader"><span>CHOOSE A FLOW</span><small>TAP A FLOW TO VIEW ITS WORLD TOP 9</small></div>
@@ -4146,7 +4482,24 @@ button:active{transform:scale(.985)}
 </div>
 <div id="challengeHud"><div id="challengeName">SURVIVE THE FLOW</div><div id="challengeText">LOADING…</div><div id="challengeBar"><div id="challengeFill"></div><div id="challengePct">0%</div></div></div>
 <div id="tutorialPrompt" aria-live="polite"></div><div id="powerAnnouncement" aria-live="polite"></div><div id="modeBanner"></div><div id="travelMilestone" aria-live="polite"></div><div id="chronoMultiplier">×2 SCORE</div><div id="warpBurstFx"></div><div id="flowFx"></div><div id="fluxFx"></div><div id="chronoFx"></div><div id="midasFx"></div><div id="prismFx"></div><div id="pulseWaves"></div>
-<div id="flowArchive" aria-hidden="true"><div class="archiveCard" role="dialog" aria-modal="true" aria-labelledby="flowPathTitle"><div class="archiveHeader"><h2 id="flowPathTitle">SHIFTVIX</h2></div><div id="archiveList"></div></div></div>
+<div id="flowArchive" aria-hidden="true">
+  <div class="archiveCard" role="dialog" aria-modal="true" aria-labelledby="flowPathTitle">
+    <div class="v90BrandHeader" aria-label="SHIFTVIX — Enter the Nine">
+  <div class="v90Vix" aria-hidden="true">
+    <div class="v90VixShell"></div>
+    <div class="v90VixFace"></div>
+    <div class="v90VixEar left"></div>
+    <div class="v90VixEar right"></div>
+    <div class="v90VixEye left"></div>
+    <div class="v90VixEye right"></div>
+  </div>
+  <div class="v90BrandWord">SHIFTVIX</div>
+  <div class="v90BrandTag">ENTER THE NINE</div>
+</div>
+    <h2 id="flowPathTitle" class="v90SrOnly">SHIFTVIX</h2>
+    <div id="archiveList"></div>
+  </div>
+</div>
 
 <!-- SHIFTVIX CHRONO 2.0 — SLOW TIME + PRISM VISION + 2X SCORE -->
 <script type="module">
