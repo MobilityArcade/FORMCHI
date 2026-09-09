@@ -162,20 +162,6 @@ function track(eventName,data={}){
 <!-- SHIFTVIX V82 — FORWARD-FLIGHT HUMANOID VIX: smaller hip-width head, tapered trapezoid torso, wider forearm gauntlets, tapered lower-leg boots, dark thruster rings with recessed cyan plasma discs, stronger Superman-style forward pitch; game-native satin finish; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V81 — HUMANOID VIX + GAME-NATIVE FINISH: human-readable rear silhouette with neck, shoulders, elbows, waist/hips, thighs/knees, thruster hands and substantial boots; satin neon-game material replaces chrome; four directional ion plumes; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V82.1 — SUPERMAN FLIGHT + THRUSTER UPDATE FIX: removes stale bloom reference crash and locks stronger forward flight pitch; gameplay/world preserved -->
-<!-- SHIFTVIX V98 — VIEWPORT CLEANUP + MIDAS EYE PULL + CHRONO SLOW-MO:
-Removes visible native scrollbars/white bars while preserving vertical-only HUD scrolling.
-HUD/story/World Top 9 overlays are hard-locked to the same frozen game viewport and clipped cleanly.
-Midas no longer visually funnels normal collectibles into the retired center-reactor point; left/right collectibles
-bend toward twin Vix Vision eye channels before auto-collection. Chrono world time dilation is restored while
-steering remains responsive, bringing back the slow-motion visual payoff. V97 reactions, invincibility eye warning,
-image-guide stability, scoring, collision logic, rankings and Flow systems preserved. -->
-<!-- SHIFTVIX V97 — VIX REACTIONS + VERTICAL HUD LOCK + STABILITY:
-All Flow/Vix Story/Vix Guide/Nine Flows/World Top 9 panels are locked to vertical scrolling only.
-Vix Reaction Cam gains focused, happy, excited and disappointed eye expressions while preserving damage/end reactions.
-Invincibility warning is moved from the retired center warning into BOTH first-person Vix eyes and reaction-cam eyes,
-which blink faster during the final 2 seconds. Vix Story slideshow is explicitly restarted/preloaded every time the
-story opens. Poster pinch zoom is capped/throttled and background animations pause during zoom to reduce iOS Safari
-GPU/memory spikes. V96 gameplay, scoring, rankings, guides, slideshow artwork and core mechanics preserved. -->
 <!-- SHIFTVIX V96 — IMAGE-BASED VIX GUIDE + NINE FLOWS:
 Replaces the scrolling HTML Guide/Flows cards with the supplied polished poster images.
 Guide and Flows now open as single visual references with tap-to-zoom, pinch zoom, drag pan,
@@ -5137,269 +5123,6 @@ button{
 }
 </style>
 
-
-<style id="shiftvixV97Polish">
-/* =========================================================
-   SHIFTVIX V97 — VERTICAL-ONLY HUD NAVIGATION
-   ========================================================= */
-
-/* Outer modal layers never drift horizontally. */
-#flowArchive,
-#worldLeaderboard,
-#v91LearnOverlay,
-#worldIdentitySetup{
-  overflow-x:hidden!important;
-  overscroll-behavior-x:none!important;
-}
-
-/* Every scrollable HUD panel is Y-axis only. */
-.archiveCard,
-.worldBoardPanel,
-.v91Panel,
-#v91Story,
-#v91Guide,
-#v91Flows{
-  max-width:100%!important;
-  box-sizing:border-box!important;
-  overflow-x:hidden!important;
-  overflow-y:auto!important;
-  overscroll-behavior-x:none!important;
-  overscroll-behavior-y:contain!important;
-  touch-action:pan-y!important;
-  -webkit-overflow-scrolling:touch;
-}
-
-/* Prevent wide children from pushing a modal sideways. */
-.v91Panel > *,
-#v91Story > *,
-#v91Guide > *,
-#v91Flows > *,
-.worldBoardPanel > *,
-.archiveCard > *{
-  max-width:100%!important;
-  box-sizing:border-box!important;
-}
-
-/* Poster cards fit the panel; zooming happens only in the dedicated viewer. */
-.v96PosterButton,
-.v94StoryCinema,
-.v94StoryFrame{
-  width:100%!important;
-  max-width:100%!important;
-}
-
-/* =========================================================
-   VIX FACIAL EXPRESSIONS
-   Eyes do most of the acting; head motion stays restrained.
-   ========================================================= */
-#vixReactionCam.focused .vixCamEye{
-  height:14%!important;
-  width:21%!important;
-}
-#vixReactionCam.focused .vixCamEye.left{
-  transform:translateY(-50%) rotate(-18deg)!important;
-}
-#vixReactionCam.focused .vixCamEye.right{
-  transform:translateY(-50%) rotate(18deg)!important;
-}
-
-#vixReactionCam.happy .vixCamEye{
-  height:13%!important;
-  width:22%!important;
-  border-radius:50% 50% 18% 18%!important;
-  transform:translateY(-50%) translateY(5%)!important;
-  box-shadow:
-    0 0 8px rgba(255,255,255,.96),
-    0 0 22px rgba(var(--vix-cam-rgb),1),
-    0 0 38px rgba(var(--vix-cam-rgb),.64)!important;
-}
-
-#vixReactionCam.excited{
-  animation:v97VixExcited .52s ease-out 2!important;
-}
-#vixReactionCam.excited .vixCamEye{
-  height:12%!important;
-  width:23%!important;
-}
-#vixReactionCam.excited .vixCamEye.left{
-  transform:translateY(-50%) rotate(-20deg)!important;
-}
-#vixReactionCam.excited .vixCamEye.right{
-  transform:translateY(-50%) rotate(20deg)!important;
-}
-
-#vixReactionCam.disappointed .vixCamEye{
-  height:11%!important;
-  width:21%!important;
-  opacity:.78!important;
-}
-#vixReactionCam.disappointed .vixCamEye.left{
-  transform:translateY(-50%) rotate(8deg)!important;
-}
-#vixReactionCam.disappointed .vixCamEye.right{
-  transform:translateY(-50%) rotate(-8deg)!important;
-}
-
-@keyframes v97VixExcited{
-  0%,100%{transform:rotate(var(--vix-cam-bank)) scale(1)}
-  45%{transform:rotate(var(--vix-cam-bank)) translateY(-4px) scale(1.055)}
-}
-
-/* =========================================================
-   INVINCIBILITY — VIX'S EYES ARE THE WARNING SYSTEM
-   ========================================================= */
-#vixVision.invincible .vixEye{
-  background:rgba(225,252,255,.66)!important;
-  box-shadow:
-    inset 0 0 16px rgba(255,255,255,.55),
-    0 0 12px rgba(255,255,255,.84),
-    0 0 28px rgba(125,239,255,1),
-    0 0 56px rgba(125,239,255,.62)!important;
-}
-#vixReactionCam.invincible .vixCamEye{
-  background:#f7feff!important;
-  box-shadow:
-    0 0 10px #fff,
-    0 0 24px rgba(125,239,255,1),
-    0 0 42px rgba(125,239,255,.68)!important;
-}
-
-/* Final 2 seconds: synchronized blink replaces old center-circle warning. */
-#vixVision.invincibleWarn .vixEye,
-#vixReactionCam.invincibleWarn .vixCamEye{
-  animation:v97InvincibleEyeWarning .38s steps(2,end) infinite!important;
-}
-@keyframes v97InvincibleEyeWarning{
-  0%,44%{opacity:1;filter:brightness(1.35)}
-  45%,100%{opacity:.16;filter:brightness(.72)}
-}
-
-/* Retire visual invincibility warning behavior on the old center reactor. */
-#center.reactorInvincible.invincibleEnding::before,
-#center.reactorInvincible.invincibleEnding::after,
-#center.reactorInvincible.invincibleEnding .reactorCore{
-  animation:none!important;
-}
-
-/* =========================================================
-   V97 STORY / ZOOM STABILITY
-   ========================================================= */
-
-/* While full-screen guide zoom is open, pause decorative GPU work. */
-body.v97ZoomOpen #flowArchive::before,
-body.v97ZoomOpen #flowArchive::after,
-body.v97ZoomOpen #worldLeaderboard::before,
-body.v97ZoomOpen #worldLeaderboard::after,
-body.v97ZoomOpen #v91LearnOverlay::before,
-body.v97ZoomOpen .archiveCard::before,
-body.v97ZoomOpen .archiveCard::after,
-body.v97ZoomOpen .worldBoardPanel::before,
-body.v97ZoomOpen .worldBoardPanel::after,
-body.v97ZoomOpen .v91Panel::before,
-body.v97ZoomOpen .v91Panel::after{
-  animation-play-state:paused!important;
-}
-
-/* Dedicated image viewer remains intentionally two-axis only while actually zooming. */
-#v96ImageZoom,
-#v96ImageZoom .v96ZoomStage{
-  overscroll-behavior:none!important;
-}
-
-@media(prefers-reduced-motion:reduce){
-  #vixVision.invincibleWarn .vixEye,
-  #vixReactionCam.invincibleWarn .vixCamEye,
-  #vixReactionCam.excited{
-    animation:none!important;
-  }
-}
-</style>
-
-
-<style id="shiftvixV98ViewportPolish">
-/* =========================================================
-   V98 — ONE CLEAN VIEWPORT / INVISIBLE VERTICAL SCROLLBARS
-   ========================================================= */
-
-/* Every full-screen interface layer is clipped to the exact game rectangle. */
-#flowArchive,
-#worldLeaderboard,
-#v91LearnOverlay,
-#worldIdentitySetup{
-  left:0!important;
-  top:0!important;
-  right:auto!important;
-  bottom:auto!important;
-  width:var(--shiftvix-app-width,100vw)!important;
-  height:var(--shiftvix-app-height,100vh)!important;
-  max-width:var(--shiftvix-app-width,100vw)!important;
-  max-height:var(--shiftvix-app-height,100vh)!important;
-  overflow:hidden!important;
-  box-sizing:border-box!important;
-}
-
-/* Panels still scroll vertically, but the browser never paints a white/gray scrollbar. */
-.archiveCard,
-.worldBoardPanel,
-.v91Panel,
-#v91Story,
-#v91Guide,
-#v91Flows,
-#archiveList,
-.worldRankList{
-  overflow-x:hidden!important;
-  overflow-y:auto!important;
-  scrollbar-width:none!important;
-  -ms-overflow-style:none!important;
-  overscroll-behavior-x:none!important;
-  overscroll-behavior-y:contain!important;
-  touch-action:pan-y!important;
-  -webkit-overflow-scrolling:touch!important;
-}
-
-.archiveCard::-webkit-scrollbar,
-.worldBoardPanel::-webkit-scrollbar,
-.v91Panel::-webkit-scrollbar,
-#v91Story::-webkit-scrollbar,
-#v91Guide::-webkit-scrollbar,
-#v91Flows::-webkit-scrollbar,
-#archiveList::-webkit-scrollbar,
-.worldRankList::-webkit-scrollbar{
-  display:none!important;
-  width:0!important;
-  height:0!important;
-}
-
-/* Keep centered cards inside the frozen viewport at every desktop/mobile aspect ratio. */
-#flowArchive .archiveCard,
-#worldLeaderboard .worldBoardPanel,
-#v91LearnOverlay .v91Panel{
-  max-width:calc(var(--shiftvix-app-width,100vw) - 24px)!important;
-  max-height:calc(var(--shiftvix-app-height,100vh) - 24px)!important;
-  margin-left:auto!important;
-  margin-right:auto!important;
-  box-sizing:border-box!important;
-}
-
-/* Prevent any transformed/image content from creating horizontal negative space. */
-#flowArchive *,
-#worldLeaderboard *,
-#v91LearnOverlay *{
-  min-width:0;
-}
-
-/* Desktop browser scrollbars are never part of the SHIFTVIX visual language. */
-html,body{
-  scrollbar-width:none!important;
-}
-html::-webkit-scrollbar,
-body::-webkit-scrollbar{
-  display:none!important;
-  width:0!important;
-  height:0!important;
-}
-</style>
-
 </head>
 <body>
 <div id="worldIdentitySetup" aria-hidden="true">
@@ -6009,17 +5732,9 @@ function updateVix3D(dt,state){
   const vixReactionCam=document.getElementById('vixReactionCam');
   const vixActive=!!(gameStarted&&!gameOver);
 
-  const invincibleActive=typeof invincibleTime!=='undefined'&&invincibleTime>0;
-  const invincibleWarning=invincibleActive&&invincibleTime<=2.0;
-  const flowHappy=!!(flowCompletionCoastActive&&!finalLifeCoastActive);
-  const endingWin=!!(finalLifeCoastActive&&finalLifeReaction==="win");
-  const endingLoss=!!(finalLifeCoastActive&&finalLifeReaction==="loss");
-
   if(vixVision){
     vixVision.classList.toggle('active',vixActive);
     vixVision.classList.toggle('damage',state==='damage');
-    vixVision.classList.toggle('invincible',invincibleActive);
-    vixVision.classList.toggle('invincibleWarn',invincibleWarning);
   }
 
   if(vixReactionCam){
@@ -6029,14 +5744,8 @@ function updateVix3D(dt,state){
     vixReactionCam.classList.toggle('flux',state==='flux');
     vixReactionCam.classList.toggle('chrono',state==='chrono');
     vixReactionCam.classList.toggle('warp',state==='warp');
-    vixReactionCam.classList.toggle('invincible',invincibleActive);
-    vixReactionCam.classList.toggle('invincibleWarn',invincibleWarning);
-    vixReactionCam.classList.toggle('focused',state==='warp'&&!endingWin&&!endingLoss);
-    vixReactionCam.classList.toggle('happy',flowHappy||invincibleActive);
-    vixReactionCam.classList.toggle('excited',endingWin);
-    vixReactionCam.classList.toggle('disappointed',endingLoss);
-    vixReactionCam.classList.toggle('endingWin',endingWin);
-    vixReactionCam.classList.toggle('endingLoss',endingLoss);
+    vixReactionCam.classList.toggle('endingWin',finalLifeCoastActive&&finalLifeReaction==="win");
+    vixReactionCam.classList.toggle('endingLoss',finalLifeCoastActive&&finalLifeReaction==="loss");
   }
 
   const dx=targetX-playerX;
@@ -6050,7 +5759,6 @@ function updateVix3D(dt,state){
   else if(state==='flux') visionRGB='255,98,235';
   else if(state==='chrono') visionRGB='111,238,255';
   else if(state==='warp') visionRGB='177,131,255';
-  else if(state==='invincible') visionRGB='225,252,255';
   else if(state==='damage') visionRGB='255,76,76';
 
   if(vixVision){
@@ -7349,7 +7057,7 @@ function activateFluxBoost(reason,tier=1){
 // =========================
 const CHRONO_DURATION_SECONDS=8; // fallback; tier activation uses 4/8/12
 const CHRONO_MIN_DISTANCE=1800;
-const CHRONO_WORLD_SCALE=.58; // V98 KRONOS: restore cinematic slow-motion world dilation; steering remains on real dt
+const CHRONO_WORLD_SCALE=1; // V59 KRONOS: score doubles without slowing time
 const CHRONO_COLOR=0xbff6ff;
 const CHRONO_GLOW_COLOR=0x45cfff;
 
@@ -8931,7 +8639,7 @@ async function openWorldRank(mode="COLLECT"){
   }
   await loadWorldLeaderboard(worldBoardMode);
 }
-function openWorldLeaderboard(mode=null){const modal=document.getElementById("worldLeaderboard");if(!modal)return;modal.classList.add("show");modal.setAttribute("aria-hidden","false");document.body.classList.add("uiModalOpen");updateWorldIdentityDisplay();renderWorldHub();if(mode&&WORLD_MODES.includes(mode))openWorldRank(mode);else showWorldHub();const panel=modal.querySelector(".worldBoardPanel");if(panel){panel.scrollLeft=0;panel.scrollTop=0;}if(!worldIdentityReady())setTimeout(openIdentitySetup,120)}
+function openWorldLeaderboard(mode=null){const modal=document.getElementById("worldLeaderboard");if(!modal)return;modal.classList.add("show");modal.setAttribute("aria-hidden","false");document.body.classList.add("uiModalOpen");updateWorldIdentityDisplay();renderWorldHub();if(mode&&WORLD_MODES.includes(mode))openWorldRank(mode);else showWorldHub();if(!worldIdentityReady())setTimeout(openIdentitySetup,120)}
 function closeWorldLeaderboard(){const modal=document.getElementById("worldLeaderboard");modal?.classList.remove("show");modal?.setAttribute("aria-hidden","true");showWorldHub();if(!document.getElementById("worldIdentitySetup")?.classList.contains("show"))document.body.classList.remove("uiModalOpen")}
 async function loadWorldLeaderboard(mode){
   const rows=document.getElementById("worldBoardRows"),mine=document.getElementById("worldMine"),note=document.getElementById("worldBackendNote");
@@ -15191,13 +14899,7 @@ const isRegularCollectible=
   !b.userData.isGoldRing;
 
 if(midasTime>0&&isRegularCollectible){
-  /*
-    V98 MIDAS — VIX EYE PULL
-    The retired center iris is no longer the visual destination.
-    Coins from the left half of The Nine bend toward Vix's left eye channel;
-    coins from the right half bend toward the right eye channel.
-    The collision/auto-collect rule is unchanged — this is a visual trajectory refinement.
-  */
+  // Golden Touch bends every normal coin from all nine lanes toward the player.
   const attraction=
     THREE.MathUtils.clamp(
       (b.position.z-FAR_Z)/(NEAR_Z-FAR_Z),
@@ -15207,41 +14909,18 @@ if(midasTime>0&&isRegularCollectible){
 
   const pull=
     1-Math.exp(
-      -worldDt*(2.4+attraction*9.4)
+      -worldDt*(2.8+attraction*10.5)
     );
-
-  const side=
-    b.position.x<playerX ? -1 : 1;
-
-  /*
-    Keep the split subtle in world space so the trails read as two eye-directed streams
-    without changing lane logic or making the collection miss the player's real collider.
-    The eye separation tightens as the object reaches Vix.
-  */
-  const eyeSpread=
-    THREE.MathUtils.lerp(
-      1.35,
-      .38,
-      attraction
-    );
-
-  const targetEyeX=
-    playerX+
-    side*eyeSpread;
-
-  const targetEyeY=
-    playerY+
-    THREE.MathUtils.lerp(.55,.18,attraction);
 
   b.position.x=THREE.MathUtils.lerp(
     b.position.x,
-    targetEyeX,
+    playerX,
     pull
   );
 
   b.position.y=THREE.MathUtils.lerp(
     b.position.y,
-    targetEyeY,
+    playerY,
     pull
   );
 }else{
@@ -16178,30 +15857,12 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
 (()=>{
  const overlay=document.getElementById('v91LearnOverlay');
  const views={story:document.getElementById('v91Story'),guide:document.getElementById('v91Guide'),flows:document.getElementById('v91Flows')};
- function v97RestartStorySlideshow(){
-   const slides=[...document.querySelectorAll('#v91Story .v94StorySlide')];
-   if(!slides.length)return;
-   slides.forEach((img,i)=>{
-     try{ if(!img.complete) img.loading='eager'; }catch(_){}
-     img.style.animation='none';
-     img.style.opacity=i===0?'1':'0';
-   });
-   void document.querySelector('#v91Story .v94StoryFrame')?.offsetWidth;
-   requestAnimationFrame(()=>{
-     slides.forEach(img=>{
-       img.style.removeProperty('animation');
-       img.style.removeProperty('opacity');
-     });
-   });
- }
  function showView(name='story'){
    Object.entries(views).forEach(([key,el])=>el?.classList.toggle('active',key===name));
    document.querySelectorAll('[data-v91view]').forEach(b=>b.classList.toggle('active',b.dataset.v91view===name));
    overlay?.classList.add('show');overlay?.setAttribute('aria-hidden','false');
    document.body.classList.add('uiModalOpen');
-   const panel=overlay?.querySelector('.v91Panel');
-   if(panel){panel.scrollLeft=0;panel.scrollTop=0;}
-   if(name==='story')v97RestartStorySlideshow();
+   const panel=overlay?.querySelector('.v91Panel');if(panel)panel.scrollTop=0;
  }
  function close(){overlay?.classList.remove('show');overlay?.setAttribute('aria-hidden','true');if(!document.querySelector('#worldLeaderboard.show,#worldIdentitySetup.show'))document.body.classList.remove('uiModalOpen')}
  function upgradeHeaders(){
@@ -16249,16 +15910,11 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
  let v96Scale=1,v96X=0,v96Y=0,v96BaseW=1,v96BaseH=1;
  let v96Pointers=new Map(),v96StartDist=0,v96StartScale=1,v96DragX=0,v96DragY=0,v96LastTap=0;
 
- let v97ZoomRAF=0;
  function v96Apply(){
    if(!v96Img)return;
-   if(v97ZoomRAF)return;
-   v97ZoomRAF=requestAnimationFrame(()=>{
-     v97ZoomRAF=0;
-     v96Img.style.width=v96BaseW+'px';
-     v96Img.style.height=v96BaseH+'px';
-     v96Img.style.transform=`translate(-50%,-50%) translate(${v96X}px,${v96Y}px) scale(${v96Scale})`;
-   });
+   v96Img.style.width=v96BaseW+'px';
+   v96Img.style.height=v96BaseH+'px';
+   v96Img.style.transform=`translate(-50%,-50%) translate(${v96X}px,${v96Y}px) scale(${v96Scale})`;
  }
  function v96Fit(){
    if(!v96Stage||!v96Img||!v96Img.naturalWidth)return;
@@ -16278,16 +15934,13 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
    v96Img.src=src.src;
    v96Zoom.classList.add('show');
    v96Zoom.setAttribute('aria-hidden','false');
-   document.body.classList.add('uiModalOpen','v97ZoomOpen');
+   document.body.classList.add('uiModalOpen');
    requestAnimationFrame(v96Fit);
  }
  function v96Close(){
    v96Zoom.classList.remove('show');
    v96Zoom.setAttribute('aria-hidden','true');
    v96Pointers.clear();
-   v96Scale=1;v96X=0;v96Y=0;v96StartDist=0;v96StartScale=1;
-   if(v96Img){v96Img.removeAttribute('style');v96Img.src='';}
-   document.body.classList.remove('v97ZoomOpen');
    if(!overlay?.classList.contains('show')&&!document.querySelector('#worldLeaderboard.show,#worldIdentitySetup.show'))document.body.classList.remove('uiModalOpen');
  }
  function v96Dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
@@ -16322,7 +15975,7 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
      const [a,b]=[...v96Pointers.values()];
      const d=v96Dist(a,b);
      if(v96StartDist>0){
-       v96Scale=Math.max(1,Math.min(3,v96StartScale*(d/v96StartDist)));
+       v96Scale=Math.max(1,Math.min(5,v96StartScale*(d/v96StartDist)));
        v96Apply();
      }
    }
@@ -16360,7 +16013,7 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
  v96Stage?.addEventListener('wheel',e=>{
    e.preventDefault();
    const delta=e.deltaY<0?1.12:.89;
-   v96Scale=Math.max(1,Math.min(3,v96Scale*delta));
+   v96Scale=Math.max(1,Math.min(5,v96Scale*delta));
    if(v96Scale===1){v96X=0;v96Y=0}
    v96Apply();
  },{passive:false});
