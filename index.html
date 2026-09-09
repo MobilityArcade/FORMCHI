@@ -162,6 +162,12 @@ function track(eventName,data={}){
 <!-- SHIFTVIX V82 — FORWARD-FLIGHT HUMANOID VIX: smaller hip-width head, tapered trapezoid torso, wider forearm gauntlets, tapered lower-leg boots, dark thruster rings with recessed cyan plasma discs, stronger Superman-style forward pitch; game-native satin finish; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V81 — HUMANOID VIX + GAME-NATIVE FINISH: human-readable rear silhouette with neck, shoulders, elbows, waist/hips, thighs/knees, thruster hands and substantial boots; satin neon-game material replaces chrome; four directional ion plumes; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V82.1 — SUPERMAN FLIGHT + THRUSTER UPDATE FIX: removes stale bloom reference crash and locks stronger forward flight pitch; gameplay/world preserved -->
+<!-- SHIFTVIX V93 — STARRY UNIVERSE + VIX STORY FIX:
+Living starfield now shows through all non-interactive black HUD space on mobile/desktop while cards stay readable;
+tapping Vix from either Flow Hub or World Top 9 opens the Vix story immediately above every HUD layer;
+CSS full-body story Vix removed and replaced by the same living canonical Vix head;
+Solid/Hollow Void guide icons rebuilt with fiery spikes and correct ring/center language.
+V92 gameplay, rankings, scoring, guide data and Flow systems preserved. -->
 <!-- SHIFTVIX V92 — VIX STORY NAV:
 GUIDE/FLOWS buttons removed from both main HUD headers; Vix head remains the only learning entry point.
 Tapping Vix opens his Traveler story first, with LEARN ABOUT THE NINE actions at the bottom for VIX GUIDE
@@ -4501,6 +4507,295 @@ button:active{transform:scale(.985)}
 @media(max-width:560px){
   .v92LearnBlock{padding:15px}
   .v92LearnActions{grid-template-columns:1fr}
+}
+</style>
+
+
+<style id="shiftvixV93StarryUniverse">
+/* =========================================================
+   SHIFTVIX V93 — STARRY UNIVERSE + VIX STORY FIX
+   ========================================================= */
+
+/* The learning overlay must always sit ABOVE World Top 9 and every HUD layer. */
+#v91LearnOverlay{
+  z-index:20050!important;
+}
+
+/* ---------------------------------------------------------
+   FULL LIVING STARFIELD THROUGH NON-INTERACTIVE HUD SPACE
+   --------------------------------------------------------- */
+#flowArchive,
+#worldLeaderboard,
+#v91LearnOverlay{
+  background:#000!important;
+  isolation:isolate!important;
+}
+
+/* Existing V91 stars: stronger, clearer, still restrained. */
+#flowArchive::before,
+#worldLeaderboard::before,
+#flowArchive::after,
+#worldLeaderboard::after,
+#v91LearnOverlay::before{
+  opacity:.86!important;
+  filter:brightness(1.08);
+}
+
+/* Let the starfield show THROUGH the large structural containers. */
+.archiveCard,
+.worldBoardPanel,
+.v91Panel{
+  background:rgba(0,0,0,.28)!important;
+  backdrop-filter:blur(1.5px)!important;
+  -webkit-backdrop-filter:blur(1.5px)!important;
+}
+
+/* Add a second local star layer INSIDE the large panels so phone layouts
+   do not lose the effect behind their tall black containers. */
+.archiveCard,
+.worldBoardPanel,
+.v91Panel{
+  position:relative!important;
+  isolation:isolate!important;
+  overflow:auto;
+}
+.archiveCard::before,
+.worldBoardPanel::before,
+.v91Panel::before{
+  content:"";
+  position:absolute;
+  inset:-12%;
+  z-index:-1;
+  pointer-events:none;
+  background-image:
+    radial-gradient(circle,rgba(255,255,255,.96) 0 1px,transparent 1.8px),
+    radial-gradient(circle,rgba(85,222,255,.74) 0 1px,transparent 1.8px),
+    radial-gradient(circle,rgba(255,211,106,.62) 0 1px,transparent 1.8px),
+    radial-gradient(circle,rgba(204,104,255,.48) 0 1px,transparent 1.7px);
+  background-size:74px 86px,121px 137px,167px 181px,211px 233px;
+  background-position:8px 17px,49px 71px,93px 29px,143px 121px;
+  animation:v93PanelStarDrift 38s linear infinite,v93PanelStarTwinkle 5.1s ease-in-out infinite alternate;
+}
+.archiveCard::after,
+.worldBoardPanel::after,
+.v91Panel::after{
+  content:"";
+  position:absolute;
+  inset:-18%;
+  z-index:-1;
+  pointer-events:none;
+  opacity:.34;
+  background-image:
+    radial-gradient(circle,rgba(255,255,255,.90) 0 1px,transparent 1.7px),
+    radial-gradient(circle,rgba(105,225,255,.55) 0 1px,transparent 1.7px);
+  background-size:137px 149px,223px 197px;
+  background-position:31px 51px,119px 91px;
+  animation:v93PanelStarDrift 61s linear infinite reverse,v93PanelStarTwinkle 7.4s ease-in-out infinite alternate;
+}
+
+@keyframes v93PanelStarDrift{
+  from{transform:translate3d(0,0,0)}
+  to{transform:translate3d(-42px,68px,0)}
+}
+@keyframes v93PanelStarTwinkle{
+  0%{opacity:.38;filter:brightness(.72)}
+  45%{opacity:.92;filter:brightness(1.28)}
+  100%{opacity:.58;filter:brightness(.94)}
+}
+
+/* Keep actual controls/cards as their own readable surfaces. */
+.worldBoardLaunch,
+.pauseHub,
+.todayPickCard,
+.archiveFlowCard,
+.worldHubCard,
+.worldPlayerIdentity,
+.v91Card,
+.v92LearnBlock,
+.v92LearnActions button,
+.v92BackToVix,
+.worldRankBack,
+button{
+  position:relative;
+  z-index:2;
+}
+
+/* Preserve dark/glass surfaces only on actual content cards and controls. */
+.worldBoardLaunch,
+.pauseHub,
+.todayPickCard,
+.archiveFlowCard,
+.worldHubCard,
+.worldPlayerIdentity,
+.v91Card,
+.v92LearnBlock{
+  backdrop-filter:blur(5px);
+  -webkit-backdrop-filter:blur(5px);
+}
+
+/* Mobile gets slightly brighter stars so the effect reads on a smaller viewport. */
+@media(max-width:699px){
+  #flowArchive::before,
+  #worldLeaderboard::before,
+  #flowArchive::after,
+  #worldLeaderboard::after,
+  #v91LearnOverlay::before{
+    opacity:1!important;
+    filter:brightness(1.18);
+  }
+  .archiveCard,
+  .worldBoardPanel,
+  .v91Panel{
+    background:rgba(0,0,0,.18)!important;
+  }
+  .archiveCard::before,
+  .worldBoardPanel::before,
+  .v91Panel::before{
+    opacity:.98;
+    background-size:61px 73px,103px 119px,143px 161px,191px 211px;
+  }
+}
+
+/* ---------------------------------------------------------
+   VIX STORY — USE THE CANONICAL LIVING HEAD, NOT CSS BODY
+   --------------------------------------------------------- */
+.v91Profile{
+  grid-template-columns:minmax(155px,.72fr) 1.28fr!important;
+  align-items:center!important;
+}
+.v93StoryVixWrap{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-height:260px;
+  padding:16px 6px;
+}
+.v93StoryVix{
+  width:clamp(150px,30vw,220px)!important;
+  margin:0 auto!important;
+  filter:
+    drop-shadow(0 0 12px rgba(255,255,255,.18))
+    drop-shadow(0 0 28px rgba(105,225,255,.34))!important;
+  animation:v90VixIdle 5.6s ease-in-out infinite!important;
+}
+.v93StoryVix .v90VixEye{
+  animation:v90VixBlink 6.4s infinite!important;
+}
+.v93StoryVix .v90VixEye.right{
+  animation-delay:.045s!important;
+}
+.v93StoryVixCaption{
+  margin-top:12px;
+  color:rgba(157,244,255,.78);
+  font-size:10px;
+  font-weight:1000;
+  letter-spacing:2.8px;
+  text-align:center;
+}
+@media(max-width:560px){
+  .v91Profile{
+    grid-template-columns:1fr!important;
+  }
+  .v93StoryVixWrap{
+    min-height:220px;
+    padding:8px 0 2px;
+  }
+  .v93StoryVix{
+    width:170px!important;
+  }
+}
+
+/* Retire the old body rig completely in case stale markup survives elsewhere. */
+.v91Body,
+.v91BodyHead,
+.v91BodyVisor,
+.v91Torso,
+.v91Chest,
+.v91Hip,
+.v91Limb,
+.v91Joint{
+  display:none!important;
+}
+
+/* ---------------------------------------------------------
+   GUIDE VOID ICONS — MATCH THE ACTUAL SPIKED GAME HAZARDS
+   --------------------------------------------------------- */
+.v91VoidIcon{
+  position:relative!important;
+  float:right;
+  width:44px!important;
+  height:44px!important;
+  margin:7px 5px 10px 14px!important;
+  border-radius:50%!important;
+  box-sizing:border-box!important;
+  z-index:1;
+  background:#ff2d2d!important;
+  border:5px solid #ffd33f!important;
+  box-shadow:
+    0 0 0 2px rgba(255,88,0,.92),
+    0 0 14px rgba(255,45,45,.96),
+    0 0 24px rgba(255,110,0,.50)!important;
+}
+
+/* Fiery outward spikes. */
+.v91VoidIcon::before{
+  content:"";
+  position:absolute;
+  inset:-15px;
+  z-index:-2;
+  background:#ff2d2d;
+  clip-path:polygon(
+    50% 0%,57% 22%,68% 6%,70% 29%,
+    86% 14%,79% 36%,100% 31%,82% 48%,
+    100% 57%,79% 60%,90% 80%,68% 70%,
+    63% 100%,52% 76%,39% 98%,39% 73%,
+    16% 87%,27% 63%,0% 61%,22% 50%,
+    2% 38%,27% 38%,15% 16%,39% 29%
+  );
+  filter:drop-shadow(0 0 5px rgba(255,52,25,.92));
+}
+
+/* Orange/yellow heat ring just inside the spikes. */
+.v91VoidIcon::after{
+  content:"";
+  position:absolute;
+  inset:-8px;
+  z-index:-1;
+  border-radius:50%;
+  border:4px solid #ff9d00;
+  box-shadow:
+    0 0 7px #ffcc2e,
+    inset 0 0 6px rgba(255,105,0,.85);
+}
+
+/* Hollow Void: same spiked fiery shell, cyan safe ring, dark center. */
+.v91VoidIcon.hollow{
+  background:#02040a!important;
+  border:6px solid #63efff!important;
+  box-shadow:
+    0 0 0 3px #111,
+    0 0 0 6px #ffd33f,
+    0 0 14px rgba(99,239,255,.96),
+    0 0 24px rgba(255,80,0,.48)!important;
+}
+.v91VoidIcon.hollow::after{
+  inset:-10px;
+  border:4px solid #ff9d00;
+  box-shadow:0 0 7px #ffd33f;
+}
+
+@media(prefers-reduced-motion:reduce){
+  .archiveCard::before,
+  .archiveCard::after,
+  .worldBoardPanel::before,
+  .worldBoardPanel::after,
+  .v91Panel::before,
+  .v91Panel::after,
+  .v93StoryVix,
+  .v93StoryVix .v90VixEye{
+    animation:none!important;
+  }
 }
 </style>
 
@@ -15179,7 +15474,17 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
   <section class="v91View" id="v91Story">
    <div class="v91Title">VIX</div><div class="v91Sub">THE TRAVELER · ENTER THE NINE</div>
    <div class="v91Profile">
-    <div><div class="v91Body"><div class="v91BodyHead"><div class="v91BodyVisor"><i class="v91BodyEye l"></i><i class="v91BodyEye r"></i></div></div><div class="v91Torso"></div><div class="v91Chest"></div><div class="v91Hip"></div><div class="v91Limb v91Arm l"></div><div class="v91Limb v91Arm r"></div><div class="v91Limb v91Leg l"></div><div class="v91Limb v91Leg r"></div><div class="v91Joint v91KneeL"></div><div class="v91Joint v91KneeR"></div></div></div>
+    <div class="v93StoryVixWrap">
+      <div class="v90Vix v93StoryVix" aria-hidden="true">
+        <div class="v90VixShell"></div>
+        <div class="v90VixFace"></div>
+        <div class="v90VixEar left"></div>
+        <div class="v90VixEar right"></div>
+        <div class="v90VixEye left"></div>
+        <div class="v90VixEye right"></div>
+      </div>
+      <div class="v93StoryVixCaption">VIX · THE TRAVELER</div>
+    </div>
     <div class="v91ProfileText"><h3>VIX</h3><h4>THE TRAVELER</h4><p>A curious explorer navigating <strong>The Nine</strong>.</p><p>Vix shifts through endless lanes, collecting energy, discovering worlds, and pushing the limits of what’s possible.</p><p><strong>How far will you go?</strong></p></div>
    </div>
    <div class="v92LearnBlock">
@@ -15256,7 +15561,11 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
  upgradeHeaders();
  new MutationObserver(upgradeHeaders).observe(document.body,{childList:true,subtree:true});
  document.addEventListener('click',e=>{
-   const vix=e.target.closest?.('.v91VixButton');if(vix){vix.classList.remove('v91Hello');void vix.offsetWidth;vix.classList.add('v91Hello');setTimeout(()=>showView('story'),250);return;}
+   const vix=e.target.closest?.('.v91VixButton');if(vix){
+     vix.classList.remove('v91Hello');void vix.offsetWidth;vix.classList.add('v91Hello');
+     showView('story');
+     return;
+   }
    const target=e.target.closest?.('[data-v91view]');if(target){showView(target.dataset.v91view);return;}
    if(e.target===overlay||e.target.closest?.('#v91Close'))close();
  });
