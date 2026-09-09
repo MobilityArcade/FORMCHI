@@ -162,6 +162,10 @@ function track(eventName,data={}){
 <!-- SHIFTVIX V82 — FORWARD-FLIGHT HUMANOID VIX: smaller hip-width head, tapered trapezoid torso, wider forearm gauntlets, tapered lower-leg boots, dark thruster rings with recessed cyan plasma discs, stronger Superman-style forward pitch; game-native satin finish; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V81 — HUMANOID VIX + GAME-NATIVE FINISH: human-readable rear silhouette with neck, shoulders, elbows, waist/hips, thighs/knees, thruster hands and substantial boots; satin neon-game material replaces chrome; four directional ion plumes; gameplay/world/motion preserved -->
 <!-- SHIFTVIX V82.1 — SUPERMAN FLIGHT + THRUSTER UPDATE FIX: removes stale bloom reference crash and locks stronger forward flight pitch; gameplay/world preserved -->
+<!-- SHIFTVIX V88 — VIX EYES + EARS: reaction-cam eyes widened slightly, POV eye spacing widened slightly, ear modules rebuilt as pearl-silver half-dome helmet pieces with subtle cyan edge light; V87.2 gameplay/end systems preserved -->
+<!-- SHIFTVIX V87.2 — VIX EAR REFINEMENT: eyes lowered slightly again; ear modules lengthened while staying slim, vertically spanning the eyes, and pitched outward at the top/inward at the bottom for an integrated earmuff-style helmet connection; V87.1 gameplay/end systems preserved -->
+<!-- SHIFTVIX V87.1 — VIX FACE REFINEMENT: reaction-cam eyes lowered, ears lowered/aligned to eye height and made thinner, cyan eye color slightly richer; V87 ending/gameplay preserved -->
+<!-- SHIFTVIX V87 — VIX ENDING REFINEMENT: lower reaction-cam eyes/ears, thinner ears, richer eye color, visor bars removed, 8-second non-interactive final-life coast, Vix win/loss reaction; gameplay preserved -->
 <!-- SHIFTVIX V86.1 — REACTION CAM FIX: fixes visionRGB ReferenceError, moves ear pods outside head silhouette as simple state-colored side modules, enlarges/lowers black face mask to nearly meet lower rim, preserves Vix Vision and gameplay -->
 <!-- SHIFTVIX V86 — VIX REACTION CAM: keeps minimal first-person Vix Vision, brightens the same cyan translucent POV eyes, adds responsive upper-right canonical Vix head portrait with pearl shell, black face, cyan ear circles and oval eyes; portrait reacts to bank, Midas/Flux/Chrono/Warp and damage; gameplay preserved -->
 <!-- SHIFTVIX V85.2 — MINIMAL VIX VISION: removes full helmet shell for uniform portrait/landscape framing; two responsive neon bars + two larger single-piece translucent eyes become Vix identity; state colors and simple damage squint preserved; gameplay preserved -->
@@ -981,6 +985,192 @@ canvas{
     right:clamp(14px,2.2vmin,28px);
     width:clamp(76px,12vmin,118px);
   }
+}
+
+
+/* SHIFTVIX V87 — visor bars retired; Vix identity now comes from POV eyes + reaction cam. */
+#vixVision .vixHelmetTop,
+#vixVision .vixHelmetBottom{display:none!important}
+
+/* SHIFTVIX V87 — refined reaction-cam face. */
+#vixReactionCam .vixCamEar{
+  top:47%!important;
+  width:6%!important;
+  height:20%!important;
+}
+#vixReactionCam .vixCamEar.left{left:-4%!important}
+#vixReactionCam .vixCamEar.right{right:-4%!important}
+#vixReactionCam .vixCamEye{
+  top:50%!important;
+  background:rgba(220,249,255,.98)!important;
+  box-shadow:
+    0 0 8px rgba(255,255,255,.98),
+    0 0 20px rgba(var(--vix-cam-rgb),1),
+    0 0 34px rgba(var(--vix-cam-rgb),.54)!important;
+}
+#vixReactionCam .vixCamFace{
+  left:9%!important;
+  right:9%!important;
+  top:18%!important;
+  bottom:7%!important;
+}
+
+/* SHIFTVIX V87 — final-life personality reactions. */
+#vixReactionCam.endingWin{animation:vixEndWin .72s ease-in-out infinite}
+#vixReactionCam.endingLoss{animation:vixEndLoss .92s ease-in-out infinite}
+#vixReactionCam.endingWin .vixCamEye{
+  height:24%!important;
+  background:rgba(226,252,255,1)!important;
+}
+#vixReactionCam.endingLoss .vixCamEye{
+  height:18%!important;
+  opacity:.84;
+}
+#vixReactionCam.endingLoss .vixCamEye.left{
+  transform:translateY(-50%) rotate(4deg)!important;
+}
+#vixReactionCam.endingLoss .vixCamEye.right{
+  transform:translateY(-50%) rotate(-4deg)!important;
+}
+@keyframes vixEndWin{
+  0%,100%{transform:rotate(var(--vix-cam-bank)) translateY(0) scale(1)}
+  25%{transform:rotate(calc(var(--vix-cam-bank) - 5deg)) translateY(-4px) scale(1.05)}
+  50%{transform:rotate(calc(var(--vix-cam-bank) + 5deg)) translateY(1px) scale(1.03)}
+  75%{transform:rotate(var(--vix-cam-bank)) translateY(-3px) scale(1.05)}
+}
+@keyframes vixEndLoss{
+  0%,100%{transform:rotate(var(--vix-cam-bank)) translateX(0) scale(1)}
+  25%{transform:rotate(calc(var(--vix-cam-bank) - 6deg)) translateX(-3px) scale(.99)}
+  50%{transform:rotate(calc(var(--vix-cam-bank) + 6deg)) translateX(3px) scale(.99)}
+  75%{transform:rotate(calc(var(--vix-cam-bank) - 3deg)) translateX(-2px) scale(.99)}
+}
+
+
+/* =========================
+   SHIFTVIX V87.1 — VIX FACE REFINEMENT
+   ========================= */
+
+/* Lower the eyes so there is more dark visor space above them. */
+#vixReactionCam .vixCamEye{
+  top:55%!important;
+  /* Keep the white-hot center but let more Vix cyan read through it. */
+  background:rgba(190,244,255,.98)!important;
+  box-shadow:
+    0 0 8px rgba(255,255,255,.96),
+    0 0 22px rgba(var(--vix-cam-rgb),1),
+    0 0 38px rgba(var(--vix-cam-rgb),.62)!important;
+}
+
+/* Ears sit at the same visual height as the eyes and are much thinner. */
+#vixReactionCam .vixCamEar{
+  top:51%!important;
+  width:4.5%!important;
+  height:17%!important;
+  border-width:1px!important;
+}
+#vixReactionCam .vixCamEar.left{left:-3.2%!important}
+#vixReactionCam .vixCamEar.right{right:-3.2%!important}
+
+
+/* =========================
+   SHIFTVIX V87.2 — VIX EARS
+   ========================= */
+
+/* Eyes: one final controlled step lower in the visor. */
+#vixReactionCam .vixCamEye{
+  top:59%!important;
+}
+
+/*
+  Slim vertical ear modules:
+  - longer than V87.1
+  - centered around the lowered eyes
+  - top edges pitch outward
+  - lower edges return inward toward the helmet
+*/
+#vixReactionCam .vixCamEar{
+  top:45%!important;
+  width:5%!important;
+  height:29%!important;
+  border-width:1px!important;
+  border-radius:999px!important;
+  transform-origin:50% 50%;
+}
+#vixReactionCam .vixCamEar.left{
+  left:-2.0%!important;
+  transform:rotate(-7deg)!important;
+}
+#vixReactionCam .vixCamEar.right{
+  right:-2.0%!important;
+  transform:rotate(7deg)!important;
+}
+
+
+/* =========================
+   SHIFTVIX V88 — VIX EYES + EARS
+   ========================= */
+
+/* Reaction-cam eyes: keep size/height, widen spacing modestly. */
+#vixReactionCam .vixCamEye.left{
+  left:26.5%!important;
+}
+#vixReactionCam .vixCamEye.right{
+  right:26.5%!important;
+}
+
+/* First-person Vix Vision eyes: slightly wider spacing for the same facial perspective. */
+#vixVision{
+  --vix-eye-gap:clamp(160px,36vmin,350px)!important;
+}
+@media(orientation:portrait){
+  #vixVision{
+    --vix-eye-gap:clamp(154px,45.5vw,270px)!important;
+  }
+}
+@media(orientation:landscape){
+  #vixVision{
+    --vix-eye-gap:clamp(200px,40vmin,380px)!important;
+  }
+}
+
+/*
+  V88 half-dome helmet ears:
+  - pearl/silver like the helmet shell
+  - flat inner edge visually attaches to the head
+  - rounded outer edge creates the earmuff/half-dome silhouette
+  - subtle cyan rim light only, no solid blue ear fill
+*/
+#vixReactionCam .vixCamEar{
+  top:45.5%!important;
+  width:8%!important;
+  height:27%!important;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(252,253,255,.98) 0%,
+      rgba(224,230,242,.98) 34%,
+      rgba(184,195,218,.98) 72%,
+      rgba(128,143,170,.98) 100%
+    )!important;
+  border:1px solid rgba(242,247,255,.90)!important;
+  box-shadow:
+    0 0 4px rgba(255,255,255,.44),
+    0 0 9px rgba(var(--vix-cam-rgb),.34)!important;
+  transform-origin:50% 50%!important;
+}
+
+/* Left ear: rounded outside, flatter edge where it meets the helmet. */
+#vixReactionCam .vixCamEar.left{
+  left:-1.5%!important;
+  border-radius:999px 20% 20% 999px!important;
+  transform:rotate(-3deg)!important;
+}
+
+/* Right ear: mirrored half-dome. */
+#vixReactionCam .vixCamEar.right{
+  right:-1.5%!important;
+  border-radius:20% 999px 999px 20%!important;
+  transform:rotate(3deg)!important;
 }
 
 #startOverlay{position:absolute;inset:0;display:grid;place-items:center;text-align:center;z-index:80;background:radial-gradient(circle,rgba(255,102,204,.10),rgba(0,0,0,.92))}
@@ -4480,6 +4670,8 @@ function updateVix3D(dt,state){
     vixReactionCam.classList.toggle('flux',state==='flux');
     vixReactionCam.classList.toggle('chrono',state==='chrono');
     vixReactionCam.classList.toggle('warp',state==='warp');
+    vixReactionCam.classList.toggle('endingWin',finalLifeCoastActive&&finalLifeReaction==="win");
+    vixReactionCam.classList.toggle('endingLoss',finalLifeCoastActive&&finalLifeReaction==="loss");
   }
 
   const dx=targetX-playerX;
@@ -8728,6 +8920,8 @@ function challengeValue(ch){
 }
 // SHIFTVIX V43 — 8-second completion transition: 4-second victory coast + 4-second fade to black.
 let flowCompletionCoastActive=false;
+let finalLifeCoastActive=false;
+let finalLifeReaction="";
 let flowCompletionCoastTimeout=null;
 let flowCompletionFadeTimer=null;
 function setFlowCompletionCoast(show, fading=false){
@@ -10691,6 +10885,7 @@ function updateGoldRingSequence(worldDt){
 }
 
 function passGoldRing(b){
+  if(finalLifeCoastActive||flowCompletionCoastActive)return;
   if(!b || b.userData.state!=="active")return;
 
   b.userData.state="collected";
@@ -11064,6 +11259,7 @@ const BREAK_VOID_DAMAGE_RADIUS=17.5;
 const ESCAPE_VOID_SCORE_VALUE=500; // intentionally worth more than a 250-point Ring
 
 function passEscapeVoid(b){
+  if(finalLifeCoastActive||flowCompletionCoastActive)return false;
   if(
     !b?.userData ||
     b.userData.state!=="active" ||
@@ -11103,6 +11299,7 @@ function passEscapeVoid(b){
 }
 
 function enterHollowVoid(b){
+  if(finalLifeCoastActive||flowCompletionCoastActive)return false;
   if(
     !b?.userData ||
     b.userData.state!=="active" ||
@@ -12145,6 +12342,7 @@ function takeStrike(){
 }
 
 function collectBeacon(b){
+ if(finalLifeCoastActive||flowCompletionCoastActive)return;
  if(b.userData.state!=="active")return;
 
  if(b.userData.isVoid){
@@ -12355,6 +12553,63 @@ function formatRunFlowProgress(flow,value){
   if(category==="SCORE")return `${whole.toLocaleString()} PTS`;
   return whole.toLocaleString();
 }
+
+function setVixFinalReaction(isNewBest){
+  finalLifeReaction=isNewBest?"win":"loss";
+  const cam=document.getElementById("vixReactionCam");
+  if(!cam)return;
+  cam.classList.remove("endingWin","endingLoss");
+  cam.classList.add(isNewBest?"endingWin":"endingLoss");
+}
+function clearVixFinalReaction(){
+  finalLifeReaction="";
+  const cam=document.getElementById("vixReactionCam");
+  if(cam)cam.classList.remove("endingWin","endingLoss");
+}
+function startFinalLifeCoast(isNewBest){
+  gameOver=false;
+  paused=false;
+  finalLifeCoastActive=true;
+  flowCompletionCoastActive=true;
+  personalBestConnected=false;
+  setVixFinalReaction(!!isNewBest);
+
+  const completionFade=document.getElementById("flowCompletionFade");
+  if(completionFade){
+    completionFade.classList.remove("active","reveal");
+    completionFade.setAttribute("aria-hidden","false");
+  }
+  if(flowCompletionCoastTimeout)clearTimeout(flowCompletionCoastTimeout);
+  if(flowCompletionFadeTimer)clearTimeout(flowCompletionFadeTimer);
+
+  flowCompletionFadeTimer=setTimeout(()=>{
+    if(!finalLifeCoastActive)return;
+    if(completionFade)completionFade.classList.add("active");
+  },4000);
+
+  flowCompletionCoastTimeout=setTimeout(()=>{
+    finalLifeCoastActive=false;
+    flowCompletionCoastActive=false;
+    flowCompletionCoastTimeout=null;
+    flowCompletionFadeTimer=null;
+    clearVixFinalReaction();
+
+    gameOver=true;
+    paused=true;
+    applyPauseVisuals(false);
+    openFlowArchive("run_complete");
+
+    if(completionFade){
+      completionFade.classList.remove("active");
+      completionFade.classList.add("reveal");
+      setTimeout(()=>{
+        completionFade.classList.remove("reveal");
+        completionFade.setAttribute("aria-hidden","true");
+      },620);
+    }
+  },8000);
+}
+
 function endRun(){
 
     gameOver = true;
@@ -12425,44 +12680,8 @@ function endRun(){
         message:`BEST · LEVEL ${Math.max(achievedLevel,endureLocalBest())}`
       });
 
-      // endRun() normally freezes the game immediately. Personal Best instead
-      // gets the same cinematic language as Flow completion: 4 seconds of pure
-      // finishing-speed coast, then 4 seconds fading the moving universe to black.
-      gameOver=false;
-      personalBestConnected=false;
-      flowCompletionCoastActive=true;
-
-      const completionFade=document.getElementById("flowCompletionFade");
-      if(completionFade){
-        completionFade.classList.remove("active","reveal");
-        completionFade.setAttribute("aria-hidden","false");
-      }
-      if(flowCompletionCoastTimeout)clearTimeout(flowCompletionCoastTimeout);
-      if(flowCompletionFadeTimer)clearTimeout(flowCompletionFadeTimer);
-
-      flowCompletionFadeTimer=setTimeout(()=>{
-        if(!flowCompletionCoastActive)return;
-        if(completionFade)completionFade.classList.add("active");
-      },4000);
-
-      flowCompletionCoastTimeout=setTimeout(()=>{
-        flowCompletionCoastActive=false;
-        flowCompletionCoastTimeout=null;
-        flowCompletionFadeTimer=null;
-        gameOver=true;
-        paused=true;
-        applyPauseVisuals(false);
-        openFlowArchive("run_complete");
-
-        if(completionFade){
-          completionFade.classList.remove("active");
-          completionFade.classList.add("reveal");
-          setTimeout(()=>{
-            completionFade.classList.remove("reveal");
-            completionFade.setAttribute("aria-hidden","true");
-          },620);
-        }
-      },8000);
+      // V87 — final-life safe coast + Vix reaction.
+      startFinalLifeCoast(newBest);
       return;
     }
 
@@ -12613,12 +12832,19 @@ function endRun(){
       }
     );
 
-    openFlowArchive(
-      "run_complete"
-    );
+    // V87 — final-life safe coast + Vix reaction before returning to the hub.
+    startFinalLifeCoast(newSkillBest);
 
 }
 function resetRun(){
+finalLifeCoastActive=false;
+flowCompletionCoastActive=false;
+clearVixFinalReaction();
+if(flowCompletionCoastTimeout){clearTimeout(flowCompletionCoastTimeout);flowCompletionCoastTimeout=null;}
+if(flowCompletionFadeTimer){clearTimeout(flowCompletionFadeTimer);flowCompletionFadeTimer=null;}
+const v87Fade=document.getElementById("flowCompletionFade");
+if(v87Fade){v87Fade.classList.remove("active","reveal");v87Fade.setAttribute("aria-hidden","true");}
+
 if(!silentTutorialComplete){
   tutorialStage=0;
   tutorialStageStartedAt=0;
@@ -13090,7 +13316,7 @@ function updateCometTraveler(dt){
   updateVix3D(dt,cometState());
 }
 
-function animate(){requestAnimationFrame(animate);updateGamepad();const dt = Math.min(clock.getDelta(), .05);if(gameStarted&&!gameOver&&!paused){updateFluxBoost(dt);updateWarpBoost(dt);updateChronoState(dt);updateMidasState(dt);updateIonicThruster(dt);const worldTimeScale=THREE.MathUtils.lerp(1,CHRONO_WORLD_SCALE,chronoAmount);const worldDt=dt*worldTimeScale;const baseRunSpeed=SPEED_START+Math.min(150,distance*.018);speed=baseRunSpeed*(1+fluxBoostAmount*FLUX_SPEED_BOOST+warpBoostAmount*WARP_SPEED_BOOST);const prototypeDistanceDelta=speed*worldDt*.08;distance+=prototypeDistanceDelta;
+function animate(){requestAnimationFrame(animate);updateGamepad();const dt = Math.min(clock.getDelta(), .05);if(gameStarted&&!gameOver&&!paused){updateFluxBoost(dt);updateWarpBoost(dt);updateChronoState(dt);updateMidasState(dt);updateIonicThruster(dt);const worldTimeScale=THREE.MathUtils.lerp(1,CHRONO_WORLD_SCALE,chronoAmount);const worldDt=dt*worldTimeScale;const baseRunSpeed=SPEED_START+Math.min(150,distance*.018);speed=baseRunSpeed*(1+fluxBoostAmount*FLUX_SPEED_BOOST+warpBoostAmount*WARP_SPEED_BOOST);const prototypeDistanceDelta=flowCompletionCoastActive?0:speed*worldDt*.08;distance+=prototypeDistanceDelta;
 
 // SHIFTVIX V48b — EARNED TRAVEL uses actual physical meters.
 // Only the portion of forward travel while the player occupies a regular
