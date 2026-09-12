@@ -1,3 +1,4 @@
+<!-- SHIFTVIX V96.4.2 — BRIGHT PAPER WORLD + FULL PAPER HUD: brighter flat-paper gameplay palette, paper typography, larger translucent POV eyes, center dot removed, and paper-confetti dust. Gameplay logic unchanged. -->
 <!-- SHIFTVIX V96.4.1 — TRUE 2D PAPER WORLD: every gameplay object is flattened into matte craft-paper pieces moving through the existing 3D perspective; no gameplay logic changes. -->
 <!-- SHIFTVIX V96.4.0 — FULL-GAME 2D PAPER CUTOUT: gameplay world, stardust, collectibles, rings, Voids, Vix Vision, Flow HUD, World Top 9 and identity UI restyled as flat craft-paper layers moving through the existing 3D perspective; gameplay logic preserved. -->
 <!DOCTYPE html>
@@ -5622,7 +5623,7 @@ body::after{opacity:.12!important;mix-blend-mode:multiply!important;background-i
 <style id="shiftvixTruePaperV9641">
 /* V96.4.1 — TRUE 2D PAPER WORLD */
 html,body{background:#070708!important}
-canvas{filter:saturate(.84) contrast(1.03) brightness(.91)!important}
+canvas{filter:saturate(1.00) contrast(1.02) brightness(1.04)!important}
 
 /* Fine black craft-paper grain, not stars/glass. */
 body::after{
@@ -5699,6 +5700,150 @@ body::after{
 /* CLEAR beam = flat strips, not luminous energy tubes. */
 #clearLaserFx .clearBeamOuter{stroke:#59b8c0!important;filter:none!important}
 #clearLaserFx .clearBeamCore{stroke:#ded9ce!important;filter:none!important}
+</style>
+
+
+<style id="shiftvixPaperCenterRemoval">
+/* V96.4.2 — remove the center target/dot so POV reads cleanly */
+#center{display:none!important}
+</style>
+
+
+<style id="shiftvixBrightPaperUIV9642">
+/* ---------- V96.4.2 BRIGHT PAPER UI ---------- */
+:root{
+  --paper-black:#0b0b0d;
+  --paper-cream:#f1eadc;
+  --paper-cyan:#69ced8;
+  --paper-gold:#e5bd55;
+  --paper-red:#e45b56;
+  --paper-pink:#e66db3;
+  --paper-purple:#9a78d8;
+  --paper-green:#68d47b;
+}
+
+/* Brighter craft-paper background and visible paper grain. */
+html,body{background:var(--paper-black)!important}
+body::after{
+  opacity:.22!important;
+  mix-blend-mode:normal!important;
+  background-image:
+    radial-gradient(circle,rgba(255,255,255,.055) 0 .5px,transparent .85px),
+    radial-gradient(circle,rgba(0,0,0,.32) 0 .6px,transparent .95px)!important;
+  background-size:5px 5px,9px 9px!important;
+}
+
+/* The HUD itself should read like stacked paper, not digital UI. */
+#hud,.hudBlock,#objectiveHud,#challengeHud,#modeBanner,#powerAnnouncement,
+#flowHub,#worldBoard,#identityOverlay,#pauseMenu,#gameOverOverlay{
+  filter:none!important;
+}
+
+/* Paper-cut type: matte fill + dark offset shadow, no glow. */
+.hudLabel,.hudValue,.levelNumber,#world,#modeBanner,#powerAnnouncement,
+.flowChoiceTitle,.flowChoiceSub,.archiveTitle,.archiveSub,.worldBoardHead,
+.worldBoardSub,.worldRankHero,.worldRow,.worldMine,.identityPanel,
+.worldPlayerInitials,.worldPlayerCountry,.worldRankNumber,
+#flowName,#flowValue,#flowBest,.todayPickTitle,.todayPickSub,
+button,.pauseButton,.flowChoiceButton{
+  color:var(--paper-cream)!important;
+  text-shadow:
+    2px 2px 0 #161619,
+    4px 4px 0 rgba(0,0,0,.55)!important;
+  -webkit-text-stroke:0!important;
+  filter:none!important;
+}
+
+/* Make key accent text read like colored paper letters. */
+#world,.todayPickTitle,.flowChoiceTitle,.worldBoardHead,#modeBanner{
+  color:var(--paper-gold)!important;
+}
+
+/* Title letters: solid cut-paper instead of neon outline. */
+#shift,#vix{
+  color:var(--paper-gold)!important;
+  -webkit-text-fill-color:var(--paper-gold)!important;
+  -webkit-text-stroke:0!important;
+  text-shadow:4px 5px 0 #5f4b1f!important;
+}
+
+/* Life dots: flat paper chips. */
+.strikeDot{
+  background:var(--paper-red)!important;
+  border:2px solid #f5c9c2!important;
+  box-shadow:2px 3px 0 #7a2527!important;
+}
+.strikeDot.used{
+  background:#3d3a3d!important;
+  border:2px solid #777!important;
+  box-shadow:2px 3px 0 #111!important;
+}
+
+/* Cards / rankings / identity: lighter layered paper boards. */
+.flowChoiceCard,.todayPickCard,.personalBestCard,.archiveCard,.worldHubCard,
+.worldBoardPanel,.worldPlayerIdentity,.identityPanel,.v91Panel,.worldBoardLaunch,
+.worldEditIdentity,.identityInitialsInput,.identityCountrySelect,.identityEnter,
+.flowChoiceButton,.pausePanel,.pauseButton,.gameOverCard,.worldRankBack,.worldRankHero,
+.worldMine,.worldRow{
+  background:#202024!important;
+  background-image:none!important;
+  border:2px solid #69646a!important;
+  box-shadow:5px 6px 0 #050505!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  filter:none!important;
+}
+
+/* A touch more color separation on Flow cards. */
+.flowChoiceCard:nth-of-type(3n+1){border-color:#5abac4!important}
+.flowChoiceCard:nth-of-type(3n+2){border-color:#d89b54!important}
+.flowChoiceCard:nth-of-type(3n){border-color:#a278d2!important}
+
+/* FIRST-PERSON VIX EYES: larger, wider, translucent paper windows. */
+#vixVision .vixEye{
+  width:clamp(58px,11vmin,118px)!important;
+  height:clamp(138px,27vmin,250px)!important;
+  background:rgba(105,206,216,.58)!important;
+  border:2px solid rgba(224,248,248,.72)!important;
+  box-shadow:
+    5px 6px 0 rgba(25,73,78,.72)!important;
+  opacity:.82!important;
+  filter:none!important;
+}
+@media(orientation:portrait){
+  #vixVision .vixEye{
+    width:clamp(52px,13.5vw,80px)!important;
+    height:clamp(126px,30vw,178px)!important;
+  }
+}
+@media(orientation:landscape){
+  #vixVision .vixEye{
+    width:clamp(58px,10vmin,102px)!important;
+    height:clamp(128px,24vmin,218px)!important;
+  }
+}
+
+/* Reaction Vix: lighter paper cutout, no pearl/gloss. */
+#vixReactionCam .vixCamHead,.v90VixShell,.v91BodyHead{
+  background:#eee6d8!important;
+  border:2px solid #fff7e8!important;
+  box-shadow:4px 5px 0 #6b655d!important;
+}
+#vixReactionCam .vixCamFace,.v90VixFace,.v91BodyFace{
+  background:#1c1c20!important;
+  border:2px solid #4a474c!important;
+  box-shadow:3px 4px 0 #050505!important;
+}
+#vixReactionCam .vixCamEye,.v90VixEye,.v91BodyEye{
+  background:#78d7df!important;
+  border:2px solid #d9f4f2!important;
+  box-shadow:2px 3px 0 #2b6d72!important;
+  filter:none!important;
+}
+
+/* Make CLEAR beams read as bright flat paper ribbons. */
+#clearLaserFx .clearBeamOuter{stroke:#62cbd5!important;filter:none!important}
+#clearLaserFx .clearBeamCore{stroke:#f3eee3!important;filter:none!important}
 </style>
 
 </head>
@@ -5812,7 +5957,7 @@ body::after{
 <!-- SHIFTVIX CHRONO 2.0 — SLOW TIME + PRISM VISION + 2X SCORE -->
 <script type="module">
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x070708);scene.fog=new THREE.FogExp2(0x070708,0.00072);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x0b0b0d);scene.fog=new THREE.FogExp2(0x0b0b0d,0.00055);
 
 /* V96.4.0 — craft-paper material system. Flat art pieces still travel in true 3D space. */
 function makePaperTexture(){
@@ -12046,7 +12191,7 @@ function showModeBanner(text){const el=document.getElementById("modeBanner");if(
 function releasePendingModeBanner(){if(pendingModeBanner&&introIsClear())showModeBanner(pendingModeBanner);}
 function makeStarField(){
   const count=360,positions=new Float32Array(count*3),colors=new Float32Array(count*3),baseXY=new Float32Array(count*2);
-  const palette=[0xd9d1c2,0x77716b,0x4da9bf,0xb24b8d,0x6352a8,0xb96a2c,0xc3a64f].map(c=>new THREE.Color(c));
+  const palette=[0xf2eadc,0xa6a09a,0x62c8e2,0xe269b4,0x8b74d6,0xe58a45,0xe2c85f,0x63d49d].map(c=>new THREE.Color(c));
   for(let i=0;i<count;i++){
     const x=(Math.random()*2-1)*260,y=(Math.random()*2-1)*180;
     positions[i*3]=x;positions[i*3+1]=y;positions[i*3+2]=-50-Math.random()*1200;
@@ -12058,7 +12203,7 @@ function makeStarField(){
   geo.setAttribute("position",new THREE.BufferAttribute(positions,3));
   geo.setAttribute("color",new THREE.BufferAttribute(colors,3));
   const mat=new THREE.PointsMaterial({
-    size:1.45,
+    size:1.9,
     sizeAttenuation:true,
     transparent:false,
     vertexColors:true,
@@ -12078,11 +12223,12 @@ function makeFluxDustField(){
     const anchors=new Float32Array(FLUX_DUST_COUNT*2);
 
     const palette=[
-        new THREE.Color(0xd7d0c3),
-        new THREE.Color(0x7faeb5),
-        new THREE.Color(0x4d9eb0),
-        new THREE.Color(0xb8994a),
-        new THREE.Color(0x8f67a6)
+        new THREE.Color(0xf1eadc),
+        new THREE.Color(0x78c8d4),
+        new THREE.Color(0x4fb7cf),
+        new THREE.Color(0xe0b94f),
+        new THREE.Color(0xb17ad0),
+        new THREE.Color(0xe46a9f)
     ];
 
     for(let i=0;i<FLUX_DUST_COUNT;i++){
@@ -12119,7 +12265,7 @@ function makeFluxDustField(){
     geo.setAttribute("color",new THREE.BufferAttribute(colors,3));
 
     const mat=new THREE.PointsMaterial({
-        size:1.35,
+        size:2.0,
         sizeAttenuation:true,
         vertexColors:true,
         transparent:false,
