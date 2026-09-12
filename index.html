@@ -1,3 +1,8 @@
+<!-- SHIFTVIX V96.5.3.1 — GOLD BRAND + CLEAR ANIMATION:
+Keeps the V96.5.3 Starry Night Flow Hub / World Top 9 exactly as the visual base.
+Only strengthens SHIFTVIX branding into high-gloss orange-gold in gameplay and both HUDs,
+and replaces CLEAR's generic/no visual with an animated twin-laser attack on a glossy red Void.
+Gameplay, rankings, starfield HUD treatment, cards, special orbs, controls and audio preserved. -->
 <!-- SHIFTVIX V96.5.3 — SPECIAL ORBS + FULL GLOSS HUD: every legendary/special orb now uses polished physical shells with visible specular highlights; Flow Hub, World Top 9, identity and major HUD surfaces receive a stronger cohesive high-gloss treatment while retaining the living starfield behind them. Gameplay preserved. -->
 <!-- SHIFTVIX V96.5.2 — COMPLETE HIGH-GLOSS EXPERIENCE: removes the visible center reactor/ring, upgrades hollow Voids and all Void pieces to polished materials, restores glossy Vix eyes across Flow Hub/World Top 9/Identity, and gives HUD text, life dots, cards, buttons, rankings, POV eyes, particles and CLEAR beams a unified polished finish. Gameplay preserved. -->
 <!-- SHIFTVIX V96.5.1.1 — HIGH-GLOSS ERROR FIX: removes undefined legacy Flux dust startup call that stopped gameplay initialization. High-gloss visuals preserved. -->
@@ -5998,6 +6003,266 @@ button,.flowChoiceButton,.pauseButton,.identityEnter,.worldRankBack,
 .hudStarfield{
   opacity:.78!important;
   filter:saturate(1.18) brightness(1.08)!important;
+}
+</style>
+
+
+<style id="shiftvixV96531GoldBrandClearAnimation">
+/* =========================================================
+   V96.5.3.1 — GOLD BRAND + CLEAR ANIMATION
+   KEEP V96.5.3 STARRY NIGHT HUD.
+   ========================================================= */
+
+/* --- SHIFTVIX BRAND: bright orange/gold polished material --- */
+#gameTitle #shift,
+#gameTitle #vix,
+.v90BrandWord,
+#flowHub .v90BrandWord,
+#worldLeaderboard .v90BrandWord,
+#storyOverlay .v90BrandWord,
+#guideOverlay .v90BrandWord,
+#flowsOverlay .v90BrandWord{
+  background:
+    linear-gradient(
+      180deg,
+      #fff8c9 0%,
+      #fff0a0 9%,
+      #ffc84d 25%,
+      #f39a18 42%,
+      #9e4d05 51%,
+      #ffbf31 63%,
+      #ffe879 76%,
+      #c66a08 100%
+    )!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  color:transparent!important;
+  -webkit-text-fill-color:transparent!important;
+  -webkit-text-stroke:1px rgba(255,210,92,.76)!important;
+  text-shadow:
+    0 -2px 0 rgba(255,255,225,.96),
+    0 1px 0 rgba(111,49,0,.96),
+    0 0 5px rgba(255,245,190,.72),
+    0 0 13px rgba(255,180,35,.78),
+    0 0 27px rgba(255,113,0,.38),
+    0 5px 10px rgba(0,0,0,.86)!important;
+  filter:saturate(1.22) contrast(1.09) brightness(1.06)!important;
+}
+
+/* Add a moving specular sweep so the lettering reads as actual polished material. */
+#gameTitle #shift,
+#gameTitle #vix,
+.v90BrandWord{
+  background-size:100% 100%!important;
+  animation:v96531GoldBrandPulse 3.8s ease-in-out infinite!important;
+}
+@keyframes v96531GoldBrandPulse{
+  0%,100%{
+    filter:saturate(1.18) contrast(1.08) brightness(1.02);
+    text-shadow:
+      0 -2px 0 rgba(255,255,225,.92),
+      0 1px 0 rgba(111,49,0,.96),
+      0 0 5px rgba(255,245,190,.62),
+      0 0 12px rgba(255,174,30,.64),
+      0 0 24px rgba(255,110,0,.30),
+      0 5px 10px rgba(0,0,0,.84);
+  }
+  46%,56%{
+    filter:saturate(1.3) contrast(1.12) brightness(1.15);
+    text-shadow:
+      0 -2px 0 rgba(255,255,240,1),
+      0 1px 0 rgba(111,49,0,.96),
+      0 0 7px rgba(255,255,225,.90),
+      0 0 17px rgba(255,194,44,.92),
+      0 0 34px rgba(255,118,0,.48),
+      0 5px 11px rgba(0,0,0,.86);
+  }
+}
+
+/* ENTER THE NINE stays smaller but now belongs to the same polished-gold family. */
+.v90BrandTag{
+  color:#ffd35b!important;
+  -webkit-text-fill-color:#ffd35b!important;
+  text-shadow:
+    0 -1px 0 rgba(255,255,220,.82),
+    0 1px 0 rgba(100,44,0,.92),
+    0 0 8px rgba(255,174,28,.50)!important;
+}
+
+/* ---------------------------------------------------------
+   CLEAR — animated twin eye-beams destroying a glossy red Void
+   Works in Flow Hub AND World Top 9 because both render
+   .flowVisual-clear.
+   --------------------------------------------------------- */
+.flowVisual-clear{
+  --clear-cyan:#55eaff;
+  --clear-cyan-hot:#efffff;
+  --clear-red:#ff2f36;
+  --clear-gold:#ffb126;
+  animation:v96531ClearVisualFloat 3.4s ease-in-out infinite!important;
+  overflow:visible!important;
+}
+
+/* i1 = glossy red hostile Void */
+.flowVisual-clear i:nth-child(1){
+  width:58px!important;
+  height:58px!important;
+  right:5%!important;
+  top:29%!important;
+  border-radius:50%!important;
+  border:5px solid var(--clear-gold)!important;
+  background:
+    radial-gradient(circle at 31% 24%,
+      #ffffff 0 7%,
+      #ffb7b7 8% 12%,
+      #ff4248 24%,
+      #d20b19 55%,
+      #700008 82%,
+      #260003 100%)!important;
+  box-shadow:
+    inset 5px 5px 8px rgba(255,255,255,.52),
+    inset -7px -8px 10px rgba(85,0,0,.62),
+    0 0 0 3px rgba(255,77,32,.28),
+    0 0 12px rgba(255,183,38,.78),
+    0 0 25px rgba(255,48,48,.48)!important;
+  animation:v96531ClearVoidHit 1.06s ease-in-out infinite!important;
+}
+
+/* Spiky hostile silhouette behind the glossy core */
+.flowVisual-clear i:nth-child(1)::before{
+  content:"";
+  position:absolute;
+  inset:-16px;
+  z-index:-1;
+  background:
+    repeating-conic-gradient(
+      from 0deg,
+      #ff3b27 0deg 7deg,
+      transparent 7deg 20deg
+    );
+  clip-path:polygon(
+    50% 0%,57% 24%,70% 8%,72% 31%,94% 20%,78% 40%,
+    100% 50%,78% 58%,94% 80%,72% 69%,70% 92%,57% 76%,
+    50% 100%,43% 76%,30% 92%,28% 69%,6% 80%,22% 58%,
+    0% 50%,22% 40%,6% 20%,28% 31%,30% 8%,43% 24%
+  );
+  filter:drop-shadow(0 0 7px rgba(255,53,25,.70));
+}
+
+/* i2 + i3 = twin cyan eye beams */
+.flowVisual-clear i:nth-child(2),
+.flowVisual-clear i:nth-child(3){
+  width:78%!important;
+  height:8px!important;
+  right:25%!important;
+  top:43%!important;
+  border:0!important;
+  border-radius:999px!important;
+  transform-origin:100% 50%!important;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(85,234,255,0) 0%,
+      rgba(85,234,255,.34) 16%,
+      #55eaff 45%,
+      #efffff 79%,
+      #ffffff 100%
+    )!important;
+  box-shadow:
+    0 0 4px #fff,
+    0 0 10px var(--clear-cyan),
+    0 0 19px rgba(41,211,255,.68)!important;
+  animation:v96531ClearBeamFire 1.06s ease-out infinite!important;
+}
+.flowVisual-clear i:nth-child(2){
+  transform:rotate(-8deg)!important;
+}
+.flowVisual-clear i:nth-child(3){
+  top:57%!important;
+  transform:rotate(8deg)!important;
+  animation-delay:.045s!important;
+}
+
+/* i4 = impact flash */
+.flowVisual-clear i:nth-child(4){
+  width:20px!important;
+  height:20px!important;
+  right:23%!important;
+  top:44%!important;
+  border-radius:50%!important;
+  background:#ffffff!important;
+  box-shadow:
+    0 0 5px #fff,
+    0 0 13px #7af3ff,
+    0 0 25px #ffb126,
+    0 0 39px rgba(255,55,42,.75)!important;
+  animation:v96531ClearImpact 1.06s ease-out infinite!important;
+}
+
+/* i5 = targeting ring, contracts before each shot */
+.flowVisual-clear i:nth-child(5){
+  width:76px!important;
+  height:76px!important;
+  right:-1%!important;
+  top:22%!important;
+  border:2px solid rgba(99,239,255,.88)!important;
+  border-radius:50%!important;
+  background:transparent!important;
+  box-shadow:
+    0 0 10px rgba(85,234,255,.62),
+    inset 0 0 8px rgba(85,234,255,.25)!important;
+  animation:v96531ClearLock 1.06s ease-in-out infinite!important;
+}
+
+@keyframes v96531ClearVisualFloat{
+  0%,100%{opacity:.70;transform:translateY(1px)}
+  50%{opacity:.96;transform:translateY(-2px)}
+}
+@keyframes v96531ClearBeamFire{
+  0%,28%{opacity:0;scale:.20 1}
+  35%{opacity:1;scale:1 1}
+  55%{opacity:1;scale:1.06 1.2}
+  73%,100%{opacity:0;scale:1 1}
+}
+@keyframes v96531ClearImpact{
+  0%,32%{opacity:0;transform:scale(.25)}
+  41%{opacity:1;transform:scale(1.55)}
+  57%{opacity:.85;transform:scale(.85)}
+  75%,100%{opacity:0;transform:scale(.30)}
+}
+@keyframes v96531ClearVoidHit{
+  0%,31%,100%{transform:scale(1)}
+  41%{transform:scale(1.12)}
+  52%{transform:scale(.88)}
+  66%{transform:scale(1.03)}
+}
+@keyframes v96531ClearLock{
+  0%,14%{opacity:.28;transform:scale(1.22)}
+  31%{opacity:.90;transform:scale(.92)}
+  41%{opacity:1;transform:scale(.82)}
+  58%{opacity:.25;transform:scale(1.08)}
+  100%{opacity:.28;transform:scale(1.22)}
+}
+
+/* On compact cards keep the action readable without swallowing the text. */
+@media(max-width:699px){
+  .flowVisual-clear i:nth-child(1){
+    width:50px!important;
+    height:50px!important;
+    top:32%!important;
+  }
+  .flowVisual-clear i:nth-child(5){
+    width:66px!important;
+    height:66px!important;
+    top:25%!important;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  #gameTitle #shift,#gameTitle #vix,.v90BrandWord,
+  .flowVisual-clear,.flowVisual-clear i{
+    animation:none!important;
+  }
 }
 </style>
 
