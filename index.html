@@ -1,4 +1,5 @@
-<!-- SHIFTVIX V96.3.8 — FELT MATERIAL VISUAL TEST: visual-only soft/felt treatment layered onto V96.3.7; gameplay unchanged. -->
+<!-- SHIFTVIX V96.4.1 — TRUE 2D PAPER WORLD: every gameplay object is flattened into matte craft-paper pieces moving through the existing 3D perspective; no gameplay logic changes. -->
+<!-- SHIFTVIX V96.4.0 — FULL-GAME 2D PAPER CUTOUT: gameplay world, stardust, collectibles, rings, Voids, Vix Vision, Flow HUD, World Top 9 and identity UI restyled as flat craft-paper layers moving through the existing 3D perspective; gameplay logic preserved. -->
 <!DOCTYPE html>
 <html>
 <!-- Google Analytics — SHIFTVIX Retention Analytics -->
@@ -5502,6 +5503,204 @@ body::after{
 }
 </style>
 
+
+<style id="shiftvixFullFeltCutoutV9639">
+/* V96.3.9 — FULL GAME 2D FELT CUTOUT / 3D LAYERED CRAFT */
+:root{--felt-edge:rgba(255,255,255,.16);--felt-shadow:rgba(0,0,0,.58);--felt-ink:#f6f1e7}
+html,body{background:#050506!important}
+canvas{filter:saturate(1.16) contrast(1.05) brightness(.94)!important}
+body::after{opacity:.18!important;mix-blend-mode:soft-light!important;background-image:radial-gradient(circle,rgba(255,255,255,.42) 0 .55px,transparent .8px),radial-gradient(circle,rgba(0,0,0,.62) 0 .6px,transparent .9px)!important;background-size:5px 5px,7px 7px!important}
+
+/* Felt typography: opaque ink + tiny raised cutout shadow, no glass/neon text. */
+#hud,.flowChoiceHud,#flowArchive,#worldLeaderboard,#worldIdentitySetup,#pauseOverlay,#gameOver,#v91LearnOverlay{font-family:Arial Rounded MT Bold,Arial,Helvetica,sans-serif!important}
+.hudLabel,.hudValue,#world,.flowChoiceTitle,.flowChoiceSub,.archiveTitle,.archiveSub,.worldBoardHead h2,.worldBoardSub,.identityPanel h2,.identitySub,.identityField label,.worldBoardNote,.flowChoiceIdentity,#powerAnnouncement{
+ text-shadow:0 2px 0 rgba(0,0,0,.85),0 0 1px rgba(255,255,255,.2)!important;filter:none!important
+}
+#powerAnnouncement{color:#fff7df!important;-webkit-text-stroke:1px rgba(0,0,0,.28)}
+.strikeDot{border:2px solid #ff9b91!important;box-shadow:0 3px 0 #6e1010,0 5px 10px rgba(0,0,0,.45)!important}
+.strikeDot.used{background:#242124!important;border-color:#595159!important;box-shadow:0 3px 0 #080708!important}
+
+/* Every major menu/panel becomes a stacked felt sheet. */
+.flowChoiceCard,.todayPickCard,.personalBestCard,.archiveCard,.worldHubCard,.worldBoardPanel,.worldPlayerIdentity,.identityPanel,.v91Panel,.worldBoardLaunch,.worldEditIdentity,.identityInitialsInput,.identityCountrySelect,.identityEnter,.flowChoiceButton,#pauseOverlay .pauseCard,#gameOver .gameOverCard{
+ background-color:#151317!important;
+ background-image:radial-gradient(circle at 20% 30%,rgba(255,255,255,.055) 0 .7px,transparent .9px),radial-gradient(circle at 75% 65%,rgba(0,0,0,.18) 0 .7px,transparent 1px)!important;
+ background-size:6px 6px,8px 8px!important;
+ border-width:2px!important;border-style:solid!important;
+ border-color:color-mix(in srgb,var(--flow-color,#c8c1b7) 58%,#f5eee3 12%)!important;
+ border-radius:15px!important;
+ box-shadow:0 3px 0 rgba(255,255,255,.08) inset,0 -3px 0 rgba(0,0,0,.28) inset,0 7px 0 rgba(0,0,0,.50),0 12px 20px rgba(0,0,0,.32)!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important
+}
+.flowChoiceCard,.archiveCard,.worldHubCard{transform:translateZ(0)}
+.flowChoiceCard:active,.worldHubCard:active,.archiveCard:active,.worldBoardLaunch:active,.identityEnter:active{transform:translateY(3px)!important;box-shadow:0 2px 0 rgba(0,0,0,.48)!important}
+
+/* Flow art: flat fabric pieces with raised paper-cut shadows instead of luminous glass. */
+.flowChoiceCard i,.flowVisual i,.worldFlowVisual i,.archiveVisual i{filter:saturate(1.08) contrast(1.04) drop-shadow(0 4px 0 rgba(0,0,0,.48)) drop-shadow(0 7px 5px rgba(0,0,0,.26))!important;box-shadow:none!important}
+.flowChoiceCard [class*="flowVisual"],.worldHubCard [class*="worldFlow"],.archiveCard [class*="archiveVisual"]{filter:none!important}
+
+/* Living star cloth: keep motion but turn points into tiny punched felt confetti. */
+#flowArchive::before,#flowArchive::after,#worldLeaderboard::before,#worldLeaderboard::after,#worldIdentitySetup::before,#worldIdentitySetup::after{filter:none!important;opacity:.58!important;mix-blend-mode:normal!important}
+
+/* Vix = layered felt mascot. Visor is dark charcoal felt, shell pearl felt, cyan eyes felt appliqué. */
+#vixReactionCam .vixCamHead,.v90VixShell,.v91BodyHead{
+ background:#dedbe0!important;background-image:radial-gradient(circle,rgba(255,255,255,.16) 0 .6px,transparent .85px),radial-gradient(circle,rgba(0,0,0,.10) 0 .6px,transparent .9px)!important;background-size:5px 5px,7px 7px!important;
+ border:2px solid #f4f0f3!important;box-shadow:0 4px 0 #8f8992,0 8px 10px rgba(0,0,0,.42)!important;filter:none!important
+}
+#vixReactionCam .vixCamFace,.v90VixFace,.v91BodyFace{background:#17151a!important;background-image:radial-gradient(circle,rgba(255,255,255,.035) 0 .5px,transparent .8px)!important;background-size:5px 5px!important;border:2px solid #343039!important;box-shadow:0 3px 0 #050506 inset!important}
+#vixReactionCam .vixCamEar,.v90VixEar,.v91BodyEar{background:#d9d5db!important;border:2px solid #f4f0f3!important;box-shadow:0 3px 0 #88828b!important;filter:none!important}
+#vixReactionCam .vixCamEye,.v90VixEye,.v91BodyEye,#vixVision .vixEye{background:rgb(var(--vix-cam-rgb,105,225,255))!important;border:2px solid rgba(235,255,255,.82)!important;box-shadow:0 4px 0 rgba(0,83,100,.72),0 7px 10px rgba(0,0,0,.26)!important;filter:none!important;opacity:.94!important}
+#vixVision .vixEye{background:#70e9f4!important;border-color:#d8ffff!important;box-shadow:0 6px 0 #167d8c,0 10px 18px rgba(0,0,0,.34)!important}
+
+/* Reactor becomes stacked felt discs; movement still supplies the depth. */
+#center{background:#e9faff!important;border:3px solid #fff!important;box-shadow:0 4px 0 rgba(30,94,112,.9),0 8px 12px rgba(0,0,0,.42)!important;filter:none!important}
+#center .reactorCore{background:#fff!important;box-shadow:0 3px 0 rgba(0,0,0,.38)!important}
+#center .reactorMiddle,#center .reactorOuter{box-shadow:0 4px 0 rgba(0,0,0,.42)!important;filter:none!important}
+#center .reactorPlume{filter:none!important;box-shadow:0 3px 0 rgba(0,0,0,.32)!important}
+
+/* Buttons/inputs look hand-cut, but all hit areas/logic remain untouched. */
+button,select,input{font-family:inherit!important}
+.worldBoardLaunch,.worldEditIdentity,.identityEnter,.flowChoiceButton{letter-spacing:1.3px!important;text-shadow:0 2px 0 rgba(0,0,0,.72)!important}
+
+/* CLEAR remains readable but now resembles two cyan fabric ribbons. */
+#clearLaserFx{filter:saturate(.95) contrast(1.1) drop-shadow(0 4px 0 rgba(0,0,0,.42))!important;mix-blend-mode:normal!important}
+
+/* Posters/story images stay intact; frame them as physical felt-mounted cards. */
+.v96PosterImage,.v94StoryImage{border:3px solid #d8d1c7!important;border-radius:12px!important;box-shadow:0 7px 0 #5c5651,0 13px 20px rgba(0,0,0,.45)!important;filter:saturate(.92) contrast(1.02)!important}
+</style>
+
+
+<style id="shiftvixPaperCutoutV9640">
+/* V96.4.0 — FULL GAME PAPER CUTOUT. No shine, no glass, no metal. */
+:root{--paper-bg:#111318;--paper-cream:#ebe2d0;--paper-shadow:#050607;--paper-cyan:#62cad7}
+html,body{background:#111318!important}
+canvas{filter:saturate(.92) contrast(1.02) brightness(.94)!important}
+body::after{opacity:.12!important;mix-blend-mode:multiply!important;background-image:radial-gradient(circle,rgba(255,255,255,.22) 0 .45px,transparent .7px),radial-gradient(circle,rgba(0,0,0,.20) 0 .55px,transparent .8px)!important;background-size:4px 4px,7px 7px!important}
+
+/* Remove neon/glass behavior from all major HUD text and controls. */
+.hudLabel,.hudValue,#objectiveHud,#challengeHud,#modeBanner,#pauseMenu,#gameOver,#powerAnnouncement,.flowChoiceHud,.archiveCard,.worldBoardPanel,.identityPanel,.worldPlayerIdentity,.worldRankHero,.worldRows,.worldMine{filter:none!important;text-shadow:0 2px 0 rgba(0,0,0,.52)!important}
+#modeBanner,#powerAnnouncement{color:#e6c56e!important;-webkit-text-stroke:0!important}
+
+/* Paper sheets: simple flat fills + one offset shadow = layered depth without 3D shine. */
+.flowChoiceCard,.todayPickCard,.personalBestCard,.archiveCard,.worldHubCard,.worldBoardPanel,.worldPlayerIdentity,.identityPanel,.v91Panel,.worldBoardLaunch,.worldEditIdentity,.identityInitialsInput,.identityCountrySelect,.identityEnter,.flowChoiceButton,.pausePanel,.pauseButton,.gameOverCard,.worldRankBack,.worldRankHero,.worldMine,.worldRow{
+ background:#1b1c20!important;background-image:none!important;border:2px solid rgba(232,224,210,.36)!important;border-radius:11px!important;box-shadow:4px 5px 0 rgba(0,0,0,.62)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important
+}
+.flowChoiceCard:active,.worldHubCard:active,.archiveCard:active,.worldBoardLaunch:active,.identityEnter:active,.pauseButton:active{transform:translate(2px,3px)!important;box-shadow:2px 2px 0 rgba(0,0,0,.62)!important}
+
+/* Flow illustrations and ranking icons become flat cut pieces. */
+.flowChoiceCard i,.flowVisual i,.worldFlowVisual i,.archiveVisual i{filter:none!important;box-shadow:3px 4px 0 rgba(0,0,0,.48)!important;background-image:none!important}
+
+/* Vix reaction portrait becomes literal stacked paper shapes. */
+#vixReactionCam .vixCamHead,.v90VixShell,.v91BodyHead{background:#ded7ca!important;background-image:none!important;border:2px solid #f2ebdc!important;box-shadow:4px 5px 0 #706a62!important;filter:none!important}
+#vixReactionCam .vixCamFace,.v90VixFace,.v91BodyFace{background:#17191d!important;background-image:none!important;border:2px solid #36383d!important;box-shadow:2px 3px 0 #050607!important;filter:none!important}
+#vixReactionCam .vixCamEar,.v90VixEar,.v91BodyEar{background:#67c8d3!important;background-image:none!important;border:2px solid #c9f4f2!important;box-shadow:2px 3px 0 #276d75!important;filter:none!important}
+#vixReactionCam .vixCamEye,.v90VixEye,.v91BodyEye,#vixVision .vixEye{background:#8cdbe0!important;border:2px solid #d9f3ef!important;box-shadow:3px 4px 0 #2f7e85!important;filter:none!important;opacity:1!important}
+#vixVision .vixEye{background:#78d2d9!important;box-shadow:5px 6px 0 #28656c!important}
+
+/* Life dots are paper discs. */
+.strikeDot{background:#d94743!important;border:2px solid #ef8f83!important;box-shadow:2px 3px 0 #6c1718!important}
+.strikeDot.used{background:#25272b!important;border-color:#54565a!important;box-shadow:2px 3px 0 #08090a!important}
+
+/* Center reactor = layered paper target. */
+#center{background:#e4e0d6!important;background-image:none!important;border:3px solid #f5efe4!important;box-shadow:4px 5px 0 #4a5558!important;filter:none!important}
+#center .reactorCore{background:#f2eee5!important;background-image:none!important;box-shadow:2px 3px 0 #6b6b67!important;filter:none!important}
+#center .reactorMiddle,#center .reactorOuter{box-shadow:3px 4px 0 rgba(0,0,0,.55)!important;filter:none!important}
+#center .reactorPlume{background:rgb(var(--reactor-plume))!important;box-shadow:2px 3px 0 rgba(0,0,0,.45)!important;filter:none!important}
+
+/* CLEAR lasers are flat cyan/cream paper ribbons. */
+#clearLaserFx{filter:none!important;mix-blend-mode:normal!important}
+#clearLaserFx .clearBeamOuter{stroke:#62cbd5!important;filter:none!important}
+#clearLaserFx .clearBeamCore{stroke:#e7efe9!important;filter:none!important}
+
+/* No luminous glass effects on global overlays. */
+#warpBurstFx,#flowFx,#fluxFx,#chronoFx,#midasFx,#prismFx{mix-blend-mode:normal!important;filter:none!important}
+
+/* Learning screens/posters mounted as paper cards. */
+.v96PosterImage,.v94StoryImage{border:3px solid #d8d0c0!important;border-radius:8px!important;box-shadow:5px 6px 0 #5c574f!important;filter:saturate(.88) contrast(1.02)!important}
+</style>
+
+
+<style id="shiftvixTruePaperV9641">
+/* V96.4.1 — TRUE 2D PAPER WORLD */
+html,body{background:#070708!important}
+canvas{filter:saturate(.84) contrast(1.03) brightness(.91)!important}
+
+/* Fine black craft-paper grain, not stars/glass. */
+body::after{
+  opacity:.18!important;
+  mix-blend-mode:normal!important;
+  background-image:
+    radial-gradient(circle,rgba(255,255,255,.045) 0 .45px,transparent .7px),
+    radial-gradient(circle,rgba(0,0,0,.30) 0 .55px,transparent .85px)!important;
+  background-size:5px 5px,8px 8px!important;
+}
+
+/* Flatten all luminous HUD treatments into cut paper. */
+.hudLabel,.hudValue,#objectiveHud,#challengeHud,#modeBanner,#powerAnnouncement,
+.flowChoiceTitle,.flowChoiceSub,.archiveTitle,.archiveSub,.worldBoardHead,
+.worldBoardSub,.identityPanel,.worldRow,.worldMine,.worldRankHero{
+  filter:none!important;
+  text-shadow:2px 3px 0 rgba(0,0,0,.72)!important;
+}
+
+/* Reaction Vix: paper appliqué only. */
+#vixReactionCam .vixCamHead,.v90VixShell,.v91BodyHead{
+  background:#ddd5c7!important;
+  border:2px solid #f1eadc!important;
+  box-shadow:4px 5px 0 #5c5852!important;
+}
+#vixReactionCam .vixCamFace,.v90VixFace,.v91BodyFace{
+  background:#171719!important;
+  border:2px solid #39383b!important;
+  box-shadow:3px 4px 0 #030304!important;
+}
+#vixReactionCam .vixCamEar,.v90VixEar,.v91BodyEar{
+  background:#61bcc4!important;
+  border:2px solid #bfe7e7!important;
+  box-shadow:2px 3px 0 #285e64!important;
+}
+#vixReactionCam .vixCamEye,.v90VixEye,.v91BodyEye,#vixVision .vixEye{
+  background:#79cdd2!important;
+  border:2px solid #d3eeee!important;
+  box-shadow:4px 5px 0 #245f65!important;
+  filter:none!important;
+}
+
+/* No translucent/plastic panel effects anywhere. */
+.flowChoiceCard,.todayPickCard,.personalBestCard,.archiveCard,.worldHubCard,
+.worldBoardPanel,.worldPlayerIdentity,.identityPanel,.v91Panel,.worldBoardLaunch,
+.worldEditIdentity,.identityInitialsInput,.identityCountrySelect,.identityEnter,
+.flowChoiceButton,.pausePanel,.pauseButton,.gameOverCard,.worldRankBack,.worldRankHero,
+.worldMine,.worldRow{
+  background:#171719!important;
+  background-image:none!important;
+  border:2px solid #454246!important;
+  box-shadow:4px 5px 0 #000!important;
+  filter:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+
+/* Paper UI art has only offset shadows, never bloom. */
+.flowChoiceCard i,.flowVisual i,.worldFlowVisual i,.archiveVisual i{
+  filter:none!important;
+  box-shadow:3px 4px 0 #050505!important;
+}
+
+/* Center reactor becomes a simple paper target. */
+#center,#center .reactorCore,#center .reactorMiddle,#center .reactorOuter,#center .reactorPlume{
+  filter:none!important;
+  text-shadow:none!important;
+}
+#center{background:#ded9ce!important;border-color:#f0ebdf!important;box-shadow:4px 5px 0 #333!important}
+#center .reactorCore{background:#f0ece3!important;box-shadow:2px 3px 0 #555!important}
+#center .reactorMiddle,#center .reactorOuter{box-shadow:3px 4px 0 #111!important}
+#center .reactorPlume{box-shadow:2px 3px 0 #111!important}
+
+/* CLEAR beam = flat strips, not luminous energy tubes. */
+#clearLaserFx .clearBeamOuter{stroke:#59b8c0!important;filter:none!important}
+#clearLaserFx .clearBeamCore{stroke:#ded9ce!important;filter:none!important}
+</style>
+
 </head>
 <body>
 <div id="worldIdentitySetup" aria-hidden="true">
@@ -5613,7 +5812,64 @@ body::after{
 <!-- SHIFTVIX CHRONO 2.0 — SLOW TIME + PRISM VISION + 2X SCORE -->
 <script type="module">
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
-const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x000000,0.0011);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x070708);scene.fog=new THREE.FogExp2(0x070708,0.00072);
+
+/* V96.4.0 — craft-paper material system. Flat art pieces still travel in true 3D space. */
+function makePaperTexture(){
+  const c=document.createElement("canvas"); c.width=c.height=64;
+  const ctx=c.getContext("2d");
+  const img=ctx.createImageData(64,64);
+  for(let i=0;i<img.data.length;i+=4){
+    const fiber=(Math.random()<.065)?-28:0;
+    const v=Math.max(178,Math.min(255,238+fiber+(Math.random()*18-9)));
+    img.data[i]=v;img.data[i+1]=v;img.data[i+2]=v;img.data[i+3]=255;
+  }
+  ctx.putImageData(img,0,0);
+  const tx=new THREE.CanvasTexture(c);
+  tx.wrapS=tx.wrapT=THREE.RepeatWrapping;
+  tx.repeat.set(2.5,2.5);
+  tx.colorSpace=THREE.SRGBColorSpace;
+  tx.magFilter=THREE.LinearFilter;
+  tx.minFilter=THREE.LinearMipmapLinearFilter;
+  return tx;
+}
+const PAPER_TEX=makePaperTexture();
+function paperMat(color,opacity=1){
+  return new THREE.MeshBasicMaterial({
+    color, map:PAPER_TEX, transparent:opacity<.999, opacity,
+    blending:THREE.NormalBlending, depthWrite:opacity>=.92,
+    side:THREE.DoubleSide, toneMapped:false
+  });
+}
+function paperCircle(radius,color,opacity=1,segments=36){
+  return new THREE.Mesh(new THREE.CircleGeometry(radius,segments),paperMat(color,opacity));
+}
+function paperRing(inner,outer,color,opacity=1,segments=48){
+  return new THREE.Mesh(new THREE.RingGeometry(inner,outer,segments),paperMat(color,opacity));
+}
+function paperTriangle(base,length,color){
+  const s=new THREE.Shape();
+  s.moveTo(-base*.5,0); s.lineTo(base*.5,0); s.lineTo(0,length); s.closePath();
+  return new THREE.Mesh(new THREE.ShapeGeometry(s),paperMat(color,1));
+}
+
+function paperShadowCircle(radius,opacity=.72){
+  const m=new THREE.Mesh(
+    new THREE.CircleGeometry(radius,32),
+    new THREE.MeshBasicMaterial({
+      color:0x000000,
+      transparent:true,
+      opacity,
+      blending:THREE.NormalBlending,
+      depthWrite:false,
+      side:THREE.DoubleSide,
+      toneMapped:false
+    })
+  );
+  m.position.set(.42,-.46,-.16);
+  return m;
+}
+
 const camera=new THREE.PerspectiveCamera(56.00,innerWidth/innerHeight,0.1,5000);camera.position.set(0,0,48);camera.lookAt(0,0,-500);
 let playerX=0,playerY=0;
 const PLAYER_Z=72;
@@ -5781,7 +6037,7 @@ function vixMakeEar(parent,side){
       color:0x8ef4ff,
       transparent:true,
       opacity:.25,
-      blending:THREE.AdditiveBlending,
+      blending:THREE.NormalBlending,
       depthWrite:false,
       side:THREE.DoubleSide
     })
@@ -5835,7 +6091,7 @@ function vixMakeJet(parent,pos,scale=1){
       color:0x62eaff,
       transparent:true,
       opacity:.98,
-      blending:THREE.AdditiveBlending,
+      blending:THREE.NormalBlending,
       depthWrite:false,
       side:THREE.DoubleSide
     })
@@ -5849,7 +6105,7 @@ function vixMakeJet(parent,pos,scale=1){
       color:0xe5fdff,
       transparent:true,
       opacity:.96,
-      blending:THREE.AdditiveBlending,
+      blending:THREE.NormalBlending,
       depthWrite:false,
       side:THREE.DoubleSide
     })
@@ -5863,7 +6119,7 @@ function vixMakeJet(parent,pos,scale=1){
       color:0x6feaff,
       transparent:true,
       opacity:.13,
-      blending:THREE.AdditiveBlending,
+      blending:THREE.NormalBlending,
       depthWrite:false,
       side:THREE.DoubleSide
     })
@@ -7116,16 +7372,8 @@ function awardBonusScore(points,source,tier=null){
 function addPowerTierRings(group,tier,color){
   const rings=[];
   for(let i=0;i<tier;i++){
-    const ring=new THREE.Mesh(
-      new THREE.TorusGeometry(10.2+i*2.15,.34,8,36),
-      new THREE.MeshBasicMaterial({
-        color,
-        transparent:true,
-        opacity:.88-i*.12,
-        blending:THREE.AdditiveBlending,
-        depthWrite:false
-      })
-    );
+    const ring=paperRing(9.8+i*2.15,10.55+i*2.15,color,.92-i*.10,40);
+    ring.position.z=-.06*i;
     ring.userData.powerTierRing=true;
     group.add(ring);
     rings.push(ring);
@@ -11796,7 +12044,33 @@ let pendingModeBanner = null;
 function introIsClear(){return distance >= 72;}
 function showModeBanner(text){const el=document.getElementById("modeBanner");if(!el)return;if(!introIsClear()){pendingModeBanner=text;return;}pendingModeBanner=null;el.textContent=text;el.classList.remove("show");void el.offsetWidth;el.classList.add("show");}
 function releasePendingModeBanner(){if(pendingModeBanner&&introIsClear())showModeBanner(pendingModeBanner);}
-function makeStarField(){const count=850,positions=new Float32Array(count*3),colors=new Float32Array(count*3),baseXY=new Float32Array(count*2),palette=[0xffffff,0x777777,0x55ccff,0xff66cc,0x5d3dff,0xff8800].map(c=>new THREE.Color(c));for(let i=0;i<count;i++){const x=(Math.random()*2-1)*260,y=(Math.random()*2-1)*180;positions[i*3]=x;positions[i*3+1]=y;positions[i*3+2]=-50-Math.random()*1200;baseXY[i*2]=x;baseXY[i*2+1]=y;const c=palette[Math.floor(Math.random()*palette.length)].clone().multiplyScalar(.35+Math.random()*.7);colors[i*3]=c.r;colors[i*3+1]=c.g;colors[i*3+2]=c.b;}const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(positions,3));geo.setAttribute("color",new THREE.BufferAttribute(colors,3));const mat=new THREE.PointsMaterial({size:1.3,sizeAttenuation:true,transparent:true,opacity:.72,vertexColors:true});const pts=new THREE.Points(geo,mat);pts.userData.baseXY=baseXY;scene.add(pts);stars.push(pts);}
+function makeStarField(){
+  const count=360,positions=new Float32Array(count*3),colors=new Float32Array(count*3),baseXY=new Float32Array(count*2);
+  const palette=[0xd9d1c2,0x77716b,0x4da9bf,0xb24b8d,0x6352a8,0xb96a2c,0xc3a64f].map(c=>new THREE.Color(c));
+  for(let i=0;i<count;i++){
+    const x=(Math.random()*2-1)*260,y=(Math.random()*2-1)*180;
+    positions[i*3]=x;positions[i*3+1]=y;positions[i*3+2]=-50-Math.random()*1200;
+    baseXY[i*2]=x;baseXY[i*2+1]=y;
+    const c=palette[Math.floor(Math.random()*palette.length)];
+    colors[i*3]=c.r;colors[i*3+1]=c.g;colors[i*3+2]=c.b;
+  }
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute("position",new THREE.BufferAttribute(positions,3));
+  geo.setAttribute("color",new THREE.BufferAttribute(colors,3));
+  const mat=new THREE.PointsMaterial({
+    size:1.45,
+    sizeAttenuation:true,
+    transparent:false,
+    vertexColors:true,
+    blending:THREE.NormalBlending,
+    depthWrite:true,
+    toneMapped:false
+  });
+  const pts=new THREE.Points(geo,mat);
+  pts.userData.baseXY=baseXY;
+  scene.add(pts);
+  stars.push(pts);
+}
 
 function makeFluxDustField(){
     const positions=new Float32Array(FLUX_DUST_COUNT*2*3);
@@ -11804,11 +12078,11 @@ function makeFluxDustField(){
     const anchors=new Float32Array(FLUX_DUST_COUNT*2);
 
     const palette=[
-        new THREE.Color(0xffffff),
-        new THREE.Color(0xbfefff),
-        new THREE.Color(0x75ddff),
-        new THREE.Color(0xffd36a),
-        new THREE.Color(0xc58cff)
+        new THREE.Color(0xd7d0c3),
+        new THREE.Color(0x7faeb5),
+        new THREE.Color(0x4d9eb0),
+        new THREE.Color(0xb8994a),
+        new THREE.Color(0x8f67a6)
     ];
 
     for(let i=0;i<FLUX_DUST_COUNT;i++){
@@ -11844,15 +12118,18 @@ function makeFluxDustField(){
     geo.setAttribute("position",new THREE.BufferAttribute(positions,3));
     geo.setAttribute("color",new THREE.BufferAttribute(colors,3));
 
-    const mat=new THREE.LineBasicMaterial({
+    const mat=new THREE.PointsMaterial({
+        size:1.35,
+        sizeAttenuation:true,
         vertexColors:true,
-        transparent:true,
-        opacity:0,
+        transparent:false,
+        opacity:1,
         depthWrite:false,
-        blending:THREE.AdditiveBlending
+        blending:THREE.NormalBlending,
+        toneMapped:false
     });
 
-    fluxDust=new THREE.LineSegments(geo,mat);
+    fluxDust=new THREE.Points(geo,mat);
     fluxDust.frustumCulled=false;
     fluxDust.userData.anchors=anchors;
     scene.add(fluxDust);
@@ -11931,7 +12208,7 @@ function updateFluxDust(dt){
     pos.needsUpdate=true;
 }
 
-function makeLaneGuides(){LANE_X.forEach(x=>{LANE_Y.forEach(y=>{const geo=new THREE.BufferGeometry(),positions=[];for(let i=0;i<52;i++)positions.push(x,y,-80-i*25);geo.setAttribute("position",new THREE.Float32BufferAttribute(positions,3));const mat=new THREE.PointsMaterial({color:0xff66cc,size:.85,transparent:true,opacity:.0,sizeAttenuation:true,depthWrite:false});const pts=new THREE.Points(geo,mat);scene.add(pts);laneGuides.push(pts);});});}
+function makeLaneGuides(){LANE_X.forEach(x=>{LANE_Y.forEach(y=>{const geo=new THREE.BufferGeometry(),positions=[];for(let i=0;i<52;i++)positions.push(x,y,-80-i*25);geo.setAttribute("position",new THREE.Float32BufferAttribute(positions,3));const mat=new THREE.PointsMaterial({color:0xc658a5,size:1.2,transparent:true,opacity:.0,sizeAttenuation:true,depthWrite:false,blending:THREE.NormalBlending,toneMapped:false});const pts=new THREE.Points(geo,mat);scene.add(pts);laneGuides.push(pts);});});}
 function chooseTier(){
 
     /*
@@ -12014,17 +12291,12 @@ function makeFluxOrb(reason="random"){
   const x=LANE_X[xIndex],y=LANE_Y[yIndex];
   const group=new THREE.Group();
   const core=new THREE.Mesh(
-    new THREE.SphereGeometry(7.2,24,24),
-    new THREE.MeshBasicMaterial({color:0xffffff})
+    new THREE.CircleGeometry(7.2,40),
+    paperMat(0xf2eee5,1)
   );
-  const glow=new THREE.Mesh(
-    new THREE.SphereGeometry(13.4,22,22),
-    new THREE.MeshBasicMaterial({
-      color:0x55eaff,transparent:true,opacity:.22,
-      blending:THREE.AdditiveBlending,depthWrite:false
-    })
-  );
-  group.add(glow);group.add(core);
+  const glow=paperShadowCircle(7.5,.70);
+  const rim=paperRing(6.25,7.25,0x63bec8,1,40);
+  group.add(glow);group.add(rim);group.add(core);
   addPowerTierRings(group,powerTier,0x55eaff);
   group.position.set(x,y,FAR_Z+90);
   group.userData={
@@ -12061,22 +12333,14 @@ function makeChronoOrb(reason="random"){
   const group=new THREE.Group();
 
   const core=new THREE.Mesh(
-    new THREE.SphereGeometry(7.4,24,24),
-    new THREE.MeshBasicMaterial({color:CHRONO_COLOR})
+    new THREE.CircleGeometry(7.4,40),
+    paperMat(CHRONO_COLOR,1)
   );
 
-  const glow=new THREE.Mesh(
-    new THREE.SphereGeometry(14.2,22,22),
-    new THREE.MeshBasicMaterial({
-      color:CHRONO_GLOW_COLOR,
-      transparent:true,
-      opacity:.24,
-      blending:THREE.AdditiveBlending,
-      depthWrite:false
-    })
-  );
-
+  const glow=paperShadowCircle(7.7,.70);
+  const rim=paperRing(6.35,7.45,CHRONO_GLOW_COLOR,1,40);
   group.add(glow);
+  group.add(rim);
   group.add(core);
   addPowerTierRings(group,powerTier,CHRONO_GLOW_COLOR);
   group.position.set(x,y,FAR_Z+90);
@@ -12128,32 +12392,12 @@ function makeMidasOrb(reason="random"){
   const group=new THREE.Group();
 
   const core=new THREE.Mesh(
-    new THREE.SphereGeometry(7.5,24,24),
-    new THREE.MeshBasicMaterial({color:MIDAS_CORE_COLOR})
+    new THREE.CircleGeometry(7.5,40),
+    paperMat(MIDAS_CORE_COLOR,1)
   );
 
-  const shell=new THREE.Mesh(
-    new THREE.SphereGeometry(8.7,20,20),
-    new THREE.MeshBasicMaterial({
-      color:MIDAS_COLOR,
-      transparent:true,
-      opacity:.58,
-      blending:THREE.AdditiveBlending,
-      depthWrite:false
-    })
-  );
-
-  const glow=new THREE.Mesh(
-    new THREE.SphereGeometry(14.4,22,22),
-    new THREE.MeshBasicMaterial({
-      color:MIDAS_GLOW_COLOR,
-      transparent:true,
-      opacity:.25,
-      blending:THREE.AdditiveBlending,
-      depthWrite:false
-    })
-  );
-
+  const shell=paperRing(6.7,8.15,MIDAS_COLOR,1,40);
+  const glow=paperShadowCircle(8.25,.72);
   group.add(glow);
   group.add(shell);
   group.add(core);
@@ -12324,55 +12568,14 @@ function makeGoldRing(reason="ambient",forcedLane=null,zOffset=0){
 
   const group=new THREE.Group();
 
-  // Same overall visual size family as the VOID ring, but fully open.
-  const outerGlow=new THREE.Mesh(
-    new THREE.TorusGeometry(10.45,1.15,10,56),
-    new THREE.MeshBasicMaterial({
-      color:0xffa91f,
-      transparent:true,
-      opacity:.18,
-      blending:THREE.AdditiveBlending,
-      depthWrite:false
-    })
-  );
+  // TRUE PAPER: flat ring layers with one offset shadow. No luminous halo.
+  const outerGlow=new THREE.Mesh(new THREE.RingGeometry(7.45,9.95,56),paperMat(0x050505,.78));
+  const goldBand=new THREE.Mesh(new THREE.RingGeometry(7.20,9.70,64),paperMat(0xd4a33d,1));
+  const hotEdge=new THREE.Mesh(new THREE.RingGeometry(7.75,8.90,64),paperMat(0xf0d26f,1));
+  const innerGlow=new THREE.Mesh(new THREE.RingGeometry(7.20,7.68,60),paperMat(0xede2c4,1));
 
-  const goldBand=new THREE.Mesh(
-    new THREE.TorusGeometry(8.45,1.25,12,64),
-    new THREE.MeshBasicMaterial({
-      color:0xffc83d,
-      transparent:true,
-      opacity:.96,
-      blending:THREE.AdditiveBlending,
-      depthWrite:false
-    })
-  );
-
-  const hotEdge=new THREE.Mesh(
-    new THREE.TorusGeometry(8.45,.48,10,64),
-    new THREE.MeshBasicMaterial({
-      color:0xfff2a0,
-      transparent:true,
-      opacity:.98,
-      blending:THREE.AdditiveBlending,
-      depthWrite:false
-    })
-  );
-
-  const innerGlow=new THREE.Mesh(
-    new THREE.TorusGeometry(7.55,.32,8,60),
-    new THREE.MeshBasicMaterial({
-      color:0xffdf6b,
-      transparent:true,
-      opacity:.72,
-      blending:THREE.AdditiveBlending,
-      depthWrite:false
-    })
-  );
-
-  group.add(outerGlow);
-  group.add(goldBand);
-  group.add(hotEdge);
-  group.add(innerGlow);
+  outerGlow.position.set(.45,-.48,-.14); goldBand.position.z=-.04; hotEdge.position.z=.03; innerGlow.position.z=.08;
+  group.add(outerGlow,goldBand,hotEdge,innerGlow);
 
   group.position.set(x,y,FAR_Z+120+zOffset);
   group.scale.setScalar(introScale);
@@ -12670,262 +12873,58 @@ function passGoldRing(b){
 }
 
 function makeVoidHazard(reason="normal",forcedLane=null,options={}){
-  const activeVoids=beacons.filter(
-    b=>b?.userData?.isVoid && b.userData.state==="active"
-  ).length;
-
-  // At most six Void bodies can be active at once.
+  const activeVoids=beacons.filter(b=>b?.userData?.isVoid && b.userData.state==="active").length;
   if(activeVoids>=6)return false;
-
   const isBreakTarget=!!options.breakTarget;
-  // SHIFTVIX V44 — Hollow escape Voids now exist outside BREAK as a
-  // universal high-value risk/reward route. They share the same readable
-  // hollow visual language, but do not advance the BREAK objective.
   const isEscapeVoid=!!options.escapeVoid && !isBreakTarget;
   const isHollowVoid=isBreakTarget||isEscapeVoid;
-
   trainId++;
-
-  let xIndex;
-  let yIndex;
-
+  let xIndex,yIndex;
   if(forcedLane && Number.isInteger(forcedLane.x) && Number.isInteger(forcedLane.y)){
-    xIndex=Math.max(0,Math.min(2,forcedLane.x));
-    yIndex=Math.max(0,Math.min(2,forcedLane.y));
-  }else{
-    xIndex=Math.floor(Math.random()*3);
-    yIndex=Math.floor(Math.random()*3);
-  }
-
-  const x=LANE_X[xIndex];
-  const y=LANE_Y[yIndex];
-
+    xIndex=Math.max(0,Math.min(2,forcedLane.x)); yIndex=Math.max(0,Math.min(2,forcedLane.y));
+  }else{xIndex=Math.floor(Math.random()*3);yIndex=Math.floor(Math.random()*3);}
+  const x=LANE_X[xIndex],y=LANE_Y[yIndex];
   const group=new THREE.Group();
 
-  /*
-    V66 DANGER LANGUAGE:
-    SOLID HOT RED CENTER = lethal Void / DO NOT ENTER.
-    HOLLOW CYAN CENTER = safe/attackable passage.
-  */
-  const core=isHollowVoid
-    ? new THREE.Mesh(
-        new THREE.TorusGeometry(
-          5.05,
-          .72,
-          12,
-          56
-        ),
-        new THREE.MeshBasicMaterial({
-          color:0x8ffcff,
-          transparent:true,
-          opacity:.98,
-          blending:THREE.AdditiveBlending,
-          depthWrite:false
-        })
-      )
-    : new THREE.Mesh(
-        new THREE.SphereGeometry(7.45,28,28),
-        new THREE.MeshBasicMaterial({
-          color:0xff1018,
-          transparent:false,
-          opacity:1,
-          depthWrite:false
-        })
-      );
+  // TRUE PAPER: one offset shadow, one spike sheet, one backing disc, one front cutout.
+  const aura=paperShadowCircle(9.65,.78);
+  const heat=paperCircle(9.15,0xb8482f,1,48); heat.position.set(.18,-.18,-.08);
+  const corona=paperCircle(8.65,0xd65b36,1,48); corona.position.z=-.02;
+  const ring=paperRing(7.25,8.35,0xe4b84d,1,52); ring.position.z=.05;
 
-  // Fiery orange ring.
-  const corona=new THREE.Mesh(
-    new THREE.TorusGeometry(8.30,1.30,12,56),
-    new THREE.MeshBasicMaterial({
-      color:0xff7100,
-      transparent:true,
-      opacity:.94,
-      blending:THREE.AdditiveBlending,
-      depthWrite:false
-    })
-  );
-
-  // Bright gold strike edge.
-  const ring=new THREE.Mesh(
-    new THREE.TorusGeometry(8.45,.60,10,56),
-    new THREE.MeshBasicMaterial({
-      color:0xffd34f,
-      transparent:true,
-      opacity:.98,
-      blending:THREE.AdditiveBlending,
-      depthWrite:false
-    })
-  );
-
-  // Red-orange heat ring.
-  const heat=new THREE.Mesh(
-    new THREE.TorusGeometry(9.30,1.20,10,52),
-    new THREE.MeshBasicMaterial({
-      color:0xff2800,
-      transparent:true,
-      opacity:.32,
-      blending:THREE.AdditiveBlending,
-      depthWrite:false
-    })
-  );
-
-  // Soft outer aura.
-  const aura=new THREE.Mesh(
-    new THREE.TorusGeometry(10.55,1.15,8,48),
-    new THREE.MeshBasicMaterial({
-      color:0xff4b00,
-      transparent:true,
-      opacity:.13,
-      blending:THREE.AdditiveBlending,
-      depthWrite:false
-    })
-  );
-
-  // SHIFTVIX 2.9.2 — UNIFORM ALTERNATING SPIKES
-  // Big spike, little spike, big spike, little spike...
-  // Every wide base is anchored to the outside of the fiery ring,
-  // and every sharp tip points AWAY from the meteor center.
   const spikes=new THREE.Group();
-
-  const bigSpikeCount=8;
-  const totalSpikeCount=bigSpikeCount*2;
-
-  // Ring edge is ~9.3 units from center.
-  // ConeGeometry is centered on its local Y axis, so the spike center must
-  // sit half its length beyond the attachment point for the base to touch
-  // the ring cleanly.
-  const attachRadius=9.15;
-
+  const totalSpikeCount=14,attachRadius=8.15;
   for(let i=0;i<totalSpikeCount;i++){
     const a=(i/totalSpikeCount)*Math.PI*2;
-    const isBig=(i%2===0);
-
-    const spikeLength=isBig?5.6:3.5;
-    const spikeBaseRadius=isBig?1.22:.78;
-
-    const spike=new THREE.Mesh(
-      new THREE.ConeGeometry(
-        spikeBaseRadius,
-        spikeLength,
-        12,
-        1,
-        false
-      ),
-      new THREE.MeshBasicMaterial({
-        color:isBig?0xff1e20:0xff3a28,
-        transparent:true,
-        opacity:.98,
-        blending:THREE.AdditiveBlending,
-        depthWrite:false
-      })
-    );
-
-    /*
-      ConeGeometry points along local +Y.
-      Rotate +Y so the cone tip points radially OUTWARD.
-      Because the geometry is centered, place the cone center at:
-      ring attachment radius + half spike length.
-      That puts the thick base directly against the ring.
-    */
-    spike.rotation.z = a - Math.PI/2;
-
-    const centerRadius=attachRadius + spikeLength*.5;
-
-    spike.position.set(
-      Math.cos(a)*centerRadius,
-      Math.sin(a)*centerRadius,
-      0
-    );
-
+    const isBig=i%2===0;
+    const len=isBig?4.5:2.8,base=isBig?2.4:1.55;
+    const spike=paperTriangle(base,len,isBig?0xc93632:0xe36d3e);
+    spike.rotation.z=a-Math.PI/2;
+    spike.position.set(Math.cos(a)*attachRadius,Math.sin(a)*attachRadius,-.12);
     spikes.add(spike);
   }
 
-// V66 — Slight hot-red danger glow around the solid lethal center.
-// Kept restrained so the center reads as a solid STOP signal, not a portal.
-const dangerCoreGlow=!isHollowVoid
-  ? new THREE.Mesh(
-      new THREE.SphereGeometry(8.10,28,28),
-      new THREE.MeshBasicMaterial({
-        color:0xff2200,
-        transparent:true,
-        opacity:.20,
-        blending:THREE.AdditiveBlending,
-        depthWrite:false
-      })
-    )
-  : null;
+  let core,breakHalo=null,dangerCoreGlow=null;
+  if(isHollowVoid){
+    breakHalo=paperRing(4.10,6.15,0x78c7ce,1,52);breakHalo.position.z=.10;
+    core=paperRing(4.15,5.20,0xe1ddd2,1,52);core.position.z=.16;
+  }else{
+    dangerCoreGlow=paperCircle(6.85,0x7f2525,1,48);dangerCoreGlow.position.set(.22,-.22,.08);
+    core=paperCircle(6.55,0xd23a35,1,48);core.position.z=.16;
+  }
 
-const breakHalo=isHollowVoid
-  ? new THREE.Mesh(
-      new THREE.TorusGeometry(
-        5.10,
-        1.45,
-        12,
-        56
-      ),
-      new THREE.MeshBasicMaterial({
-        color:0x35f2ff,
-        transparent:true,
-        opacity:.26,
-        blending:THREE.AdditiveBlending,
-        depthWrite:false
-      })
-    )
-  : null;
-
-group.add(aura);
-  group.add(heat);
-  group.add(spikes);
-  group.add(corona);
-  group.add(ring);
+  group.add(aura,spikes,heat,corona,ring);
   if(breakHalo)group.add(breakHalo);
   if(dangerCoreGlow)group.add(dangerCoreGlow);
   group.add(core);
 
   group.position.set(x,y,FAR_Z+135);
   group.scale.setScalar(introScale);
-
-  group.userData={
-    core,
-    corona,
-    heat,
-    ring,
-    aura,
-    glow:aura,
-    spikes,
-    breakHalo,
-    dangerCoreGlow,
-    isVoid:true,
-    isBreakTarget,
-    isEscapeVoid,
-    isHollowVoid,
-    state:"active",
-    fade:1,
-    train:trainId,
-    speedMult:1.78,
-    roadX:x,
-    roadY:y,
-    voidReason:reason,
-    voidBornAt:performance.now(),
-    meteorPhase:Math.random()*Math.PI*2,
-    meteorLaneX:xIndex,
-    meteorLaneY:yIndex
-  };
-
+  group.userData={core,corona,heat,ring,aura,glow:aura,spikes,breakHalo,dangerCoreGlow,isVoid:true,isBreakTarget,isEscapeVoid,isHollowVoid,state:"active",fade:1,train:trainId,speedMult:1.78,roadX:x,roadY:y,voidReason:reason,voidBornAt:performance.now(),meteorPhase:Math.random()*Math.PI*2,meteorLaneX:xIndex,meteorLaneY:yIndex};
   scene.add(group);
   beacons.push(group);
   voidCountRun++;
-
-  trackGame("void_spawned",{
-    trigger_reason:reason,
-    distance:Math.floor(distance),
-    level,
-    flow_number:currentFlowIndex+1,
-    lane_x:xIndex,
-    lane_y:yIndex,
-    void_count_run:voidCountRun
-  });
-
+  trackGame("void_spawned",{trigger_reason:reason,distance:Math.floor(distance),level,flow_number:currentFlowIndex+1,lane_x:xIndex,lane_y:yIndex,void_count_run:voidCountRun});
   return true;
 }
 
@@ -13326,24 +13325,11 @@ function makeWarpOrb(reason="random"){
 
   const group=new THREE.Group();
   const core=new THREE.Mesh(
-    new THREE.SphereGeometry(7.5,24,24),
-    new THREE.MeshBasicMaterial({color:WARP_CORE_COLOR})
+    new THREE.CircleGeometry(7.5,40),
+    paperMat(WARP_CORE_COLOR,1)
   );
-  const shell=new THREE.Mesh(
-    new THREE.SphereGeometry(9.0,20,20),
-    new THREE.MeshBasicMaterial({
-      color:WARP_COLOR,transparent:true,opacity:.68,
-      blending:THREE.AdditiveBlending,depthWrite:false
-    })
-  );
-  const glow=new THREE.Mesh(
-    new THREE.SphereGeometry(14.8,22,22),
-    new THREE.MeshBasicMaterial({
-      color:WARP_GLOW_COLOR,transparent:true,opacity:.26,
-      blending:THREE.AdditiveBlending,depthWrite:false
-    })
-  );
-
+  const shell=paperRing(6.9,8.45,WARP_COLOR,1,40);
+  const glow=paperShadowCircle(8.55,.72);
   group.add(glow);group.add(shell);group.add(core);
   addPowerTierRings(group,powerTier,WARP_COLOR);
   group.position.set(x,y,FAR_Z+90);
@@ -13381,12 +13367,13 @@ function makeInvincibleOrb(reason="random"){
   const xIndex=Math.floor(Math.random()*3), yIndex=Math.floor(Math.random()*3);
   const x=LANE_X[xIndex], y=LANE_Y[yIndex];
   const group=new THREE.Group();
-  const core=new THREE.Mesh(new THREE.SphereGeometry(4.2,24,24),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.82,blending:THREE.AdditiveBlending,depthWrite:false}));
-  const shell1=new THREE.Mesh(new THREE.SphereGeometry(9.0,24,24),new THREE.MeshBasicMaterial({color:0xcffcff,wireframe:true,transparent:true,opacity:.34,blending:THREE.AdditiveBlending,depthWrite:false}));
-  const shell2=new THREE.Mesh(new THREE.SphereGeometry(12.2,24,24),new THREE.MeshBasicMaterial({color:0xffffff,wireframe:true,transparent:true,opacity:.16,blending:THREE.AdditiveBlending,depthWrite:false}));
-  shell2.rotation.set(.55,.35,.2); group.add(shell2);group.add(shell1);group.add(core);
+  const core=paperCircle(4.2,0xe9e5da,1,36);
+  const shell1=paperRing(6.0,7.55,0x8ecbd0,1,40);
+  const shell2=paperRing(7.75,9.0,0xd8d4ca,1,40);
+  const shadow=paperShadowCircle(9.1,.70);
+  group.add(shadow);group.add(shell2);group.add(shell1);group.add(core);
   group.position.set(x,y,FAR_Z+90); group.scale.setScalar(introScale);
-  group.userData={core,glow:shell2,state:"active",fade:1,train:trainId,speedMult:1,roadX:x,roadY:y,isInvincible:true,invincibleReason:reason};
+  group.userData={core,glow:shadow,state:"active",fade:1,train:trainId,speedMult:1,roadX:x,roadY:y,isInvincible:true,invincibleReason:reason};
   scene.add(group);beacons.push(group);invincibleOrbActive=true;
   trackGame("invincible_orb_spawned",{trigger_reason:reason,distance:Math.floor(distance),flow_number:currentFlowIndex+1,lane_x:xIndex,lane_y:yIndex});
   return true;
@@ -13461,19 +13448,10 @@ function makeLegendaryOrb(){
 // =========================
 const sharedBeaconGeometryCache=new Map();
 
-function getSharedBeaconGeometry(radius,segments=14){
-  const key=`${radius.toFixed(3)}:${segments}`;
+function getSharedBeaconGeometry(radius,segments=18){
+  const key=`paper:${radius.toFixed(3)}:${segments}`;
   let geometry=sharedBeaconGeometryCache.get(key);
-
-  if(!geometry){
-    geometry=new THREE.SphereGeometry(
-      radius,
-      segments,
-      segments
-    );
-    sharedBeaconGeometryCache.set(key,geometry);
-  }
-
+  if(!geometry){geometry=new THREE.CircleGeometry(radius,Math.max(18,segments));sharedBeaconGeometryCache.set(key,geometry);}
   return geometry;
 }
 
@@ -13515,37 +13493,18 @@ function disposeBeaconObject(group){
 function makeBeacon(tier,x,y,z,train){
  const group=new THREE.Group();
 
- // Shared geometry avoids hundreds/thousands of repeated GPU allocations
- // during long mobile sessions.
- const coreGeometry=
-   getSharedBeaconGeometry(tier.size,14);
+ const coreGeometry=getSharedBeaconGeometry(tier.size,18);
+ const core=new THREE.Mesh(coreGeometry,paperMat(tier.color,1));
+ const shadow=paperShadowCircle(tier.size*1.02,.68);
 
- const glowGeometry=
-   getSharedBeaconGeometry(tier.size*1.9,12);
-
- const core=new THREE.Mesh(
-   coreGeometry,
-   new THREE.MeshBasicMaterial({color:tier.color})
- );
-
- const glow=new THREE.Mesh(
-   glowGeometry,
-   new THREE.MeshBasicMaterial({
-     color:tier.color,
-     transparent:true,
-     opacity:.10,
-     blending:THREE.AdditiveBlending,
-     depthWrite:false
-   })
- );
-
- group.add(glow);
+ group.add(shadow);
  group.add(core);
  group.position.set(x,y,z);
 
  group.userData={
    core,
-   glow,
+   glow:shadow,
+   shadow,
    tier,
    value:tier.value,
    state:"active",
@@ -15232,7 +15191,8 @@ function updateCometTraveler(dt){
   updateVix3D(dt,cometState());
 }
 
-function animate(){requestAnimationFrame(animate);updateGamepad();const dt = Math.min(clock.getDelta(), .05);if(gameStarted&&!gameOver&&!paused){updateFluxBoost(dt);updateWarpBoost(dt);updateChronoState(dt);updateMidasState(dt);updateIonicThruster(dt);const worldTimeScale=THREE.MathUtils.lerp(1,CHRONO_WORLD_SCALE,chronoAmount);const worldDt=dt*worldTimeScale;const baseRunSpeed=SPEED_START+Math.min(150,distance*.018);speed=baseRunSpeed*(1+fluxBoostAmount*FLUX_SPEED_BOOST+warpBoostAmount*WARP_SPEED_BOOST);const prototypeDistanceDelta=flowCompletionCoastActive?0:speed*worldDt*.08;distance+=prototypeDistanceDelta;
+function animate(){
+  v9639RefreshFeltWorld();requestAnimationFrame(animate);updateGamepad();const dt = Math.min(clock.getDelta(), .05);if(gameStarted&&!gameOver&&!paused){updateFluxBoost(dt);updateWarpBoost(dt);updateChronoState(dt);updateMidasState(dt);updateIonicThruster(dt);const worldTimeScale=THREE.MathUtils.lerp(1,CHRONO_WORLD_SCALE,chronoAmount);const worldDt=dt*worldTimeScale;const baseRunSpeed=SPEED_START+Math.min(150,distance*.018);speed=baseRunSpeed*(1+fluxBoostAmount*FLUX_SPEED_BOOST+warpBoostAmount*WARP_SPEED_BOOST);const prototypeDistanceDelta=flowCompletionCoastActive?0:speed*worldDt*.08;distance+=prototypeDistanceDelta;
 
 // SHIFTVIX V48b — EARNED TRAVEL uses actual physical meters.
 // Only the portion of forward travel while the player occupies a regular
@@ -16634,6 +16594,39 @@ function updateClearFlow(){
 requestAnimationFrame(updateClearFlow);
 
 
+
+
+/* SHIFTVIX V96.3.9 — 3D WORLD FELT-CUTOUT MATERIAL PASS.
+   Keeps geometry, motion, collisions and spawning unchanged; only material response is flattened. */
+const FELT_CUTOUT_V9639=true;
+function v9639FeltMaterial(mat){
+  if(!mat||mat.userData?.v9639Felt)return;
+  const n=(mat.name||'').toLowerCase();
+  const energy=/laser|beam|eye|plasma/.test(n);
+  try{
+    if('metalness' in mat) mat.metalness=0;
+    if('roughness' in mat) mat.roughness=1;
+    if('clearcoat' in mat) mat.clearcoat=0;
+    if('clearcoatRoughness' in mat) mat.clearcoatRoughness=1;
+    if('flatShading' in mat && !energy) mat.flatShading=true;
+    if('shininess' in mat) mat.shininess=0;
+    if('specular' in mat && mat.specular?.setHex) mat.specular.setHex(0x111111);
+    if('emissiveIntensity' in mat && !energy) mat.emissiveIntensity=Math.min(mat.emissiveIntensity||0,0.28);
+    mat.userData=mat.userData||{};mat.userData.v9639Felt=true;mat.needsUpdate=true;
+  }catch(e){}
+}
+function v9639FeltObject(obj){
+  if(!obj)return;
+  obj.traverse?.(o=>{const a=Array.isArray(o.material)?o.material:[o.material];a.forEach(v9639FeltMaterial)});
+}
+const v9639SceneAdd=scene.add.bind(scene);
+scene.add=function(...objects){objects.forEach(v9639FeltObject);return v9639SceneAdd(...objects)};
+let v9639FeltTick=0;
+function v9639RefreshFeltWorld(){
+  if((v9639FeltTick++%45)!==0)return;
+  scene.traverse(o=>{const a=Array.isArray(o.material)?o.material:[o.material];a.forEach(v9639FeltMaterial)});
+}
+
 makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();updateStrikes();updateHUD();startGame();animate();
 
 
@@ -17398,50 +17391,7 @@ makeStarField();makeFluxDustField();makeLaneGuides();resetEnvironmentForRun();up
 
 
 
-<script id="shiftvixFeltMaterialRuntime">
-(function(){
-  function shouldStayGlossy(mat){
-    const n=((mat&&mat.name)||"").toLowerCase();
-    return /visor|glass|laser|beam|eye|emissive|chrome|metal/.test(n);
-  }
-
-  function softenMaterial(mat){
-    if(!mat || (mat.userData && mat.userData.feltTuned) || shouldStayGlossy(mat)) return;
-    try{
-      if("roughness" in mat) mat.roughness=Math.max(mat.roughness ?? 0.5,0.82);
-      if("metalness" in mat) mat.metalness=Math.min(mat.metalness ?? 0,0.10);
-      if("clearcoat" in mat) mat.clearcoat=Math.min(mat.clearcoat ?? 0,0.08);
-      if("clearcoatRoughness" in mat) mat.clearcoatRoughness=Math.max(mat.clearcoatRoughness ?? 0,0.78);
-      if("sheen" in mat) mat.sheen=Math.max(mat.sheen ?? 0,0.22);
-      if("sheenRoughness" in mat) mat.sheenRoughness=Math.max(mat.sheenRoughness ?? 0,0.82);
-      mat.userData = mat.userData || {};
-      mat.userData.feltTuned = true;
-      mat.needsUpdate = true;
-    }catch(e){}
-  }
-
-  function tuneObject(obj){
-    if(!obj) return;
-    const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
-    mats.forEach(softenMaterial);
-    if(obj.children) obj.children.forEach(tuneObject);
-  }
-
-  function pass(){
-    try{
-      if(window.scene) tuneObject(window.scene);
-    }catch(e){}
-  }
-
-  let count=0;
-  const timer=setInterval(()=>{
-    pass();
-    if(++count>28) clearInterval(timer);
-  },250);
-
-  window.addEventListener("load",()=>setTimeout(pass,350));
-})();
-</script>
+<!-- V96.3.8 felt runtime superseded by V96.3.9 full cutout material pass. -->
 
 </body>
 </html>
