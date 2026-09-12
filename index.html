@@ -1,3 +1,4 @@
+<!-- SHIFTVIX V96.5.3 — SPECIAL ORBS + FULL GLOSS HUD: every legendary/special orb now uses polished physical shells with visible specular highlights; Flow Hub, World Top 9, identity and major HUD surfaces receive a stronger cohesive high-gloss treatment while retaining the living starfield behind them. Gameplay preserved. -->
 <!-- SHIFTVIX V96.5.2 — COMPLETE HIGH-GLOSS EXPERIENCE: removes the visible center reactor/ring, upgrades hollow Voids and all Void pieces to polished materials, restores glossy Vix eyes across Flow Hub/World Top 9/Identity, and gives HUD text, life dots, cards, buttons, rankings, POV eyes, particles and CLEAR beams a unified polished finish. Gameplay preserved. -->
 <!-- SHIFTVIX V96.5.1.1 — HIGH-GLOSS ERROR FIX: removes undefined legacy Flux dust startup call that stopped gameplay initialization. High-gloss visuals preserved. -->
 <!-- SHIFTVIX V96.5.1 — HIGH-GLOSS MATERIAL WORLD: visual-only polished/glossy treatment across Vix, POV eyes, reaction HUD, collectibles, rings, Voids, special orbs, stardust and CLEAR beams. Gameplay logic preserved. -->
@@ -5865,6 +5866,141 @@ canvas{
 }
 </style>
 
+
+<style id="shiftvixV9653GlossHudAndSpecials">
+/* =========================================================
+   V96.5.3 — SPECIAL ORBS + FULL HIGH-GLOSS HUD
+   ========================================================= */
+
+/* Keep the living starfield visible, but make the HUD architecture itself
+   a cohesive polished black-glass / pearl-metal instrument panel. */
+#flowHub,
+#worldLeaderboard,
+#identityOverlay,
+.v90HubShell,
+.v90WorldShell,
+.v91Overlay,
+.v91BodyPanel{
+  background:
+    linear-gradient(180deg,
+      rgba(18,31,48,.46) 0%,
+      rgba(3,8,16,.28) 18%,
+      rgba(0,0,0,.14) 62%,
+      rgba(31,54,72,.20) 100%)!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.18),
+    inset 0 -1px 0 rgba(70,185,235,.13)!important;
+}
+
+/* Polished frame around the main Flow / ranking canvases */
+.v90HubFrame,
+.v90WorldFrame,
+.worldBoardPanel,
+.v91BodyPanel{
+  border:1px solid rgba(200,240,255,.38)!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.30),
+    inset 0 -1px 0 rgba(0,0,0,.95),
+    0 0 0 1px rgba(0,0,0,.88),
+    0 10px 34px rgba(0,0,0,.48),
+    0 0 22px rgba(80,205,255,.10)!important;
+}
+
+/* Gloss strip at top of major HUD surfaces */
+.v90HubFrame::before,
+.v90WorldFrame::before,
+.worldBoardPanel::before,
+.v91BodyPanel::before,
+.flowChoiceCard::before,
+.todayPickCard::before,
+.personalBestCard::before{
+  content:"";
+  position:absolute;
+  left:2%;
+  right:2%;
+  top:0;
+  height:34%;
+  border-radius:inherit;
+  pointer-events:none;
+  background:
+    linear-gradient(180deg,
+      rgba(255,255,255,.13) 0%,
+      rgba(255,255,255,.045) 35%,
+      rgba(255,255,255,0) 100%);
+  mix-blend-mode:screen;
+  opacity:.72;
+}
+
+/* Make sure pseudo highlights sit correctly */
+.v90HubFrame,.v90WorldFrame,.worldBoardPanel,.v91BodyPanel,
+.flowChoiceCard,.todayPickCard,.personalBestCard{
+  position:relative!important;
+  overflow:hidden!important;
+}
+
+/* Full gloss on buttons and controls */
+button,.flowChoiceButton,.pauseButton,.identityEnter,.worldRankBack,
+.worldEditIdentity,.worldFlowTab{
+  background:
+    linear-gradient(180deg,
+      rgba(255,255,255,.23) 0%,
+      rgba(190,230,250,.11) 24%,
+      rgba(10,22,35,.94) 48%,
+      rgba(2,7,12,.98) 100%)!important;
+  border:1px solid rgba(210,245,255,.48)!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.42),
+    inset 0 -2px 5px rgba(0,0,0,.72),
+    0 4px 12px rgba(0,0,0,.38),
+    0 0 9px rgba(80,205,255,.08)!important;
+}
+
+/* Stronger polished type on every navigation/HUD surface */
+.v90BrandWord,.v90BrandTag,.v90WorldSectionTitle,
+.flowChoiceTitle,.flowChoiceSub,.todayPickTitle,.todayPickSub,.todayPickMeta,
+.personalBestTitle,.personalBestSub,
+.worldBoardHead,.worldBoardSub,.worldRank,.worldName,.worldValue,
+.worldPlayerInitials,.worldPlayerCountry,.worldRankNumber,
+.identityPanel h2,.identitySub,.identityField label,.identityHint,
+.archiveTitle,.archiveSub,.v91BodyTitle,.v91BodySub,.v91BodyValue{
+  text-shadow:
+    0 -1px 0 rgba(255,255,255,.94),
+    0 1px 0 rgba(0,0,0,.96),
+    0 0 5px rgba(255,255,255,.36),
+    0 0 11px rgba(75,200,255,.13),
+    0 4px 9px rgba(0,0,0,.78)!important;
+}
+
+/* Flow icons and ranking motifs become glossy spheres/rings rather than flat neon. */
+.flowVisual i,.worldFlowVisual i,.archiveVisual i,
+.todayPickCard i,.personalBestCard i{
+  filter:
+    saturate(1.35)
+    brightness(1.08)
+    contrast(1.10)
+    drop-shadow(0 0 4px rgba(255,255,255,.48))
+    drop-shadow(0 0 11px var(--flow-glow))!important;
+}
+
+/* HUD Vix always retains glossy cyan eyes. */
+.v90VixEye,.v91BodyEye,
+#flowHub .v90VixEye,
+#worldLeaderboard .v90VixEye,
+#identityOverlay .v90VixEye{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+
+/* Slightly brighten the living starfield through the glass HUD rather than removing it. */
+.v90Starfield,
+.worldStarfield,
+.hudStarfield{
+  opacity:.78!important;
+  filter:saturate(1.18) brightness(1.08)!important;
+}
+</style>
+
 </head>
 <body>
 <div id="worldIdentitySetup" aria-hidden="true">
@@ -6029,6 +6165,37 @@ function glossyMaterial(color,opts={}){
     side:opts.side ?? THREE.FrontSide
   });
 }
+
+function addGlossOrbHighlight(group,radius=7.5,intensity=1){
+  const highlight=new THREE.Mesh(
+    new THREE.SphereGeometry(Math.max(.72,radius*.14),16,12),
+    new THREE.MeshBasicMaterial({
+      color:0xffffff,
+      transparent:true,
+      opacity:.88*intensity,
+      blending:THREE.AdditiveBlending,
+      depthWrite:false
+    })
+  );
+  highlight.position.set(-radius*.34,radius*.34,radius*.79);
+
+  const glint=new THREE.Mesh(
+    new THREE.SphereGeometry(Math.max(.32,radius*.065),12,10),
+    new THREE.MeshBasicMaterial({
+      color:0xe9fbff,
+      transparent:true,
+      opacity:.78*intensity,
+      blending:THREE.AdditiveBlending,
+      depthWrite:false
+    })
+  );
+  glint.position.set(-radius*.12,radius*.12,radius*.94);
+
+  group.add(highlight,glint);
+  group.userData.glossHighlight=highlight;
+  group.userData.glossGlint=glint;
+}
+
 
 function makeGlossParticleTexture(){
   const c=document.createElement("canvas");
@@ -12384,16 +12551,20 @@ function makeFluxOrb(reason="random"){
   const group=new THREE.Group();
   const core=new THREE.Mesh(
     new THREE.SphereGeometry(7.2,24,24),
-    new THREE.MeshBasicMaterial({color:0xffffff})
+    glossyMaterial(0xf6feff,{
+      roughness:.018,metalness:.42,clearcoat:1,clearcoatRoughness:.006,
+      emissive:0x4edfff,emissiveIntensity:.16
+    })
   );
   const glow=new THREE.Mesh(
     new THREE.SphereGeometry(13.4,22,22),
-    new THREE.MeshBasicMaterial({
-      color:0x55eaff,transparent:true,opacity:.22,
-      blending:THREE.AdditiveBlending,depthWrite:false
+    glossyMaterial(0x55eaff,{
+      roughness:.012,metalness:.34,clearcoat:1,clearcoatRoughness:.005,
+      emissive:0x22d6ff,emissiveIntensity:.30,
+      transparent:true,opacity:.36,depthWrite:false
     })
   );
-  group.add(glow);group.add(core);
+  group.add(glow);group.add(core);addGlossOrbHighlight(group,7.2,1.0);
   addPowerTierRings(group,powerTier,0x55eaff);
   group.position.set(x,y,FAR_Z+90);
   group.userData={
@@ -12436,17 +12607,16 @@ function makeChronoOrb(reason="random"){
 
   const glow=new THREE.Mesh(
     new THREE.SphereGeometry(14.2,22,22),
-    new THREE.MeshBasicMaterial({
-      color:CHRONO_GLOW_COLOR,
-      transparent:true,
-      opacity:.24,
-      blending:THREE.AdditiveBlending,
-      depthWrite:false
+    glossyMaterial(CHRONO_GLOW_COLOR,{
+      roughness:.012,metalness:.30,clearcoat:1,clearcoatRoughness:.005,
+      emissive:CHRONO_GLOW_COLOR,emissiveIntensity:.28,
+      transparent:true,opacity:.38,depthWrite:false
     })
   );
 
   group.add(glow);
   group.add(core);
+  addGlossOrbHighlight(group,7.4,1.0);
   addPowerTierRings(group,powerTier,CHRONO_GLOW_COLOR);
   group.position.set(x,y,FAR_Z+90);
 
@@ -12503,29 +12673,26 @@ function makeMidasOrb(reason="random"){
 
   const shell=new THREE.Mesh(
     new THREE.SphereGeometry(8.7,20,20),
-    new THREE.MeshBasicMaterial({
-      color:MIDAS_COLOR,
-      transparent:true,
-      opacity:.58,
-      blending:THREE.AdditiveBlending,
-      depthWrite:false
+    glossyMaterial(MIDAS_COLOR,{
+      roughness:.010,metalness:.62,clearcoat:1,clearcoatRoughness:.004,
+      emissive:MIDAS_COLOR,emissiveIntensity:.18,
+      transparent:true,opacity:.78,depthWrite:false
     })
   );
 
   const glow=new THREE.Mesh(
     new THREE.SphereGeometry(14.4,22,22),
-    new THREE.MeshBasicMaterial({
-      color:MIDAS_GLOW_COLOR,
-      transparent:true,
-      opacity:.25,
-      blending:THREE.AdditiveBlending,
-      depthWrite:false
+    glossyMaterial(MIDAS_GLOW_COLOR,{
+      roughness:.014,metalness:.42,clearcoat:1,clearcoatRoughness:.006,
+      emissive:MIDAS_GLOW_COLOR,emissiveIntensity:.24,
+      transparent:true,opacity:.36,depthWrite:false
     })
   );
 
   group.add(glow);
   group.add(shell);
   group.add(core);
+  addGlossOrbHighlight(group,7.5,1.1);
   addPowerTierRings(group,powerTier,MIDAS_GLOW_COLOR);
   group.position.set(x,y,FAR_Z+90);
 
@@ -13670,20 +13837,22 @@ function makeWarpOrb(reason="random"){
   );
   const shell=new THREE.Mesh(
     new THREE.SphereGeometry(9.0,20,20),
-    new THREE.MeshBasicMaterial({
-      color:WARP_COLOR,transparent:true,opacity:.68,
-      blending:THREE.AdditiveBlending,depthWrite:false
+    glossyMaterial(WARP_COLOR,{
+      roughness:.010,metalness:.44,clearcoat:1,clearcoatRoughness:.004,
+      emissive:WARP_COLOR,emissiveIntensity:.20,
+      transparent:true,opacity:.80,depthWrite:false
     })
   );
   const glow=new THREE.Mesh(
     new THREE.SphereGeometry(14.8,22,22),
-    new THREE.MeshBasicMaterial({
-      color:WARP_GLOW_COLOR,transparent:true,opacity:.26,
-      blending:THREE.AdditiveBlending,depthWrite:false
+    glossyMaterial(WARP_GLOW_COLOR,{
+      roughness:.014,metalness:.34,clearcoat:1,clearcoatRoughness:.006,
+      emissive:WARP_GLOW_COLOR,emissiveIntensity:.28,
+      transparent:true,opacity:.38,depthWrite:false
     })
   );
 
-  group.add(glow);group.add(shell);group.add(core);
+  group.add(glow);group.add(shell);group.add(core);addGlossOrbHighlight(group,7.5,1.05);
   addPowerTierRings(group,powerTier,WARP_COLOR);
   group.position.set(x,y,FAR_Z+90);
   group.userData={
@@ -13720,10 +13889,29 @@ function makeInvincibleOrb(reason="random"){
   const xIndex=Math.floor(Math.random()*3), yIndex=Math.floor(Math.random()*3);
   const x=LANE_X[xIndex], y=LANE_Y[yIndex];
   const group=new THREE.Group();
-  const core=new THREE.Mesh(new THREE.SphereGeometry(4.2,24,24),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.82,blending:THREE.AdditiveBlending,depthWrite:false}));
-  const shell1=new THREE.Mesh(new THREE.SphereGeometry(9.0,24,24),new THREE.MeshBasicMaterial({color:0xcffcff,wireframe:true,transparent:true,opacity:.34,blending:THREE.AdditiveBlending,depthWrite:false}));
-  const shell2=new THREE.Mesh(new THREE.SphereGeometry(12.2,24,24),new THREE.MeshBasicMaterial({color:0xffffff,wireframe:true,transparent:true,opacity:.16,blending:THREE.AdditiveBlending,depthWrite:false}));
-  shell2.rotation.set(.55,.35,.2); group.add(shell2);group.add(shell1);group.add(core);
+  const core=new THREE.Mesh(
+    new THREE.SphereGeometry(4.2,24,24),
+    glossyMaterial(0xffffff,{
+      roughness:.012,metalness:.26,clearcoat:1,clearcoatRoughness:.004,
+      emissive:0xbdf8ff,emissiveIntensity:.20,transparent:true,opacity:.94,depthWrite:false
+    })
+  );
+  const shell1=new THREE.Mesh(
+    new THREE.SphereGeometry(9.0,24,24),
+    glossyMaterial(0xcffcff,{
+      roughness:.010,metalness:.28,clearcoat:1,clearcoatRoughness:.004,
+      emissive:0x6feaff,emissiveIntensity:.22,transparent:true,opacity:.33,depthWrite:false
+    })
+  );
+  const shell2=new THREE.Mesh(
+    new THREE.SphereGeometry(12.2,24,24),
+    glossyMaterial(0xffffff,{
+      roughness:.010,metalness:.22,clearcoat:1,clearcoatRoughness:.004,
+      emissive:0x91eaff,emissiveIntensity:.16,transparent:true,opacity:.16,depthWrite:false
+    })
+  );
+  group.add(shell2);group.add(shell1);group.add(core);
+  addGlossOrbHighlight(group,4.2,1.0);
   group.position.set(x,y,FAR_Z+90); group.scale.setScalar(introScale);
   group.userData={core,glow:shell2,state:"active",fade:1,train:trainId,speedMult:1,roadX:x,roadY:y,isInvincible:true,invincibleReason:reason};
   scene.add(group);beacons.push(group);invincibleOrbActive=true;
