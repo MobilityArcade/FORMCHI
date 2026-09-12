@@ -1,3 +1,8 @@
+<!-- SHIFTVIX V96.5.3.2 — CLEAR CIRCLE + ENDURE TIGHTEN:
+Based directly on V96.5.3.1. Only two changes:
+1) CLEAR HUD/World Top 9 keeps its twin-laser animation but uses a simple glossy red circle target with no spiky Void silhouette.
+2) ENDURE connection is slightly stricter: exactly 2.0 seconds disconnected costs a life, and the regular-train contact radius is reduced only in ENDURE.
+Everything else is preserved. -->
 <!-- SHIFTVIX V96.5.3.1 — GOLD BRAND + CLEAR ANIMATION:
 Keeps the V96.5.3 Starry Night Flow Hub / World Top 9 exactly as the visual base.
 Only strengthens SHIFTVIX branding into high-gloss orange-gold in gameplay and both HUDs,
@@ -6266,6 +6271,55 @@ button,.flowChoiceButton,.pauseButton,.identityEnter,.worldRankBack,
 }
 </style>
 
+
+<style id="shiftvixV96532ClearCircleOnly">
+/* V96.5.3.2 — CLEAR target is intentionally just a readable glossy red circle. */
+.flowVisual-clear i:nth-child(1){
+  width:54px!important;
+  height:54px!important;
+  right:6%!important;
+  top:31%!important;
+  border-radius:50%!important;
+  border:2px solid rgba(255,225,225,.82)!important;
+  background:
+    radial-gradient(circle at 31% 24%,
+      #ffffff 0 7%,
+      #ffb7b7 8% 12%,
+      #ff3f46 23%,
+      #d50918 55%,
+      #79000a 82%,
+      #300004 100%)!important;
+  box-shadow:
+    inset 5px 5px 8px rgba(255,255,255,.50),
+    inset -7px -8px 10px rgba(82,0,0,.58),
+    0 0 7px rgba(255,255,255,.26),
+    0 0 16px rgba(255,53,60,.58)!important;
+}
+
+/* Remove the earlier spiky hostile silhouette completely. */
+.flowVisual-clear i:nth-child(1)::before{
+  display:none!important;
+  content:none!important;
+}
+
+/* Keep target-lock ring cyan so the laser relationship stays obvious. */
+.flowVisual-clear i:nth-child(5){
+  border-color:rgba(99,239,255,.90)!important;
+  box-shadow:
+    0 0 10px rgba(85,234,255,.62),
+    inset 0 0 8px rgba(85,234,255,.24)!important;
+}
+
+@media(max-width:699px){
+  .flowVisual-clear i:nth-child(1){
+    width:48px!important;
+    height:48px!important;
+    right:6%!important;
+    top:33%!important;
+  }
+}
+</style>
+
 </head>
 <body>
 <div id="worldIdentitySetup" aria-hidden="true">
@@ -7393,7 +7447,8 @@ let personalBestMode=false;
 let personalBestLastContactAt=0;
 let personalBestConnected=false;
 const PERSONAL_BEST_LEVEL_METERS=250;
-const PERSONAL_BEST_DISCONNECT_GRACE_MS=2300;
+const PERSONAL_BEST_DISCONNECT_GRACE_MS=2000;
+const PERSONAL_BEST_CONTACT_RADIUS_MULT=0.84; // V96.5.3.2 — slightly stricter ENDURE line connection only
 const PERSONAL_BEST_LEVEL_KEY="shiftvixPersonalBestLevelV49";
 let personalBestLevelRecord=Number(localStorage.getItem(PERSONAL_BEST_LEVEL_KEY)||0);
 let prototypeLastScore=0;
@@ -16774,7 +16829,7 @@ if(
     !b.userData.isVoid &&
     !b.userData.isGoldRing &&
     dz<42 &&
-    dxy<(heroMode?COLLECT_RADIUS*1.45:COLLECT_RADIUS)
+    dxy<(personalBestMode?COLLECT_RADIUS*PERSONAL_BEST_CONTACT_RADIUS_MULT:(heroMode?COLLECT_RADIUS*1.45:COLLECT_RADIUS))
   ) ||
   (
     voidCanHit &&
