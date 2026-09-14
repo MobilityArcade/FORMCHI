@@ -1,16 +1,104 @@
 <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><meta name="theme-color" content="#05070b"><title>FORMCHI</title><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#05070b;touch-action:manipulation}canvas{position:fixed;inset:0;width:100vw;height:100dvh;display:block;background:#05070b}</style></head><body><canvas id="c"></canvas><script>
-const c=document.getElementById('c'),x=c.getContext('2d');let W,H,D=1,t0=performance.now(),sceneStart=t0;
+
+const c=document.getElementById('c'),x=c.getContext('2d');
+let W,H,D=1,t0=performance.now(),sceneStart=t0;
 const DUR=30000,speeds=[.60,.92,1.32];
-const scenes=[['sway',1],['sway',-1],['bounce',1],['bounce',-1],['shake',1],['orbit',1],['orbit',-1],['twist',1],['twist',-1],['fold',1],['fold',-1],['expand',1],['contract',1],['push',1],['pull',1],['reach',1],['reach',-1],['lift',1],['lower',1],['wave',1],['wave',-1],['ripple',1],['ripple',-1],['spiral',1],['spiral',-1],['pillars',1],['pillars',-1],['tap',1],['step',1],['step',-1],['hold',1],['sweep',1],['sweep',-1],['diagonal',1],['diagonal',-1],['figure8',1],['figure8',-1],['zigzag',1],['zigzag',-1],['cross',1],['cross',-1],['wander',1],['wander',-1],['freezig',1],['freezig',-1],['drift',1],['drift',-1],['dart',1],['dart',-1],['duet',1],['duet',-1],['mirror',1],['mirror',-1],['chase',1],['chase',-1],['draw',1],['draw',-1],['freeSpiral',1],['freeSpiral',-1],['cube',1],['cube',-1],['cubePitch',1],['cubePitch',-1],['cubeRoll',1],['cubeRoll',-1],['cubeBreathe',1],['cubeBreathe',-1]];
-const palettes=[[155,105,220],[80,178,205],[77,190,145],[213,190,88],[218,133,75],[207,91,124],[205,214,224]];let bag=[],scene=null,speed=.92,pal=palettes[0];
-function resize(){D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*D;c.height=H*D;x.setTransform(D,0,0,D,0,0)}addEventListener('resize',resize);resize();
+const scenes=[
+ ['turnY',1],['turnY',-1],['turnX',1],['turnX',-1],['roll',1],['roll',-1],
+ ['breathe',1],['breathe',-1],['pulseCore',1],['pulseCore',-1],
+ ['waveX',1],['waveX',-1],['waveY',1],['waveY',-1],['waveZ',1],['waveZ',-1],
+ ['ripple3D',1],['ripple3D',-1],['twistY',1],['twistY',-1],['twistX',1],['twistX',-1],
+ ['halfTwist',1],['halfTwist',-1],['counterTwist',1],['counterTwist',-1],
+ ['bendX',1],['bendX',-1],['bendY',1],['bendY',-1],
+ ['pushZ',1],['pushZ',-1],['liftY',1],['liftY',-1],['swayX',1],['swayX',-1],
+ ['compressY',1],['compressY',-1],['openX',1],['openX',-1],['openY',1],['openY',-1],
+ ['spiral',1],['spiral',-1],['shear',1],['shear',-1],['fold',1],['fold',-1],
+ ['orbitCore',1],['orbitCore',-1],['tunnel',1],['tunnel',-1],['diamond',1],['diamond',-1],
+ ['sphereMorph',1],['sphereMorph',-1],['helix',1],['helix',-1],['torus',1],['torus',-1]
+];
+const palettes=[[155,105,220],[80,178,205],[77,190,145],[213,190,88],[218,133,75],[207,91,124],[205,214,224]];
+let bag=[],scene=null,speed=.92,pal=palettes[0];
+function resize(){D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*D;c.height=H*D;x.setTransform(D,0,0,D,0,0)}
+addEventListener('resize',resize);resize();
 function refill(){bag=scenes.map((_,i)=>i);for(let i=bag.length-1;i;i--){let j=Math.floor(Math.random()*(i+1));[bag[i],bag[j]]=[bag[j],bag[i]]}}
-function next(now){if(!bag.length)refill();scene=scenes[bag.pop()];speed=speeds[Math.floor(Math.random()*speeds.length)];pal=palettes[Math.floor(Math.random()*palettes.length)];sceneStart=now}next(t0);
-const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)),gauss=(d,w)=>Math.exp(-(d*d)/(2*w*w));
-function intensity(type,dir,px,py,dx,dy,t){const cx=W/2,cy=H/2,r=Math.hypot(dx,dy),a=Math.atan2(dy,dx),u=t*speed;let b=.025;
-if(type==='sway'){let tx=cx+Math.sin(u*1.25*dir)*W*.34;b+=gauss(px-tx,W*.075)}else if(type==='bounce'){let q=(1-Math.cos(u*2.05))/2,ty=dir>0?H*(.72-.48*q):H*(.28+.48*q);b+=gauss(py-ty,H*.055)}else if(type==='shake'){let tx=cx+Math.sin(u*11)*W*.08,ty=cy+Math.sin(u*13)*H*.06;b+=gauss(Math.hypot(px-tx,py-ty),W*.18)*(.58+.42*Math.abs(Math.sin(u*14+px*.025+py*.018)))}else if(type==='orbit'){let rr=Math.min(W,H)*.29,aa=u*1.3*dir,tx=cx+Math.cos(aa)*rr,ty=cy+Math.sin(aa)*rr;b+=gauss(Math.hypot(px-tx,py-ty),W*.085)}else if(type==='twist'){let tx=cx+Math.sin(u*1.4*dir+dy/H*4)*W*.24;b+=gauss(px-tx,W*.07)}else if(type==='fold'){let q=(1-Math.cos(u*1.15))/2,curve=(py/H-.18)*W*.38*q*dir;b+=gauss(px-(cx+curve),W*.055)}else if(type==='expand'||type==='contract'){let q=.5+.5*Math.sin(u*1.25);if(type==='contract')q=1-q;let rr=Math.min(W,H)*(.06+.44*q);b+=gauss(r-rr,W*.045)}else if(type==='push'||type==='pull'){let q=.5+.5*Math.sin(u*1.25);if(type==='pull')q=1-q;let tx=W*(.14+.72*q);b+=gauss(px-tx,W*.055)}else if(type==='reach'){let aa=u*.85*dir,tx=cx+Math.cos(aa)*W*.34,ty=cy+Math.sin(aa*.73)*H*.34;b+=gauss(Math.hypot(px-tx,py-ty),W*.09)}else if(type==='lift'||type==='lower'){let q=.5+.5*Math.sin(u*1.15);if(type==='lower')q=1-q;let ty=H*(.82-.64*q);b+=gauss(py-ty,H*.045)}else if(type==='wave'){let ty=cy+Math.sin(u*1.65*dir+dx/W*11)*H*.17;b+=gauss(py-ty,H*.045)}else if(type==='ripple'){let q=(u*.17)%1;if(dir<0)q=1-q;let rr=Math.min(W,H)*(.03+.55*q);b+=gauss(r-rr,W*.035)*(dir>0?1-q*.5:.55+q*.45)}else if(type==='spiral'){let arm=Math.cos(a*1.7-dir*u*1.65-r*.045);b+=Math.pow((arm+1)/2,7)*(1-clamp(r/(Math.max(W,H)*.68)))}else if(type==='pillars'){let q=.5+.5*Math.sin(u*1.15);if(dir<0)q=1-q;let sep=W*(.06+.32*q),d=Math.min(Math.abs(px-(cx-sep)),Math.abs(px-(cx+sep)));b+=gauss(d,W*.045)}else if(type==='tap'){let k=Math.floor(u*1.45)%5,p=[[.2,.25],[.8,.25],[.5,.5],[.2,.74],[.8,.74]][k];b+=gauss(Math.hypot(px-W*p[0],py-H*p[1]),W*.075)}else if(type==='step'){let q=Math.floor(u*1.4)%2,tx=cx+(q?1:-1)*W*.23*dir,ty=H*.73;b+=gauss(Math.hypot(px-tx,py-ty),W*.10)}else if(type==='hold'){let rr=Math.min(W,H)*.22;b+=gauss(r-rr,W*.04)*(.8+.2*Math.sin(u*1.5))}else if(type==='sweep'){let q=.5+.5*Math.sin(u*1.15),aa=(-.9+1.8*q)*dir,dist=Math.abs(dx*Math.sin(aa)-dy*Math.cos(aa));b+=gauss(dist,W*.045)}else if(type==='diagonal'){let q=.5+.5*Math.sin(u*1.2),off=(q-.5)*W*.65,dist=Math.abs((dy-dir*dx)-off);b+=gauss(dist,W*.06)}else if(type==='figure8'){let aa=u*1.15*dir,tx=cx+Math.sin(aa)*W*.27,ty=cy+Math.sin(aa*2)*H*.18;b+=gauss(Math.hypot(px-tx,py-ty),W*.085)}else if(type==='zigzag'){let q=(u*.20)%1,ty=H*(.12+.76*q),tx=cx+Math.sin(q*Math.PI*6)*W*.28*dir;b+=gauss(Math.hypot(px-tx,py-ty),W*.075)}else if(type==='cross'){let q=.5+.5*Math.sin(u*1.2),sep=W*(.28*(1-q));b+=gauss(Math.abs(px-(cx-sep)),W*.04)+gauss(Math.abs(py-(cy+sep*dir)),H*.035)}else if(type==='wander'){let tx=cx+W*.31*(.55*Math.sin(u*.73*dir)+.28*Math.sin(u*1.91+.8)+.17*Math.sin(u*3.17)),ty=cy+H*.35*(.52*Math.sin(u*.61+1.2)+.31*Math.sin(u*1.43*dir)+.17*Math.sin(u*2.77+.4));b+=gauss(Math.hypot(px-tx,py-ty),W*.07)}else if(type==='freezig'){let k=Math.floor(u*.7),f=(u*.7)%1,ax=Math.sin(k*12.9898)*.34,ay=Math.sin(k*78.233+2)*.38,bx=Math.sin((k+1)*12.9898)*.34,by=Math.sin((k+1)*78.233+2)*.38,tx=cx+W*(ax+(bx-ax)*f)*dir,ty=cy+H*(ay+(by-ay)*f);b+=gauss(Math.hypot(px-tx,py-ty),W*.065)}else if(type==='drift'){let tx=cx+W*.34*Math.sin(u*.36*dir+Math.sin(u*.2)),ty=cy+H*.38*Math.sin(u*.27+1.7+Math.sin(u*.16)*.8);b+=gauss(Math.hypot(px-tx,py-ty),W*.09)}else if(type==='dart'){let k=Math.floor(u*.95),f=(u*.95)%1,e=clamp(f/.42),ax=Math.sin(k*5.71)*.35,ay=Math.sin(k*9.13)*.38,bx=Math.sin((k+1)*5.71)*.35,by=Math.sin((k+1)*9.13)*.38,tx=cx+W*(ax+(bx-ax)*e)*dir,ty=cy+H*(ay+(by-ay)*e);b+=gauss(Math.hypot(px-tx,py-ty),W*.065)}else if(type==='duet'||type==='mirror'){let tx1=cx+W*.28*Math.sin(u*.67*dir)+W*.07*Math.sin(u*2.1),ty1=cy+H*.31*Math.sin(u*.49+1.1),tx2=type==='mirror'?W-tx1:cx+W*.28*Math.sin(u*.83+2.2),ty2=type==='mirror'?ty1:cy+H*.31*Math.sin(u*.57*dir+3);b+=gauss(Math.hypot(px-tx1,py-ty1),W*.065)+gauss(Math.hypot(px-tx2,py-ty2),W*.065)}else if(type==='chase'){let tx1=cx+W*.3*Math.sin(u*.72*dir)+W*.06*Math.sin(u*2.3),ty1=cy+H*.33*Math.sin(u*.53+1.2),v=u-.65,tx2=cx+W*.3*Math.sin(v*.72*dir)+W*.06*Math.sin(v*2.3),ty2=cy+H*.33*Math.sin(v*.53+1.2);b+=gauss(Math.hypot(px-tx1,py-ty1),W*.06)+.75*gauss(Math.hypot(px-tx2,py-ty2),W*.06)}else if(type==='draw'){for(let n=0;n<7;n++){let v=u-n*.11,tx=cx+W*.3*(.65*Math.sin(v*.71*dir)+.35*Math.sin(v*1.87)),ty=cy+H*.34*(.62*Math.sin(v*.53+1.1)+.38*Math.sin(v*1.41));b+=(1-n*.11)*gauss(Math.hypot(px-tx,py-ty),W*.052)}}else if(type==='freeSpiral'){let rr=Math.min(W,H)*(.05+.018*(u%12)),aa=u*1.3*dir+Math.sin(u*.37)*1.2,tx=cx+Math.cos(aa)*rr+W*.08*Math.sin(u*.23),ty=cy+Math.sin(aa)*rr+H*.08*Math.sin(u*.19+1);b+=gauss(Math.hypot(px-tx,py-ty),W*.065)}return clamp(b)}
-function pearl(px,py,rad,b){const [R,G,B]=pal,alpha=.14+b*.70,rr=rad;let g=x.createRadialGradient(px-rr*.28,py-rr*.32,rr*.08,px,py,rr);g.addColorStop(0,`rgba(255,255,255,${.35+b*.5})`);g.addColorStop(.18,`rgba(${Math.min(255,R+55)},${Math.min(255,G+55)},${Math.min(255,B+55)},${alpha})`);g.addColorStop(.62,`rgba(${R},${G},${B},${alpha*.92})`);g.addColorStop(1,`rgba(${Math.max(0,R-55)},${Math.max(0,G-55)},${Math.max(0,B-55)},${alpha*.55})`);x.fillStyle=g;x.shadowColor=`rgba(${R},${G},${B},${.10+b*.16})`;x.shadowBlur=1+b*4;x.beginPath();x.arc(px,py,rr,0,Math.PI*2);x.fill()}
-function rot(p,ax,ay,az){let [X,Y,Z]=p,cy=Math.cos(ay),sy=Math.sin(ay),cx=Math.cos(ax),sx=Math.sin(ax),cz=Math.cos(az),sz=Math.sin(az);let x1=X*cy+Z*sy,z1=-X*sy+Z*cy,y1=Y;let y2=y1*cx-z1*sx,z2=y1*sx+z1*cx,x2=x1;return[x2*cz-y2*sz,x2*sz+y2*cz,z2]}
-function drawCube(type,dir,t){let u=t*speed,ax=.45,ay=.55,az=.08,scale=1;if(type==='cube'){ay+=u*.42*dir;ax+=Math.sin(u*.22)*.18}else if(type==='cubePitch'){ax+=u*.38*dir;ay+=Math.sin(u*.2)*.2}else if(type==='cubeRoll'){az+=u*.38*dir;ay+=u*.12}else{ay+=u*.18*dir;ax+=u*.10;scale=.82+.18*(.5+.5*Math.sin(u*.8));}let pts=[],n=7;for(let zi=0;zi<n;zi++)for(let yi=0;yi<n;yi++)for(let xi=0;xi<n;xi++){let X=(xi/(n-1)-.5)*2*scale,Y=(yi/(n-1)-.5)*2*scale,Z=(zi/(n-1)-.5)*2*scale;let q=rot([X,Y,Z],ax,ay,az);pts.push(q)}pts.sort((a,b)=>a[2]-b[2]);let base=Math.min(W,H)*.30;for(const [X,Y,Z] of pts){let persp=1/(2.7-Z*.38),px=W/2+X*base*persp*2.05,py=H/2+Y*base*persp*2.05,depth=clamp((Z+1.8)/3.6),r=1.7+depth*3.1;pearl(px,py,r,.28+depth*.58)}}
-function draw(now){if(now-sceneStart>=DUR)next(now);let t=(now-sceneStart)/1000;x.clearRect(0,0,W,H);x.fillStyle='#05070b';x.fillRect(0,0,W,H);if(scene[0].startsWith('cube')){drawCube(scene[0],scene[1],t)}else{const gap=Math.max(25,Math.min(34,W/12.5)),cols=Math.ceil(W/gap)+2,rows=Math.ceil(H/gap)+2,cx=W/2,cy=H/2;for(let j=-1;j<rows;j++)for(let i=-1;i<cols;i++){let px=i*gap+gap*.5,py=j*gap+gap*.5,b=intensity(scene[0],scene[1],px,py,px-cx,py-cy,t);let breathe=.95+.05*Math.sin(t*1.5+i*.27+j*.17),rad=1.45+b*5.25*breathe;pearl(px,py,rad,b)}}x.shadowBlur=0;x.globalAlpha=1;requestAnimationFrame(draw)}requestAnimationFrame(draw);addEventListener('pointerdown',()=>next(performance.now()),{passive:true});
+function next(now){if(!bag.length)refill();scene=scenes[bag.pop()];speed=speeds[Math.floor(Math.random()*speeds.length)];pal=palettes[Math.floor(Math.random()*palettes.length)];sceneStart=now}
+next(t0);
+const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+function pearl(px,py,rad,b,alphaMul=1){
+ const [R,G,B]=pal,alpha=(.12+b*.62)*alphaMul,rr=rad;
+ let g=x.createRadialGradient(px-rr*.30,py-rr*.34,rr*.06,px,py,rr);
+ g.addColorStop(0,`rgba(255,255,255,${(.28+b*.42)*alphaMul})`);
+ g.addColorStop(.20,`rgba(${Math.min(255,R+48)},${Math.min(255,G+48)},${Math.min(255,B+48)},${alpha})`);
+ g.addColorStop(.65,`rgba(${R},${G},${B},${alpha*.94})`);
+ g.addColorStop(1,`rgba(${Math.max(0,R-62)},${Math.max(0,G-62)},${Math.max(0,B-62)},${alpha*.52})`);
+ x.fillStyle=g;x.shadowColor=`rgba(${R},${G},${B},${(.05+b*.08)*alphaMul})`;x.shadowBlur=.5+b*2.1;
+ x.beginPath();x.arc(px,py,rr,0,Math.PI*2);x.fill()
+}
+function rot(p,ax,ay,az){
+ let [X,Y,Z]=p,cy=Math.cos(ay),sy=Math.sin(ay),cx=Math.cos(ax),sx=Math.sin(ax),cz=Math.cos(az),sz=Math.sin(az);
+ let x1=X*cy+Z*sy,z1=-X*sy+Z*cy,y1=Y;
+ let y2=y1*cx-z1*sx,z2=y1*sx+z1*cx,x2=x1;
+ return[x2*cz-y2*sz,x2*sz+y2*cz,z2]
+}
+const N=7,cube=[];
+for(let zi=0;zi<N;zi++)for(let yi=0;yi<N;yi++)for(let xi=0;xi<N;xi++)cube.push([(xi/(N-1)-.5)*2,(yi/(N-1)-.5)*2,(zi/(N-1)-.5)*2,xi,yi,zi]);
+
+function deform(type,dir,p,u){
+ let [X,Y,Z]=p,q=.5+.5*Math.sin(u),a,r,phase,bright=.48,size=1,alpha=1;
+ if(type==='turnY'){a=u*.55*dir;[X,Y,Z]=rot([X,Y,Z],.18,a,.04)}
+ else if(type==='turnX'){a=u*.50*dir;[X,Y,Z]=rot([X,Y,Z],a,.28,.03)}
+ else if(type==='roll'){a=u*.50*dir;[X,Y,Z]=rot([X,Y,Z],.25,.30,a)}
+ else if(type==='breathe'){let s=.72+.32*(.5+.5*Math.sin(u*.85));if(dir<0)s=1.04-(s-.72);X*=s;Y*=s;Z*=s;bright=.42+.30*s;size=.85+.35*s}
+ else if(type==='pulseCore'){r=Math.hypot(X,Y,Z);phase=u*1.15*dir-r*3.1;let pulse=.5+.5*Math.cos(phase),shell=Math.pow(pulse,8);size=.72+1.15*shell;bright=.25+.72*shell;let s=1+.08*shell;X*=s;Y*=s;Z*=s}
+ else if(type==='waveX'){phase=u*1.45*dir-X*3;let w=Math.sin(phase);Y+=w*.22;Z+=w*.13;bright=.30+.58*Math.pow(.5+.5*w,2);size=.78+.50*Math.pow(.5+.5*w,2)}
+ else if(type==='waveY'){phase=u*1.45*dir-Y*3;let w=Math.sin(phase);X+=w*.20;Z+=w*.15;bright=.30+.58*Math.pow(.5+.5*w,2);size=.78+.50*Math.pow(.5+.5*w,2)}
+ else if(type==='waveZ'){phase=u*1.45*dir-Z*3.2;let w=Math.sin(phase);Y+=w*.20;X+=w*.10;bright=.30+.62*Math.pow(.5+.5*w,2);size=.78+.52*Math.pow(.5+.5*w,2)}
+ else if(type==='ripple3D'){r=Math.hypot(X,Y,Z);let rr=(u*.34)%2.3;if(dir<0)rr=2.3-rr;let d=Math.abs(r-rr),pulse=Math.exp(-d*d/.035);size=.72+1.15*pulse;bright=.22+.76*pulse;let s=1+.10*pulse;X*=s;Y*=s;Z*=s}
+ else if(type==='twistY'){a=Math.sin(u*.85)*.72*Y*dir;[X,Y,Z]=rot([X,Y,Z],0,a,0);bright=.40+.18*Math.abs(Y)}
+ else if(type==='twistX'){a=Math.sin(u*.85)*.72*X*dir;[X,Y,Z]=rot([X,Y,Z],a,0,0);bright=.40+.18*Math.abs(X)}
+ else if(type==='halfTwist'){let side=Y>=0?1:0;a=side*Math.sin(u*.85)*1.10*dir;[X,Y,Z]=rot([X,Y,Z],0,a,0);bright=side?.72:.34}
+ else if(type==='counterTwist'){a=Math.sin(u*.82)*.70*(Y>=0?1:-1)*dir;[X,Y,Z]=rot([X,Y,Z],0,a,0);bright=.48+.18*Math.abs(Y)}
+ else if(type==='bendX'){let b=Math.sin(u*.75)*.48*dir;X+=b*(Y*Y-.25);Z+=b*Y*.36;bright=.42+.18*Math.abs(Y)}
+ else if(type==='bendY'){let b=Math.sin(u*.75)*.48*dir;Y+=b*(X*X-.25);Z+=b*X*.36;bright=.42+.18*Math.abs(X)}
+ else if(type==='pushZ'){let s=.78+.24*(.5+.5*Math.sin(u*.9));if(dir<0)s=1.02-(s-.78);Z*=s;let front=(Z+1)/2;bright=.30+.38*front;size=.78+.42*front}
+ else if(type==='liftY'){Y+=Math.sin(u*.8)*.42*dir;bright=.46}
+ else if(type==='swayX'){let off=Math.sin(u*.75)*.38*dir;X+=off*(.55+.45*(Y+1)/2);Z+=Math.sin(u*.75+1.2)*.08;bright=.46}
+ else if(type==='compressY'){let s=.55+.45*(.5+.5*Math.sin(u*.9));if(dir<0)s=1-(s-.55);Y*=s;bright=.40+.20*(1-s);size=.88+.20*(1-s)}
+ else if(type==='openX'){let sep=(.5+.5*Math.sin(u*.8))*.48*dir;X+=(X>=0?1:-1)*sep}
+ else if(type==='openY'){let sep=(.5+.5*Math.sin(u*.8))*.48*dir;Y+=(Y>=0?1:-1)*sep}
+ else if(type==='spiral'){a=(Y+1)*.65+u*.55*dir;[X,Y,Z]=rot([X,Y,Z],0,a,0);let s=.88+.10*Math.sin(u+Y*2);X*=s;Z*=s}
+ else if(type==='shear'){let s=Math.sin(u*.78)*.45*dir;X+=Y*s;Z+=X*s*.18;bright=.45+.18*Math.abs(Y)}
+ else if(type==='fold'){let f=.5+.5*Math.sin(u*.68),top=Math.max(0,Y);a=f*1.05*dir*top;let yy=Y-.12,cy=Math.cos(a),sy=Math.sin(a),ny=yy*cy-Z*sy,nz=yy*sy+Z*cy;Y=ny+.12;Z=nz;bright=.42+.25*top}
+ else if(type==='orbitCore'){let rr=Math.hypot(X,Z),aa=Math.atan2(Z,X)+u*.75*dir*(.25+.75*(Y+1)/2);X=Math.cos(aa)*rr;Z=Math.sin(aa)*rr;let core=Math.exp(-(X*X+Y*Y+Z*Z)*2.2);size=.82+.8*core;bright=.36+.55*core}
+ else if(type==='tunnel'){let z=Z+u*.34*dir;z=((z+1)%2+2)%2-1;Z=z;let s=.68+.28*((Z+1)/2);X*=s;Y*=s;bright=.28+.48*((Z+1)/2);size=.72+.52*((Z+1)/2)}
+ else if(type==='diamond'){let m=Math.abs(X)+Math.abs(Y)+Math.abs(Z),s=.72+.18*Math.sin(u*.75*dir);X*=s;Y*=s;Z*=s;bright=.25+.60*Math.exp(-Math.pow(m-1.45,2)/.10);size=.78+.45*bright}
+ else if(type==='sphereMorph'){r=Math.hypot(X,Y,Z)||1;let f=.5+.5*Math.sin(u*.55*dir),target=1.12;X=X*(1-f)+X/r*target*f;Y=Y*(1-f)+Y/r*target*f;Z=Z*(1-f)+Z/r*target*f;bright=.42+.18*f}
+ else if(type==='helix'){let yy=Y,aa=yy*3.1+u*.75*dir,rad=.62+.12*Math.sin(u*.5+yy);X=Math.cos(aa)*rad+X*.22;Z=Math.sin(aa)*rad+Z*.22;bright=.44+.20*(.5+.5*Math.sin(aa))}
+ else if(type==='torus'){let f=.5+.5*Math.sin(u*.5),aa=Math.atan2(Z,X),major=.72,minor=.34,theta=Y*Math.PI*.65,tx=(major+minor*Math.cos(theta))*Math.cos(aa),tz=(major+minor*Math.cos(theta))*Math.sin(aa),ty=minor*Math.sin(theta);X=X*(1-f)+tx*f;Y=Y*(1-f)+ty*f;Z=Z*(1-f)+tz*f;[X,Y,Z]=rot([X,Y,Z],.45,u*.25*dir,.08);bright=.44+.16*f}
+ return[X,Y,Z,bright,size,alpha]
+}
+function drawVolume(type,dir,t){
+ let u=t*speed,pts=[];
+ for(const p of cube){
+   let [X,Y,Z,bri,sz,alpha]=deform(type,dir,p,u);
+   if(!['turnY','turnX','roll','torus'].includes(type))[X,Y,Z]=rot([X,Y,Z],.34,.48,.02);
+   pts.push([X,Y,Z,bri,sz,alpha])
+ }
+ pts.sort((a,b)=>a[2]-b[2]);
+ let base=Math.min(W,H)*.34;
+ for(const [X,Y,Z,bri,sz,alpha] of pts){
+   let persp=1/(2.75-Z*.40),px=W/2+X*base*persp*2.08,py=H/2+Y*base*persp*2.08,depth=clamp((Z+1.8)/3.6),r=(1.55+depth*2.65)*sz;
+   pearl(px,py,r,clamp(bri+depth*.14),alpha)
+ }
+}
+function draw(now){
+ if(now-sceneStart>=DUR)next(now);
+ let t=(now-sceneStart)/1000;
+ x.clearRect(0,0,W,H);x.fillStyle='#05070b';x.fillRect(0,0,W,H);
+ drawVolume(scene[0],scene[1],t);
+ x.shadowBlur=0;x.globalAlpha=1;requestAnimationFrame(draw)
+}
+requestAnimationFrame(draw);
+addEventListener('pointerdown',()=>next(performance.now()),{passive:true});
+
 </script></body></html>
