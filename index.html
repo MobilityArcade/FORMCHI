@@ -1,22 +1,24 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><meta name="theme-color" content="#05070b"><title>FORMCHI</title><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#05070b;touch-action:manipulation}canvas{position:fixed;inset:0;width:100vw;height:100dvh;display:block;background:#05070b}</style></head><body><canvas id="c"></canvas><script>
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><meta name="theme-color" content="#05070b"><title>FORMCHI V7</title><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#05070b;touch-action:manipulation}canvas{position:fixed;inset:0;width:100vw;height:100dvh;display:block;background:#05070b}</style></head><body><canvas id="c"></canvas><script>
 
 const c=document.getElementById('c'),x=c.getContext('2d');
 let W,H,D=1,t0=performance.now(),sceneStart=t0;
 const DUR=30000,speeds=[.60,.92,1.32];
 const scenes=[
- ['turnY',1],['turnY',-1],['turnX',1],['turnX',-1],['roll',1],['roll',-1],
- ['breathe',1],['breathe',-1],['pulseCore',1],['pulseCore',-1],
+ ['turnY',1],['turnY',-1],                         // ROTATE
+ ['breathe',1],['breathe',-1],                   // EXPAND / CONTRACT
  ['waveX',1],['waveX',-1],['waveY',1],['waveY',-1],['waveZ',1],['waveZ',-1],
- ['ripple3D',1],['ripple3D',-1],['twistY',1],['twistY',-1],['twistX',1],['twistX',-1],
- ['halfTwist',1],['halfTwist',-1],['counterTwist',1],['counterTwist',-1],
- ['bendX',1],['bendX',-1],['bendY',1],['bendY',-1],
- ['pushZ',1],['pushZ',-1],['liftY',1],['liftY',-1],['swayX',1],['swayX',-1],
- ['compressY',1],['compressY',-1],['openX',1],['openX',-1],['openY',1],['openY',-1],
- ['spiral',1],['spiral',-1],['shear',1],['shear',-1],['fold',1],['fold',-1],
- ['orbitCore',1],['orbitCore',-1],['tunnel',1],['tunnel',-1],['diamond',1],['diamond',-1],
- ['sphereMorph',1],['sphereMorph',-1],['helix',1],['helix',-1],['torus',1],['torus',-1]
+ ['halfTwist',1],['halfTwist',-1],               // TWIST TOP
+ ['bottomTwist',1],['bottomTwist',-1],           // TWIST BOTTOM
+ ['split',1],['merge',1],                        // SPLIT / MERGE
+ ['bendX',1],['bendX',-1],['shear',1],['shear',-1],
+ ['pulseCore',1],['pulseCore',-1],['orbitCore',1],['orbitCore',-1],
+ ['followDot',1],['followDot',-1],               // moving focal point inside volume
+ ['spiral',1],['spiral',-1],['torus',1],['torus',-1],['tunnel',1],['tunnel',-1],
+ ['flowLayers',1],['flowLayers',-1],['asymmetric',1],['asymmetric',-1],
+ ['ripple3D',1],['ripple3D',-1],['fold',1],['fold',-1],['sphereMorph',1],['sphereMorph',-1]
 ];
-const palettes=[[155,105,220],[80,178,205],[77,190,145],[213,190,88],[218,133,75],[207,91,124],[205,214,224]];
+const palettes=[[52,125,235],[116,70,205],[25,174,190],[224,142,38],[218,54,91],[190,65,214],[105,185,235]];
+const cueColors={cyan:[35,225,255],blue:[55,120,255],violet:[185,75,255],pink:[255,55,170],red:[255,48,70],orange:[255,145,35],gold:[255,215,70],white:[245,250,255],green:[50,220,155]};
 let bag=[],scene=null,speed=.92,pal=palettes[0];
 function resize(){D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*D;c.height=H*D;x.setTransform(D,0,0,D,0,0)}
 addEventListener('resize',resize);resize();
@@ -24,8 +26,8 @@ function refill(){bag=scenes.map((_,i)=>i);for(let i=bag.length-1;i;i--){let j=M
 function next(now){if(!bag.length)refill();scene=scenes[bag.pop()];speed=speeds[Math.floor(Math.random()*speeds.length)];pal=palettes[Math.floor(Math.random()*palettes.length)];sceneStart=now}
 next(t0);
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
-function pearl(px,py,rad,b,alphaMul=1){
- const [R,G,B]=pal,alpha=(.12+b*.62)*alphaMul,rr=rad;
+function pearl(px,py,rad,b,alphaMul=1,color=pal){
+ const [R,G,B]=color,alpha=(.12+b*.62)*alphaMul,rr=rad;
  let g=x.createRadialGradient(px-rr*.30,py-rr*.34,rr*.06,px,py,rr);
  g.addColorStop(0,`rgba(255,255,255,${(.28+b*.42)*alphaMul})`);
  g.addColorStop(.20,`rgba(${Math.min(255,R+48)},${Math.min(255,G+48)},${Math.min(255,B+48)},${alpha})`);
@@ -66,6 +68,12 @@ function deform(type,dir,p,u){
  else if(type==='compressY'){let s=.55+.45*(.5+.5*Math.sin(u*.9));if(dir<0)s=1-(s-.55);Y*=s;bright=.40+.20*(1-s);size=.88+.20*(1-s)}
  else if(type==='openX'){let sep=(.5+.5*Math.sin(u*.8))*.48*dir;X+=(X>=0?1:-1)*sep}
  else if(type==='openY'){let sep=(.5+.5*Math.sin(u*.8))*.48*dir;Y+=(Y>=0?1:-1)*sep}
+ else if(type==='bottomTwist'){let side=Y<0?1:0;a=side*Math.sin(u*.85)*1.10*dir;[X,Y,Z]=rot([X,Y,Z],0,a,0);bright=side?.76:.27;alpha=side?1:.72}
+ else if(type==='split'){let f=.5+.5*Math.sin(u*.72),side=Y>=0?1:-1;Y+=side*f*.34;bright=.30+.42*f*(Y>=0?1:.75);size=.82+.22*f}
+ else if(type==='merge'){let f=.5+.5*Math.sin(u*.72),side=Y>=0?1:-1;Y+=side*(1-f)*.34;bright=.32+.38*f;size=.84+.18*f}
+ else if(type==='followDot'){let fx=.58*Math.sin(u*.73*dir)+.18*Math.sin(u*1.71),fy=.55*Math.sin(u*.51+1.4)+.16*Math.cos(u*1.37),fz=.62*Math.cos(u*.61*dir+.5);let d=Math.hypot(X-fx,Y-fy,Z-fz),focus=Math.exp(-d*d/.12);bright=.16+.84*focus;size=.68+1.35*focus;alpha=.48+.52*focus}
+ else if(type==='flowLayers'){let layer=(Y+1)/2,phase=u*.92*dir-layer*5.4,w=.5+.5*Math.sin(phase);X+=Math.sin(phase)*.12;Z+=Math.cos(phase)*.15;bright=.18+.72*Math.pow(w,2);size=.72+.58*Math.pow(w,2)}
+ else if(type==='asymmetric'){let fx=.55*Math.sin(u*.64*dir),fy=.46*Math.cos(u*.83),fz=.52*Math.sin(u*.47+1.7),d=Math.hypot(X-fx,Y-fy,Z-fz),focus=Math.exp(-d*d/.16);X+=focus*.16*Math.sin(u*1.1);Y+=focus*.13*Math.cos(u*.9);bright=.18+.78*focus;size=.70+1.10*focus;alpha=.55+.45*focus}
  else if(type==='spiral'){a=(Y+1)*.65+u*.55*dir;[X,Y,Z]=rot([X,Y,Z],0,a,0);let s=.88+.10*Math.sin(u+Y*2);X*=s;Z*=s}
  else if(type==='shear'){let s=Math.sin(u*.78)*.45*dir;X+=Y*s;Z+=X*s*.18;bright=.45+.18*Math.abs(Y)}
  else if(type==='fold'){let f=.5+.5*Math.sin(u*.68),top=Math.max(0,Y);a=f*1.05*dir*top;let yy=Y-.12,cy=Math.cos(a),sy=Math.sin(a),ny=yy*cy-Z*sy,nz=yy*sy+Z*cy;Y=ny+.12;Z=nz;bright=.42+.25*top}
@@ -77,18 +85,42 @@ function deform(type,dir,p,u){
  else if(type==='torus'){let f=.5+.5*Math.sin(u*.5),aa=Math.atan2(Z,X),major=.72,minor=.34,theta=Y*Math.PI*.65,tx=(major+minor*Math.cos(theta))*Math.cos(aa),tz=(major+minor*Math.cos(theta))*Math.sin(aa),ty=minor*Math.sin(theta);X=X*(1-f)+tx*f;Y=Y*(1-f)+ty*f;Z=Z*(1-f)+tz*f;[X,Y,Z]=rot([X,Y,Z],.45,u*.25*dir,.08);bright=.44+.16*f}
  return[X,Y,Z,bright,size,alpha]
 }
+function cueColor(type,p,u,bri){
+ let [X,Y,Z]=p, wave,band,focus;
+ // V7: color itself communicates the moving region inside the 3D volume.
+ if(type==='waveX'){wave=.5+.5*Math.sin(u*1.45-X*3);return mix3(cueColors.blue,cueColors.white,Math.pow(wave,3));}
+ if(type==='waveY'){wave=.5+.5*Math.sin(u*1.45-Y*3);return mix3(cueColors.violet,cueColors.pink,Math.pow(wave,2.4));}
+ if(type==='waveZ'){wave=.5+.5*Math.sin(u*1.45-Z*3.2);return mix3(cueColors.orange,cueColors.gold,Math.pow(wave,2.2));}
+ if(type==='halfTwist') return Y>=0?mix3(cueColors.pink,cueColors.white,clamp((Y+.1)/1.1)):cueColors.blue;
+ if(type==='bottomTwist') return Y<0?mix3(cueColors.red,cueColors.pink,clamp((-Y+.1)/1.1)):cueColors.blue;
+ if(type==='split'||type==='merge') return Y>=0?cueColors.cyan:cueColors.orange;
+ if(type==='bendX') return mix3(cueColors.cyan,cueColors.white,clamp((X+1)/2));
+ if(type==='shear') return mix3(cueColors.blue,cueColors.pink,clamp((Y+1)/2));
+ if(type==='pulseCore'||type==='orbitCore'){let d=Math.hypot(X,Y,Z);focus=Math.exp(-d*d*2.4);return mix3(cueColors.violet,cueColors.white,focus);}
+ if(type==='followDot'||type==='asymmetric'){let fx=.58*Math.sin(u*.73)+.18*Math.sin(u*1.71),fy=.55*Math.sin(u*.51+1.4),fz=.62*Math.cos(u*.61+.5);let d=Math.hypot(X-fx,Y-fy,Z-fz);focus=Math.exp(-d*d/.14);return mix3([40,75,125],cueColors.red,focus);}
+ if(type==='spiral'||type==='torus'||type==='tunnel') return mix3(cueColors.blue,cueColors.violet,clamp((Z+1)/2));
+ if(type==='flowLayers'){let h=clamp((Y+1)/2);return h<.5?mix3(cueColors.orange,cueColors.gold,h*2):mix3(cueColors.gold,cueColors.cyan,(h-.5)*2);}
+ if(type==='ripple3D'){let r=Math.hypot(X,Y,Z),rr=(u*.34)%2.3,d=Math.abs(r-rr),f=Math.exp(-d*d/.035);return mix3(cueColors.blue,cueColors.white,f);}
+ if(type==='fold') return Y>0?mix3(cueColors.violet,cueColors.pink,clamp(Y)):cueColors.blue;
+ if(type==='sphereMorph'||type==='breathe') return mix3(cueColors.cyan,cueColors.violet,clamp((Y+1)/2));
+ if(type==='turnY') return mix3(cueColors.blue,cueColors.cyan,clamp((X+1)/2));
+ return mix3(pal,cueColors.white,clamp((bri-.45)*1.5));
+}
+function mix3(a,b,t){t=clamp(t);return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t]}
+
 function drawVolume(type,dir,t){
  let u=t*speed,pts=[];
  for(const p of cube){
    let [X,Y,Z,bri,sz,alpha]=deform(type,dir,p,u);
    if(!['turnY','turnX','roll','torus'].includes(type))[X,Y,Z]=rot([X,Y,Z],.34,.48,.02);
-   pts.push([X,Y,Z,bri,sz,alpha])
+   pts.push([X,Y,Z,bri,sz,alpha,p])
  }
  pts.sort((a,b)=>a[2]-b[2]);
  let base=Math.min(W,H)*.34;
- for(const [X,Y,Z,bri,sz,alpha] of pts){
+ for(const [X,Y,Z,bri,sz,alpha,orig] of pts){
    let persp=1/(2.75-Z*.40),px=W/2+X*base*persp*2.08,py=H/2+Y*base*persp*2.08,depth=clamp((Z+1.8)/3.6),r=(1.55+depth*2.65)*sz;
-   pearl(px,py,r,clamp(bri+depth*.14),alpha)
+   let col=cueColor(type,orig,u,bri);
+    pearl(px,py,r,clamp(bri+depth*.14),alpha,col)
  }
 }
 function draw(now){
