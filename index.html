@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f7f7f4">
+<title>AKI</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#f7f7f4;color:#4b4d4b}body{overflow:hidden}.presence{position:relative;width:100%;height:100dvh;overflow:hidden;isolation:isolate;background:linear-gradient(145deg,#fcfcfa,#eef1f1 48%,#f8f6f4);cursor:pointer;-webkit-tap-highlight-color:transparent}.atmosphere{position:absolute;inset:-20%;filter:blur(40px);opacity:.82;animation:air 10s ease-in-out infinite}.atmosphere:before,.atmosphere:after{content:"";position:absolute;border-radius:50%}.atmosphere:before{width:72%;height:67%;left:1%;top:4%;background:radial-gradient(circle at 55% 45%,rgba(198,224,240,.48),rgba(226,218,238,.2) 48%,transparent 72%);animation:d1 16s ease-in-out infinite alternate}.atmosphere:after{width:70%;height:66%;right:-1%;bottom:0;background:radial-gradient(circle at 44% 48%,rgba(242,220,224,.38),rgba(214,230,241,.23) 48%,transparent 74%);animation:d2 19s ease-in-out infinite alternate}.life{position:absolute;left:50%;top:48%;width:min(82vw,620px);aspect-ratio:1;transform:translate(-50%,-50%) scale(.9);border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.92),rgba(242,247,249,.58) 30%,rgba(215,231,241,.2) 52%,rgba(234,221,239,.13) 66%,transparent 76%);filter:blur(8px);animation:breath 7.8s ease-in-out infinite}.life:after{content:"";position:absolute;inset:17%;border-radius:46% 54% 58% 42%/53% 44% 56% 47%;background:radial-gradient(circle at 38% 34%,rgba(255,255,255,.96),rgba(211,232,244,.28) 40%,rgba(238,218,236,.15) 67%,transparent 80%);filter:blur(13px);animation:morph 12s ease-in-out infinite alternate}.mark{position:absolute;z-index:3;inset:0;display:grid;place-items:center;font-family:Georgia,'Times New Roman',serif;font-size:clamp(52px,14vw,92px);font-weight:600;letter-spacing:.18em;padding-left:.18em;color:rgba(205,206,202,.66);text-shadow:0 1px 0 #fff,0 -1px 1px rgba(100,104,103,.55),1px 0 1px rgba(255,255,255,.7),-1px 0 1px rgba(130,134,132,.24);transition:transform .7s ease,opacity .7s ease}.active .life{animation-duration:5.2s}.active .atmosphere{animation-duration:7s}.speaking .life{animation-duration:2.9s;filter:blur(7px) saturate(1.12)}.speaking .mark{transform:scale(1.015)}.error .mark{opacity:.55}@keyframes air{0%,100%{transform:scale(.96);opacity:.63}50%{transform:scale(1.07);opacity:.92}}@keyframes d1{from{transform:translate(-6%,-4%) scale(.94)}to{transform:translate(16%,10%) scale(1.16)}}@keyframes d2{from{transform:translate(8%,9%) scale(1.12)}to{transform:translate(-15%,-10%) scale(.91)}}@keyframes breath{0%,100%{transform:translate(-50%,-50%) scale(.85);opacity:.55}50%{transform:translate(-50%,-50%) scale(1.08);opacity:.96}}@keyframes morph{0%{border-radius:46% 54% 58% 42%/53% 44% 56% 47%;transform:rotate(-3deg) scale(.94)}50%{border-radius:57% 43% 44% 56%/43% 58% 42% 57%;transform:rotate(3deg) scale(1.08)}100%{border-radius:43% 57% 52% 48%/58% 45% 55% 42%;transform:rotate(-2deg) scale(.98)}}@media(prefers-reduced-motion:reduce){.atmosphere,.atmosphere:before,.atmosphere:after,.life,.life:after{animation:none!important}}
+</style>
+</head>
+<body>
+<main id="app" class="presence" aria-label="AKI. Tap once to allow microphone access, then say Aki.">
+  <div class="atmosphere" aria-hidden="true"></div><div class="life" aria-hidden="true"></div><div class="mark">AKI</div>
+</main>
+<script>
+const app=document.querySelector('#app');
+let pc=null, dc=null, micStream=null, audioEl=null, starting=false;
+
+async function stopAki(){
+  try{dc?.close()}catch{}
+  try{pc?.close()}catch{}
+  try{micStream?.getTracks().forEach(t=>t.stop())}catch{}
+  pc=dc=micStream=null;
+  if(audioEl){audioEl.srcObject=null;audioEl.remove();audioEl=null}
+  app.classList.remove('active','speaking','error');
+}
+
+async function startAki(){
+  if(pc||starting)return;
+  starting=true; app.classList.remove('error');
+  try{
+    micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+    pc=new RTCPeerConnection();
+    audioEl=document.createElement('audio'); audioEl.autoplay=true; audioEl.playsInline=true; document.body.appendChild(audioEl);
+    pc.ontrack=e=>{audioEl.srcObject=e.streams[0]; audioEl.play().catch(()=>{})};
+    micStream.getTracks().forEach(t=>pc.addTrack(t,micStream));
+    dc=pc.createDataChannel('oai-events');
+    dc.addEventListener('open',()=>app.classList.add('active'));
+    dc.addEventListener('message',e=>{
+      try{
+        const m=JSON.parse(e.data);
+        if(m.type==='response.output_audio.delta'||m.type==='response.audio.delta') app.classList.add('speaking');
+        if(m.type==='response.output_audio.done'||m.type==='response.audio.done'||m.type==='response.done') app.classList.remove('speaking');
+        if(m.type==='error') console.error('AKI Realtime event error:',m);
+      }catch{}
+    });
+    pc.addEventListener('connectionstatechange',()=>{
+      if(['failed','closed','disconnected'].includes(pc?.connectionState)) app.classList.remove('active','speaking');
+    });
+    const offer=await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    const r=await fetch('/api/session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sdp:pc.localDescription.sdp})});
+    const answer=await r.text();
+    if(!r.ok) throw new Error(answer);
+    await pc.setRemoteDescription({type:'answer',sdp:answer});
+  }catch(err){
+    console.error('AKI start error:',err); await stopAki(); app.classList.add('error');
+  }finally{starting=false}
+}
+
+app.addEventListener('click',()=>{ if(!pc) startAki(); });
+window.addEventListener('beforeunload',stopAki);
+</script>
+</body>
+</html>
