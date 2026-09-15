@@ -1,136 +1,25 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><meta name="theme-color" content="#05070b"><title>FORMCHI V7</title><style>*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#05070b;touch-action:manipulation}canvas{position:fixed;inset:0;width:100vw;height:100dvh;display:block;background:#05070b}</style></head><body><canvas id="c"></canvas><script>
-
-const c=document.getElementById('c'),x=c.getContext('2d');
-let W,H,D=1,t0=performance.now(),sceneStart=t0;
-const DUR=30000,speeds=[.60,.92,1.32];
-const scenes=[
- ['turnY',1],['turnY',-1],                         // ROTATE
- ['breathe',1],['breathe',-1],                   // EXPAND / CONTRACT
- ['waveX',1],['waveX',-1],['waveY',1],['waveY',-1],['waveZ',1],['waveZ',-1],
- ['halfTwist',1],['halfTwist',-1],               // TWIST TOP
- ['bottomTwist',1],['bottomTwist',-1],           // TWIST BOTTOM
- ['split',1],['merge',1],                        // SPLIT / MERGE
- ['bendX',1],['bendX',-1],['shear',1],['shear',-1],
- ['pulseCore',1],['pulseCore',-1],['orbitCore',1],['orbitCore',-1],
- ['followDot',1],['followDot',-1],               // moving focal point inside volume
- ['spiral',1],['spiral',-1],['torus',1],['torus',-1],['tunnel',1],['tunnel',-1],
- ['flowLayers',1],['flowLayers',-1],['asymmetric',1],['asymmetric',-1],
- ['ripple3D',1],['ripple3D',-1],['fold',1],['fold',-1],['sphereMorph',1],['sphereMorph',-1]
-];
-const palettes=[[52,125,235],[116,70,205],[25,174,190],[224,142,38],[218,54,91],[190,65,214],[105,185,235]];
-const cueColors={cyan:[35,225,255],blue:[55,120,255],violet:[185,75,255],pink:[255,55,170],red:[255,48,70],orange:[255,145,35],gold:[255,215,70],white:[245,250,255],green:[50,220,155]};
-let bag=[],scene=null,speed=.92,pal=palettes[0];
-function resize(){D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*D;c.height=H*D;x.setTransform(D,0,0,D,0,0)}
-addEventListener('resize',resize);resize();
-function refill(){bag=scenes.map((_,i)=>i);for(let i=bag.length-1;i;i--){let j=Math.floor(Math.random()*(i+1));[bag[i],bag[j]]=[bag[j],bag[i]]}}
-function next(now){if(!bag.length)refill();scene=scenes[bag.pop()];speed=speeds[Math.floor(Math.random()*speeds.length)];pal=palettes[Math.floor(Math.random()*palettes.length)];sceneStart=now}
-next(t0);
-const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
-function pearl(px,py,rad,b,alphaMul=1,color=pal){
- const [R,G,B]=color,alpha=(.12+b*.62)*alphaMul,rr=rad;
- let g=x.createRadialGradient(px-rr*.30,py-rr*.34,rr*.06,px,py,rr);
- g.addColorStop(0,`rgba(255,255,255,${(.28+b*.42)*alphaMul})`);
- g.addColorStop(.20,`rgba(${Math.min(255,R+48)},${Math.min(255,G+48)},${Math.min(255,B+48)},${alpha})`);
- g.addColorStop(.65,`rgba(${R},${G},${B},${alpha*.94})`);
- g.addColorStop(1,`rgba(${Math.max(0,R-62)},${Math.max(0,G-62)},${Math.max(0,B-62)},${alpha*.52})`);
- x.fillStyle=g;x.shadowColor=`rgba(${R},${G},${B},${(.05+b*.08)*alphaMul})`;x.shadowBlur=.5+b*2.1;
- x.beginPath();x.arc(px,py,rr,0,Math.PI*2);x.fill()
-}
-function rot(p,ax,ay,az){
- let [X,Y,Z]=p,cy=Math.cos(ay),sy=Math.sin(ay),cx=Math.cos(ax),sx=Math.sin(ax),cz=Math.cos(az),sz=Math.sin(az);
- let x1=X*cy+Z*sy,z1=-X*sy+Z*cy,y1=Y;
- let y2=y1*cx-z1*sx,z2=y1*sx+z1*cx,x2=x1;
- return[x2*cz-y2*sz,x2*sz+y2*cz,z2]
-}
-const N=7,cube=[];
-for(let zi=0;zi<N;zi++)for(let yi=0;yi<N;yi++)for(let xi=0;xi<N;xi++)cube.push([(xi/(N-1)-.5)*2,(yi/(N-1)-.5)*2,(zi/(N-1)-.5)*2,xi,yi,zi]);
-
-function deform(type,dir,p,u){
- let [X,Y,Z]=p,q=.5+.5*Math.sin(u),a,r,phase,bright=.48,size=1,alpha=1;
- if(type==='turnY'){a=u*.55*dir;[X,Y,Z]=rot([X,Y,Z],.18,a,.04)}
- else if(type==='turnX'){a=u*.50*dir;[X,Y,Z]=rot([X,Y,Z],a,.28,.03)}
- else if(type==='roll'){a=u*.50*dir;[X,Y,Z]=rot([X,Y,Z],.25,.30,a)}
- else if(type==='breathe'){let s=.72+.32*(.5+.5*Math.sin(u*.85));if(dir<0)s=1.04-(s-.72);X*=s;Y*=s;Z*=s;bright=.42+.30*s;size=.85+.35*s}
- else if(type==='pulseCore'){r=Math.hypot(X,Y,Z);phase=u*1.15*dir-r*3.1;let pulse=.5+.5*Math.cos(phase),shell=Math.pow(pulse,8);size=.72+1.15*shell;bright=.25+.72*shell;let s=1+.08*shell;X*=s;Y*=s;Z*=s}
- else if(type==='waveX'){phase=u*1.45*dir-X*3;let w=Math.sin(phase);Y+=w*.22;Z+=w*.13;bright=.30+.58*Math.pow(.5+.5*w,2);size=.78+.50*Math.pow(.5+.5*w,2)}
- else if(type==='waveY'){phase=u*1.45*dir-Y*3;let w=Math.sin(phase);X+=w*.20;Z+=w*.15;bright=.30+.58*Math.pow(.5+.5*w,2);size=.78+.50*Math.pow(.5+.5*w,2)}
- else if(type==='waveZ'){phase=u*1.45*dir-Z*3.2;let w=Math.sin(phase);Y+=w*.20;X+=w*.10;bright=.30+.62*Math.pow(.5+.5*w,2);size=.78+.52*Math.pow(.5+.5*w,2)}
- else if(type==='ripple3D'){r=Math.hypot(X,Y,Z);let rr=(u*.34)%2.3;if(dir<0)rr=2.3-rr;let d=Math.abs(r-rr),pulse=Math.exp(-d*d/.035);size=.72+1.15*pulse;bright=.22+.76*pulse;let s=1+.10*pulse;X*=s;Y*=s;Z*=s}
- else if(type==='twistY'){a=Math.sin(u*.85)*.72*Y*dir;[X,Y,Z]=rot([X,Y,Z],0,a,0);bright=.40+.18*Math.abs(Y)}
- else if(type==='twistX'){a=Math.sin(u*.85)*.72*X*dir;[X,Y,Z]=rot([X,Y,Z],a,0,0);bright=.40+.18*Math.abs(X)}
- else if(type==='halfTwist'){let side=Y>=0?1:0;a=side*Math.sin(u*.85)*1.10*dir;[X,Y,Z]=rot([X,Y,Z],0,a,0);bright=side?.72:.34}
- else if(type==='counterTwist'){a=Math.sin(u*.82)*.70*(Y>=0?1:-1)*dir;[X,Y,Z]=rot([X,Y,Z],0,a,0);bright=.48+.18*Math.abs(Y)}
- else if(type==='bendX'){let b=Math.sin(u*.75)*.48*dir;X+=b*(Y*Y-.25);Z+=b*Y*.36;bright=.42+.18*Math.abs(Y)}
- else if(type==='bendY'){let b=Math.sin(u*.75)*.48*dir;Y+=b*(X*X-.25);Z+=b*X*.36;bright=.42+.18*Math.abs(X)}
- else if(type==='pushZ'){let s=.78+.24*(.5+.5*Math.sin(u*.9));if(dir<0)s=1.02-(s-.78);Z*=s;let front=(Z+1)/2;bright=.30+.38*front;size=.78+.42*front}
- else if(type==='liftY'){Y+=Math.sin(u*.8)*.42*dir;bright=.46}
- else if(type==='swayX'){let off=Math.sin(u*.75)*.38*dir;X+=off*(.55+.45*(Y+1)/2);Z+=Math.sin(u*.75+1.2)*.08;bright=.46}
- else if(type==='compressY'){let s=.55+.45*(.5+.5*Math.sin(u*.9));if(dir<0)s=1-(s-.55);Y*=s;bright=.40+.20*(1-s);size=.88+.20*(1-s)}
- else if(type==='openX'){let sep=(.5+.5*Math.sin(u*.8))*.48*dir;X+=(X>=0?1:-1)*sep}
- else if(type==='openY'){let sep=(.5+.5*Math.sin(u*.8))*.48*dir;Y+=(Y>=0?1:-1)*sep}
- else if(type==='bottomTwist'){let side=Y<0?1:0;a=side*Math.sin(u*.85)*1.10*dir;[X,Y,Z]=rot([X,Y,Z],0,a,0);bright=side?.76:.27;alpha=side?1:.72}
- else if(type==='split'){let f=.5+.5*Math.sin(u*.72),side=Y>=0?1:-1;Y+=side*f*.34;bright=.30+.42*f*(Y>=0?1:.75);size=.82+.22*f}
- else if(type==='merge'){let f=.5+.5*Math.sin(u*.72),side=Y>=0?1:-1;Y+=side*(1-f)*.34;bright=.32+.38*f;size=.84+.18*f}
- else if(type==='followDot'){let fx=.58*Math.sin(u*.73*dir)+.18*Math.sin(u*1.71),fy=.55*Math.sin(u*.51+1.4)+.16*Math.cos(u*1.37),fz=.62*Math.cos(u*.61*dir+.5);let d=Math.hypot(X-fx,Y-fy,Z-fz),focus=Math.exp(-d*d/.12);bright=.16+.84*focus;size=.68+1.35*focus;alpha=.48+.52*focus}
- else if(type==='flowLayers'){let layer=(Y+1)/2,phase=u*.92*dir-layer*5.4,w=.5+.5*Math.sin(phase);X+=Math.sin(phase)*.12;Z+=Math.cos(phase)*.15;bright=.18+.72*Math.pow(w,2);size=.72+.58*Math.pow(w,2)}
- else if(type==='asymmetric'){let fx=.55*Math.sin(u*.64*dir),fy=.46*Math.cos(u*.83),fz=.52*Math.sin(u*.47+1.7),d=Math.hypot(X-fx,Y-fy,Z-fz),focus=Math.exp(-d*d/.16);X+=focus*.16*Math.sin(u*1.1);Y+=focus*.13*Math.cos(u*.9);bright=.18+.78*focus;size=.70+1.10*focus;alpha=.55+.45*focus}
- else if(type==='spiral'){a=(Y+1)*.65+u*.55*dir;[X,Y,Z]=rot([X,Y,Z],0,a,0);let s=.88+.10*Math.sin(u+Y*2);X*=s;Z*=s}
- else if(type==='shear'){let s=Math.sin(u*.78)*.45*dir;X+=Y*s;Z+=X*s*.18;bright=.45+.18*Math.abs(Y)}
- else if(type==='fold'){let f=.5+.5*Math.sin(u*.68),top=Math.max(0,Y);a=f*1.05*dir*top;let yy=Y-.12,cy=Math.cos(a),sy=Math.sin(a),ny=yy*cy-Z*sy,nz=yy*sy+Z*cy;Y=ny+.12;Z=nz;bright=.42+.25*top}
- else if(type==='orbitCore'){let rr=Math.hypot(X,Z),aa=Math.atan2(Z,X)+u*.75*dir*(.25+.75*(Y+1)/2);X=Math.cos(aa)*rr;Z=Math.sin(aa)*rr;let core=Math.exp(-(X*X+Y*Y+Z*Z)*2.2);size=.82+.8*core;bright=.36+.55*core}
- else if(type==='tunnel'){let z=Z+u*.34*dir;z=((z+1)%2+2)%2-1;Z=z;let s=.68+.28*((Z+1)/2);X*=s;Y*=s;bright=.28+.48*((Z+1)/2);size=.72+.52*((Z+1)/2)}
- else if(type==='diamond'){let m=Math.abs(X)+Math.abs(Y)+Math.abs(Z),s=.72+.18*Math.sin(u*.75*dir);X*=s;Y*=s;Z*=s;bright=.25+.60*Math.exp(-Math.pow(m-1.45,2)/.10);size=.78+.45*bright}
- else if(type==='sphereMorph'){r=Math.hypot(X,Y,Z)||1;let f=.5+.5*Math.sin(u*.55*dir),target=1.12;X=X*(1-f)+X/r*target*f;Y=Y*(1-f)+Y/r*target*f;Z=Z*(1-f)+Z/r*target*f;bright=.42+.18*f}
- else if(type==='helix'){let yy=Y,aa=yy*3.1+u*.75*dir,rad=.62+.12*Math.sin(u*.5+yy);X=Math.cos(aa)*rad+X*.22;Z=Math.sin(aa)*rad+Z*.22;bright=.44+.20*(.5+.5*Math.sin(aa))}
- else if(type==='torus'){let f=.5+.5*Math.sin(u*.5),aa=Math.atan2(Z,X),major=.72,minor=.34,theta=Y*Math.PI*.65,tx=(major+minor*Math.cos(theta))*Math.cos(aa),tz=(major+minor*Math.cos(theta))*Math.sin(aa),ty=minor*Math.sin(theta);X=X*(1-f)+tx*f;Y=Y*(1-f)+ty*f;Z=Z*(1-f)+tz*f;[X,Y,Z]=rot([X,Y,Z],.45,u*.25*dir,.08);bright=.44+.16*f}
- return[X,Y,Z,bright,size,alpha]
-}
-function cueColor(type,p,u,bri){
- let [X,Y,Z]=p, wave,band,focus;
- // V7: color itself communicates the moving region inside the 3D volume.
- if(type==='waveX'){wave=.5+.5*Math.sin(u*1.45-X*3);return mix3(cueColors.blue,cueColors.white,Math.pow(wave,3));}
- if(type==='waveY'){wave=.5+.5*Math.sin(u*1.45-Y*3);return mix3(cueColors.violet,cueColors.pink,Math.pow(wave,2.4));}
- if(type==='waveZ'){wave=.5+.5*Math.sin(u*1.45-Z*3.2);return mix3(cueColors.orange,cueColors.gold,Math.pow(wave,2.2));}
- if(type==='halfTwist') return Y>=0?mix3(cueColors.pink,cueColors.white,clamp((Y+.1)/1.1)):cueColors.blue;
- if(type==='bottomTwist') return Y<0?mix3(cueColors.red,cueColors.pink,clamp((-Y+.1)/1.1)):cueColors.blue;
- if(type==='split'||type==='merge') return Y>=0?cueColors.cyan:cueColors.orange;
- if(type==='bendX') return mix3(cueColors.cyan,cueColors.white,clamp((X+1)/2));
- if(type==='shear') return mix3(cueColors.blue,cueColors.pink,clamp((Y+1)/2));
- if(type==='pulseCore'||type==='orbitCore'){let d=Math.hypot(X,Y,Z);focus=Math.exp(-d*d*2.4);return mix3(cueColors.violet,cueColors.white,focus);}
- if(type==='followDot'||type==='asymmetric'){let fx=.58*Math.sin(u*.73)+.18*Math.sin(u*1.71),fy=.55*Math.sin(u*.51+1.4),fz=.62*Math.cos(u*.61+.5);let d=Math.hypot(X-fx,Y-fy,Z-fz);focus=Math.exp(-d*d/.14);return mix3([40,75,125],cueColors.red,focus);}
- if(type==='spiral'||type==='torus'||type==='tunnel') return mix3(cueColors.blue,cueColors.violet,clamp((Z+1)/2));
- if(type==='flowLayers'){let h=clamp((Y+1)/2);return h<.5?mix3(cueColors.orange,cueColors.gold,h*2):mix3(cueColors.gold,cueColors.cyan,(h-.5)*2);}
- if(type==='ripple3D'){let r=Math.hypot(X,Y,Z),rr=(u*.34)%2.3,d=Math.abs(r-rr),f=Math.exp(-d*d/.035);return mix3(cueColors.blue,cueColors.white,f);}
- if(type==='fold') return Y>0?mix3(cueColors.violet,cueColors.pink,clamp(Y)):cueColors.blue;
- if(type==='sphereMorph'||type==='breathe') return mix3(cueColors.cyan,cueColors.violet,clamp((Y+1)/2));
- if(type==='turnY') return mix3(cueColors.blue,cueColors.cyan,clamp((X+1)/2));
- return mix3(pal,cueColors.white,clamp((bri-.45)*1.5));
-}
-function mix3(a,b,t){t=clamp(t);return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t]}
-
-function drawVolume(type,dir,t){
- let u=t*speed,pts=[];
- for(const p of cube){
-   let [X,Y,Z,bri,sz,alpha]=deform(type,dir,p,u);
-   if(!['turnY','turnX','roll','torus'].includes(type))[X,Y,Z]=rot([X,Y,Z],.34,.48,.02);
-   pts.push([X,Y,Z,bri,sz,alpha,p])
- }
- pts.sort((a,b)=>a[2]-b[2]);
- let base=Math.min(W,H)*.34;
- for(const [X,Y,Z,bri,sz,alpha,orig] of pts){
-   let persp=1/(2.75-Z*.40),px=W/2+X*base*persp*2.08,py=H/2+Y*base*persp*2.08,depth=clamp((Z+1.8)/3.6),r=(1.55+depth*2.65)*sz;
-   let col=cueColor(type,orig,u,bri);
-    pearl(px,py,r,clamp(bri+depth*.14),alpha,col)
- }
-}
-function draw(now){
- if(now-sceneStart>=DUR)next(now);
- let t=(now-sceneStart)/1000;
- x.clearRect(0,0,W,H);x.fillStyle='#05070b';x.fillRect(0,0,W,H);
- drawVolume(scene[0],scene[1],t);
- x.shadowBlur=0;x.globalAlpha=1;requestAnimationFrame(draw)
-}
-requestAnimationFrame(draw);
-addEventListener('pointerdown',()=>next(performance.now()),{passive:true});
-
-</script></body></html>
+<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>FORMCHI V8</title>
+<style>html,body{margin:0;background:#02050a;overflow:hidden;color:#def;font-family:Arial}canvas{width:100vw;height:100vh}.ui{position:fixed;bottom:22px;left:3%;right:3%;display:flex;overflow:auto;gap:6px;padding:8px;background:#07101ddd;border:1px solid #8df4;border-radius:16px}button{white-space:nowrap;background:#0a1724;color:#def;border:1px solid #8df5;border-radius:10px;padding:9px}.on{background:#def;color:#012}.title{position:fixed;top:25px;width:100%;text-align:center;letter-spacing:5px;font-size:12px}</style>
+<div class=title>FORMCHI V8 · VOLUMETRIC MOVEMENT LANGUAGE</div><canvas></canvas><div class=ui></div>
+<script>
+const c=document.querySelector("canvas"),x=c.getContext("2d"),ui=document.querySelector(".ui");
+let W,H,d=1,T=0,M=0; const names=["FOLD / RISE","ARMS ↑↓","ARM CIRCLES","HIP CIRCLE","TORSO TWIST","PUSH / PULL","SIDE BEND","WAVE","FOLLOW DOT"];
+names.forEach((n,i)=>{let b=document.createElement("button");b.textContent=n;b.onclick=()=>{M=i;sync()};ui.append(b)});function sync(){[...ui.children].forEach((b,i)=>b.className=i==M?"on":"")}sync();
+function size(){d=Math.min(devicePixelRatio,2);W=innerWidth;H=innerHeight;c.width=W*d;c.height=H*d;x.setTransform(d,0,0,d,0,0)}onresize=size;size();
+function P(X,Y,Z){let a=-.55,ca=Math.cos(a),sa=Math.sin(a),xx=X*ca-Z*sa,zz=X*sa+Z*ca,s=Math.min(W*.65,H*.52)/(2.2+zz*.12);return[W/2+xx*s,H*.48+Y*s]}
+function L(a,b,col="#8deaff",al=.25,w=1){a=P(...a);b=P(...b);x.globalAlpha=al;x.strokeStyle=col;x.lineWidth=w;x.beginPath();x.moveTo(...a);x.lineTo(...b);x.stroke();x.globalAlpha=1}
+function D(a,col="#8deaff",r=2){a=P(...a);x.fillStyle=col;x.shadowColor=col;x.shadowBlur=10;x.beginPath();x.arc(...a,r,0,7);x.fill();x.shadowBlur=0}
+function A(a,b,col){let A=P(...a),B=P(...b),q=10,g=Math.atan2(B[1]-A[1],B[0]-A[0]);x.strokeStyle=x.fillStyle=col;x.shadowColor=col;x.shadowBlur=14;x.lineWidth=3;x.beginPath();x.moveTo(...A);x.lineTo(...B);x.stroke();x.beginPath();x.moveTo(...B);x.lineTo(B[0]-q*Math.cos(g-.55),B[1]-q*Math.sin(g-.55));x.lineTo(B[0]-q*Math.cos(g+.55),B[1]-q*Math.sin(g+.55));x.fill();x.shadowBlur=0}
+function path(ps,col){for(let i=1;i<ps.length;i++)L(ps[i-1],ps[i],col,.7,2);let k=Math.max(1,Math.floor((T*.25%1)*(ps.length-1)));A(ps[k-1],ps[k],col)}
+function ring(y,r,col,off=0){let q=[];for(let i=0;i<45;i++){let a=i/44*Math.PI*2;q.push([off+r*Math.cos(a),y,r*.65*Math.sin(a)])}path(q,col)}
+function box(){let X=.9,Z=.7,Y=1.05,V=[[-X,-Y,-Z],[X,-Y,-Z],[X,-Y,Z],[-X,-Y,Z],[-X,Y,-Z],[X,Y,-Z],[X,Y,Z],[-X,Y,Z]],E=[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];E.forEach(e=>L(V[e[0]],V[e[1]]));let zs=[[-.72,"#38bdf8"],[-.28,"#a855f7"],[.12,"#22c55e"],[.43,"#facc15"],[.73,"#f97316"],[.98,"#ff365d"]];zs.forEach(z=>{L([-X,z[0],-Z],[X,z[0],-Z],z[1],.2);L([X,z[0],-Z],[X,z[0],Z],z[1],.2);L([X,z[0],Z],[-X,z[0],Z],z[1],.2)});for(let Y=-.9;Y<1;Y+=.23)for(let X=-.75;X<.8;X+=.3)for(let Z=-.5;Z<.6;Z+=.34)D([X,Y,Z],"#8deaff",.65)}
+function motion(){let s=Math.sin(T*1.4),p=(s+1)/2;if(M==0){let q=[];for(let i=0;i<42;i++){let u=i/41;q.push([0,-.95+1.9*u,.16*Math.sin(u*Math.PI)])}path(q,"#fff")}
+if(M==1){A([-.6,.3,0],[-.6,-.5,0],"#a855f7");A([.6,.3,0],[.6,-.5,0],"#a855f7")}
+if(M==2){ring(-.28,.23,"#a855f7",-.55);ring(-.28,.23,"#a855f7",.55)}
+if(M==3)ring(.35,.62,"#facc15"); if(M==4)ring(.02,.52,"#22c55e");
+if(M==5){let q=.2+.42*p;A([-.15,-.15,0],[-q,-.15,0],"#a855f7");A([.15,-.15,0],[q,-.15,0],"#a855f7")}
+if(M==6){let q=[];for(let i=0;i<35;i++){let u=i/34;q.push([.55*Math.sin(u*Math.PI),-.7+1.35*u,0])}path(q,"#22c55e")}
+if(M==7){let q=[];for(let i=0;i<50;i++){let u=i/49;q.push([-.7+1.4*u,-.75+1.5*u,.3*Math.sin(u*Math.PI*4)])}path(q,"#fff")}
+if(M==8){let q=T*.8,a=[.55*Math.sin(q*1.3),.7*Math.sin(q*.7),.4*Math.cos(q)],b=[.55*Math.sin((q-.12)*1.3),.7*Math.sin((q-.12)*.7),.4*Math.cos(q-.12)];D(a,"#ff365d",7);A(b,a,"#ff365d")}}
+function f(ms){T=ms/1000;x.fillStyle="#02050a";x.fillRect(0,0,W,H);box();motion();requestAnimationFrame(f)}requestAnimationFrame(f)
+</script>
