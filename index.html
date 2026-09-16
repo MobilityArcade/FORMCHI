@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=45">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=45">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=45">
-<title>AKI 5.1 Vision Repair</title>
+<title>AKI 5.2 Reversible Vision</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}
 body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
@@ -75,7 +75,7 @@ body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
 .vision-controls{position:absolute;left:50%;bottom:max(34px,calc(env(safe-area-inset-bottom) + 22px));transform:translateX(-50%);display:flex;align-items:center;gap:76px}
 .vbtn,.launchbtn{position:relative;border:0;border-radius:50%;background:linear-gradient(#070a10,#070a10) padding-box,conic-gradient(from 215deg,#53efff,#217cff,#743cff,#f229d8,#ff756b,#53efff) border-box;border:2px solid transparent;color:#f8fdff;display:grid;place-items:center;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 0 12px rgba(52,190,255,.16),0 0 20px rgba(183,49,255,.10),inset 0 0 14px rgba(75,154,255,.05);text-shadow:0 0 7px rgba(190,235,255,.9);-webkit-tap-highlight-color:transparent}
 .vbtn{width:66px;height:66px;font-size:28px}.vbtn.primary{width:72px;height:72px;box-shadow:0 0 16px rgba(52,190,255,.22),0 0 26px rgba(183,49,255,.14)}
-.vision-launch{position:absolute;z-index:12;display:none;align-items:center}.vision-launch.show{display:flex}.launchbtn{width:68px;height:68px;font-size:27px}
+.vision-launch{display:none!important}.launchbtn{width:68px;height:68px;font-size:27px}
 .photo-stage{position:absolute;inset:0;z-index:21;display:none;background:#020304;padding:max(72px,calc(env(safe-area-inset-top) + 42px)) 22px max(34px,calc(env(safe-area-inset-bottom) + 24px));align-items:center;justify-content:center;flex-direction:column;gap:24px}.photo-stage.open{display:flex}.photo-stage img{max-width:min(88vw,760px);max-height:64vh;object-fit:contain;border-radius:22px;box-shadow:0 0 36px rgba(74,185,255,.10)}.photo-actions{display:flex;gap:54px}.busy-ring{position:absolute;inset:0;display:none;place-items:center;background:rgba(0,0,0,.28);font-size:13px;color:white}.busy .busy-ring{display:grid}#photoInput{display:none}
 /* Portrait phones/tablets: controls live well below the torus, clearly left/right. */
 @media (orientation:portrait){.vision-launch{left:50%;top:calc(48% + min(51vw,400px));transform:translate(-50%,30px);width:min(74vw,430px);justify-content:space-between}}
@@ -124,10 +124,10 @@ const photoInput=document.querySelector('#photoInput'),photoStage=document.query
 
 function powerLook(mode){
   akiButton.classList.remove('on','starting','error');
-  if(mode==='on'){akiButton.classList.add('on');akiButton.setAttribute('aria-pressed','true');akiButton.setAttribute('aria-label','Turn AKI off');visionLaunch.classList.add('show')}
+  if(mode==='on'){akiButton.classList.add('on');akiButton.setAttribute('aria-pressed','true');akiButton.setAttribute('aria-label','Turn AKI off')}
   else if(mode==='starting'){akiButton.classList.add('starting');akiButton.setAttribute('aria-pressed','false');akiButton.setAttribute('aria-label','AKI is starting')}
   else if(mode==='error'){akiButton.classList.add('error');akiButton.setAttribute('aria-pressed','false');akiButton.setAttribute('aria-label','AKI connection failed. Tap to retry')}
-  else{akiButton.setAttribute('aria-pressed','false');akiButton.setAttribute('aria-label','Turn AKI on');visionLaunch.classList.remove('show')}
+  else{akiButton.setAttribute('aria-pressed','false');akiButton.setAttribute('aria-label','Turn AKI on')}
 }
 function chime(){
   const now=Date.now();if(now-lastChime<1800)return;lastChime=now;
@@ -183,14 +183,14 @@ function absorbTranscript(m){
 function sendLiveText(text){
  if(!dc||dc.readyState!=='open')return false;
  try{
-  dc.send(JSON.stringify({type:'conversation.item.create',item:{type:'message',role:'user',content:[{type:'input_text',text}]}}));
+  dc.send(JSON.stringify({type:'response.item.create',item:{type:'message',role:'user',content:[{type:'input_text',text}]}}));
   dc.send(JSON.stringify({type:'response.create'}));return true;
  }catch(e){console.error('AKI text handoff:',e);return false}
 }
 function imageToDataURL(file,max=1280,quality=.82){return new Promise((resolve,reject)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const scale=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);resolve(c.toDataURL('image/jpeg',quality))};img.onerror=reject;img.src=u})}
 
 // AKI 5.1: images go directly into the SAME Live conversation as voice.
-// Realtime conversation.item.create supports input_image data URLs.
+// Current Live uses response.item.create for delegated Responses input, then response.create.
 function sendLiveImages(images, instruction){
  if(!dc||dc.readyState!=='open')return false;
  try{
@@ -199,11 +199,11 @@ function sendLiveImages(images, instruction){
   
   const content=[{type:'input_text',text:instruction||'Look at the image I am intentionally showing you and respond naturally to my question. Only describe what is actually visible.'}];
   for(const image_url of images){content.push({type:'input_image',image_url})}
-  dc.send(JSON.stringify({type:'conversation.item.create',item:{type:'message',role:'user',content}}));
-  dc.send(JSON.stringify({type:'response.create',response:{instructions:'The user has just supplied image input in this Live conversation. Use that image to answer naturally and concisely. Do not say you cannot see the image. Do not claim to see anything outside the supplied image.'}}));
-  console.log('[AKI 5.1 vision] image-sent-to-live',{count:images.length});
+  dc.send(JSON.stringify({type:'response.item.create',item:{type:'message',role:'user',content}}));
+  dc.send(JSON.stringify({type:'response.create'}));
+  console.log('[AKI 5.2 vision] image-sent-to-live',{count:images.length});
   return true;
- }catch(e){console.error('[AKI 5.1 vision] live-image-send-failed',e);return false}
+ }catch(e){console.error('[AKI 5.2 vision] live-image-send-failed',e);return false}
 }
 async function handVisionToAki(images,context){
  if(!powered){await startAki();for(let i=0;i<30 && (!dc||dc.readyState!=='open');i++)await new Promise(r=>setTimeout(r,100))}
@@ -217,32 +217,32 @@ async function openCamera(autoLook=false){
  try{
   await closeCamera(false);
   cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:cameraFacing}},audio:false});
-  cameraVideo.srcObject=cameraStream;visionLayer.classList.add('open');visionLaunch.classList.remove('show');cameraLabel.textContent=cameraFacing==='user'?'Front camera':'Rear camera';
+  cameraVideo.srcObject=cameraStream;visionLayer.classList.add('open');cameraLabel.textContent=cameraFacing==='user'?'Front camera':'Rear camera';
   await cameraVideo.play().catch(()=>{});await waitForCameraReady();
   if(autoLook){await new Promise(r=>setTimeout(r,280));await lookNow()}
  }catch(e){console.error('AKI camera:',e);alert('Camera permission is needed to show AKI what you see.')}
 }
-async function closeCamera(showLaunch=true){try{cameraStream?.getTracks().forEach(t=>t.stop())}catch{}cameraStream=null;cameraVideo.srcObject=null;visionLayer.classList.remove('open');if(showLaunch&&powered)visionLaunch.classList.add('show')}
+async function closeCamera(showLaunch=true){try{cameraStream?.getTracks().forEach(t=>t.stop())}catch{}cameraStream=null;cameraVideo.srcObject=null;visionLayer.classList.remove('open');if(false&&showLaunch&&powered)}
 async function flipCamera(){cameraFacing=cameraFacing==='environment'?'user':'environment';await openCamera(false)}
 function cameraFrame(){const c=document.createElement('canvas'),w=cameraVideo.videoWidth||720,h=cameraVideo.videoHeight||1280,scale=Math.min(1,1280/Math.max(w,h));c.width=Math.max(1,Math.round(w*scale));c.height=Math.max(1,Math.round(h*scale));c.getContext('2d').drawImage(cameraVideo,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.82)}
 let visionBusy=false;
 async function lookNow(){if(visionBusy||!cameraStream)return;visionBusy=true;try{await waitForCameraReady();const frame=cameraFrame();await handVisionToAki([frame],'This is the current camera frame I am intentionally showing you. Answer my immediately preceding spoken question using this image. If I asked what you see, briefly tell me what is visible. Do not claim to see anything outside this frame.');}catch(e){console.error('AKI camera vision:',e);alert('AKI could not look at that view.')}finally{visionBusy=false}}
 async function choosePhotos(){photoInput.click()}
-photoInput.addEventListener('change',async()=>{const fs=[...photoInput.files].slice(0,2);if(!fs.length)return;selectedImages=await Promise.all(fs.map(f=>imageToDataURL(f)));photoPreview.src=selectedImages[0];photoStage.classList.add('open');visionLaunch.classList.remove('show')});
-async function sendPhotos(){if(!selectedImages.length||visionBusy)return;visionBusy=true;photoStage.classList.add('busy');try{await handVisionToAki(selectedImages,selectedImages.length>1?'I am intentionally sharing these two photos with you in our Live conversation. Acknowledge that you can see them and respond naturally using only visible details. Keep them in conversational context for my follow-up questions.':'I am intentionally sharing this photo with you in our Live conversation. Acknowledge that you can see it and respond naturally using visible details. Keep it in conversational context for my follow-up questions.');photoStage.classList.remove('open');selectedImages=[];photoInput.value='';if(powered)visionLaunch.classList.add('show')}catch(e){console.error('AKI photo vision:',e);alert('AKI could not read that photo.')}finally{visionBusy=false;photoStage.classList.remove('busy')}}
-function closePhoto(){photoStage.classList.remove('open');selectedImages=[];photoInput.value='';if(powered)visionLaunch.classList.add('show')}
+photoInput.addEventListener('change',async()=>{const fs=[...photoInput.files].slice(0,2);if(!fs.length)return;selectedImages=await Promise.all(fs.map(f=>imageToDataURL(f)));photoPreview.src=selectedImages[0];photoStage.classList.add('open')});
+async function sendPhotos(){if(!selectedImages.length||visionBusy)return;visionBusy=true;photoStage.classList.add('busy');try{await handVisionToAki(selectedImages,selectedImages.length>1?'I am intentionally sharing these two photos with you in our Live conversation. Acknowledge that you can see them and respond naturally using only visible details. Keep them in conversational context for my follow-up questions.':'I am intentionally sharing this photo with you in our Live conversation. Acknowledge that you can see it and respond naturally using visible details. Keep it in conversational context for my follow-up questions.');photoStage.classList.remove('open');selectedImages=[];photoInput.value='';if(powered)}catch(e){console.error('AKI photo vision:',e);alert('AKI could not read that photo.')}finally{visionBusy=false;photoStage.classList.remove('busy')}}
+function closePhoto(){photoStage.classList.remove('open');selectedImages=[];photoInput.value='';if(powered)}
 document.querySelector('#cameraBtn').onclick=()=>openCamera(false);document.querySelector('#photoBtn').onclick=choosePhotos;document.querySelector('#flipBtn').onclick=flipCamera;document.querySelector('#closeCameraBtn').onclick=()=>closeCamera();document.querySelector('#sendPhotoBtn').onclick=sendPhotos;document.querySelector('#addAnotherBtn').onclick=choosePhotos;document.querySelector('#closePhotoBtn').onclick=closePhoto;
 
 async function visionIntent(text){
  const t=(text||'').toLowerCase();
- const photoWords=/(photo|picture|image|photos|pictures)/.test(t);
+ const photoWords=/(photo|picture|image|photos|pictures|photo library)/.test(t);
  const cameraOpen=!!cameraStream && visionLayer.classList.contains('open');
  const lookWords=/(what do you see|what can you see|can you see|did you see|look now|take a look|look at this|see this|what am i showing|what is this)/.test(t);
  if(cameraOpen && lookWords){await lookNow();return}
- if(/(show you|look at|camera|see this|look at me|take a look)/.test(t)){
+ if(/(show you|look at|camera|turn on the camera|open the camera|see this|look at me|take a look|send you)/.test(t)){
    if(photoWords){choosePhotos();return}
    if(/(front|selfie|look at me)/.test(t))cameraFacing='user';
-   await openCamera(true);
+   await openCamera(false);
  }
 }
 
