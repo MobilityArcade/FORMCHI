@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=45">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=45">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=45">
-<title>AKI 5.2.1 Syntax Repair</title>
+<title>AKI — More of you.</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}
 body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
@@ -39,19 +39,6 @@ body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
 @keyframes oilTurn{to{transform:rotate(360deg)}}@keyframes oilTurn2{to{transform:rotate(-360deg)}}
 @media(max-width:600px){.orb{width:88vw}.mark{width:47vw}}
 @media(prefers-reduced-motion:reduce){.ambient,.orb,.halo,.rim,.oil,.oil2{animation:none!important}}
-
-/* AKI 6.0 — Recall + Creation become live surfaces, not placeholder menus. */
-.live-list{width:min(88vw,520px);max-height:42vh;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:2px}
-.memory-row{width:100%;text-align:left;padding:14px 15px;border-radius:17px;border:1px solid rgba(130,190,255,.16);background:rgba(7,12,22,.68);color:rgba(255,255,255,.88);font:400 13px/1.38 system-ui;-webkit-tap-highlight-color:transparent}
-.memory-row small{display:block;margin-top:5px;color:rgba(255,255,255,.42);font-size:10px}
-.memory-empty{max-width:430px;text-align:center;color:rgba(255,255,255,.52);font:400 13px/1.5 system-ui}
-.recall-hint,.create-hint{max-width:460px;text-align:center;color:rgba(255,255,255,.62);font:400 13px/1.45 system-ui}
-.create-stage{position:absolute;inset:0;z-index:24;display:none;align-items:center;justify-content:center;flex-direction:column;gap:22px;padding:26px;background:radial-gradient(circle at 50% 48%,rgba(15,25,44,.30),rgba(1,3,7,.97) 64%);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
-.create-stage.open{display:flex}.create-stage img{display:none;max-width:min(88vw,760px);max-height:68vh;border-radius:22px;object-fit:contain;box-shadow:0 0 48px rgba(60,150,255,.12)}.create-stage.has-image img{display:block}
-.create-status{font:400 16px/1.35 system-ui;color:rgba(255,255,255,.86);text-align:center;max-width:520px}.create-status small{display:block;margin-top:8px;color:rgba(255,255,255,.46);font-size:12px}
-.create-actions{display:flex;gap:22px;align-items:center;justify-content:center}.create-actions .share-choice{min-width:86px}
-.latent-card.primary-card{border-color:rgba(85,220,255,.42);box-shadow:0 0 28px rgba(80,150,255,.10)}
-
 </style>
 
 <style id="aki-icon-match">
@@ -79,100 +66,12 @@ body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
   filter:saturate(1.42) contrast(1.08) brightness(1.10)!important;
 }
 </style>
-
-<style id="aki-vision-49">
-/* AKI 5.1 Vision Repair — minimal responsive controls; no voice meter. */
-.vision-layer{position:absolute;inset:0;z-index:20;display:none;background:#020304;overflow:hidden}.vision-layer.open{display:block}
-#cameraVideo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#020304}.vision-shade{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.14),transparent 22%,transparent 72%,rgba(0,0,0,.44));pointer-events:none}
-.vision-status{position:absolute;top:max(18px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:8px 13px;border-radius:999px;background:rgba(4,6,9,.66);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font:500 12px/1 system-ui;color:rgba(255,255,255,.92);letter-spacing:.02em;display:flex;align-items:center;gap:7px}.vision-dot{width:7px;height:7px;border-radius:50%;background:#35df7a;box-shadow:0 0 9px rgba(53,223,122,.7)}
-.vision-controls{position:absolute;left:50%;bottom:max(34px,calc(env(safe-area-inset-bottom) + 22px));transform:translateX(-50%);display:flex;align-items:center;gap:42px}
-.vbtn,.launchbtn{position:relative;border:0;border-radius:50%;background:linear-gradient(#070a10,#070a10) padding-box,conic-gradient(from 215deg,#53efff,#217cff,#743cff,#f229d8,#ff756b,#53efff) border-box;border:2px solid transparent;color:#f8fdff;display:grid;place-items:center;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 0 12px rgba(52,190,255,.16),0 0 20px rgba(183,49,255,.10),inset 0 0 14px rgba(75,154,255,.05);text-shadow:0 0 7px rgba(190,235,255,.9);-webkit-tap-highlight-color:transparent}
-.vbtn{width:66px;height:66px;font-size:28px}.vbtn.primary{width:72px;height:72px;box-shadow:0 0 16px rgba(52,190,255,.22),0 0 26px rgba(183,49,255,.14)}
-.vision-launch{display:none!important}.launchbtn{width:68px;height:68px;font-size:27px}
-.photo-stage{position:absolute;inset:0;z-index:21;display:none;background:#020304;padding:max(72px,calc(env(safe-area-inset-top) + 42px)) 22px max(34px,calc(env(safe-area-inset-bottom) + 24px));align-items:center;justify-content:center;flex-direction:column;gap:24px}.photo-stage.open{display:flex}.photo-stage img{max-width:min(88vw,760px);max-height:64vh;object-fit:contain;border-radius:22px;box-shadow:0 0 36px rgba(74,185,255,.10)}.photo-actions{display:flex;gap:54px}.busy-ring{position:absolute;inset:0;display:none;place-items:center;background:rgba(0,0,0,.28);font-size:13px;color:white}.busy .busy-ring{display:grid}#photoInput{display:none}
-/* Portrait phones/tablets: controls live well below the torus, clearly left/right. */
-@media (orientation:portrait){.vision-launch{left:50%;top:calc(48% + min(51vw,400px));transform:translate(-50%,30px);width:min(74vw,430px);justify-content:space-between}}
-/* Landscape desktop/iPad: controls move to the sides of AKI instead of falling below the viewport. */
-@media (orientation:landscape){.vision-launch{left:50%;top:50%;transform:translate(-50%,-50%);width:min(92vw,1120px);justify-content:space-between;pointer-events:none}.vision-launch .launchbtn{pointer-events:auto}.launchbtn{width:72px;height:72px}.vision-controls{gap:54px}}
-@media (max-height:520px) and (orientation:landscape){.vision-launch{width:94vw}.launchbtn{width:62px;height:62px}.vision-controls{bottom:18px}}
-/* AKI 5.4 — temporary sensory interfaces only when requested. */
-.share-sheet{position:absolute;inset:0;z-index:22;display:none;align-items:center;justify-content:center;flex-direction:column;gap:34px;background:radial-gradient(circle at 50% 48%,rgba(15,25,44,.34),rgba(1,3,7,.96) 62%);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}.share-sheet.open{display:flex}.share-title{font:400 16px/1.3 system-ui;color:rgba(255,255,255,.82);letter-spacing:.03em}.share-actions{display:flex;align-items:flex-start;justify-content:center;gap:34px;flex-wrap:wrap}.share-choice{display:flex;flex-direction:column;align-items:center;gap:10px}.share-choice span{font:500 12px/1 system-ui;color:rgba(255,255,255,.72)}.vbtn.pressed{transform:scale(.91);filter:brightness(1.28)}.vbtn,.launchbtn{transition:transform .10s ease,filter .10s ease}.photo-caption{font:500 12px/1 system-ui;color:rgba(255,255,255,.68);letter-spacing:.02em}.photo-actions .share-choice{gap:8px}
-
-/* AKI 6.0 — invisible quadrant interface. Nothing is visible until touched. */
-#photoInput,#cameraPhotoInput{position:fixed!important;left:-10000px!important;top:-10000px!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;appearance:none!important;-webkit-appearance:none!important}
-.quadrant-zone{position:absolute;z-index:8;background:transparent;border:0;padding:0;margin:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-#qRecall{left:0;top:0;width:42%;height:38%}#qMake{right:0;top:0;width:42%;height:38%}#qLook{left:0;bottom:0;width:42%;height:34%}#qShow{right:0;bottom:0;width:42%;height:34%}
-/* keep the center and a generous ring around AKI free of quadrant taps */
-.quadrant-zone:focus,.quadrant-zone:focus-visible{outline:0}
-.latent-sheet{position:absolute;inset:0;z-index:23;display:none;align-items:center;justify-content:center;flex-direction:column;gap:26px;padding:28px;background:radial-gradient(circle at 50% 48%,rgba(15,25,44,.30),rgba(1,3,7,.965) 62%);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}.latent-sheet.open{display:flex}.latent-title{font:400 20px/1.2 system-ui;color:rgba(255,255,255,.94);letter-spacing:.02em}.latent-sub{max-width:440px;text-align:center;font:400 14px/1.5 system-ui;color:rgba(255,255,255,.62)}.latent-actions{display:flex;gap:26px;flex-wrap:wrap;justify-content:center}.latent-card{min-width:118px;max-width:170px;padding:15px 16px;border-radius:18px;border:1px solid rgba(130,190,255,.18);background:rgba(8,12,22,.68);color:rgba(255,255,255,.88);font:500 13px/1.25 system-ui;box-shadow:0 0 24px rgba(80,110,255,.05);-webkit-tap-highlight-color:transparent}.latent-card small{display:block;margin-top:5px;color:rgba(255,255,255,.45);font-weight:400}.latent-close{margin-top:4px}
-@media(max-width:600px){.latent-actions{gap:14px}.latent-card{min-width:104px;padding:13px 12px}.latent-title{font-size:18px}}
-</style>
 </head>
 <body>
 <main id="app" class="presence" aria-label="AKI">
-  <button id="qRecall" class="quadrant-zone" aria-label="Recall"></button>
-  <button id="qMake" class="quadrant-zone" aria-label="Make or do"></button>
-  <button id="qLook" class="quadrant-zone" aria-label="Look with camera"></button>
-  <button id="qShow" class="quadrant-zone" aria-label="Show AKI something"></button>
-
   <div class="ambient"></div>
   <div class="orb"><div class="halo"></div><div class="rim"></div><div class="oil"></div><div class="oil2"></div><div class="core"></div></div>
   <svg id="akiButton" class="mark" viewBox="0 0 210 90" role="button" tabindex="0" aria-label="Turn AKI on" aria-pressed="false"><path d="M15 72 L45 18 L75 72 M95 18 L95 72 M96 48 L142 18 M96 48 L144 72 M172 18 L172 72"/></svg>
-  <section id="visionLayer" class="vision-layer" aria-label="AKI camera">
-    <video id="cameraVideo" autoplay playsinline muted></video><div class="vision-shade"></div>
-    <div class="vision-status"><span class="vision-dot"></span><span id="cameraLabel">Camera on</span></div>
-    <div class="vision-controls">
-      <button id="flipBtn" class="vbtn" aria-label="Flip camera" title="Flip">↻</button>
-      <button id="lookBtn" class="vbtn primary" aria-label="Let AKI look at this camera frame" title="Look">◎</button>
-      <button id="closeCameraBtn" class="vbtn" aria-label="Close camera" title="Close">×</button>
-    </div>
-  </section>
-  <section id="shareSheet" class="share-sheet" aria-label="Share an image with AKI">
-    <div class="share-title">Show AKI something</div>
-    <div class="share-actions">
-      <div class="share-choice"><button id="libraryBtn" class="vbtn" aria-label="Photo Library">▧</button><span>Photo Library</span></div>
-      <div class="share-choice"><button id="takePhotoBtn" class="vbtn primary" aria-label="Take Photo">◎</button><span>Take Photo</span></div>
-      <div class="share-choice"><button id="closeShareBtn" class="vbtn" aria-label="Close">×</button><span>Close</span></div>
-    </div>
-  </section>
-  <section id="photoStage" class="photo-stage" aria-label="Selected photo">
-    <img id="photoPreview" alt="Selected photo"><div class="busy-ring">Looking…</div>
-    <div class="photo-actions">
-      <div class="share-choice"><button id="addAnotherBtn" class="vbtn" aria-label="Add another photo">＋</button><span>Add Another</span></div>
-      <div class="share-choice"><button id="sendPhotoBtn" class="vbtn primary" aria-label="Send photo to AKI">↑</button><span>Send to AKI</span></div>
-      <div class="share-choice"><button id="closePhotoBtn" class="vbtn" aria-label="Close photo">×</button><span>Close</span></div>
-    </div>
-  </section>
-
-  <section id="recallSheet" class="latent-sheet" aria-label="Recall">
-    <div class="latent-title">Recall</div>
-    <div class="recall-hint">Say what you want to return to. AKI will search what this device has actually remembered from your conversations.</div>
-    <div id="recallList" class="live-list"></div>
-    <button id="closeRecallBtn" class="vbtn latent-close" aria-label="Close Recall">×</button>
-  </section>
-
-  <section id="makeSheet" class="latent-sheet" aria-label="Make or Do">
-    <div class="latent-title">Make / Do</div>
-    <div class="latent-sub">Choose what AKI should do with you. Creation appears here, then disappears when you're finished.</div>
-    <div class="latent-actions">
-      <button id="createImageBtn" class="latent-card primary-card">Create an image<small>say what you want to see</small></button>
-      <button class="latent-card makePrompt" data-prompt="I want to write something. Ask me one simple question to begin, then help me shape it one step at a time.">Write something<small>words · script · message</small></button>
-      <button class="latent-card makePrompt" data-prompt="I want to plan, solve, or do something. Help me take the first useful step, one step at a time.">Plan / solve<small>organize · decide · act</small></button>
-    </div>
-    <button id="closeMakeBtn" class="vbtn latent-close" aria-label="Close Make or Do">×</button>
-  </section>
-
-  <section id="createStage" class="create-stage" aria-label="AKI creation">
-    <div id="createStatus" class="create-status">Tell AKI what you want to make.<small>Your next spoken description becomes the image prompt.</small></div>
-    <img id="createdImage" alt="Image created by AKI">
-    <div class="create-actions">
-      <div class="share-choice"><button id="makeAnotherBtn" class="vbtn primary" aria-label="Make another">↻</button><span>Make Another</span></div>
-      <div class="share-choice"><button id="closeCreateBtn" class="vbtn" aria-label="Close creation">×</button><span>Close</span></div>
-    </div>
-  </section>
-  <input id="photoInput" type="file" accept="image/*" multiple>
-  <input id="cameraPhotoInput" type="file" accept="image/*" capture="environment">
-
 </main>
 <script>
 const akiButton=document.querySelector('#akiButton');
@@ -182,108 +81,6 @@ let transcript='',turnEndAt=0,responseStartAt=0,firstAudioAt=0,lastChime=0;
 let latencyTimer=null,hardWatchdog=null,preferenceTimer=null;
 let akiVoice=localStorage.getItem('akiVoice')||'marin';
 let akiLanguage=localStorage.getItem('akiLanguage')||'auto';
-let cameraStream=null,cameraFacing='environment',selectedImages=[];
-const app=document.querySelector('#app');
-const visionLayer=document.querySelector('#visionLayer'),cameraVideo=document.querySelector('#cameraVideo'),cameraLabel=document.querySelector('#cameraLabel');
-const photoInput=document.querySelector('#photoInput'),cameraPhotoInput=document.querySelector('#cameraPhotoInput'),photoStage=document.querySelector('#photoStage'),photoPreview=document.querySelector('#photoPreview'),shareSheet=document.querySelector('#shareSheet');
-const recallSheet=document.querySelector('#recallSheet'),makeSheet=document.querySelector('#makeSheet');
-const recallList=document.querySelector('#recallList'),createStage=document.querySelector('#createStage'),createStatus=document.querySelector('#createStatus'),createdImage=document.querySelector('#createdImage');
-let creationMode=null,assistantTranscript='',assistantTranscriptTimer=null;
-const MEMORY_KEY='aki6Memory';
-
-
-function sensoryTone(kind='tap'){
-  try{
-    audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();
-    if(audioCtx.state==='suspended')audioCtx.resume();
-    const t=audioCtx.currentTime,o=audioCtx.createOscillator(),g=audioCtx.createGain();
-    o.type='sine';o.frequency.value=kind==='capture'?760:kind==='send'?620:430;
-    const peak=kind==='capture'?.032:kind==='send'?.026:.014,dur=kind==='capture'?.075:kind==='send'?.12:.045;
-    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(peak,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
-    o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+dur+.015);
-    if(kind==='send'){const o2=audioCtx.createOscillator(),g2=audioCtx.createGain();o2.type='sine';o2.frequency.value=880;g2.gain.setValueAtTime(.0001,t+.055);g2.gain.exponentialRampToValueAtTime(.018,t+.07);g2.gain.exponentialRampToValueAtTime(.0001,t+.15);o2.connect(g2);g2.connect(audioCtx.destination);o2.start(t+.055);o2.stop(t+.17)}
-  }catch{}
-}
-function sensoryPress(el,kind='tap'){
-  sensoryTone(kind);if(!el)return;el.classList.add('pressed');setTimeout(()=>el.classList.remove('pressed'),115);
-}
-function openShareSheet(){closePhoto();shareSheet.classList.add('open')}
-function closeShareSheet(){shareSheet.classList.remove('open')}
-function closeLatentSheets(){recallSheet.classList.remove('open');makeSheet.classList.remove('open')}
-function openRecall(){closeShareSheet();closePhoto();closeLatentSheets();renderRecall('');recallSheet.classList.add('open')}
-function openMake(){closeShareSheet();closePhoto();closeLatentSheets();makeSheet.classList.add('open')}
-
-function memoryItems(){
-  try{return JSON.parse(localStorage.getItem(MEMORY_KEY)||'[]')}catch{return []}
-}
-function rememberTurn(role,text){
-  text=(text||'').replace(/\s+/g,' ').trim();
-  if(!text||text.length<3)return;
-  const items=memoryItems();
-  const last=items[items.length-1];
-  if(last&&last.role===role&&last.text===text)return;
-  items.push({id:Date.now()+Math.random(),role,text,at:Date.now()});
-  localStorage.setItem(MEMORY_KEY,JSON.stringify(items.slice(-180)));
-}
-function recallMatches(query){
-  const items=memoryItems().filter(x=>x.role==='user'||x.role==='assistant');
-  const q=(query||'').toLowerCase().trim();
-  if(!q)return items.slice(-12).reverse();
-  const words=q.split(/\W+/).filter(w=>w.length>2 && !['recall','remember','find','something','thing','about','that','what','where','when','with','from','aki'].includes(w));
-  return items.map(x=>{
-    const t=x.text.toLowerCase();
-    let score=words.reduce((n,w)=>n+(t.includes(w)?2:0),0);
-    if(t.includes(q))score+=8;
-    return {...x,score};
-  }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score||b.at-a.at).slice(0,12);
-}
-function renderRecall(query=''){
-  const matches=recallMatches(query);
-  recallList.innerHTML='';
-  if(!matches.length){
-    recallList.innerHTML='<div class="memory-empty">Nothing matching that has been remembered on this device yet. Keep using AKI and Recall will build naturally from your conversations.</div>';
-    return;
-  }
-  matches.forEach(item=>{
-    const b=document.createElement('button');b.className='memory-row';
-    const d=new Date(item.at);
-    b.innerHTML=`${escapeHtml(item.text.slice(0,240))}<small>${item.role==='user'?'You':'AKI'} · ${d.toLocaleDateString([], {month:'short',day:'numeric'})}</small>`;
-    b.onclick=()=>{sensoryTone('tap');sendLiveText(`We are recalling this real item from our saved AKI history on this device: "${item.text}". Continue naturally from it and help me return to that work.`);closeLatentSheets()};
-    recallList.appendChild(b);
-  });
-}
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function handleRecallSpeech(text){
-  if(recallSheet.classList.contains('open'))renderRecall(text);
-}
-function openCreateListening(){
-  closeLatentSheets();closeShareSheet();closePhoto();
-  creationMode='image-awaiting';createdImage.removeAttribute('src');createStage.classList.remove('has-image');createStage.classList.add('open');
-  createStatus.innerHTML='Tell AKI what you want to make.<small>Your next spoken description becomes the image prompt.</small>';
-  sensoryTone('tap');
-}
-async function createImageFromSpeech(prompt){
-  if(creationMode!=='image-awaiting')return;
-  prompt=(prompt||'').trim();if(prompt.length<4)return;
-  creationMode='image-working';createStatus.innerHTML='Making it…<small>AKI is turning your description into an image.</small>';sensoryTone('send');
-  try{
-    const r=await fetch('/api/create-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
-    const data=await r.json().catch(()=>({}));
-    if(!r.ok)throw new Error(data.error||'Image creation failed');
-    if(!data.image)throw new Error('No image returned');
-    createdImage.src=data.image;createStage.classList.add('has-image');createStatus.textContent='Made with AKI';creationMode='image-done';sensoryTone('send');
-    rememberTurn('user','Create image: '+prompt);
-    rememberTurn('assistant','Created an image from: '+prompt);
-  }catch(e){
-    console.error('AKI creation:',e);creationMode='image-awaiting';
-    createStatus.innerHTML='I couldn’t make that image yet.<small>Try describing it again, or close and retry.</small>';
-  }
-}
-function closeCreate(){creationMode=null;createStage.classList.remove('open','has-image');createdImage.removeAttribute('src')}
-
-function quadrantTap(kind){sensoryTone('tap');if(kind==='look'){closeLatentSheets();closeShareSheet();closePhoto();openCamera(false)}else if(kind==='show'){closeLatentSheets();closeCamera(false);openShareSheet()}else if(kind==='recall'){closeCamera(false);openRecall()}else if(kind==='make'){closeCamera(false);openMake()}}
-
-
 
 function powerLook(mode){
   akiButton.classList.remove('on','starting','error');
@@ -325,14 +122,11 @@ function responseStarted(){if(responseStartAt)return;responseStartAt=performance
 function firstAudio(){if(firstAudioAt)return;firstAudioAt=performance.now();clearTimeout(latencyTimer);clearTimeout(hardWatchdog);latency('first-audio',{from_turn_end_ms:turnEndAt?Math.round(firstAudioAt-turnEndAt):null,from_response_start_ms:responseStartAt?Math.round(firstAudioAt-responseStartAt):null})}
 
 function voiceRequest(text){
- // Voice identity is sticky. Change it ONLY when the user explicitly asks to change voices.
- const t=(text||'').toLowerCase().replace(/\s+/g,' ').trim();
- const asksChange=/(switch|change|use|go back|return|talk|speak|voice|rather|prefer|quiero|cambia|voz|usa|parla|voce)/.test(t);
- if(!asksChange)return null;
- if(/(male voice|man's voice|voice of a man|talk to a man|speak as a man|switch to (a )?man|change to (a )?man|voz masculina|voz de hombre)/.test(t))return 'ash';
- if(/(female voice|woman's voice|voice of a woman|talk to a woman|speak as a woman|switch to (a )?woman|change to (a )?woman|go back to (the )?female|go back to (the )?woman|voz femenina|voz de mujer)/.test(t))return 'marin';
- if(/(other voice|different voice|another voice|alternate voice)/.test(t))return akiVoice==='cedar'?'ash':'cedar';
- return null;
+ const t=(text||'').toLowerCase();let voice=null;
+ if(/\b(man|male|man's voice|male voice|a man|hombre|voz masculina|uomo|voce maschile|мужской голос|мужчина)\b/.test(t))voice='ash';
+ if(/\b(woman|female|woman's voice|female voice|a woman|mujer|voz femenina|donna|voce femminile|женский голос|женщина)\b/.test(t))voice='marin';
+ if(/\b(other voice|different voice|another voice|alternate voice)\b/.test(t))voice=(akiVoice==='cedar'?'ash':'cedar');
+ return voice;
 }
 async function maybeSwitchVoice(text){
  const v=voiceRequest(text);if(!v||v===akiVoice||restarting)return;
@@ -340,100 +134,13 @@ async function maybeSwitchVoice(text){
  await stopAki(true);await new Promise(r=>setTimeout(r,220));restarting=false;await startAki();
 }
 function absorbTranscript(m){
- // Only user INPUT transcripts may control intents, voice identity, Recall, or Creation.
- const type=(m.type||'').toLowerCase(),nested=(m.event?.type||'').toLowerCase();
- const isInput=/input.*transcript|transcript.*input/.test(type)||/input.*transcript|transcript.*input/.test(nested);
- if(!isInput)return;
- const d=(typeof m.delta==='string'?m.delta:'')||(typeof m.transcript==='string'?m.transcript:'')||(typeof m.event?.delta==='string'?m.event.delta:'')||(typeof m.event?.transcript==='string'?m.event.transcript:'');
- if(d){transcript+=d;clearTimeout(preferenceTimer);preferenceTimer=setTimeout(()=>{const h=transcript.trim();transcript='';if(!h)return;rememberTurn('user',h);handleRecallSpeech(h);if(creationMode==='image-awaiting')createImageFromSpeech(h);maybeSwitchVoice(h);visionIntent(h)},420)}
-}
-function absorbAssistantTranscript(m){
- const type=(m.type||'').toLowerCase(),nested=(m.event?.type||'').toLowerCase();
- const isOutput=/output.*transcript|transcript.*output/.test(type)||/output.*transcript|transcript.*output/.test(nested);
- if(!isOutput)return;
- const d=(typeof m.delta==='string'?m.delta:'')||(typeof m.transcript==='string'?m.transcript:'')||(typeof m.event?.delta==='string'?m.event.delta:'')||(typeof m.event?.transcript==='string'?m.event.transcript:'');
- if(!d)return;
- assistantTranscript+=d;clearTimeout(assistantTranscriptTimer);
- assistantTranscriptTimer=setTimeout(()=>{const t=assistantTranscript.trim();assistantTranscript='';if(t)rememberTurn('assistant',t)},650);
-}
-
-
-function sendLiveText(text){
- if(!dc||dc.readyState!=='open')return false;
- try{
-  dc.send(JSON.stringify({type:'response.item.create',item:{type:'message',role:'user',content:[{type:'input_text',text}]}}));
-  dc.send(JSON.stringify({type:'response.create'}));return true;
- }catch(e){console.error('AKI text handoff:',e);return false}
-}
-function imageToDataURL(file,max=1280,quality=.82){return new Promise((resolve,reject)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const scale=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);resolve(c.toDataURL('image/jpeg',quality))};img.onerror=reject;img.src=u})}
-
-// AKI 5.1: images go directly into the SAME Live conversation as voice.
-// Current Live uses response.item.create for delegated Responses input, then response.create.
-function sendLiveImages(images, instruction){
- if(!dc||dc.readyState!=='open')return false;
- try{
-  // If VAD already started an answer to “what do you see?”, stop that stale answer
-  // before giving AKI the image it needs.
-  
-  const content=[{type:'input_text',text:instruction||'Look at the image I am intentionally showing you and respond naturally to my question. Only describe what is actually visible.'}];
-  for(const image_url of images){content.push({type:'input_image',image_url})}
-  dc.send(JSON.stringify({type:'response.item.create',item:{type:'message',role:'user',content}}));
-  dc.send(JSON.stringify({type:'response.create'}));
-  console.log('[AKI 6.0 vision] image-sent-to-live',{count:images.length});
-  return true;
- }catch(e){console.error('[AKI 6.0 vision] live-image-send-failed',e);return false}
-}
-async function handVisionToAki(images,context){
- if(!powered){await startAki();for(let i=0;i<30 && (!dc||dc.readyState!=='open');i++)await new Promise(r=>setTimeout(r,100))}
- if(!sendLiveImages(images,context))throw new Error('Live conversation is not ready for image input');
-}
-async function waitForCameraReady(){
- if(cameraVideo.readyState>=2 && cameraVideo.videoWidth)return;
- await new Promise(resolve=>{const done=()=>{cameraVideo.removeEventListener('loadeddata',done);cameraVideo.removeEventListener('canplay',done);resolve()};cameraVideo.addEventListener('loadeddata',done,{once:true});cameraVideo.addEventListener('canplay',done,{once:true});setTimeout(done,1200)});
-}
-async function openCamera(autoLook=false){
- try{
-  await closeCamera(false);
-  cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:cameraFacing}},audio:false});
-  cameraVideo.srcObject=cameraStream;visionLayer.classList.add('open');cameraLabel.textContent=cameraFacing==='user'?'Front camera':'Rear camera';
-  await cameraVideo.play().catch(()=>{});await waitForCameraReady();
-  if(autoLook){await new Promise(r=>setTimeout(r,280));await lookNow()}
- }catch(e){console.error('AKI camera:',e);alert('Camera permission is needed to show AKI what you see.')}
-}
-async function closeCamera(showLaunch=true){try{cameraStream?.getTracks().forEach(t=>t.stop())}catch{}cameraStream=null;cameraVideo.srcObject=null;visionLayer.classList.remove('open');}
-async function flipCamera(){cameraFacing=cameraFacing==='environment'?'user':'environment';await openCamera(false)}
-function cameraFrame(){const c=document.createElement('canvas'),w=cameraVideo.videoWidth||720,h=cameraVideo.videoHeight||1280,scale=Math.min(1,1280/Math.max(w,h));c.width=Math.max(1,Math.round(w*scale));c.height=Math.max(1,Math.round(h*scale));c.getContext('2d').drawImage(cameraVideo,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.82)}
-let visionBusy=false;
-async function lookNow(){if(visionBusy||!cameraStream)return;visionBusy=true;try{await waitForCameraReady();const frame=cameraFrame();await handVisionToAki([frame],'This is the current camera frame I am intentionally showing you. Answer my immediately preceding spoken question using this image. If I asked what you see, briefly tell me what is visible. Do not claim to see anything outside this frame.');}catch(e){console.error('AKI camera vision:',e);alert('AKI could not look at that view.')}finally{visionBusy=false}}
-async function choosePhotos(){closeShareSheet();photoInput.click()}
-async function takeStillPhoto(){closeShareSheet();cameraPhotoInput.click()}
-async function loadSelectedFiles(fileList){const fs=[...fileList].slice(0,2);if(!fs.length)return;selectedImages=await Promise.all(fs.map(f=>imageToDataURL(f)));photoPreview.src=selectedImages[0];photoStage.classList.add('open')}
-photoInput.addEventListener('change',async()=>loadSelectedFiles(photoInput.files));
-cameraPhotoInput.addEventListener('change',async()=>loadSelectedFiles(cameraPhotoInput.files));
-async function sendPhotos(){if(!selectedImages.length||visionBusy)return;visionBusy=true;photoStage.classList.add('busy');sensoryTone('send');try{await handVisionToAki(selectedImages,selectedImages.length>1?'I am intentionally sharing these two photos with you in our Live conversation. Acknowledge that you can see them and respond naturally using only visible details. Keep them in conversational context for my follow-up questions.':'I am intentionally sharing this photo with you in our Live conversation. Acknowledge that you can see it and respond naturally using visible details. Keep it in conversational context for my follow-up questions.');photoStage.classList.remove('open');selectedImages=[];photoInput.value='';cameraPhotoInput.value='';}catch(e){console.error('AKI photo vision:',e);alert('AKI could not read that photo.')}finally{visionBusy=false;photoStage.classList.remove('busy')}}
-function closePhoto(){photoStage.classList.remove('open');selectedImages=[];photoInput.value='';if(cameraPhotoInput)cameraPhotoInput.value='';}
-document.querySelector('#flipBtn').onclick=async e=>{sensoryPress(e.currentTarget);await flipCamera()};
-document.querySelector('#lookBtn').onclick=async e=>{sensoryPress(e.currentTarget,'capture');await lookNow()};
-document.querySelector('#closeCameraBtn').onclick=async e=>{sensoryPress(e.currentTarget);setTimeout(()=>closeCamera(),70)};
-document.querySelector('#libraryBtn').onclick=e=>{sensoryPress(e.currentTarget);setTimeout(choosePhotos,70)};
-document.querySelector('#takePhotoBtn').onclick=e=>{sensoryPress(e.currentTarget,'capture');setTimeout(takeStillPhoto,70)};
-document.querySelector('#closeShareBtn').onclick=e=>{sensoryPress(e.currentTarget);setTimeout(closeShareSheet,70)};
-document.querySelector('#sendPhotoBtn').onclick=e=>{sensoryPress(e.currentTarget,'send');sendPhotos()};
-document.querySelector('#addAnotherBtn').onclick=e=>{sensoryPress(e.currentTarget);setTimeout(openShareSheet,70)};
-document.querySelector('#closePhotoBtn').onclick=e=>{sensoryPress(e.currentTarget);setTimeout(closePhoto,70)};
-
-async function visionIntent(text){
- const t=(text||'').toLowerCase().replace(/\s+/g,' ').trim();
- const cameraOpen=!!cameraStream && visionLayer.classList.contains('open');
- const lookWords=/(what do you see|what can you see|can you see|did you see|look now|take a look|look at this|see this|what am i showing|what is this)/.test(t);
- // Once the camera is already open, natural “look” language still captures the frame.
- if(cameraOpen && lookWords){await lookNow();return}
- // Opening capabilities is deliberately touch-led in 5.5. AKI's session instruction
- // teaches the invisible map so voice requests get a simple quadrant cue.
+ const type=m.type||'',nested=m.event?.type||'';
+ const d=(typeof m.delta==='string'&&/transcript/i.test(type)?m.delta:'')||(typeof m.transcript==='string'&&/transcript/i.test(type)?m.transcript:'')||(typeof m.event?.delta==='string'&&/transcript/i.test(nested)?m.event.delta:'');
+ if(d){transcript+=d;clearTimeout(preferenceTimer);preferenceTimer=setTimeout(()=>{const h=transcript;transcript='';maybeSwitchVoice(h)},350)}
 }
 
 async function stopAki(keepLook=false){
- if(stopping)return;stopping=true;powered=false;clearTimeout(latencyTimer);clearTimeout(hardWatchdog);clearTimeout(preferenceTimer);await closeCamera(false);closePhoto();closeShareSheet();closeLatentSheets();closeCreate();
+ if(stopping)return;stopping=true;powered=false;clearTimeout(latencyTimer);clearTimeout(hardWatchdog);clearTimeout(preferenceTimer);
  try{dc?.close()}catch{} try{pc?.getSenders?.().forEach(x=>x.track?.stop())}catch{} try{pc?.close()}catch{}
  try{micStream?.getTracks().forEach(t=>{t.enabled=false;t.stop()})}catch{}
  if(audioEl){try{audioEl.pause()}catch{}audioEl.srcObject=null;audioEl.remove();audioEl=null}
@@ -446,16 +153,19 @@ async function startAki(){
   micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
   pc=new RTCPeerConnection();audioEl=document.createElement('audio');audioEl.autoplay=true;audioEl.playsInline=true;document.body.appendChild(audioEl);
   pc.ontrack=e=>{audioEl.srcObject=e.streams[0];audioEl.play().catch(()=>{})};micStream.getTracks().forEach(t=>pc.addTrack(t,micStream));
-  dc=pc.createDataChannel('oai-events');dc.addEventListener('open',()=>{latency('data-channel-open',{voice:akiVoice});
-    try{dc.send(JSON.stringify({type:'session.instructions.append',content:`AKI has an invisible four-quadrant touch interface around the central AKI mark. THIS MAP IS IMPORTANT. Whenever the user asks where to touch, which quadrant to use, or asks to use one of these capabilities, answer with the location before anything else. LOOK / camera / live view = "Touch the bottom left." SHOW / share / upload a photo, image, or file = "Touch the bottom right." RECALL / remember / find / return to past work = "Touch the upper left." MAKE / DO / create / generate / write / plan / solve = "Touch the upper right." If the user asks generally what the quadrants are, explain all four in one short sentence. The center AKI mark is ON/OFF. Keep guidance short and concrete. Recall can only retrieve items actually available in AKI's saved device history or current conversation; never invent a memory.`}))}catch(e){console.warn('AKI quadrant instruction:',e)}
+  dc=pc.createDataChannel('oai-events');dc.addEventListener('open',()=>{
+    latency('data-channel-open',{voice:akiVoice});
+    // AKI 7.0 — MORE OF YOU. One presence, one conversation, no feature UI.
+    // AKI supports the human's agency rather than replacing it.
+    try{dc.send(JSON.stringify({type:'session.instructions.append',content:`AKI's core philosophy is "More of you." You are a calm, warm, intelligent thinking companion. The human remains the creator, observer, experiencer and actor. Your job is to help them think, imagine, articulate, explore, practice, decide and get unstuck — not to take over the experience. Listen carefully. Reflect the strongest thread. Ask one useful question at a time when a question helps. When the user's thoughts become complicated, become simpler. Prefer one useful next step over lists, information dumps, menus, workflows or many options. Encourage the user to describe what they see, imagine, feel, want to make, or want to try. Explore hypothetical and creative spaces conversationally. Do not offer camera, image generation, photo sharing, file creation, quadrants, buttons, dashboards, or other feature interfaces. If the user asks you to create an image, document, file, or other artifact, stay conversational: help them develop the concept, wording, structure or creative direction so they remain the maker. Do not pretend you performed actions or used capabilities that are not present. Natural multilingual conversation is welcome. Keep ordinary spoken responses concise and human, usually 1–3 short sentences unless the user explicitly asks for depth. If they say "Aki" to begin or regain your attention, respond naturally with "I am here. How can I help you?" The experience should feel like one presence: no visible interface beyond AKI itself.`}))}catch(e){console.warn('AKI philosophy instruction:',e)}
   });
   dc.addEventListener('message',e=>{try{const m=JSON.parse(e.data),type=m.type||'',nested=m.event?.type||'',all=(type+' '+nested).toLowerCase();
     if(type==='session.started'){powered=true;powerLook('on');latency('session-started',{voice:m.session?.audio?.output?.voice||m.session?.voice||akiVoice})}
-    absorbTranscript(m);absorbAssistantTranscript(m);
+    absorbTranscript(m);
     if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
     if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('delegation.created'))responseStarted();
     if(all.includes('output_audio.delta')||all.includes('audio.delta'))firstAudio();
-    if(type==='error')console.error('AKI Live event error:',JSON.stringify(m,null,2))
+    if(type==='error')console.error('AKI Live event error:',m)
   }catch{}});
   pc.addEventListener('connectionstatechange',()=>{const cs=pc?.connectionState;latency('connection-state',{state:cs});if(['failed','closed'].includes(cs)&&powered&&!restarting)stopAki()});
   const offer=await pc.createOffer();await pc.setLocalDescription(offer);const localSdp=pc.localDescription?.sdp||offer.sdp;
@@ -463,20 +173,8 @@ async function startAki(){
   const r=await fetch('/api/aki',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sdp:localSdp,voice:akiVoice,language:akiLanguage})});
   const answer=await r.text();if(!r.ok)throw new Error(answer);await pc.setRemoteDescription({type:'answer',sdp:answer});
   powered=true;powerLook('on');
- }catch(err){console.error('AKI 6.0 start error:',err);await stopAki();powerLook('error')}finally{starting=false}
+ }catch(err){console.error('AKI 7.0 start error:',err);await stopAki();powerLook('error')}finally{starting=false}
 }
-// AKI 6.0 invisible quadrant touch map.
-document.querySelector('#qRecall').addEventListener('click',e=>{e.stopPropagation();quadrantTap('recall')});
-document.querySelector('#qMake').addEventListener('click',e=>{e.stopPropagation();quadrantTap('make')});
-document.querySelector('#qLook').addEventListener('click',e=>{e.stopPropagation();quadrantTap('look')});
-document.querySelector('#qShow').addEventListener('click',e=>{e.stopPropagation();quadrantTap('show')});
-document.querySelector('#closeRecallBtn').onclick=e=>{sensoryPress(e.currentTarget);setTimeout(closeLatentSheets,70)};
-document.querySelector('#closeMakeBtn').onclick=e=>{sensoryPress(e.currentTarget);setTimeout(closeLatentSheets,70)};
-document.querySelector('#createImageBtn').onclick=e=>{sensoryPress(e.currentTarget);setTimeout(openCreateListening,80)};
-document.querySelector('#makeAnotherBtn').onclick=e=>{sensoryPress(e.currentTarget);creationMode='image-awaiting';createStage.classList.remove('has-image');createdImage.removeAttribute('src');createStatus.innerHTML='Tell AKI what you want to make.<small>Your next spoken description becomes the image prompt.</small>'};
-document.querySelector('#closeCreateBtn').onclick=e=>{sensoryPress(e.currentTarget);setTimeout(closeCreate,70)};
-document.querySelectorAll('.makePrompt').forEach(b=>b.onclick=e=>{sensoryTone('tap');const p=e.currentTarget.dataset.prompt;closeLatentSheets();if(!powered)startAki().then(()=>setTimeout(()=>sendLiveText(p),650));else sendLiveText(p)});
-
 async function toggle(){if(starting||stopping)return;if(powered||pc||micStream)await stopAki();else await startAki()}
 akiButton.addEventListener('click',e=>{e.stopPropagation();toggle()});
 akiButton.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}});
