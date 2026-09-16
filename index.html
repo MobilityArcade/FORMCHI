@@ -39,6 +39,19 @@ body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
 @keyframes oilTurn{to{transform:rotate(360deg)}}@keyframes oilTurn2{to{transform:rotate(-360deg)}}
 @media(max-width:600px){.orb{width:88vw}.mark{width:47vw}}
 @media(prefers-reduced-motion:reduce){.ambient,.orb,.halo,.rim,.oil,.oil2{animation:none!important}}
+
+/* AKI 6.0 — Recall + Creation become live surfaces, not placeholder menus. */
+.live-list{width:min(88vw,520px);max-height:42vh;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:2px}
+.memory-row{width:100%;text-align:left;padding:14px 15px;border-radius:17px;border:1px solid rgba(130,190,255,.16);background:rgba(7,12,22,.68);color:rgba(255,255,255,.88);font:400 13px/1.38 system-ui;-webkit-tap-highlight-color:transparent}
+.memory-row small{display:block;margin-top:5px;color:rgba(255,255,255,.42);font-size:10px}
+.memory-empty{max-width:430px;text-align:center;color:rgba(255,255,255,.52);font:400 13px/1.5 system-ui}
+.recall-hint,.create-hint{max-width:460px;text-align:center;color:rgba(255,255,255,.62);font:400 13px/1.45 system-ui}
+.create-stage{position:absolute;inset:0;z-index:24;display:none;align-items:center;justify-content:center;flex-direction:column;gap:22px;padding:26px;background:radial-gradient(circle at 50% 48%,rgba(15,25,44,.30),rgba(1,3,7,.97) 64%);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.create-stage.open{display:flex}.create-stage img{display:none;max-width:min(88vw,760px);max-height:68vh;border-radius:22px;object-fit:contain;box-shadow:0 0 48px rgba(60,150,255,.12)}.create-stage.has-image img{display:block}
+.create-status{font:400 16px/1.35 system-ui;color:rgba(255,255,255,.86);text-align:center;max-width:520px}.create-status small{display:block;margin-top:8px;color:rgba(255,255,255,.46);font-size:12px}
+.create-actions{display:flex;gap:22px;align-items:center;justify-content:center}.create-actions .share-choice{min-width:86px}
+.latent-card.primary-card{border-color:rgba(85,220,255,.42);box-shadow:0 0 28px rgba(80,150,255,.10)}
+
 </style>
 
 <style id="aki-icon-match">
@@ -85,7 +98,7 @@ body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
 /* AKI 5.4 — temporary sensory interfaces only when requested. */
 .share-sheet{position:absolute;inset:0;z-index:22;display:none;align-items:center;justify-content:center;flex-direction:column;gap:34px;background:radial-gradient(circle at 50% 48%,rgba(15,25,44,.34),rgba(1,3,7,.96) 62%);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}.share-sheet.open{display:flex}.share-title{font:400 16px/1.3 system-ui;color:rgba(255,255,255,.82);letter-spacing:.03em}.share-actions{display:flex;align-items:flex-start;justify-content:center;gap:34px;flex-wrap:wrap}.share-choice{display:flex;flex-direction:column;align-items:center;gap:10px}.share-choice span{font:500 12px/1 system-ui;color:rgba(255,255,255,.72)}.vbtn.pressed{transform:scale(.91);filter:brightness(1.28)}.vbtn,.launchbtn{transition:transform .10s ease,filter .10s ease}.photo-caption{font:500 12px/1 system-ui;color:rgba(255,255,255,.68);letter-spacing:.02em}.photo-actions .share-choice{gap:8px}
 
-/* AKI 5.5 — invisible quadrant interface. Nothing is visible until touched. */
+/* AKI 6.0 — invisible quadrant interface. Nothing is visible until touched. */
 #photoInput,#cameraPhotoInput{position:fixed!important;left:-10000px!important;top:-10000px!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;appearance:none!important;-webkit-appearance:none!important}
 .quadrant-zone{position:absolute;z-index:8;background:transparent;border:0;padding:0;margin:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 #qRecall{left:0;top:0;width:42%;height:38%}#qMake{right:0;top:0;width:42%;height:38%}#qLook{left:0;bottom:0;width:42%;height:34%}#qShow{right:0;bottom:0;width:42%;height:34%}
@@ -133,23 +146,29 @@ body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
 
   <section id="recallSheet" class="latent-sheet" aria-label="Recall">
     <div class="latent-title">Recall</div>
-    <div class="latent-sub">Tell AKI what you want to return to — a flow, an idea, a song, lines you practiced, or something from your conversation.</div>
-    <div class="latent-actions">
-      <button class="latent-card recallPrompt" data-prompt="Help me recall a flow or routine we worked on.">Flows & routines<small>movement · stretch · practice</small></button>
-      <button class="latent-card recallPrompt" data-prompt="Help me recall an idea or project we worked on.">Ideas & projects<small>concepts · plans · decisions</small></button>
-      <button class="latent-card recallPrompt" data-prompt="Help me recall words, lyrics, lines, or something I was practicing.">Words & practice<small>songs · lines · language</small></button>
-    </div>
+    <div class="recall-hint">Say what you want to return to. AKI will search what this device has actually remembered from your conversations.</div>
+    <div id="recallList" class="live-list"></div>
     <button id="closeRecallBtn" class="vbtn latent-close" aria-label="Close Recall">×</button>
   </section>
+
   <section id="makeSheet" class="latent-sheet" aria-label="Make or Do">
     <div class="latent-title">Make / Do</div>
-    <div class="latent-sub">Tell AKI what you want to create, solve, organize, write, or work through. This space can grow as AKI gains more creation tools.</div>
+    <div class="latent-sub">Choose what AKI should do with you. Creation appears here, then disappears when you're finished.</div>
     <div class="latent-actions">
-      <button class="latent-card makePrompt" data-prompt="I want to make something visual. Ask me one simple question about what I want to create.">Create something<small>image · visual · concept</small></button>
-      <button class="latent-card makePrompt" data-prompt="I want to write or shape something. Ask me one simple question to begin.">Write something<small>words · script · message</small></button>
-      <button class="latent-card makePrompt" data-prompt="I want to plan, solve, or do something. Help me take the first useful step.">Plan / solve<small>organize · decide · act</small></button>
+      <button id="createImageBtn" class="latent-card primary-card">Create an image<small>say what you want to see</small></button>
+      <button class="latent-card makePrompt" data-prompt="I want to write something. Ask me one simple question to begin, then help me shape it one step at a time.">Write something<small>words · script · message</small></button>
+      <button class="latent-card makePrompt" data-prompt="I want to plan, solve, or do something. Help me take the first useful step, one step at a time.">Plan / solve<small>organize · decide · act</small></button>
     </div>
     <button id="closeMakeBtn" class="vbtn latent-close" aria-label="Close Make or Do">×</button>
+  </section>
+
+  <section id="createStage" class="create-stage" aria-label="AKI creation">
+    <div id="createStatus" class="create-status">Tell AKI what you want to make.<small>Your next spoken description becomes the image prompt.</small></div>
+    <img id="createdImage" alt="Image created by AKI">
+    <div class="create-actions">
+      <div class="share-choice"><button id="makeAnotherBtn" class="vbtn primary" aria-label="Make another">↻</button><span>Make Another</span></div>
+      <div class="share-choice"><button id="closeCreateBtn" class="vbtn" aria-label="Close creation">×</button><span>Close</span></div>
+    </div>
   </section>
   <input id="photoInput" type="file" accept="image/*" multiple>
   <input id="cameraPhotoInput" type="file" accept="image/*" capture="environment">
@@ -168,6 +187,9 @@ const app=document.querySelector('#app');
 const visionLayer=document.querySelector('#visionLayer'),cameraVideo=document.querySelector('#cameraVideo'),cameraLabel=document.querySelector('#cameraLabel');
 const photoInput=document.querySelector('#photoInput'),cameraPhotoInput=document.querySelector('#cameraPhotoInput'),photoStage=document.querySelector('#photoStage'),photoPreview=document.querySelector('#photoPreview'),shareSheet=document.querySelector('#shareSheet');
 const recallSheet=document.querySelector('#recallSheet'),makeSheet=document.querySelector('#makeSheet');
+const recallList=document.querySelector('#recallList'),createStage=document.querySelector('#createStage'),createStatus=document.querySelector('#createStatus'),createdImage=document.querySelector('#createdImage');
+let creationMode=null,assistantTranscript='',assistantTranscriptTimer=null;
+const MEMORY_KEY='aki6Memory';
 
 
 function sensoryTone(kind='tap'){
@@ -188,8 +210,77 @@ function sensoryPress(el,kind='tap'){
 function openShareSheet(){closePhoto();shareSheet.classList.add('open')}
 function closeShareSheet(){shareSheet.classList.remove('open')}
 function closeLatentSheets(){recallSheet.classList.remove('open');makeSheet.classList.remove('open')}
-function openRecall(){closeShareSheet();closePhoto();closeLatentSheets();recallSheet.classList.add('open')}
+function openRecall(){closeShareSheet();closePhoto();closeLatentSheets();renderRecall('');recallSheet.classList.add('open')}
 function openMake(){closeShareSheet();closePhoto();closeLatentSheets();makeSheet.classList.add('open')}
+
+function memoryItems(){
+  try{return JSON.parse(localStorage.getItem(MEMORY_KEY)||'[]')}catch{return []}
+}
+function rememberTurn(role,text){
+  text=(text||'').replace(/\s+/g,' ').trim();
+  if(!text||text.length<3)return;
+  const items=memoryItems();
+  const last=items[items.length-1];
+  if(last&&last.role===role&&last.text===text)return;
+  items.push({id:Date.now()+Math.random(),role,text,at:Date.now()});
+  localStorage.setItem(MEMORY_KEY,JSON.stringify(items.slice(-180)));
+}
+function recallMatches(query){
+  const items=memoryItems().filter(x=>x.role==='user'||x.role==='assistant');
+  const q=(query||'').toLowerCase().trim();
+  if(!q)return items.slice(-12).reverse();
+  const words=q.split(/\W+/).filter(w=>w.length>2 && !['recall','remember','find','something','thing','about','that','what','where','when','with','from','aki'].includes(w));
+  return items.map(x=>{
+    const t=x.text.toLowerCase();
+    let score=words.reduce((n,w)=>n+(t.includes(w)?2:0),0);
+    if(t.includes(q))score+=8;
+    return {...x,score};
+  }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score||b.at-a.at).slice(0,12);
+}
+function renderRecall(query=''){
+  const matches=recallMatches(query);
+  recallList.innerHTML='';
+  if(!matches.length){
+    recallList.innerHTML='<div class="memory-empty">Nothing matching that has been remembered on this device yet. Keep using AKI and Recall will build naturally from your conversations.</div>';
+    return;
+  }
+  matches.forEach(item=>{
+    const b=document.createElement('button');b.className='memory-row';
+    const d=new Date(item.at);
+    b.innerHTML=`${escapeHtml(item.text.slice(0,240))}<small>${item.role==='user'?'You':'AKI'} · ${d.toLocaleDateString([], {month:'short',day:'numeric'})}</small>`;
+    b.onclick=()=>{sensoryTone('tap');sendLiveText(`We are recalling this real item from our saved AKI history on this device: "${item.text}". Continue naturally from it and help me return to that work.`);closeLatentSheets()};
+    recallList.appendChild(b);
+  });
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function handleRecallSpeech(text){
+  if(recallSheet.classList.contains('open'))renderRecall(text);
+}
+function openCreateListening(){
+  closeLatentSheets();closeShareSheet();closePhoto();
+  creationMode='image-awaiting';createdImage.removeAttribute('src');createStage.classList.remove('has-image');createStage.classList.add('open');
+  createStatus.innerHTML='Tell AKI what you want to make.<small>Your next spoken description becomes the image prompt.</small>';
+  sensoryTone('tap');
+}
+async function createImageFromSpeech(prompt){
+  if(creationMode!=='image-awaiting')return;
+  prompt=(prompt||'').trim();if(prompt.length<4)return;
+  creationMode='image-working';createStatus.innerHTML='Making it…<small>AKI is turning your description into an image.</small>';sensoryTone('send');
+  try{
+    const r=await fetch('/api/create-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(data.error||'Image creation failed');
+    if(!data.image)throw new Error('No image returned');
+    createdImage.src=data.image;createStage.classList.add('has-image');createStatus.textContent='Made with AKI';creationMode='image-done';sensoryTone('send');
+    rememberTurn('user','Create image: '+prompt);
+    rememberTurn('assistant','Created an image from: '+prompt);
+  }catch(e){
+    console.error('AKI creation:',e);creationMode='image-awaiting';
+    createStatus.innerHTML='I couldn’t make that image yet.<small>Try describing it again, or close and retry.</small>';
+  }
+}
+function closeCreate(){creationMode=null;createStage.classList.remove('open','has-image');createdImage.removeAttribute('src')}
+
 function quadrantTap(kind){sensoryTone('tap');if(kind==='look'){closeLatentSheets();closeShareSheet();closePhoto();openCamera(false)}else if(kind==='show'){closeLatentSheets();closeCamera(false);openShareSheet()}else if(kind==='recall'){closeCamera(false);openRecall()}else if(kind==='make'){closeCamera(false);openMake()}}
 
 
@@ -249,13 +340,21 @@ async function maybeSwitchVoice(text){
  await stopAki(true);await new Promise(r=>setTimeout(r,220));restarting=false;await startAki();
 }
 function absorbTranscript(m){
- // Only user INPUT transcripts may control camera/photo intents or voice identity.
- // Never parse AKI's own output transcript; that could accidentally change voices.
+ // Only user INPUT transcripts may control intents, voice identity, Recall, or Creation.
  const type=(m.type||'').toLowerCase(),nested=(m.event?.type||'').toLowerCase();
  const isInput=/input.*transcript|transcript.*input/.test(type)||/input.*transcript|transcript.*input/.test(nested);
  if(!isInput)return;
  const d=(typeof m.delta==='string'?m.delta:'')||(typeof m.transcript==='string'?m.transcript:'')||(typeof m.event?.delta==='string'?m.event.delta:'')||(typeof m.event?.transcript==='string'?m.event.transcript:'');
- if(d){transcript+=d;clearTimeout(preferenceTimer);preferenceTimer=setTimeout(()=>{const h=transcript;transcript='';maybeSwitchVoice(h);visionIntent(h)},350)}
+ if(d){transcript+=d;clearTimeout(preferenceTimer);preferenceTimer=setTimeout(()=>{const h=transcript.trim();transcript='';if(!h)return;rememberTurn('user',h);handleRecallSpeech(h);if(creationMode==='image-awaiting')createImageFromSpeech(h);maybeSwitchVoice(h);visionIntent(h)},420)}
+}
+function absorbAssistantTranscript(m){
+ const type=(m.type||'').toLowerCase(),nested=(m.event?.type||'').toLowerCase();
+ const isOutput=/output.*transcript|transcript.*output/.test(type)||/output.*transcript|transcript.*output/.test(nested);
+ if(!isOutput)return;
+ const d=(typeof m.delta==='string'?m.delta:'')||(typeof m.transcript==='string'?m.transcript:'')||(typeof m.event?.delta==='string'?m.event.delta:'')||(typeof m.event?.transcript==='string'?m.event.transcript:'');
+ if(!d)return;
+ assistantTranscript+=d;clearTimeout(assistantTranscriptTimer);
+ assistantTranscriptTimer=setTimeout(()=>{const t=assistantTranscript.trim();assistantTranscript='';if(t)rememberTurn('assistant',t)},650);
 }
 
 
@@ -280,9 +379,9 @@ function sendLiveImages(images, instruction){
   for(const image_url of images){content.push({type:'input_image',image_url})}
   dc.send(JSON.stringify({type:'response.item.create',item:{type:'message',role:'user',content}}));
   dc.send(JSON.stringify({type:'response.create'}));
-  console.log('[AKI 5.5 vision] image-sent-to-live',{count:images.length});
+  console.log('[AKI 6.0 vision] image-sent-to-live',{count:images.length});
   return true;
- }catch(e){console.error('[AKI 5.5 vision] live-image-send-failed',e);return false}
+ }catch(e){console.error('[AKI 6.0 vision] live-image-send-failed',e);return false}
 }
 async function handVisionToAki(images,context){
  if(!powered){await startAki();for(let i=0;i<30 && (!dc||dc.readyState!=='open');i++)await new Promise(r=>setTimeout(r,100))}
@@ -334,7 +433,7 @@ async function visionIntent(text){
 }
 
 async function stopAki(keepLook=false){
- if(stopping)return;stopping=true;powered=false;clearTimeout(latencyTimer);clearTimeout(hardWatchdog);clearTimeout(preferenceTimer);await closeCamera(false);closePhoto();closeShareSheet();closeLatentSheets();
+ if(stopping)return;stopping=true;powered=false;clearTimeout(latencyTimer);clearTimeout(hardWatchdog);clearTimeout(preferenceTimer);await closeCamera(false);closePhoto();closeShareSheet();closeLatentSheets();closeCreate();
  try{dc?.close()}catch{} try{pc?.getSenders?.().forEach(x=>x.track?.stop())}catch{} try{pc?.close()}catch{}
  try{micStream?.getTracks().forEach(t=>{t.enabled=false;t.stop()})}catch{}
  if(audioEl){try{audioEl.pause()}catch{}audioEl.srcObject=null;audioEl.remove();audioEl=null}
@@ -348,11 +447,11 @@ async function startAki(){
   pc=new RTCPeerConnection();audioEl=document.createElement('audio');audioEl.autoplay=true;audioEl.playsInline=true;document.body.appendChild(audioEl);
   pc.ontrack=e=>{audioEl.srcObject=e.streams[0];audioEl.play().catch(()=>{})};micStream.getTracks().forEach(t=>pc.addTrack(t,micStream));
   dc=pc.createDataChannel('oai-events');dc.addEventListener('open',()=>{latency('data-channel-open',{voice:akiVoice});
-    try{dc.send(JSON.stringify({type:'session.instructions.append',instructions:`AKI has an invisible four-quadrant touch interface around the central AKI mark. If the user asks to open/use the camera, look at something, or says they want you to see the live world, tell them briefly: "Touch the bottom left." If they ask to share, send, upload, or show you a photo/image/file, tell them: "Touch the bottom right." If they ask to recall, remember, find, or return to something you worked on together, tell them: "Touch the upper left." If they ask you to make, create, generate, write, plan, solve, or do something using the creation/action space, tell them: "Touch the upper right." Keep the cue to one short sentence. Do not claim that Recall can retrieve information that is not actually available in the current conversation or connected memory. The center AKI mark remains ON/OFF.`}))}catch(e){console.warn('AKI quadrant instruction:',e)}
+    try{dc.send(JSON.stringify({type:'session.instructions.append',content:`AKI has an invisible four-quadrant touch interface around the central AKI mark. THIS MAP IS IMPORTANT. Whenever the user asks where to touch, which quadrant to use, or asks to use one of these capabilities, answer with the location before anything else. LOOK / camera / live view = "Touch the bottom left." SHOW / share / upload a photo, image, or file = "Touch the bottom right." RECALL / remember / find / return to past work = "Touch the upper left." MAKE / DO / create / generate / write / plan / solve = "Touch the upper right." If the user asks generally what the quadrants are, explain all four in one short sentence. The center AKI mark is ON/OFF. Keep guidance short and concrete. Recall can only retrieve items actually available in AKI's saved device history or current conversation; never invent a memory.`}))}catch(e){console.warn('AKI quadrant instruction:',e)}
   });
   dc.addEventListener('message',e=>{try{const m=JSON.parse(e.data),type=m.type||'',nested=m.event?.type||'',all=(type+' '+nested).toLowerCase();
     if(type==='session.started'){powered=true;powerLook('on');latency('session-started',{voice:m.session?.audio?.output?.voice||m.session?.voice||akiVoice})}
-    absorbTranscript(m);
+    absorbTranscript(m);absorbAssistantTranscript(m);
     if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
     if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('delegation.created'))responseStarted();
     if(all.includes('output_audio.delta')||all.includes('audio.delta'))firstAudio();
@@ -364,16 +463,18 @@ async function startAki(){
   const r=await fetch('/api/aki',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sdp:localSdp,voice:akiVoice,language:akiLanguage})});
   const answer=await r.text();if(!r.ok)throw new Error(answer);await pc.setRemoteDescription({type:'answer',sdp:answer});
   powered=true;powerLook('on');
- }catch(err){console.error('AKI 5.5 start error:',err);await stopAki();powerLook('error')}finally{starting=false}
+ }catch(err){console.error('AKI 6.0 start error:',err);await stopAki();powerLook('error')}finally{starting=false}
 }
-// AKI 5.5 invisible quadrant touch map.
+// AKI 6.0 invisible quadrant touch map.
 document.querySelector('#qRecall').addEventListener('click',e=>{e.stopPropagation();quadrantTap('recall')});
 document.querySelector('#qMake').addEventListener('click',e=>{e.stopPropagation();quadrantTap('make')});
 document.querySelector('#qLook').addEventListener('click',e=>{e.stopPropagation();quadrantTap('look')});
 document.querySelector('#qShow').addEventListener('click',e=>{e.stopPropagation();quadrantTap('show')});
 document.querySelector('#closeRecallBtn').onclick=e=>{sensoryPress(e.currentTarget);setTimeout(closeLatentSheets,70)};
 document.querySelector('#closeMakeBtn').onclick=e=>{sensoryPress(e.currentTarget);setTimeout(closeLatentSheets,70)};
-document.querySelectorAll('.recallPrompt').forEach(b=>b.onclick=e=>{sensoryTone('tap');const p=e.currentTarget.dataset.prompt;closeLatentSheets();if(!powered)startAki().then(()=>setTimeout(()=>sendLiveText(p),650));else sendLiveText(p)});
+document.querySelector('#createImageBtn').onclick=e=>{sensoryPress(e.currentTarget);setTimeout(openCreateListening,80)};
+document.querySelector('#makeAnotherBtn').onclick=e=>{sensoryPress(e.currentTarget);creationMode='image-awaiting';createStage.classList.remove('has-image');createdImage.removeAttribute('src');createStatus.innerHTML='Tell AKI what you want to make.<small>Your next spoken description becomes the image prompt.</small>'};
+document.querySelector('#closeCreateBtn').onclick=e=>{sensoryPress(e.currentTarget);setTimeout(closeCreate,70)};
 document.querySelectorAll('.makePrompt').forEach(b=>b.onclick=e=>{sensoryTone('tap');const p=e.currentTarget.dataset.prompt;closeLatentSheets();if(!powered)startAki().then(()=>setTimeout(()=>sendLiveText(p),650));else sendLiveText(p)});
 
 async function toggle(){if(starting||stopping)return;if(powered||pc||micStream)await stopAki();else await startAki()}
