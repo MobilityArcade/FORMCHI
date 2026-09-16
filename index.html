@@ -30,8 +30,7 @@ body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
 .core{inset:11.5%;background:radial-gradient(circle at 44% 38%,rgba(9,24,44,.28) 0%,rgba(1,2,7,.985) 55%,rgba(1,2,7,.96) 78%,rgba(1,2,7,.82) 87%,rgba(1,2,7,.48) 94%,rgba(1,2,7,.12) 98%,transparent 100%);box-shadow:inset 0 0 88px rgba(46,112,190,.08);filter:blur(2.4px)}
 .mark{position:absolute;z-index:8;left:50%;top:48%;transform:translate(-50%,-50%);width:min(48vw,360px);height:auto;opacity:.23;filter:blur(.32px) drop-shadow(0 0 4px rgba(154,216,255,.05));transition:opacity .55s ease,filter .55s ease;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .mark path{fill:none;stroke:rgba(222,231,241,.76);stroke-width:1.02;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
-.mark.on{opacity:1;filter:blur(.06px) drop-shadow(0 0 2px rgba(255,255,255,.98)) drop-shadow(0 0 7px rgba(154,216,255,.88)) drop-shadow(0 0 14px rgba(154,216,255,.48))}
-.mark.on path{stroke:#fff;stroke-opacity:1}
+.mark.on{opacity:.72;filter:blur(.28px) drop-shadow(0 0 7px rgba(154,216,255,.16))}
 .mark.starting{opacity:.47}
 .mark.error{opacity:.16}
 /* AKI 4.7: constant presence. Conversation state never changes the torus. */
@@ -40,6 +39,32 @@ body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
 @keyframes oilTurn{to{transform:rotate(360deg)}}@keyframes oilTurn2{to{transform:rotate(-360deg)}}
 @media(max-width:600px){.orb{width:88vw}.mark{width:47vw}}
 @media(prefers-reduced-motion:reduce){.ambient,.orb,.halo,.rim,.oil,.oil2{animation:none!important}}
+</style>
+
+<style id="aki-icon-match">
+/* 4.7 icon-match visual refinement */
+.mark{
+  border:0!important; outline:0!important; background:transparent!important;
+  box-shadow:none!important; border-radius:50%!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+.mark:focus,.mark:focus-visible,.mark:active{
+  border:0!important; outline:0!important; background:transparent!important;
+  box-shadow:none!important;
+}
+.mark.on{
+  opacity:1!important;
+  filter:drop-shadow(0 0 1px rgba(255,255,255,1))
+         drop-shadow(0 0 4px rgba(190,235,255,.98))
+         drop-shadow(0 0 10px rgba(55,190,255,.78))!important;
+}
+.mark.on path{
+  stroke:#f8fdff!important; stroke-opacity:1!important;
+  stroke-width:2.35!important; stroke-linecap:round!important; stroke-linejoin:round!important;
+}
+.rim,.oil,.oil2{
+  filter:saturate(1.42) contrast(1.08) brightness(1.10)!important;
+}
 </style>
 </head>
 <body>
