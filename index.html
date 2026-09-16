@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=45">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=45">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=45">
-<title>AKI 5.0 Vision</title>
+<title>AKI 5.1 Vision Repair</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}
 body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
@@ -68,7 +68,7 @@ body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
 </style>
 
 <style id="aki-vision-49">
-/* AKI 5.0 Vision — minimal responsive controls; no voice meter. */
+/* AKI 5.1 Vision Repair — minimal responsive controls; no voice meter. */
 .vision-layer{position:absolute;inset:0;z-index:20;display:none;background:#020304;overflow:hidden}.vision-layer.open{display:block}
 #cameraVideo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#020304}.vision-shade{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.14),transparent 22%,transparent 72%,rgba(0,0,0,.44));pointer-events:none}
 .vision-status{position:absolute;top:max(18px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:8px 13px;border-radius:999px;background:rgba(4,6,9,.66);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font:500 12px/1 system-ui;color:rgba(255,255,255,.92);letter-spacing:.02em;display:flex;align-items:center;gap:7px}.vision-dot{width:7px;height:7px;border-radius:50%;background:#35df7a;box-shadow:0 0 9px rgba(53,223,122,.7)}
@@ -189,21 +189,21 @@ function sendLiveText(text){
 }
 function imageToDataURL(file,max=1280,quality=.82){return new Promise((resolve,reject)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const scale=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);resolve(c.toDataURL('image/jpeg',quality))};img.onerror=reject;img.src=u})}
 
-// AKI 5.0: images go directly into the SAME Live conversation as voice.
+// AKI 5.1: images go directly into the SAME Live conversation as voice.
 // Realtime conversation.item.create supports input_image data URLs.
 function sendLiveImages(images, instruction){
  if(!dc||dc.readyState!=='open')return false;
  try{
   // If VAD already started an answer to “what do you see?”, stop that stale answer
   // before giving AKI the image it needs.
-  try{dc.send(JSON.stringify({type:'response.cancel'}))}catch{}
+  
   const content=[{type:'input_text',text:instruction||'Look at the image I am intentionally showing you and respond naturally to my question. Only describe what is actually visible.'}];
-  for(const image_url of images){content.push({type:'input_image',image_url,detail:'auto'})}
+  for(const image_url of images){content.push({type:'input_image',image_url})}
   dc.send(JSON.stringify({type:'conversation.item.create',item:{type:'message',role:'user',content}}));
   dc.send(JSON.stringify({type:'response.create',response:{instructions:'The user has just supplied image input in this Live conversation. Use that image to answer naturally and concisely. Do not say you cannot see the image. Do not claim to see anything outside the supplied image.'}}));
-  console.log('[AKI 5.0 vision] image-sent-to-live',{count:images.length});
+  console.log('[AKI 5.1 vision] image-sent-to-live',{count:images.length});
   return true;
- }catch(e){console.error('[AKI 5.0 vision] live-image-send-failed',e);return false}
+ }catch(e){console.error('[AKI 5.1 vision] live-image-send-failed',e);return false}
 }
 async function handVisionToAki(images,context){
  if(!powered){await startAki();for(let i=0;i<30 && (!dc||dc.readyState!=='open');i++)await new Promise(r=>setTimeout(r,100))}
@@ -267,7 +267,7 @@ async function startAki(){
     if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
     if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('delegation.created'))responseStarted();
     if(all.includes('output_audio.delta')||all.includes('audio.delta'))firstAudio();
-    if(type==='error')console.error('AKI Live event error:',m)
+    if(type==='error')console.error('AKI Live event error:',JSON.stringify(m,null,2))
   }catch{}});
   pc.addEventListener('connectionstatechange',()=>{const cs=pc?.connectionState;latency('connection-state',{state:cs});if(['failed','closed'].includes(cs)&&powered&&!restarting)stopAki()});
   const offer=await pc.createOffer();await pc.setLocalDescription(offer);const localSdp=pc.localDescription?.sdp||offer.sdp;
