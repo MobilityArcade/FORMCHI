@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=45">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=45">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=45">
-<title>AKI 4.7</title>
+<title>AKI 4.8 Vision</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}
 body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
@@ -66,12 +66,58 @@ body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
   filter:saturate(1.42) contrast(1.08) brightness(1.10)!important;
 }
 </style>
+
+<style id="aki-vision-48">
+/* AKI 4.8 Vision — temporary controls only. The torus remains visually unchanged. */
+.vision-layer{position:absolute;inset:0;z-index:20;display:none;background:#020304;overflow:hidden}
+.vision-layer.open{display:block}
+#cameraVideo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#020304}
+.vision-shade{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.16),transparent 22%,transparent 72%,rgba(0,0,0,.48));pointer-events:none}
+.vision-status{position:absolute;top:max(18px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:8px 13px;border-radius:999px;background:rgba(4,6,9,.66);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font:500 12px/1 system-ui;color:rgba(255,255,255,.92);letter-spacing:.02em;display:flex;align-items:center;gap:7px}
+.vision-dot{width:7px;height:7px;border-radius:50%;background:#35df7a;box-shadow:0 0 9px rgba(53,223,122,.7)}
+.vision-controls{position:absolute;left:50%;bottom:max(28px,calc(env(safe-area-inset-bottom) + 18px));transform:translateX(-50%);display:flex;align-items:center;gap:22px}
+.vbtn{width:58px;height:58px;border-radius:50%;border:1px solid rgba(180,225,255,.55);background:rgba(5,8,12,.54);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:white;display:grid;place-items:center;font-size:23px;-webkit-tap-highlight-color:transparent}
+.vbtn.primary{width:68px;height:68px;border-color:rgba(255,255,255,.88);box-shadow:0 0 18px rgba(78,203,255,.16)}
+.photo-stage{position:absolute;inset:0;z-index:21;display:none;background:#020304;padding:max(72px,calc(env(safe-area-inset-top) + 42px)) 22px max(34px,calc(env(safe-area-inset-bottom) + 24px));align-items:center;justify-content:center;flex-direction:column;gap:22px}
+.photo-stage.open{display:flex}
+.photo-stage img{max-width:100%;max-height:66vh;object-fit:contain;border-radius:22px;box-shadow:0 0 36px rgba(74,185,255,.10)}
+.photo-actions{display:flex;gap:18px}
+.vision-launch{position:absolute;z-index:12;left:50%;top:calc(48% + min(49vw,385px));transform:translate(-50%,18px);display:none;gap:18px;align-items:center}
+.vision-launch.show{display:flex}
+.launchbtn{width:54px;height:54px;border-radius:50%;border:1px solid rgba(175,220,255,.42);background:rgba(5,8,12,.36);color:rgba(255,255,255,.9);display:grid;place-items:center;font-size:22px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);-webkit-tap-highlight-color:transparent}
+.voicebar{position:absolute;z-index:11;left:50%;top:calc(48% + min(24vw,175px));transform:translateX(-50%);width:86px;height:18px;display:flex;align-items:center;justify-content:center;gap:3px;opacity:0;transition:opacity .35s ease;pointer-events:none}
+.voicebar.on{opacity:.78}
+.voicebar i{display:block;width:2px;height:3px;border-radius:2px;background:linear-gradient(#bff7ff,#3ec8ff 50%,#b33cff);box-shadow:0 0 5px rgba(65,207,255,.5);transform-origin:center;transition:height .08s linear}
+.busy-ring{position:absolute;inset:0;display:none;place-items:center;background:rgba(0,0,0,.2);font-size:13px;color:white}.busy .busy-ring{display:grid}
+#photoInput{display:none}
+</style>
 </head>
 <body>
 <main id="app" class="presence" aria-label="AKI">
   <div class="ambient"></div>
   <div class="orb"><div class="halo"></div><div class="rim"></div><div class="oil"></div><div class="oil2"></div><div class="core"></div></div>
   <svg id="akiButton" class="mark" viewBox="0 0 210 90" role="button" tabindex="0" aria-label="Turn AKI on" aria-pressed="false"><path d="M15 72 L45 18 L75 72 M95 18 L95 72 M96 48 L142 18 M96 48 L144 72 M172 18 L172 72"/></svg>
+
+  <div id="voicebar" class="voicebar" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div id="visionLaunch" class="vision-launch" aria-label="Show AKI something">
+    <button id="cameraBtn" class="launchbtn" aria-label="Open camera">⌾</button>
+    <button id="photoBtn" class="launchbtn" aria-label="Choose photo">▧</button>
+  </div>
+  <section id="visionLayer" class="vision-layer" aria-label="AKI camera">
+    <video id="cameraVideo" autoplay playsinline muted></video><div class="vision-shade"></div>
+    <div class="vision-status"><span class="vision-dot"></span><span id="cameraLabel">Camera on</span></div>
+    <div class="vision-controls">
+      <button id="flipBtn" class="vbtn" aria-label="Flip camera">↻</button>
+      <button id="lookBtn" class="vbtn primary" aria-label="Let AKI look">◎</button>
+      <button id="closeCameraBtn" class="vbtn" aria-label="Close camera">×</button>
+    </div>
+  </section>
+  <section id="photoStage" class="photo-stage" aria-label="Selected photo">
+    <img id="photoPreview" alt="Selected photo"><div class="busy-ring">Looking…</div>
+    <div class="photo-actions"><button id="addAnotherBtn" class="vbtn" aria-label="Add another photo">＋</button><button id="sendPhotoBtn" class="vbtn primary" aria-label="Send photo to AKI">↑</button><button id="closePhotoBtn" class="vbtn" aria-label="Close photo">×</button></div>
+  </section>
+  <input id="photoInput" type="file" accept="image/*" multiple>
+
 </main>
 <script>
 const akiButton=document.querySelector('#akiButton');
@@ -81,13 +127,19 @@ let transcript='',turnEndAt=0,responseStartAt=0,firstAudioAt=0,lastChime=0;
 let latencyTimer=null,hardWatchdog=null,preferenceTimer=null;
 let akiVoice=localStorage.getItem('akiVoice')||'marin';
 let akiLanguage=localStorage.getItem('akiLanguage')||'auto';
+let cameraStream=null,cameraFacing='environment',selectedImages=[];
+const app=document.querySelector('#app'),voicebar=document.querySelector('#voicebar'),visionLaunch=document.querySelector('#visionLaunch');
+const visionLayer=document.querySelector('#visionLayer'),cameraVideo=document.querySelector('#cameraVideo'),cameraLabel=document.querySelector('#cameraLabel');
+const photoInput=document.querySelector('#photoInput'),photoStage=document.querySelector('#photoStage'),photoPreview=document.querySelector('#photoPreview');
+const bars=[...voicebar.querySelectorAll('i')];let meterRAF=0,meterAnalyser=null,meterData=null;
+
 
 function powerLook(mode){
   akiButton.classList.remove('on','starting','error');
-  if(mode==='on'){akiButton.classList.add('on');akiButton.setAttribute('aria-pressed','true');akiButton.setAttribute('aria-label','Turn AKI off')}
+  if(mode==='on'){akiButton.classList.add('on');akiButton.setAttribute('aria-pressed','true');akiButton.setAttribute('aria-label','Turn AKI off');voicebar.classList.add('on');visionLaunch.classList.add('show')}
   else if(mode==='starting'){akiButton.classList.add('starting');akiButton.setAttribute('aria-pressed','false');akiButton.setAttribute('aria-label','AKI is starting')}
   else if(mode==='error'){akiButton.classList.add('error');akiButton.setAttribute('aria-pressed','false');akiButton.setAttribute('aria-label','AKI connection failed. Tap to retry')}
-  else{akiButton.setAttribute('aria-pressed','false');akiButton.setAttribute('aria-label','Turn AKI on')}
+  else{akiButton.setAttribute('aria-pressed','false');akiButton.setAttribute('aria-label','Turn AKI on');voicebar.classList.remove('on');visionLaunch.classList.remove('show')}
 }
 function chime(){
   const now=Date.now();if(now-lastChime<1800)return;lastChime=now;
@@ -136,11 +188,45 @@ async function maybeSwitchVoice(text){
 function absorbTranscript(m){
  const type=m.type||'',nested=m.event?.type||'';
  const d=(typeof m.delta==='string'&&/transcript/i.test(type)?m.delta:'')||(typeof m.transcript==='string'&&/transcript/i.test(type)?m.transcript:'')||(typeof m.event?.delta==='string'&&/transcript/i.test(nested)?m.event.delta:'');
- if(d){transcript+=d;clearTimeout(preferenceTimer);preferenceTimer=setTimeout(()=>{const h=transcript;transcript='';maybeSwitchVoice(h)},350)}
+ if(d){transcript+=d;clearTimeout(preferenceTimer);preferenceTimer=setTimeout(()=>{const h=transcript;transcript='';maybeSwitchVoice(h);visionIntent(h)},350)}
 }
 
+
+function sendLiveText(text){
+ if(!dc||dc.readyState!=='open')return false;
+ try{
+  dc.send(JSON.stringify({type:'conversation.item.create',item:{type:'message',role:'user',content:[{type:'input_text',text}]}}));
+  dc.send(JSON.stringify({type:'response.create'}));return true;
+ }catch(e){console.error('AKI vision handoff:',e);return false}
+}
+function imageToDataURL(file,max=1280,quality=.82){return new Promise((resolve,reject)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const scale=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);resolve(c.toDataURL('image/jpeg',quality))};img.onerror=reject;img.src=u})}
+async function askVision(images,prompt='Describe only what is visibly useful in these images. Be concise.'){const r=await fetch('/api/vision',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({images,prompt})});const j=await r.json();if(!r.ok)throw new Error(j?.error||'Vision failed');return j.text||''}
+async function handVisionToAki(images,context){
+ if(!powered){await startAki();await new Promise(r=>setTimeout(r,700))}
+ const text=await askVision(images,context);
+ if(!sendLiveText('Visual context from what I just showed you: '+text+'\nRespond naturally to me about what you can see. Do not mention a separate vision system.')) alert(text);
+}
+async function openCamera(){
+ try{await closeCamera(false);cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:cameraFacing}},audio:false});cameraVideo.srcObject=cameraStream;visionLayer.classList.add('open');visionLaunch.classList.remove('show');cameraLabel.textContent=cameraFacing==='user'?'Front camera':'Rear camera'}catch(e){console.error(e);alert('Camera permission is needed to show AKI what you see.')}
+}
+async function closeCamera(showLaunch=true){try{cameraStream?.getTracks().forEach(t=>t.stop())}catch{}cameraStream=null;cameraVideo.srcObject=null;visionLayer.classList.remove('open');if(showLaunch&&powered)visionLaunch.classList.add('show')}
+async function flipCamera(){cameraFacing=cameraFacing==='environment'?'user':'environment';await openCamera()}
+function cameraFrame(){const c=document.createElement('canvas'),w=cameraVideo.videoWidth||720,h=cameraVideo.videoHeight||1280,scale=Math.min(1,1280/Math.max(w,h));c.width=Math.round(w*scale);c.height=Math.round(h*scale);c.getContext('2d').drawImage(cameraVideo,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.82)}
+async function lookNow(){try{document.querySelector('#lookBtn').disabled=true;const frame=cameraFrame();await handVisionToAki([frame],'This is the current camera view the user intentionally showed me. Describe the relevant visible scene accurately and briefly so I can answer their spoken question about it.');}catch(e){console.error(e);alert('AKI could not look at that frame.')}finally{document.querySelector('#lookBtn').disabled=false}}
+async function choosePhotos(){photoInput.click()}
+photoInput.addEventListener('change',async()=>{const fs=[...photoInput.files].slice(0,2);if(!fs.length)return;selectedImages=await Promise.all(fs.map(f=>imageToDataURL(f)));photoPreview.src=selectedImages[0];photoStage.classList.add('open');visionLaunch.classList.remove('show')});
+async function sendPhotos(){if(!selectedImages.length)return;photoStage.classList.add('busy');try{await handVisionToAki(selectedImages,selectedImages.length>1?'The user intentionally shared two photos for our conversation. Compare only visible details when relevant; do not identify unknown people.':'The user intentionally shared this photo for our conversation. Describe only visible details relevant to their question; do not identify unknown people.');photoStage.classList.remove('open');selectedImages=[];photoInput.value='';if(powered)visionLaunch.classList.add('show')}catch(e){console.error(e);alert('AKI could not read that photo.')}finally{photoStage.classList.remove('busy')}}
+function closePhoto(){photoStage.classList.remove('open');selectedImages=[];photoInput.value='';if(powered)visionLaunch.classList.add('show')}
+document.querySelector('#cameraBtn').onclick=openCamera;document.querySelector('#photoBtn').onclick=choosePhotos;document.querySelector('#flipBtn').onclick=flipCamera;document.querySelector('#lookBtn').onclick=lookNow;document.querySelector('#closeCameraBtn').onclick=()=>closeCamera();document.querySelector('#sendPhotoBtn').onclick=sendPhotos;document.querySelector('#addAnotherBtn').onclick=choosePhotos;document.querySelector('#closePhotoBtn').onclick=closePhoto;
+
+// Lightweight reactive voice bar. It is informational only and never changes the torus.
+function startMeter(stream){try{const ctx=audioCtx||(audioCtx=new(window.AudioContext||window.webkitAudioContext)()),src=ctx.createMediaStreamSource(stream);meterAnalyser=ctx.createAnalyser();meterAnalyser.fftSize=64;meterAnalyser.smoothingTimeConstant=.72;src.connect(meterAnalyser);meterData=new Uint8Array(meterAnalyser.frequencyBinCount);const tick=()=>{if(!meterAnalyser)return;meterAnalyser.getByteFrequencyData(meterData);const avg=meterData.reduce((a,b)=>a+b,0)/meterData.length/255;bars.forEach((b,i)=>{const wave=.35+.65*Math.sin((i/(bars.length-1))*Math.PI),j=(Math.random()*.16);b.style.height=(3+Math.min(1,avg*4+j)*13*wave)+'px'});meterRAF=requestAnimationFrame(tick)};tick()}catch{}}
+function stopMeter(){cancelAnimationFrame(meterRAF);meterAnalyser=null;bars.forEach(b=>b.style.height='3px')}
+
+function visionIntent(text){const t=(text||'').toLowerCase();if(/(show you|look at|camera|see this|look at me)/.test(t)){if(/(photo|picture|image|photos|pictures)/.test(t))choosePhotos();else if(/(front|selfie|look at me)/.test(t)){cameraFacing='user';openCamera()}else openCamera()}}
+
 async function stopAki(keepLook=false){
- if(stopping)return;stopping=true;powered=false;clearTimeout(latencyTimer);clearTimeout(hardWatchdog);clearTimeout(preferenceTimer);
+ if(stopping)return;stopping=true;powered=false;clearTimeout(latencyTimer);clearTimeout(hardWatchdog);clearTimeout(preferenceTimer);stopMeter();await closeCamera(false);closePhoto();
  try{dc?.close()}catch{} try{pc?.getSenders?.().forEach(x=>x.track?.stop())}catch{} try{pc?.close()}catch{}
  try{micStream?.getTracks().forEach(t=>{t.enabled=false;t.stop()})}catch{}
  if(audioEl){try{audioEl.pause()}catch{}audioEl.srcObject=null;audioEl.remove();audioEl=null}
@@ -150,7 +236,7 @@ async function startAki(){
  if(powered||starting||stopping)return;starting=true;powerLook('starting');
  try{
   audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')await audioCtx.resume();
-  micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+  micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});startMeter(micStream);
   pc=new RTCPeerConnection();audioEl=document.createElement('audio');audioEl.autoplay=true;audioEl.playsInline=true;document.body.appendChild(audioEl);
   pc.ontrack=e=>{audioEl.srcObject=e.streams[0];audioEl.play().catch(()=>{})};micStream.getTracks().forEach(t=>pc.addTrack(t,micStream));
   dc=pc.createDataChannel('oai-events');dc.addEventListener('open',()=>latency('data-channel-open',{voice:akiVoice}));
@@ -168,7 +254,7 @@ async function startAki(){
   const r=await fetch('/api/aki',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sdp:localSdp,voice:akiVoice,language:akiLanguage})});
   const answer=await r.text();if(!r.ok)throw new Error(answer);await pc.setRemoteDescription({type:'answer',sdp:answer});
   powered=true;powerLook('on');
- }catch(err){console.error('AKI 4.6 start error:',err);await stopAki();powerLook('error')}finally{starting=false}
+ }catch(err){console.error('AKI 4.8 start error:',err);await stopAki();powerLook('error')}finally{starting=false}
 }
 async function toggle(){if(starting||stopping)return;if(powered||pc||micStream)await stopAki();else await startAki()}
 akiButton.addEventListener('click',e=>{e.stopPropagation();toggle()});
