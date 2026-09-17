@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=45">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=45">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=45">
-<title>AKI — More of you.</title>
+<title>AKI 7.1 — More of you.</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}
 body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
@@ -96,7 +96,7 @@ function chime(){
       g.gain.setValueAtTime(0,t+i*.055);g.gain.linearRampToValueAtTime(.022,t+.025+i*.055);g.gain.exponentialRampToValueAtTime(.0001,t+.32+i*.055);
       o.connect(g);g.connect(audioCtx.destination);o.start(t+i*.055);o.stop(t+.36+i*.055)})}catch{}
 }
-function latency(label,extra={}){console.log('[AKI 4.7 latency]',label,{at:new Date().toISOString(),...extra})}
+function latency(label,extra={}){console.log('[AKI 7.1 latency]',label,{at:new Date().toISOString(),...extra})}
 function turnEnded(){
   turnEndAt=performance.now();responseStartAt=firstAudioAt=0;
   latency('user-turn-ended');chime();
@@ -121,22 +121,53 @@ function turnEnded(){
 function responseStarted(){if(responseStartAt)return;responseStartAt=performance.now();latency('response-started',{from_turn_end_ms:turnEndAt?Math.round(responseStartAt-turnEndAt):null})}
 function firstAudio(){if(firstAudioAt)return;firstAudioAt=performance.now();clearTimeout(latencyTimer);clearTimeout(hardWatchdog);latency('first-audio',{from_turn_end_ms:turnEndAt?Math.round(firstAudioAt-turnEndAt):null,from_response_start_ms:responseStartAt?Math.round(firstAudioAt-responseStartAt):null})}
 
-function voiceRequest(text){
- const t=(text||'').toLowerCase();let voice=null;
- if(/\b(man|male|man's voice|male voice|a man|hombre|voz masculina|uomo|voce maschile|мужской голос|мужчина)\b/.test(t))voice='ash';
- if(/\b(woman|female|woman's voice|female voice|a woman|mujer|voz femenina|donna|voce femminile|женский голос|женщина)\b/.test(t))voice='marin';
- if(/\b(other voice|different voice|another voice|alternate voice)\b/.test(t))voice=(akiVoice==='cedar'?'ash':'cedar');
- return voice;
+function normalizedSpeech(text){
+ return (text||'').toLowerCase().replace(/[’]/g,"'").replace(/\s+/g,' ').trim();
 }
-async function maybeSwitchVoice(text){
- const v=voiceRequest(text);if(!v||v===akiVoice||restarting)return;
- akiVoice=v;localStorage.setItem('akiVoice',v);restarting=true;chime();
+function voiceIntent(text){
+ const t=normalizedSpeech(text);
+ // Voice identity is locked by default. Merely SAYING words like man, woman,
+ // male, female or voice can never switch AKI.
+ const lock=/(keep|save|lock|remember|stay with|stick with).{0,28}(this|current|your).{0,18}voice|i (really )?like (this|your) voice|make this my voice|use this voice (from now on|until i (say|tell) otherwise)/.test(t);
+ if(lock)return {kind:'lock'};
+
+ // A voice change requires an explicit first-person command/request directed at AKI.
+ const explicit=/(aki[, ]+)?(please )?(change|switch|use|give me|let me hear|i want|i'd like|i would like|i prefer|can you change|could you change|can i have|go back to)/.test(t);
+ if(!explicit)return null;
+ if(/(male voice|man's voice|voice of a man|masculine voice|voz masculina|voz de hombre)/.test(t))return {kind:'change',voice:'ash'};
+ if(/(female voice|woman's voice|voice of a woman|feminine voice|voz femenina|voz de mujer)/.test(t))return {kind:'change',voice:'marin'};
+ if(/(different voice|another voice|other voice|change your voice|switch your voice|new voice)/.test(t)){
+   const cycle=['marin','cedar','ash'];
+   return {kind:'change',voice:cycle[(cycle.indexOf(akiVoice)+1+cycle.length)%cycle.length]};
+ }
+ return null;
+}
+async function handleVoiceIntent(text){
+ const intent=voiceIntent(text);if(!intent)return;
+ if(intent.kind==='lock'){
+   localStorage.setItem('akiVoice',akiVoice);
+   localStorage.setItem('akiVoiceLocked','true');
+   latency('voice-locked',{voice:akiVoice});
+   return;
+ }
+ const v=intent.voice;if(!v||v===akiVoice||restarting)return;
+ akiVoice=v;
+ // Every deliberately selected voice becomes the persistent voice immediately.
+ localStorage.setItem('akiVoice',v);
+ localStorage.setItem('akiVoiceLocked','true');
+ latency('voice-change-explicit',{voice:v});
+ restarting=true;chime();
  await stopAki(true);await new Promise(r=>setTimeout(r,220));restarting=false;await startAki();
 }
 function absorbTranscript(m){
- const type=m.type||'',nested=m.event?.type||'';
- const d=(typeof m.delta==='string'&&/transcript/i.test(type)?m.delta:'')||(typeof m.transcript==='string'&&/transcript/i.test(type)?m.transcript:'')||(typeof m.event?.delta==='string'&&/transcript/i.test(nested)?m.event.delta:'');
- if(d){transcript+=d;clearTimeout(preferenceTimer);preferenceTimer=setTimeout(()=>{const h=transcript;transcript='';maybeSwitchVoice(h)},350)}
+ // CRITICAL 7.1 FIX: only the USER'S input transcript may control voice identity.
+ // AKI's own output transcript is ignored, preventing it from switching itself.
+ const type=String(m.type||'').toLowerCase();
+ const nested=String(m.event?.type||'').toLowerCase();
+ const isInput=/input.*transcript|transcript.*input/.test(type)||/input.*transcript|transcript.*input/.test(nested);
+ if(!isInput)return;
+ const d=(typeof m.delta==='string'?m.delta:'')||(typeof m.transcript==='string'?m.transcript:'')||(typeof m.event?.delta==='string'?m.event.delta:'')||(typeof m.event?.transcript==='string'?m.event.transcript:'');
+ if(d){transcript+=d;clearTimeout(preferenceTimer);preferenceTimer=setTimeout(()=>{const h=transcript;transcript='';handleVoiceIntent(h)},500)}
 }
 
 async function stopAki(keepLook=false){
@@ -155,7 +186,7 @@ async function startAki(){
   pc.ontrack=e=>{audioEl.srcObject=e.streams[0];audioEl.play().catch(()=>{})};micStream.getTracks().forEach(t=>pc.addTrack(t,micStream));
   dc=pc.createDataChannel('oai-events');dc.addEventListener('open',()=>{
     latency('data-channel-open',{voice:akiVoice});
-    // AKI 7.0 — MORE OF YOU. One presence, one conversation, no feature UI.
+    // AKI 7.1 — MORE OF YOU + VOICE LOCK. One presence, one conversation, no feature UI.
     // AKI supports the human's agency rather than replacing it.
     try{dc.send(JSON.stringify({type:'session.instructions.append',content:`AKI's core philosophy is "More of you." You are a calm, warm, intelligent thinking companion. The human remains the creator, observer, experiencer and actor. Your job is to help them think, imagine, articulate, explore, practice, decide and get unstuck — not to take over the experience. Listen carefully. Reflect the strongest thread. Ask one useful question at a time when a question helps. When the user's thoughts become complicated, become simpler. Prefer one useful next step over lists, information dumps, menus, workflows or many options. Encourage the user to describe what they see, imagine, feel, want to make, or want to try. Explore hypothetical and creative spaces conversationally. Do not offer camera, image generation, photo sharing, file creation, quadrants, buttons, dashboards, or other feature interfaces. If the user asks you to create an image, document, file, or other artifact, stay conversational: help them develop the concept, wording, structure or creative direction so they remain the maker. Do not pretend you performed actions or used capabilities that are not present. Natural multilingual conversation is welcome. Keep ordinary spoken responses concise and human, usually 1–3 short sentences unless the user explicitly asks for depth. If they say "Aki" to begin or regain your attention, respond naturally with "I am here. How can I help you?" The experience should feel like one presence: no visible interface beyond AKI itself.`}))}catch(e){console.warn('AKI philosophy instruction:',e)}
   });
@@ -173,7 +204,7 @@ async function startAki(){
   const r=await fetch('/api/aki',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sdp:localSdp,voice:akiVoice,language:akiLanguage})});
   const answer=await r.text();if(!r.ok)throw new Error(answer);await pc.setRemoteDescription({type:'answer',sdp:answer});
   powered=true;powerLook('on');
- }catch(err){console.error('AKI 7.0 start error:',err);await stopAki();powerLook('error')}finally{starting=false}
+ }catch(err){console.error('AKI 7.1 start error:',err);await stopAki();powerLook('error')}finally{starting=false}
 }
 async function toggle(){if(starting||stopping)return;if(powered||pc||micStream)await stopAki();else await startAki()}
 akiButton.addEventListener('click',e=>{e.stopPropagation();toggle()});
