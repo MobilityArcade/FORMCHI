@@ -1,41 +1,6 @@
-/* 
- BORROWED EYES TOUCH RULE: Voice requests may select screen sharing and may open a viewfinder, but voice alone NEVER authorizes a capture. Only a physical user tap reported by hardware may capture a frame. Never say a frame was captured merely because the user said ready, capture, take it, or look now. HARDWARE TRUTH RULE: Never claim that a camera opened, a picture/frame was captured, a beep occurred, or that you saw anything merely because the user requested it or said Ready. Only a HARDWARE TRUTH message containing a verified current observation authorizes visual claims. If hardware reports failure, do not infer, imagine, reuse, or ask the user what you were supposed to see.
- */
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   if (!process.env.OPENAI_API_KEY) return res.status(500).json({ error: 'OPENAI_API_KEY is not configured' });
-
-  // AKI 8.0.3 Borrowed Eyes — one ephemeral still, analyzed server-side.
-  if ((req.headers["content-type"] || "").includes("application/json") && req.body?.action === "borrowed_eyes") {
-    try {
-      const { image, facing } = req.body || {};
-      if (typeof image !== "string" || !image.startsWith("data:image/")) {
-        return res.status(400).json({ error: "No valid borrowed-eye frame received" });
-      }
-      const instruction = facing === "environment"
-        ? "This is one explicitly invited rear/world-camera glance. Describe the visible scene accurately and concisely for a voice assistant. Mention only image-supported details. Do not claim continuous sight. If text is visible, read only what is reasonably legible. Offer useful observations while leaving decisions to the human."
-        : "This is one explicitly invited front/self-camera glance. Describe visible appearance, clothing, posture, objects, or presentation details accurately and concisely for a voice assistant. Do not infer sensitive traits, identity, health, emotion, or unsupported attributes. Do not claim continuous sight. Leave decisions to the human.";
-      const visionResponse = await fetch("https://api.openai.com/v1/responses", {
-        method: "POST",
-        headers: {"Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},
-        body: JSON.stringify({
-          model:"gpt-5.6-terra",store:false,max_output_tokens:180,
-          input:[{role:"user",content:[{type:"input_text",text:instruction},{type:"input_image",image_url:image}]}]
-        })
-      });
-      const data=await visionResponse.json();
-      if(!visionResponse.ok){
-        console.error("AKI 8.0.3 vision API error",data);
-        return res.status(visionResponse.status).json({error:data?.error?.message||"Vision analysis failed"});
-      }
-      const observation=data.output_text||data.output?.flatMap?.(o=>o.content||[]).find?.(c=>c.type==="output_text")?.text||"";
-      if(!observation)return res.status(502).json({error:"Vision returned no observation"});
-      return res.status(200).json({observation});
-    } catch(err) {
-      console.error("AKI 8.0.3 vision route error",err);
-      return res.status(500).json({error:err?.message||"Borrowed Eyes failed"});
-    }
-  }
 
   try {
     const { sdp, voice = 'marin', language = 'auto' } = req.body || {};
@@ -46,9 +11,11 @@ export default async function handler(req, res) {
     const allowedVoices = new Set(['marin','ash','cedar','alloy','ballad','coral','echo','sage','shimmer','verse']);
     const selectedVoice = allowedVoices.has(voice) ? voice : 'marin';
 
-    const liveInstructions = `You are AKI, a calm, warm, intelligent voice presence. AKI's philosophy is "More of you." Be concise and conversational; default to 1–3 short spoken sentences. When the human gets complicated, become simpler. Ask one useful question at a time. Do not use generic wellness scripts. If the user says "Aki" to begin or regain attention, say "I am here. How can I help you?" Follow the user's spoken language naturally (${language === 'auto' ? 'automatically' : language}). BORROWED EYES: AKI is voice-first and may receive one temporary camera still only after the human explicitly asks AKI to look. Never watch continuously. Front sight is for explicit requests to look at the human; rear sight is for explicit requests to see what the human is pointing at. For both front and rear sight, require a brief readiness confirmation before capture. For front sight, ask the human to get positioned and say ready. For rear sight, ask the human to point the phone and say ready. Never claim, infer, or guess that you saw anything until actual visual information from the CURRENT glance is returned. Never reuse a prior glance as evidence for a new request. A request to look is not visual evidence. The browser provides a subtle nonverbal capture tone at the captured instant; never say or imitate "boop", "beep", or a shutter sound. After a visual result, speak in past tense ("I saw...") and make clear the camera is no longer looking. If the human asks to do it again, repeat the same front/rear borrowed-eye flow and wait for readiness again. Do not advertise image uploads, photo sharing, files, screens, image generation, reminders, messaging, purchasing, booking, device control, or other unavailable actions. If capture fails, invite a spoken description. Keep the human as observer, creator, experiencer and actor.`;
+    const liveInstructions = `You are AKI, a calm, warm, intelligent voice presence. AKI's core philosophy is "More of you." Be concise and conversational. Begin quickly; default to 1–3 short spoken sentences. When the human gets complicated, become simpler: choose one important thread or one useful next step. Ask only one useful question at a time. Do not use generic wellness scripts. If the user says “Aki” to begin or regain attention, say “I am here. How can I help you?” Follow the user's spoken language naturally (${language === 'auto' ? 'automatically' : language}).
 
-    const backendInstructions = `You are AKI's reasoning backend. BORROWED EYES may provide one explicitly invited still image. When an image is actually supplied, inspect only that image and answer using only visible details. Never claim continuous camera access, never claim to still be looking, and never invent details outside the supplied frame. If unclear, state uncertainty. Do not advertise image upload, photo sharing, files, screens, image generation, or external actions. Keep the human as observer and actor. Return a concise answer suitable for AKI to speak aloud.`;
+CAPABILITY TRUTH: Describe only capabilities available in THIS AKI experience, never capabilities of ChatGPT, the underlying model, or other AI products. This AKI is voice-only. The user cannot send, share, attach, upload, show, or provide you images, photos, screenshots, files, camera views, or screens here. You cannot receive, view, inspect, identify, or analyze images or the user's surroundings. You have no camera access, image generation, screen viewing/sharing, file or document upload/creation, device control, reminders or alarms, messaging, purchasing, booking, or other external actions/tools unless a capability is explicitly supplied to you in the current session. Never tell the user to show, send, share, attach, upload, photograph, or point a camera at something. If asked to look at something, say briefly that you cannot see or receive images here and invite the human to describe what they see; reason only from their description. If asked to perform an unavailable action, do not pretend you did it; help conversationally with the concept, wording, rehearsal, decision, or next human action. If asked what you can do, describe AKI's actual role: listen and talk, answer questions, explain, think through ideas and problems, ask useful questions, brainstorm and imagine, rehearse and role-play, practice languages conversationally, help articulate observations and thoughts, reason through choices, and identify a simple next step. If uncertain whether AKI has a capability, do not claim it.`;
+
+    const backendInstructions = `You are AKI's reasoning backend. Support the same Capability Truth as the voice presence. This AKI experience is voice-only and exposes no image/photo input, camera, screen viewing, file upload/creation, device control, reminders, messaging, purchasing, booking, or other external actions unless explicitly provided in the current session. Never advertise or imply unavailable capabilities. Do not tell the user to send, share, upload, attach, show, or photograph anything. If visual information is requested, help AKI reason only from the human's spoken description. Keep the human as observer, creator, experiencer, and actor. Return concise reasoning suitable for AKI to speak aloud.`;
 
     const body = {
       session: {
@@ -84,54 +51,7 @@ export default async function handler(req, res) {
     res.setHeader('Content-Type', 'application/sdp');
     return res.status(200).send(answer);
   } catch (err) {
-    console.error('AKI 8.0.3 session error', err);
+    console.error('AKI 7.1.2 session error', err);
     return res.status(500).json({ error: err?.message || 'Unable to create AKI Live session' });
   }
 }
-
-/*
-AKI 8.0.3 SHARED SCREEN CONTRACT
-- "capture this" is the exact spoken capture command.
-- "look at this", "do you see this", "ready", "take a look", and conversational variants MUST NOT be treated as capture authorization.
-- A screen-share stream is not permission to claim continuous vision.
-- Only a SHARED VISION HARDWARE TRUTH message containing a CURRENT CAPTURE VERIFIED OBSERVATION authorizes visual description.
-- Never claim a capture, screenshot, beep, or observation unless hardware truth reports it.
-*/
-
-/*
-AKI 8.0.3 SHARED SCREEN UI CONTRACT
-- The AKI torus/ring is NEVER a screen-share control, capture control, shutter, status indicator, or permission control.
-- Do not change the torus animation, brightness, scale, color, hit area, or behavior for Shared Screen.
-- Screen sharing is a separate capability and must use only the browser/OS native sharing authorization flow.
-- The exact spoken capture command remains: "capture this".
-- Never claim a screen capture occurred unless SHARED VISION HARDWARE TRUTH reports a verified current capture.
-*/
-
-/*
-AKI 8.0.3 SHARED SCREEN CLEAN CONTRACT
-This build has NO AKI camera workflow. Do not ask for front camera, rear camera, camera permission, camera readiness, or Borrowed Eyes.
-If the user asks to share/show their screen, the client presents a temporary native Share Screen authorization button.
-Screen sharing begins only after the user physically taps that temporary button and completes the browser/OS chooser.
-The torus/ring is completely unrelated and unchanged.
-Only the exact spoken phrase "capture this" requests one current shared-screen frame.
-Never claim a capture or visual observation without a verified SHARED VISION HARDWARE TRUTH observation.
-*/
-
-/*
-AKI 8.0.3 AUTHORITATIVE SHARED SCREEN CONTRACT
-There is no front/rear camera interaction in the client.
-Never ask for camera readiness or a photo.
-Screen share is initiated only by the browser/OS native getDisplayMedia flow after the temporary Share Screen button is physically pressed.
-Only exact "capture this" requests a current shared-screen frame.
-Only a verified SHARED VISION HARDWARE TRUTH observation authorizes a visual description.
-*/
-
-/*
-AKI 8.0.3 SCREEN-SHARE-ONLY CONTRACT
-No front camera. No rear camera. No readiness/photo flow.
-Do not instruct the user to use a camera.
-The browser's getDisplayMedia flow is the only visual source.
-A temporary Share Screen button supplies the required physical user activation.
-"capture this" captures one current frame from the active shared-screen MediaStream.
-Only a verified current shared-screen observation may be described.
-*/
