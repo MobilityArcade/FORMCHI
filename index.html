@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=45">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=45">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=45">
-<title>AKI 8.0 — Shared Screen</title>
+<title>AKI 8.0.1 — Shared Screen Clean Build</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}
 body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
@@ -60,6 +60,15 @@ body.borrowed-eyes-live #orb{
  position:relative;z-index:5;opacity:.76;
 }
 body.borrowed-eyes-live{cursor:pointer}
+
+#akiShareScreenPrompt{
+ position:fixed;left:50%;bottom:34px;transform:translateX(-50%);
+ z-index:10000;display:none;appearance:none;border:1px solid rgba(255,255,255,.28);
+ border-radius:999px;padding:12px 20px;background:rgba(5,7,14,.82);
+ color:#fff;font:500 14px/1 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+ letter-spacing:.02em;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+}
+#akiShareScreenPrompt.show{display:block}
 </style>
 
 <style id="aki-icon-match">
@@ -89,6 +98,8 @@ body.borrowed-eyes-live{cursor:pointer}
 </style>
 </head>
 <body>
+<button id="akiShareScreenPrompt" type="button">Share Screen</button>
+
 <video id="akiSharedScreen" playsinline muted style="position:fixed;inset:0;width:1px;height:1px;opacity:.001;pointer-events:none"></video>
 
 <video id="borrowedView" playsinline muted></video><div id="borrowedShade"></div>
@@ -99,6 +110,29 @@ body.borrowed-eyes-live{cursor:pointer}
   <svg id="akiButton" class="mark" viewBox="0 0 210 90" role="button" tabindex="0" aria-label="Turn AKI on" aria-pressed="false"><path d="M15 72 L45 18 L75 72 M95 18 L95 72 M96 48 L142 18 M96 48 L144 72 M172 18 L172 72"/></svg>
 </main>
 <script>
+const akiShareScreenPrompt=document.getElementById('akiShareScreenPrompt');
+function normalizeAkiCommand(text){
+ return String(text||'').toLowerCase().replace(/[.,!?]/g,' ').replace(/\s+/g,' ').trim();
+}
+function isShareScreenIntent(text){
+ const t=normalizeAkiCommand(text);
+ return t==='share my screen'||t==='i want to share my screen'||t==='let me share my screen'||
+        t==='share screen'||t==='show you my screen'||t==='i want to show you my screen';
+}
+function offerNativeScreenShare(){
+ if(sharedVision.active){
+  sendSharedVisionTruth('Screen sharing is already active. Do not ask for camera access.');
+  return;
+ }
+ akiShareScreenPrompt?.classList.add('show');
+ sendSharedVisionTruth('The user asked to share their screen. A temporary Share Screen button is visible. Say briefly: "Tap Share Screen." Do not mention front or rear cameras.');
+}
+akiShareScreenPrompt?.addEventListener('click',async(e)=>{
+ e.preventDefault();e.stopPropagation();
+ const ok=await startSharedVision();
+ if(ok)akiShareScreenPrompt.classList.remove('show');
+});
+
 const akiSharedScreen=document.getElementById('akiSharedScreen');
 let sharedVision={stream:null,active:false,busy:false,captureSeq:0};
 
@@ -130,11 +164,11 @@ async function startSharedVision(){
    sharedVision.active=false;sharedVision.stream=null;akiSharedScreen.srcObject=null;
    sendSharedVisionTruth('Screen sharing has ended. You cannot currently see the screen.');
   },{once:true});
-  console.log('[AKI 8.0 SHARED VISION ACTIVE]',track.getSettings?.()||{});
+  console.log('[AKI 8.0.1 SHARED VISION ACTIVE]',track.getSettings?.()||{});
   sendSharedVisionTruth('A user-authorized screen share is active. Do not describe it continuously. Wait for the exact capture command "capture this".');
   return true;
  }catch(e){
-  console.error('[AKI 8.0 SHARE FAILED]',e?.name,e?.message);
+  console.error('[AKI 8.0.1 SHARE FAILED]',e?.name,e?.message);
   sendSharedVisionTruth('Screen sharing did not start. You cannot see the screen.');
   return false;
  }
@@ -158,7 +192,7 @@ async function captureSharedVision(){
 
   // Beep is the receipt: it only happens after a real current frame exists.
   await captureBoop();
-  console.log('[AKI 8.0 CAPTURE RECEIPT]',{captureId,w,h,bytes:image.length});
+  console.log('[AKI 8.0.1 CAPTURE RECEIPT]',{captureId,w,h,bytes:image.length});
 
   const r=await fetch('/api/aki',{method:'POST',headers:{'Content-Type':'application/json'},
    body:JSON.stringify({action:'borrowed_eyes',facing:'shared_screen',image,glanceId:captureId})});
@@ -167,17 +201,22 @@ async function captureSharedVision(){
   sendSharedVisionTruth('CURRENT CAPTURE '+captureId+' VERIFIED OBSERVATION: '+p.observation+
    ' Respond naturally about only this captured screen frame. Do not claim continuous sight.');
  }catch(e){
-  console.error('[AKI 8.0 CAPTURE FAILED]',captureId,e?.name,e?.message);
+  console.error('[AKI 8.0.1 CAPTURE FAILED]',captureId,e?.name,e?.message);
   sendSharedVisionTruth('The current capture failed. No new visual observation exists. Do not guess or reuse an older image.');
  }finally{sharedVision.busy=false}
 }
 
 // Exact spoken command. Similar phrases intentionally do NOT capture.
 function handleSharedVisionTranscript(text){
- const t=String(text||'').toLowerCase().replace(/[.,!?]/g,' ').replace(/\s+/g,' ').trim();
+ const t=normalizeAkiCommand(text);
+ if(isShareScreenIntent(t)){
+  offerNativeScreenShare();
+  return true;
+ }
+ // Exact capture command only.
  if(t==='capture this'){
   if(sharedVision.active)captureSharedVision();
-  else sendSharedVisionTruth('The user said the exact capture command, but no screen share is active. Do not claim a capture occurred.');
+  else sendSharedVisionTruth('The user said "capture this", but no screen share is active. No capture occurred. Say briefly: "Share your screen first."');
   return true;
  }
  return false;
@@ -185,7 +224,7 @@ function handleSharedVisionTranscript(text){
 
 function setSightHW(next,detail={}){
  borrowedEyeState.hw=next;
- console.log('[AKI 8.0 HW]',next,detail);
+ console.log('[AKI 8.0.1 HW]',next,detail);
 }
 function hardwareTruth(text){
  // This is the only channel by which conversational AKI learns sight status.
@@ -236,7 +275,7 @@ function sendLiveUserText(text){
  try{
   dc.send(JSON.stringify({type:'response.item.create',item:{type:'message',role:'user',content:[{type:'input_text',text}]}}));
   dc.send(JSON.stringify({type:'response.create'}));return true;
- }catch(e){console.error('[AKI 8.0 text]',e?.name,e?.message,e);return false}
+ }catch(e){console.error('[AKI 8.0.1 text]',e?.name,e?.message,e);return false}
 }
 async function captureBoop(){
  try{
@@ -246,7 +285,7 @@ async function captureBoop(){
   o.type='sine';o.frequency.setValueAtTime(720,t);o.frequency.exponentialRampToValueAtTime(1120,t+.13);
   g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.55,t+.018);g.gain.exponentialRampToValueAtTime(.0001,t+.23);
   o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+.24);
- }catch(e){console.warn('[AKI 8.0 capture-tone]',e?.name,e?.message)}
+ }catch(e){console.warn('[AKI 8.0.1 capture-tone]',e?.name,e?.message)}
 }
 async function stopBorrowedEyesCamera(){
  try{
@@ -257,7 +296,7 @@ async function stopBorrowedEyesCamera(){
   document.body.classList.remove('borrowed-eyes-live');
   if(borrowedEyeState.hw==='VIEWFINDER_LIVE'||borrowedEyeState.hw==='OPENING_CAMERA')setSightHW('VOICE_ONLY');
   if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null}
- }catch(e){console.warn('[AKI 8.0 camera-stop]',e?.name,e?.message)}
+ }catch(e){console.warn('[AKI 8.0.1 camera-stop]',e?.name,e?.message)}
 }
 async function prepareOptionalSight(){
  const md=navigator.mediaDevices;if(!md?.getUserMedia){borrowedEyeState.cameraPermission='unavailable';return}
@@ -271,10 +310,10 @@ async function prepareOptionalSight(){
   const rear=devices.find(d=>/(back|rear|environment|world)/i.test(d.label||'')&&!/(ultra|tele)/i.test(d.label||''))||
              devices.find(d=>/(back|rear|environment|world|wide|ultra)/i.test(d.label||''));
   borrowedEyeState.frontDeviceId=front?.deviceId||null;borrowedEyeState.rearDeviceId=rear?.deviceId||null;
-  console.log('[AKI 8.0 sight-ready]',{cameras:devices.map(d=>d.label),front:front?.label,rear:rear?.label});
+  console.log('[AKI 8.0.1 sight-ready]',{cameras:devices.map(d=>d.label),front:front?.label,rear:rear?.label});
  }catch(e){
   borrowedEyeState.cameraPermission=e?.name==='NotAllowedError'?'denied':'unavailable';
-  console.log('[AKI 8.0 sight-optional]',e?.name,e?.message);
+  console.log('[AKI 8.0.1 sight-optional]',e?.name,e?.message);
  }finally{if(stream)stream.getTracks().forEach(t=>t.stop())}
 }
 async function openBorrowedCamera(facing){
@@ -288,7 +327,7 @@ async function openBorrowedCamera(facing){
    const settings=cameraStream.getVideoTracks()[0]?.getSettings?.()||{};
    if(settings.facingMode&&settings.facingMode!==facing){await stopBorrowedEyesCamera();throw new Error('Known camera mismatch')}
    return cameraStream;
-  }catch(e){await stopBorrowedEyesCamera();console.warn('[AKI 8.0 known-camera-failed]',facing,e?.name,e?.message)}
+  }catch(e){await stopBorrowedEyesCamera();console.warn('[AKI 8.0.1 known-camera-failed]',facing,e?.name,e?.message)}
  }
  if(!mobile){
   cameraStream=await md.getUserMedia({video:{width:{ideal:1280},height:{ideal:720}},audio:false});
@@ -297,10 +336,10 @@ async function openBorrowedCamera(facing){
  try{
   cameraStream=await md.getUserMedia({video:{facingMode:{exact:facing},width:{ideal:1280},height:{ideal:720}},audio:false});
   const settings=cameraStream.getVideoTracks()[0]?.getSettings?.()||{};
-  console.log('[AKI 8.0 facing-request]',{requested:facing,actual:settings.facingMode,label:cameraStream.getVideoTracks()[0]?.label});
+  console.log('[AKI 8.0.1 facing-request]',{requested:facing,actual:settings.facingMode,label:cameraStream.getVideoTracks()[0]?.label});
   if(settings.facingMode&&settings.facingMode!==facing){await stopBorrowedEyesCamera();throw new Error('Wrong camera returned')}
   return cameraStream;
- }catch(err){await stopBorrowedEyesCamera();console.warn('[AKI 8.0 facing-failed]',facing,err?.name,err?.message)}
+ }catch(err){await stopBorrowedEyesCamera();console.warn('[AKI 8.0.1 facing-failed]',facing,err?.name,err?.message)}
  let devices=[];try{devices=(await md.enumerateDevices()).filter(d=>d.kind==='videoinput')}catch{}
  const wanted=facing==='environment'?/(back|rear|environment|world|wide|ultra)/i:/(front|facetime|user|selfie)/i;
  const matches=devices.filter(d=>wanted.test(d.label||''));
@@ -344,7 +383,7 @@ async function openBorrowedViewfinder(facing){
     '. It has NOT captured anything. Tell the user briefly: "Tap me when you want me to look." Do not claim a capture until hardware confirms one.');
   return true;
  }catch(e){
-  console.error('[AKI 8.0 viewfinder-failed]',{glanceId,facing,name:e?.name,message:e?.message});
+  console.error('[AKI 8.0.1 viewfinder-failed]',{glanceId,facing,name:e?.name,message:e?.message});
   await stopBorrowedEyesCamera();
   if(glanceId===borrowedEyeState.activeGlance){
    setSightHW('FAILED',{glanceId,stage:'open'});
@@ -407,7 +446,7 @@ async function borrowedEyesBlink(facing){
   borrowedEyeState.capturedGlance=glanceId;
   setSightHW('FRAME_VERIFIED',{glanceId,w,h,bytes:frame.length,mean,variance});
   await captureBoop();
-  console.log('[AKI 8.0 BEEP RECEIPT]',{glanceId});
+  console.log('[AKI 8.0.1 BEEP RECEIPT]',{glanceId});
   await stopBorrowedEyesCamera();
   setSightHW('ANALYZING',{glanceId});
 
@@ -424,7 +463,7 @@ async function borrowedEyesBlink(facing){
   hardwareTruth('Verified observation for CURRENT glance '+glanceId+': '+payload.observation+
    ' The camera is OFF. Speak naturally in past tense about only this observation. Never claim continuous sight.');
  }catch(e){
-  console.error('[AKI 8.0 capture-failed]',{glanceId,name:e?.name,message:e?.message,facing});
+  console.error('[AKI 8.0.1 capture-failed]',{glanceId,name:e?.name,message:e?.message,facing});
   await stopBorrowedEyesCamera();
   if(glanceId===borrowedEyeState.activeGlance){
    setSightHW('FAILED',{glanceId,stage:'capture'});
@@ -435,40 +474,7 @@ async function borrowedEyesBlink(facing){
   if(glanceId===borrowedEyeState.activeGlance && borrowedEyeState.hw!=='OBSERVATION_VERIFIED') setSightHW('VOICE_ONLY',{glanceId});
  }
 }
-async function legacyBorrowedEyesIntentDisabled(text){
- const t=normalizedSpeech(text);
 
- if(borrowedEyeState.pending&&isReadyIntent(t)){
-  if(Date.now()<borrowedEyeState.readyNotBefore){
-   console.log('[AKI 8.0 ready-gate] ignored premature ready fragment');
-   return true;
-  }
-  const facing=borrowedEyeState.pending;borrowedEyeState.pending=null;borrowedEyeState.readyNotBefore=0;
-  await borrowedEyesBlink(facing);return true;
- }
- if(isRetakeIntent(t)&&borrowedEyeState.lastFacing){
-  borrowedEyeState.pending=borrowedEyeState.lastFacing;borrowedEyeState.readyNotBefore=Date.now()+1800;
-  const front=borrowedEyeState.lastFacing==='user';
-  const opened=await openBorrowedViewfinder(borrowedEyeState.lastFacing);
-  if(!opened)return true;
-  sendLiveUserText(front
-   ?'BORROWED EYES CONTROL: The human asked to repeat the last front-camera blink. Say briefly: "Absolutely. Get how you want to be and tell me when you’re ready."'
-   :'BORROWED EYES CONTROL: The human asked to repeat the last rear-camera blink. Say briefly: "Absolutely. Point me at it again and tell me when you’re ready."');
-  return true;
- }
-
- const intent=visionIntent(t);
- if(intent){
-  borrowedEyeState.pending=intent;borrowedEyeState.lastFacing=intent;borrowedEyeState.readyNotBefore=Date.now()+1800;
-  const opened=await openBorrowedViewfinder(intent);
-  if(!opened)return true;
-  sendLiveUserText(intent==='user'
-   ?'BORROWED EYES CONTROL: The human explicitly invited one front-camera look. Do not capture or claim you saw anything yet. Say briefly: "Okay. Get how you want to be and tell me when you’re ready."'
-   :'BORROWED EYES CONTROL: The human explicitly invited one rear-camera look. Do not capture or claim you saw anything yet. Say briefly: "Okay. Point your phone at it and tell me when you’re ready."');
-  return true;
- }
- return false;
-}
 
 function powerLook(mode){
   akiButton.classList.remove('on','starting','error');
@@ -484,7 +490,7 @@ function chime(){
       g.gain.setValueAtTime(0,t+i*.055);g.gain.linearRampToValueAtTime(.022,t+.025+i*.055);g.gain.exponentialRampToValueAtTime(.0001,t+.32+i*.055);
       o.connect(g);g.connect(audioCtx.destination);o.start(t+i*.055);o.stop(t+.36+i*.055)})}catch{}
 }
-function latency(label,extra={}){console.log('[AKI 8.0 latency]',label,{at:new Date().toISOString(),...extra})}
+function latency(label,extra={}){console.log('[AKI 8.0.1 latency]',label,{at:new Date().toISOString(),...extra})}
 function turnEnded(){
   turnEndAt=performance.now();responseStartAt=firstAudioAt=0;
   latency('user-turn-ended');chime();
@@ -555,7 +561,7 @@ function absorbTranscript(m){
  const isInput=/input.*transcript|transcript.*input/.test(type)||/input.*transcript|transcript.*input/.test(nested);
  if(!isInput)return;
  const d=(typeof m.delta==='string'?m.delta:'')||(typeof m.transcript==='string'?m.transcript:'')||(typeof m.event?.delta==='string'?m.event.delta:'')||(typeof m.event?.transcript==='string'?m.event.transcript:'');
- if(d){transcript+=d;clearTimeout(preferenceTimer);preferenceTimer=setTimeout(()=>{const h=transcript;transcript='';handleVoiceIntent(h);handleBorrowedEyesIntent(h)},500)}
+ if(d){transcript+=d;clearTimeout(preferenceTimer);preferenceTimer=setTimeout(()=>{const h=transcript;transcript='';handleVoiceIntent(h);false},500)}
 }
 
 async function stopAki(keepLook=false){
@@ -588,13 +594,13 @@ async function startAki(){
   dc.addEventListener('message',e=>{try{const m=JSON.parse(e.data),type=m.type||'',nested=m.event?.type||'',all=(type+' '+nested).toLowerCase();
     if(type==='session.started'){powered=true;
   // Ask once for optional sight permission. Declining never disables voice.
-  if(borrowedEyeState.cameraPermission==='unknown')setTimeout(()=>prepareOptionalSight(),250);
+  /* AKI 8.0.1: camera enrollment removed */
 powerLook('on');latency('session-started',{voice:m.session?.audio?.output?.voice||m.session?.voice||akiVoice})}
     absorbTranscript(m);
     if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
     if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('delegation.created'))responseStarted();
     if(all.includes('output_audio.delta')||all.includes('audio.delta'))firstAudio();
-    if(type==='error')console.error('[AKI 8.0 Live error]',{type:m.type,code:m.error?.code||m.code,message:m.error?.message||m.message,param:m.error?.param||m.param,event:m})
+    if(type==='error')console.error('[AKI 8.0.1 Live error]',{type:m.type,code:m.error?.code||m.code,message:m.error?.message||m.message,param:m.error?.param||m.param,event:m})
   }catch{}});
   pc.addEventListener('connectionstatechange',()=>{const cs=pc?.connectionState;latency('connection-state',{state:cs});if(['failed','closed'].includes(cs)&&powered&&!restarting)stopAki()});
   const offer=await pc.createOffer();await pc.setLocalDescription(offer);const localSdp=pc.localDescription?.sdp||offer.sdp;
@@ -618,7 +624,7 @@ document.addEventListener('pointerup',async(ev)=>{
  ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation();
  const facing=borrowedEyeState.pending||borrowedEyeState.lastFacing;
  if(!facing)return;
- console.log('[AKI 8.0 PHYSICAL SHUTTER]',{facing,glanceId:borrowedEyeState.activeGlance});
+ console.log('[AKI 8.0.1 PHYSICAL SHUTTER]',{facing,glanceId:borrowedEyeState.activeGlance});
  await borrowedEyesBlink(facing);
 },{capture:true});
 
@@ -628,7 +634,7 @@ document.addEventListener('click',async(ev)=>{
  ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation();
  const facing=borrowedEyeState.pending||borrowedEyeState.lastFacing;
  if(!facing)return;
- console.log('[AKI 8.0 PHYSICAL SHUTTER FALLBACK]',{facing,glanceId:borrowedEyeState.activeGlance});
+ console.log('[AKI 8.0.1 PHYSICAL SHUTTER FALLBACK]',{facing,glanceId:borrowedEyeState.activeGlance});
  await borrowedEyesBlink(facing);
 },{capture:true});
 
