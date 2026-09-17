@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=45">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=45">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=45">
-<title>AKI 7.1.3 — Show Me</title>
+<title>AKI 7.1.3.1 — Show Me / iOS Fix</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}
 body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
@@ -100,7 +100,7 @@ function chime(){
       g.gain.setValueAtTime(0,t+i*.055);g.gain.linearRampToValueAtTime(.022,t+.025+i*.055);g.gain.exponentialRampToValueAtTime(.0001,t+.32+i*.055);
       o.connect(g);g.connect(audioCtx.destination);o.start(t+i*.055);o.stop(t+.36+i*.055)})}catch{}
 }
-function latency(label,extra={}){console.log('[AKI 7.1.3 latency]',label,{at:new Date().toISOString(),...extra})}
+function latency(label,extra={}){console.log('[AKI 7.1.3.1 latency]',label,{at:new Date().toISOString(),...extra})}
 function turnEnded(){
   turnEndAt=performance.now();responseStartAt=firstAudioAt=0;
   latency('user-turn-ended');chime();
@@ -210,39 +210,78 @@ async function startAki(){
  }catch(err){console.error('AKI 7.1.3 start error:',err);await stopAki();powerLook('error')}finally{starting=false}
 }
 
-function fileToDataURL(file){
- return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(r.error||new Error('Could not read image'));r.readAsDataURL(file)})
+function canvasToDataURL(canvas,type='image/jpeg',quality=.84){
+ return canvas.toDataURL(type,quality);
+}
+async function normalizeImageForIOS(file){
+ // iPhone Photos commonly returns HEIC/HEIF or very large camera images.
+ // Decode locally and re-encode to a modest JPEG before upload. This also
+ // avoids sending multi-megabyte base64 payloads through the Live data channel.
+ const objectUrl=URL.createObjectURL(file);
+ try{
+   const img=new Image();
+   img.decoding='async';
+   await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(new Error('This image could not be decoded on this device'));img.src=objectUrl});
+   const sourceW=img.naturalWidth||img.width,sourceH=img.naturalHeight||img.height;
+   if(!sourceW||!sourceH)throw new Error('The selected image has no readable dimensions');
+   const maxSide=1600;
+   const scale=Math.min(1,maxSide/Math.max(sourceW,sourceH));
+   const w=Math.max(1,Math.round(sourceW*scale)),h=Math.max(1,Math.round(sourceH*scale));
+   const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+   const ctx=canvas.getContext('2d',{alpha:false});
+   if(!ctx)throw new Error('Image conversion is unavailable');
+   ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);
+   return {dataUrl:canvasToDataURL(canvas,'image/jpeg',.84),width:w,height:h};
+ }finally{URL.revokeObjectURL(objectUrl)}
+}
+function speakVerifiedObservation(observation){
+ if(!observation||!dc||dc.readyState!=='open')throw new Error('AKI voice session is not ready for the image result');
+ const id='show_me_verified_'+Date.now();
+ dc.send(JSON.stringify({
+   type:'response.item.create',event_id:id,
+   item:{type:'message',role:'user',content:[{type:'input_text',text:`SHOW ME VERIFIED IMAGE RESULT. A separate vision step successfully inspected the exact image I deliberately selected. Its grounded observation is:\n${observation}\n\nRespond naturally as AKI. Acknowledge only details contained in that verified observation. Do not claim continuous sight or access to anything beyond this one selected image. Ask what I want to figure out only if that is the natural next step.`}]}
+ }));
+ dc.send(JSON.stringify({type:'response.create',event_id:id+'_respond'}));
 }
 async function shareImage(file){
  if(!file||imageBusy)return;
- if(!file.type?.startsWith('image/')){console.warn('[AKI 7.1.3] rejected non-image');return}
+ // iOS may report HEIC/HEIF inconsistently, so accept image MIME types and
+ // common photo extensions, then prove decodability during normalization.
+ const looksImage=file.type?.startsWith('image/')||/\.(heic|heif|jpe?g|png|webp|gif)$/i.test(file.name||'');
+ if(!looksImage){console.warn('[AKI 7.1.3.1] rejected non-image');return}
  imageBusy=true;
  try{
    if(!powered||!dc||dc.readyState!=='open')await startAki();
-   const deadline=Date.now()+10000;
+   const deadline=Date.now()+12000;
    while((!dc||dc.readyState!=='open')&&Date.now()<deadline)await new Promise(r=>setTimeout(r,80));
    if(!dc||dc.readyState!=='open')throw new Error('AKI voice session is not ready');
-   const imageUrl=await fileToDataURL(file);
-   const id='show_me_'+Date.now();
-   dc.send(JSON.stringify({
-     type:'response.item.create',event_id:id,
-     item:{type:'message',role:'user',content:[
-       {type:'input_text',text:'I am deliberately showing you this image now. Look at the actual image before responding. Briefly acknowledge something you can genuinely observe, then continue naturally with me about it. Do not invent details.'},
-       {type:'input_image',image_url:imageUrl,detail:'auto'}
-     ]}
-   }));
-   dc.send(JSON.stringify({type:'response.create',event_id:id+'_respond'}));
-   latency('show-me-image-sent',{name:file.name||'image',type:file.type,size:file.size});
+
+   latency('show-me-selected',{name:file.name||'image',type:file.type||'unknown',size:file.size});
+   const normalized=await normalizeImageForIOS(file);
+   latency('show-me-normalized',{width:normalized.width,height:normalized.height,encoded_chars:normalized.dataUrl.length});
+
+   const r=await fetch('/api/show-me',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:normalized.dataUrl})});
+   const payload=await r.json().catch(()=>({}));
+   if(!r.ok||!payload?.ok||!payload?.observation)throw new Error(payload?.error||`Image analysis failed (${r.status})`);
+
+   latency('show-me-verified',{observation_chars:payload.observation.length});
+   speakVerifiedObservation(payload.observation);
  }catch(err){
-   console.error('[AKI 7.1.3 Show Me error]',err);
+   console.error('[AKI 7.1.3.1 Show Me error]',err);
    if(dc?.readyState==='open'){
-     try{dc.send(JSON.stringify({type:'session.commentary.append',delegation_id:null,content:'The image did not come through successfully. Tell the user briefly that you did not receive it and ask them to try again. Do not claim to have seen it.'}))}catch{}
+     try{
+       const id='show_me_failed_'+Date.now();
+       dc.send(JSON.stringify({type:'response.item.create',event_id:id,item:{type:'message',role:'user',content:[{type:'input_text',text:'SHOW ME FAILED: The image I selected was not successfully received or analyzed. Tell me briefly that the image did not come through and ask me to try another image. Do not claim you saw it.'}]}}));
+       dc.send(JSON.stringify({type:'response.create',event_id:id+'_respond'}));
+     }catch{}
    }
  }finally{imageBusy=false;imagePicker.value=''}
 }
 function openImagePicker(){
  if(imageBusy)return;
  imagePicker.value='';
+ // iOS Safari owns the Photo Library / Take Photo / Choose File source sheet.
+ // We intentionally keep accept=image/* so every accepted result must be an image.
  imagePicker.click();
 }
 imagePicker.addEventListener('change',()=>{const f=imagePicker.files?.[0];if(f)shareImage(f)});
