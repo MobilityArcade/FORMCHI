@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=45">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=45">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=45">
-<title>AKI 7.3 — Borrowed Eyes Viewfinder</title>
+<title>AKI 7.3.1 — Hardware Truth</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}
 body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
@@ -87,6 +87,22 @@ body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
   <svg id="akiButton" class="mark" viewBox="0 0 210 90" role="button" tabindex="0" aria-label="Turn AKI on" aria-pressed="false"><path d="M15 72 L45 18 L75 72 M95 18 L95 72 M96 48 L142 18 M96 48 L144 72 M172 18 L172 72"/></svg>
 </main>
 <script>
+function setSightHW(next,detail={}){
+ borrowedEyeState.hw=next;
+ console.log('[AKI 7.3.1 HW]',next,detail);
+}
+function hardwareTruth(text){
+ // This is the only channel by which conversational AKI learns sight status.
+ sendLiveUserText('HARDWARE TRUTH — '+text);
+}
+function newGlance(facing){
+ const id=++borrowedEyeState.glanceSeq;
+ borrowedEyeState.activeGlance=id;
+ borrowedEyeState.capturedGlance=0;
+ borrowedEyeState.pending=facing;
+ return id;
+}
+
 const borrowedView=document.getElementById('borrowedView');
 const borrowedShade=document.getElementById('borrowedShade');
 
@@ -98,7 +114,11 @@ let latencyTimer=null,hardWatchdog=null,preferenceTimer=null;
 let akiVoice=localStorage.getItem('akiVoice')||'marin';
 let akiLanguage=localStorage.getItem('akiLanguage')||'auto';
 
-let borrowedEyeState={pending:null,busy:false,lastFacing:null,readyNotBefore:0,cameraPermission:'unknown',frontDeviceId:null,rearDeviceId:null,viewfinder:false};
+let borrowedEyeState={
+ pending:null,busy:false,lastFacing:null,readyNotBefore:0,cameraPermission:'unknown',
+ frontDeviceId:null,rearDeviceId:null,viewfinder:false,
+ hw:'VOICE_ONLY',glanceSeq:0,activeGlance:0,capturedGlance:0
+};
 let cameraStream=null;
 
 function visionIntent(text){
@@ -120,7 +140,7 @@ function sendLiveUserText(text){
  try{
   dc.send(JSON.stringify({type:'response.item.create',item:{type:'message',role:'user',content:[{type:'input_text',text}]}}));
   dc.send(JSON.stringify({type:'response.create'}));return true;
- }catch(e){console.error('[AKI 7.3 text]',e?.name,e?.message,e);return false}
+ }catch(e){console.error('[AKI 7.3.1 text]',e?.name,e?.message,e);return false}
 }
 async function captureBoop(){
  try{
@@ -128,17 +148,18 @@ async function captureBoop(){
   if(audioCtx.state==='suspended')await audioCtx.resume();
   const t=audioCtx.currentTime,o=audioCtx.createOscillator(),g=audioCtx.createGain();
   o.type='sine';o.frequency.setValueAtTime(720,t);o.frequency.exponentialRampToValueAtTime(1120,t+.13);
-  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.38,t+.018);g.gain.exponentialRampToValueAtTime(.0001,t+.23);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.55,t+.018);g.gain.exponentialRampToValueAtTime(.0001,t+.23);
   o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+.24);
- }catch(e){console.warn('[AKI 7.3 capture-tone]',e?.name,e?.message)}
+ }catch(e){console.warn('[AKI 7.3.1 capture-tone]',e?.name,e?.message)}
 }
 async function stopBorrowedEyesCamera(){
  try{
   if(borrowedView){borrowedView.pause();borrowedView.srcObject=null;borrowedView.classList.remove('active')}
   if(borrowedShade)borrowedShade.classList.remove('active');
   borrowedEyeState.viewfinder=false;
+  if(borrowedEyeState.hw==='VIEWFINDER_LIVE'||borrowedEyeState.hw==='OPENING_CAMERA')setSightHW('VOICE_ONLY');
   if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null}
- }catch(e){console.warn('[AKI 7.3 camera-stop]',e?.name,e?.message)}
+ }catch(e){console.warn('[AKI 7.3.1 camera-stop]',e?.name,e?.message)}
 }
 async function prepareOptionalSight(){
  const md=navigator.mediaDevices;if(!md?.getUserMedia){borrowedEyeState.cameraPermission='unavailable';return}
@@ -152,10 +173,10 @@ async function prepareOptionalSight(){
   const rear=devices.find(d=>/(back|rear|environment|world)/i.test(d.label||'')&&!/(ultra|tele)/i.test(d.label||''))||
              devices.find(d=>/(back|rear|environment|world|wide|ultra)/i.test(d.label||''));
   borrowedEyeState.frontDeviceId=front?.deviceId||null;borrowedEyeState.rearDeviceId=rear?.deviceId||null;
-  console.log('[AKI 7.3 sight-ready]',{cameras:devices.map(d=>d.label),front:front?.label,rear:rear?.label});
+  console.log('[AKI 7.3.1 sight-ready]',{cameras:devices.map(d=>d.label),front:front?.label,rear:rear?.label});
  }catch(e){
   borrowedEyeState.cameraPermission=e?.name==='NotAllowedError'?'denied':'unavailable';
-  console.log('[AKI 7.3 sight-optional]',e?.name,e?.message);
+  console.log('[AKI 7.3.1 sight-optional]',e?.name,e?.message);
  }finally{if(stream)stream.getTracks().forEach(t=>t.stop())}
 }
 async function openBorrowedCamera(facing){
@@ -169,7 +190,7 @@ async function openBorrowedCamera(facing){
    const settings=cameraStream.getVideoTracks()[0]?.getSettings?.()||{};
    if(settings.facingMode&&settings.facingMode!==facing){await stopBorrowedEyesCamera();throw new Error('Known camera mismatch')}
    return cameraStream;
-  }catch(e){await stopBorrowedEyesCamera();console.warn('[AKI 7.3 known-camera-failed]',facing,e?.name,e?.message)}
+  }catch(e){await stopBorrowedEyesCamera();console.warn('[AKI 7.3.1 known-camera-failed]',facing,e?.name,e?.message)}
  }
  if(!mobile){
   cameraStream=await md.getUserMedia({video:{width:{ideal:1280},height:{ideal:720}},audio:false});
@@ -178,10 +199,10 @@ async function openBorrowedCamera(facing){
  try{
   cameraStream=await md.getUserMedia({video:{facingMode:{exact:facing},width:{ideal:1280},height:{ideal:720}},audio:false});
   const settings=cameraStream.getVideoTracks()[0]?.getSettings?.()||{};
-  console.log('[AKI 7.3 facing-request]',{requested:facing,actual:settings.facingMode,label:cameraStream.getVideoTracks()[0]?.label});
+  console.log('[AKI 7.3.1 facing-request]',{requested:facing,actual:settings.facingMode,label:cameraStream.getVideoTracks()[0]?.label});
   if(settings.facingMode&&settings.facingMode!==facing){await stopBorrowedEyesCamera();throw new Error('Wrong camera returned')}
   return cameraStream;
- }catch(err){await stopBorrowedEyesCamera();console.warn('[AKI 7.3 facing-failed]',facing,err?.name,err?.message)}
+ }catch(err){await stopBorrowedEyesCamera();console.warn('[AKI 7.3.1 facing-failed]',facing,err?.name,err?.message)}
  let devices=[];try{devices=(await md.enumerateDevices()).filter(d=>d.kind==='videoinput')}catch{}
  const wanted=facing==='environment'?/(back|rear|environment|world|wide|ultra)/i:/(front|facetime|user|selfie)/i;
  const matches=devices.filter(d=>wanted.test(d.label||''));
@@ -198,27 +219,41 @@ async function openBorrowedCamera(facing){
 async function openBorrowedViewfinder(facing){
  if(borrowedEyeState.busy)return false;
  borrowedEyeState.busy=true;
+ const glanceId=newGlance(facing);
+ setSightHW('OPENING_CAMERA',{glanceId,facing});
  try{
   await openBorrowedCamera(facing);
+  if(glanceId!==borrowedEyeState.activeGlance)throw new Error('Superseded glance');
+  const track=cameraStream?.getVideoTracks?.()[0];
+  if(!track||track.readyState!=='live')throw new Error('Camera track is not live');
+
   borrowedView.srcObject=cameraStream;
   borrowedView.classList.add('active');
   borrowedShade.classList.add('active');
   await borrowedView.play();
   await waitForVideo(borrowedView);
+
+  // Require real video dimensions and a live track before conversational confirmation.
+  if(borrowedView.videoWidth<2||borrowedView.videoHeight<2||track.readyState!=='live')
+    throw new Error('Viewfinder never became physically live');
+
   borrowedEyeState.viewfinder=true;
-  console.log('[AKI 7.3 viewfinder-ready]',{facing,settings:cameraStream.getVideoTracks()[0]?.getSettings?.()});
+  setSightHW('VIEWFINDER_LIVE',{glanceId,facing,w:borrowedView.videoWidth,h:borrowedView.videoHeight,
+    settings:track.getSettings?.()||{}});
+  hardwareTruth('A live camera viewfinder is physically open now for glance '+glanceId+
+    '. It has NOT captured anything. You may say only: "I’m ready when you are." Wait for a separate user Ready.');
   return true;
  }catch(e){
-  console.error('[AKI 7.3 viewfinder-failed]',{facing,name:e?.name,message:e?.message});
+  console.error('[AKI 7.3.1 viewfinder-failed]',{glanceId,facing,name:e?.name,message:e?.message});
   await stopBorrowedEyesCamera();
-  sendLiveUserText('BORROWED EYES STATUS: The requested camera view could not be opened. Do not guess or describe anything visual. Say only that you could not open that view.');
-  borrowedEyeState.pending=null;
+  if(glanceId===borrowedEyeState.activeGlance){
+   setSightHW('FAILED',{glanceId,stage:'open'});
+   borrowedEyeState.pending=null;
+   hardwareTruth('Glance '+glanceId+' failed before a live camera view existed. No image exists. Say only: "I couldn’t open that view."');
+  }
   return false;
- }finally{
-  borrowedEyeState.busy=false;
- }
+ }finally{borrowedEyeState.busy=false}
 }
-
 async function waitForVideo(video){
  if(!(video.readyState>=2&&video.videoWidth&&video.videoHeight)){
   await new Promise((resolve,reject)=>{
@@ -232,44 +267,70 @@ async function waitForVideo(video){
 }
 async function borrowedEyesBlink(facing){
  if(borrowedEyeState.busy)return;
+ const glanceId=borrowedEyeState.activeGlance;
  borrowedEyeState.busy=true;
  let frame=null;
  try{
-  if(!borrowedEyeState.viewfinder||!cameraStream||borrowedView.srcObject!==cameraStream)
-   throw new Error('No verified live viewfinder was open');
+  if(!glanceId||borrowedEyeState.hw!=='VIEWFINDER_LIVE'||!borrowedEyeState.viewfinder)
+   throw new Error('No physically verified live viewfinder');
+  if(!cameraStream||borrowedView.srcObject!==cameraStream)throw new Error('Viewfinder stream missing');
+  const track=cameraStream.getVideoTracks()[0];
+  if(!track||track.readyState!=='live')throw new Error('Camera track ended before capture');
+
+  setSightHW('CAPTURING',{glanceId,facing});
   const w=borrowedView.videoWidth,h=borrowedView.videoHeight;
-  if(!w||!h)throw new Error('Live viewfinder had no usable frame');
+  if(w<2||h<2)throw new Error('No current video frame dimensions');
+
   const scale=Math.min(1,1024/Math.max(w,h)),c=document.createElement('canvas');
-  c.width=Math.max(1,Math.round(w*scale));c.height=Math.max(1,Math.round(h*scale));
-  const ctx=c.getContext('2d');ctx.drawImage(borrowedView,0,0,c.width,c.height);
+  c.width=Math.max(2,Math.round(w*scale));c.height=Math.max(2,Math.round(h*scale));
+  const ctx=c.getContext('2d',{willReadFrequently:true});
+  ctx.drawImage(borrowedView,0,0,c.width,c.height);
 
-  const sample=document.createElement('canvas');sample.width=Math.min(64,c.width);sample.height=Math.min(64,c.height);
-  sample.getContext('2d').drawImage(c,0,0,sample.width,sample.height);
-  const px=sample.getContext('2d').getImageData(0,0,sample.width,sample.height).data;
+  const sw=Math.min(64,c.width),sh=Math.min(64,c.height);
+  const sample=document.createElement('canvas');sample.width=sw;sample.height=sh;
+  const sx=sample.getContext('2d',{willReadFrequently:true});sx.drawImage(c,0,0,sw,sh);
+  const px=sx.getImageData(0,0,sw,sh).data;
   let sum=0,sum2=0,dark=0,bright=0;
-  for(let i=0;i<px.length;i+=4){const y=.2126*px[i]+.7152*px[i+1]+.0722*px[i+2];sum+=y;sum2+=y*y;if(y<8)dark++;if(y>247)bright++}
+  for(let i=0;i<px.length;i+=4){
+   const y=.2126*px[i]+.7152*px[i+1]+.0722*px[i+2];
+   sum+=y;sum2+=y*y;if(y<8)dark++;if(y>247)bright++;
+  }
   const n=px.length/4,mean=sum/n,variance=sum2/n-mean*mean;
-  console.log('[AKI 7.3 frame-quality]',{w,h,mean,variance,dark:dark/n,bright:bright/n});
-  if(dark/n>.94||bright/n>.94||variance<3)throw new Error('Visible camera frame was not usable');
+  if(dark/n>.97||bright/n>.97||variance<2)throw new Error('Captured frame failed image-quality verification');
 
-  frame=c.toDataURL('image/jpeg',.76);
-  await captureBoop();                 // audible truth signal: a frame now exists
-  await stopBorrowedEyesCamera();      // sight ends immediately after capture
+  frame=c.toDataURL('image/jpeg',.78);
+  if(!frame.startsWith('data:image/jpeg;base64,')||frame.length<5000)throw new Error('JPEG frame serialization failed');
+
+  // This is the hard receipt: only a verified current frame can reach the beep.
+  borrowedEyeState.capturedGlance=glanceId;
+  setSightHW('FRAME_VERIFIED',{glanceId,w,h,bytes:frame.length,mean,variance});
+  await captureBoop();
+  console.log('[AKI 7.3.1 BEEP RECEIPT]',{glanceId});
+  await stopBorrowedEyesCamera();
+  setSightHW('ANALYZING',{glanceId});
 
   const vr=await fetch('/api/aki',{
    method:'POST',headers:{'Content-Type':'application/json'},
-   body:JSON.stringify({action:'borrowed_eyes',facing,image:frame})
+   body:JSON.stringify({action:'borrowed_eyes',facing,image:frame,glanceId})
   });
   const payload=await vr.json().catch(()=>({}));
+  if(glanceId!==borrowedEyeState.activeGlance)throw new Error('Stale vision result ignored');
   if(!vr.ok||!payload?.observation)throw new Error(payload?.error||`Vision backend failed (${vr.status})`);
-  sendLiveUserText('BORROWED EYES OBSERVATION FROM THE CURRENT JUST-COMPLETED GLANCE: '+payload.observation+
-   ' The camera is already off. Respond naturally in past tense. Use ONLY this current observation; never reuse an earlier glance.');
+  if(payload.glanceId!=null && Number(payload.glanceId)!==Number(glanceId))throw new Error('Backend returned stale glance ID');
+
+  setSightHW('OBSERVATION_VERIFIED',{glanceId});
+  hardwareTruth('Verified observation for CURRENT glance '+glanceId+': '+payload.observation+
+   ' The camera is OFF. Speak naturally in past tense about only this observation. Never claim continuous sight.');
  }catch(e){
-  console.error('[AKI 7.3 capture-failed]',{name:e?.name,message:e?.message,facing});
+  console.error('[AKI 7.3.1 capture-failed]',{glanceId,name:e?.name,message:e?.message,facing});
   await stopBorrowedEyesCamera();
-  sendLiveUserText('BORROWED EYES STATUS: THE CURRENT GLANCE FAILED AND NO CURRENT VISUAL OBSERVATION EXISTS. Do not say captured. Do not reuse an earlier image. Do not guess. Say only that this glance did not come through.');
+  if(glanceId===borrowedEyeState.activeGlance){
+   setSightHW('FAILED',{glanceId,stage:'capture'});
+   hardwareTruth('Glance '+glanceId+' failed. There is NO usable current visual observation. Do not say captured, do not guess, do not reuse any previous image. Say only: "That glance didn’t come through."');
+  }
  }finally{
   frame=null;borrowedEyeState.pending=null;borrowedEyeState.readyNotBefore=0;borrowedEyeState.busy=false;
+  if(glanceId===borrowedEyeState.activeGlance && borrowedEyeState.hw!=='OBSERVATION_VERIFIED') setSightHW('VOICE_ONLY',{glanceId});
  }
 }
 async function handleBorrowedEyesIntent(text){
@@ -277,7 +338,7 @@ async function handleBorrowedEyesIntent(text){
 
  if(borrowedEyeState.pending&&isReadyIntent(t)){
   if(Date.now()<borrowedEyeState.readyNotBefore){
-   console.log('[AKI 7.3 ready-gate] ignored premature ready fragment');
+   console.log('[AKI 7.3.1 ready-gate] ignored premature ready fragment');
    return true;
   }
   const facing=borrowedEyeState.pending;borrowedEyeState.pending=null;borrowedEyeState.readyNotBefore=0;
@@ -321,7 +382,7 @@ function chime(){
       g.gain.setValueAtTime(0,t+i*.055);g.gain.linearRampToValueAtTime(.022,t+.025+i*.055);g.gain.exponentialRampToValueAtTime(.0001,t+.32+i*.055);
       o.connect(g);g.connect(audioCtx.destination);o.start(t+i*.055);o.stop(t+.36+i*.055)})}catch{}
 }
-function latency(label,extra={}){console.log('[AKI 7.3 latency]',label,{at:new Date().toISOString(),...extra})}
+function latency(label,extra={}){console.log('[AKI 7.3.1 latency]',label,{at:new Date().toISOString(),...extra})}
 function turnEnded(){
   turnEndAt=performance.now();responseStartAt=firstAudioAt=0;
   latency('user-turn-ended');chime();
@@ -418,7 +479,7 @@ async function startAki(){
   pc.ontrack=e=>{audioEl.srcObject=e.streams[0];audioEl.play().catch(()=>{})};micStream.getTracks().forEach(t=>pc.addTrack(t,micStream));
   dc=pc.createDataChannel('oai-events');dc.addEventListener('open',()=>{
     latency('data-channel-open',{voice:akiVoice});
-    // AKI 7.3 — MORE OF YOU + BORROWED EYES LIVE VIEWFINDER + VERIFIED CAPTURE. One presence, one conversation, no feature UI.
+    // AKI 7.3.1 — HARDWARE TRUTH + BORROWED EYES VERIFIED VIEWFINDER/CAPTURE. One presence, one conversation, no feature UI.
     // AKI supports the human's agency rather than replacing it.
     try{dc.send(JSON.stringify({type:'session.instructions.append',content:`AKI's core philosophy is "More of you." You are a calm, warm, intelligent thinking companion. The human remains the creator, observer, experiencer and actor. Your job is to help them think, imagine, articulate, explore, practice, decide and get unstuck — not to take over the experience. Listen carefully. Reflect the strongest thread. Ask one useful question at a time when a question helps. When the user's thoughts become complicated, become simpler. Prefer one useful next step over lists, information dumps, menus, workflows or many options. Encourage the user to describe what they see, imagine, feel, want to make, or want to try. Explore hypothetical and creative spaces conversationally. BORROWED EYES — AKI is voice-first and has temporary sight only when the human explicitly invites you to look. Never watch continuously and never claim to still be seeing after the captured moment. There is no camera interface, preview, shutter button, photo library, upload flow, or saved visual memory. "Look at me", "can you see me", and similar requests mean one FRONT-camera blink. "Look at this", "see what I'm seeing", "I want to show you something", and similar requests mean one REAR-camera blink. BOTH front and rear requests require a tiny readiness exchange before capture: ask the human to get positioned or point the phone and say "ready". Only after "ready", "okay", "go ahead", "now", or an equivalent confirmation may the application capture. At the exact captured moment the browser itself plays a subtle nonverbal electronic capture tone. Never say or imitate the word "boop", "beep", a shutter, or any capture sound. If the human dislikes the captured instant, natural requests such as "do that again", "look again", "retake that", or "try again" should repeat the last front/rear blink, again waiting for readiness. Do not claim, infer, or guess that you saw anything until a message beginning "BORROWED EYES OBSERVATION" arrives. A request to look is NOT visual evidence. After a successful blink, speak truthfully in the past tense ("I saw...") and make clear you are no longer looking. If capture fails, say so briefly and invite a spoken description. Do not advertise image upload, photo sharing, file upload/creation, screen sharing, image generation, device control, reminders, messaging, purchasing, booking, or other external actions. The experience should feel like one presence: no visible interface beyond AKI itself.`}))}catch(e){console.warn('AKI philosophy instruction:',e)}
   });
@@ -431,7 +492,7 @@ powerLook('on');latency('session-started',{voice:m.session?.audio?.output?.voice
     if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
     if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('delegation.created'))responseStarted();
     if(all.includes('output_audio.delta')||all.includes('audio.delta'))firstAudio();
-    if(type==='error')console.error('[AKI 7.3 Live error]',{type:m.type,code:m.error?.code||m.code,message:m.error?.message||m.message,param:m.error?.param||m.param,event:m})
+    if(type==='error')console.error('[AKI 7.3.1 Live error]',{type:m.type,code:m.error?.code||m.code,message:m.error?.message||m.message,param:m.error?.param||m.param,event:m})
   }catch{}});
   pc.addEventListener('connectionstatechange',()=>{const cs=pc?.connectionState;latency('connection-state',{state:cs});if(['failed','closed'].includes(cs)&&powered&&!restarting)stopAki()});
   const offer=await pc.createOffer();await pc.setLocalDescription(offer);const localSdp=pc.localDescription?.sdp||offer.sdp;
