@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=45">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=45">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=45">
-<title>AKI 7.2 — Borrowed Eyes</title>
+<title>AKI 7.2.1 — Borrowed Eyes</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}
 body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
@@ -82,7 +82,7 @@ let latencyTimer=null,hardWatchdog=null,preferenceTimer=null;
 let akiVoice=localStorage.getItem('akiVoice')||'marin';
 let akiLanguage=localStorage.getItem('akiLanguage')||'auto';
 
-let borrowedEyeState={pending:null,busy:false};
+let borrowedEyeState={pending:null,busy:false,lastFacing:null};
 let cameraStream=null;
 
 function visionIntent(text){
@@ -91,53 +91,148 @@ function visionIntent(text){
  if(/(look at this|see this|see what i see|see what i'm seeing|see what i am seeing|i want (you )?to see this|i want to show you something|take a look at this|look at what i'm looking at|look at what i am looking at)/.test(t))return 'environment';
  return null;
 }
-function isReadyIntent(text){return /^(okay[, ]*)?(i'?m )?ready\b|^ready\b|^go ahead\b|^now\b/.test(normalizedSpeech(text))}
+function isReadyIntent(text){
+ const t=normalizedSpeech(text);
+ return /^(okay|ok|ready|i'?m ready|i am ready|go ahead|now|yep|yes|yeah|do it)\b/.test(t);
+}
+function isRetakeIntent(text){
+ const t=normalizedSpeech(text);
+ return /(do that again|look again|see again|retake|try again|one more time|capture again)/.test(t);
+}
 function sendLiveUserText(text){
  if(!dc||dc.readyState!=='open')return false;
  try{
   dc.send(JSON.stringify({type:'response.item.create',item:{type:'message',role:'user',content:[{type:'input_text',text}]}}));
   dc.send(JSON.stringify({type:'response.create'}));return true;
- }catch(e){console.error('[AKI 7.2 text]',e);return false}
+ }catch(e){console.error('[AKI 7.2.1 text]',e?.name,e?.message,e);return false}
+}
+async function captureBoop(){
+ try{
+  audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended')await audioCtx.resume();
+  const t=audioCtx.currentTime,o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type='sine';o.frequency.setValueAtTime(660,t);o.frequency.exponentialRampToValueAtTime(880,t+.085);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.035,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+.13);
+  o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+.14);
+ }catch(e){console.warn('[AKI 7.2.1 capture-boop]',e?.name,e?.message)}
 }
 async function stopBorrowedEyesCamera(){
  try{cameraStream?.getTracks?.().forEach(t=>t.stop())}catch{}
  cameraStream=null;
 }
+async function openBorrowedCamera(facing){
+ await stopBorrowedEyesCamera();
+ const md=navigator.mediaDevices;
+ if(!md?.getUserMedia)throw new Error('Camera API unavailable');
+
+ // First request the actual facing direction, not merely an "ideal" preference.
+ try{
+  cameraStream=await md.getUserMedia({video:{facingMode:{exact:facing}},audio:false});
+  return cameraStream;
+ }catch(exactErr){
+  console.warn('[AKI 7.2.1 exact-facing fallback]',facing,exactErr?.name,exactErr?.message);
+ }
+
+ // If exact facing is unavailable (common on desktops), inspect actual cameras.
+ let devices=[];
+ try{devices=(await md.enumerateDevices()).filter(d=>d.kind==='videoinput')}catch(e){
+  console.warn('[AKI 7.2.1 enumerateDevices]',e?.name,e?.message)
+ }
+ if(devices.length){
+  const words=facing==='environment'
+   ? /(back|rear|environment|world|wide|ultra)/i
+   : /(front|facetime|user|selfie|built-in|webcam)/i;
+  const match=devices.find(d=>words.test(d.label));
+  if(match){
+   try{
+    cameraStream=await md.getUserMedia({video:{deviceId:{exact:match.deviceId}},audio:false});
+    return cameraStream;
+   }catch(deviceErr){
+    console.warn('[AKI 7.2.1 deviceId fallback]',deviceErr?.name,deviceErr?.message)
+   }
+  }
+ }
+
+ // Final fallback: use the device's available/default camera. This makes desktop front sight useful.
+ cameraStream=await md.getUserMedia({video:true,audio:false});
+ return cameraStream;
+}
+async function waitForVideo(video){
+ if(video.readyState>=2&&video.videoWidth&&video.videoHeight)return;
+ await new Promise((resolve,reject)=>{
+  let done=false;
+  const finish=()=>{if(done)return;done=true;clearTimeout(timer);resolve()};
+  const timer=setTimeout(()=>{if(done)return;done=true;reject(new Error('Camera frame timed out'))},3000);
+  video.addEventListener('loadeddata',finish,{once:true});
+  video.addEventListener('canplay',finish,{once:true});
+ });
+}
 async function borrowedEyesBlink(facing){
- if(borrowedEyeState.busy)return;borrowedEyeState.busy=true;
+ if(borrowedEyeState.busy)return;
+ borrowedEyeState.busy=true;borrowedEyeState.lastFacing=facing;
  let video=null,frame=null;
  try{
-  await stopBorrowedEyesCamera();
-  cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing}},audio:false});
+  await openBorrowedCamera(facing);
+  const track=cameraStream.getVideoTracks()[0];
+  console.log('[AKI 7.2.1 camera-open]',{requested:facing,settings:track?.getSettings?.(),label:track?.label});
   video=document.createElement('video');video.muted=true;video.playsInline=true;video.srcObject=cameraStream;
-  await video.play().catch(()=>{});
-  if(!(video.readyState>=2&&video.videoWidth))await new Promise(resolve=>{
-   const done=()=>resolve();video.addEventListener('loadeddata',done,{once:true});video.addEventListener('canplay',done,{once:true});setTimeout(done,1400)
-  });
-  const w=video.videoWidth||720,h=video.videoHeight||1280,s=Math.min(1,1280/Math.max(w,h)),c=document.createElement('canvas');
-  c.width=Math.max(1,Math.round(w*s));c.height=Math.max(1,Math.round(h*s));c.getContext('2d').drawImage(video,0,0,c.width,c.height);
-  frame=c.toDataURL('image/jpeg',.82);
+  await video.play();
+  await waitForVideo(video);
+  const w=video.videoWidth,h=video.videoHeight;
+  if(!w||!h)throw new Error('Camera produced no usable frame');
+  const s=Math.min(1,1280/Math.max(w,h)),c=document.createElement('canvas');
+  c.width=Math.max(1,Math.round(w*s));c.height=Math.max(1,Math.round(h*s));
+  c.getContext('2d').drawImage(video,0,0,c.width,c.height);
+  await captureBoop(); // audible marker for the exact borrowed instant
+  frame=c.toDataURL('image/jpeg',.80);
+
+  // Release camera BEFORE sending the frame for reasoning.
   await stopBorrowedEyesCamera();video.srcObject=null;video.remove();video=null;
+  console.log('[AKI 7.2.1 camera-released]',{facing});
+
+  if(!dc||dc.readyState!=='open')throw new Error('Live conversation is not ready');
   const context=facing==='user'
-   ?'BORROWED EYES RESULT: One temporary FRONT-camera still was explicitly invited by the human. Inspect only this image. The camera has already been stopped. Answer the human using visible details only, use past tense such as "I saw", and make clear you are no longer looking.'
-   :'BORROWED EYES RESULT: One temporary REAR-camera still was explicitly invited by the human. Inspect only this image. The camera has already been stopped. Answer the human using visible details only, use past tense such as "I saw", and make clear you are no longer looking.';
-  dc.send(JSON.stringify({type:'response.item.create',item:{type:'message',role:'user',content:[{type:'input_text',text:context},{type:'input_image',image_url:frame}]}}));
+   ?'BORROWED EYES RESULT: One temporary FRONT-camera still was explicitly invited. The capture boop has sounded and the camera is already stopped. Inspect only this image. Answer using visible details only, use past tense such as "I saw", and make clear you are no longer looking.'
+   :'BORROWED EYES RESULT: One temporary REAR/world-camera still was explicitly invited. The capture boop has sounded and the camera is already stopped. Inspect only this image. Answer using visible details only, use past tense such as "I saw", and make clear you are no longer looking.';
+  dc.send(JSON.stringify({type:'response.item.create',item:{type:'message',role:'user',content:[
+   {type:'input_text',text:context},{type:'input_image',image_url:frame}
+  ]}}));
   dc.send(JSON.stringify({type:'response.create'}));
  }catch(e){
-  console.error('[AKI 7.2 borrowed eyes]',e);await stopBorrowedEyesCamera();
+  console.error('[AKI 7.2.1 borrowed-eyes-error]',{name:e?.name,message:e?.message,requestedFacing:facing,error:e});
+  await stopBorrowedEyesCamera();
   if(video){try{video.srcObject=null;video.remove()}catch{}}
-  sendLiveUserText('BORROWED EYES STATUS: The requested camera blink could not be completed. Say briefly that you could not look this time and invite the human to describe what they see.');
- }finally{frame=null;borrowedEyeState.pending=null;borrowedEyeState.busy=false}
+  sendLiveUserText('BORROWED EYES STATUS: The requested camera blink could not be completed. Say briefly that you could not look this time and invite the human to try again or describe what they see.');
+ }finally{
+  frame=null;borrowedEyeState.pending=null;borrowedEyeState.busy=false;
+ }
 }
 async function handleBorrowedEyesIntent(text){
  const t=normalizedSpeech(text);
- if(borrowedEyeState.pending==='environment'&&isReadyIntent(t)){borrowedEyeState.pending=null;await borrowedEyesBlink('environment');return true}
+
+ if(borrowedEyeState.pending&&isReadyIntent(t)){
+  const facing=borrowedEyeState.pending;borrowedEyeState.pending=null;
+  await borrowedEyesBlink(facing);return true;
+ }
+ if(isRetakeIntent(t)&&borrowedEyeState.lastFacing){
+  borrowedEyeState.pending=borrowedEyeState.lastFacing;
+  const front=borrowedEyeState.lastFacing==='user';
+  sendLiveUserText(front
+   ?'BORROWED EYES CONTROL: The human asked to repeat the last front-camera blink. Say briefly: "Absolutely. Get how you want to be and tell me when you’re ready."'
+   :'BORROWED EYES CONTROL: The human asked to repeat the last rear-camera blink. Say briefly: "Absolutely. Point me at it again and tell me when you’re ready."');
+  return true;
+ }
+
  const intent=visionIntent(t);
- if(intent==='environment'){borrowedEyeState.pending='environment';sendLiveUserText('BORROWED EYES CONTROL: The human invited a rear-camera look. Do not claim you saw anything yet. Say only: "Okay. Point your phone at it and tell me when you’re ready."');return true}
- if(intent==='user'){borrowedEyeState.pending=null;await borrowedEyesBlink('user');return true}
+ if(intent){
+  borrowedEyeState.pending=intent;borrowedEyeState.lastFacing=intent;
+  sendLiveUserText(intent==='user'
+   ?'BORROWED EYES CONTROL: The human explicitly invited one front-camera look. Do not capture or claim you saw anything yet. Say briefly: "Okay. Get how you want to be and tell me when you’re ready."'
+   :'BORROWED EYES CONTROL: The human explicitly invited one rear-camera look. Do not capture or claim you saw anything yet. Say briefly: "Okay. Point your phone at it and tell me when you’re ready."');
+  return true;
+ }
  return false;
 }
-
 
 function powerLook(mode){
   akiButton.classList.remove('on','starting','error');
@@ -153,7 +248,7 @@ function chime(){
       g.gain.setValueAtTime(0,t+i*.055);g.gain.linearRampToValueAtTime(.022,t+.025+i*.055);g.gain.exponentialRampToValueAtTime(.0001,t+.32+i*.055);
       o.connect(g);g.connect(audioCtx.destination);o.start(t+i*.055);o.stop(t+.36+i*.055)})}catch{}
 }
-function latency(label,extra={}){console.log('[AKI 7.2 latency]',label,{at:new Date().toISOString(),...extra})}
+function latency(label,extra={}){console.log('[AKI 7.2.1 latency]',label,{at:new Date().toISOString(),...extra})}
 function turnEnded(){
   turnEndAt=performance.now();responseStartAt=firstAudioAt=0;
   latency('user-turn-ended');chime();
@@ -244,9 +339,9 @@ async function startAki(){
   pc.ontrack=e=>{audioEl.srcObject=e.streams[0];audioEl.play().catch(()=>{})};micStream.getTracks().forEach(t=>pc.addTrack(t,micStream));
   dc=pc.createDataChannel('oai-events');dc.addEventListener('open',()=>{
     latency('data-channel-open',{voice:akiVoice});
-    // AKI 7.2 — MORE OF YOU + VOICE LOCK + BORROWED EYES. One presence, one conversation, no feature UI.
+    // AKI 7.2.1 — MORE OF YOU + VOICE LOCK + BORROWED EYES CAMERA RELIABILITY. One presence, one conversation, no feature UI.
     // AKI supports the human's agency rather than replacing it.
-    try{dc.send(JSON.stringify({type:'session.instructions.append',content:`AKI's core philosophy is "More of you." You are a calm, warm, intelligent thinking companion. The human remains the creator, observer, experiencer and actor. Your job is to help them think, imagine, articulate, explore, practice, decide and get unstuck — not to take over the experience. Listen carefully. Reflect the strongest thread. Ask one useful question at a time when a question helps. When the user's thoughts become complicated, become simpler. Prefer one useful next step over lists, information dumps, menus, workflows or many options. Encourage the user to describe what they see, imagine, feel, want to make, or want to try. Explore hypothetical and creative spaces conversationally. BORROWED EYES — AKI is voice-first and has temporary sight only when the human explicitly invites you to look. Never watch continuously and never claim to still be seeing after the captured moment. There is no camera interface, preview, shutter button, photo library, upload flow, or saved visual memory. "Look at me", "can you see me", and similar requests mean one FRONT-camera blink. "Look at this", "see what I'm seeing", "I want to show you something", and similar requests mean one REAR-camera blink. For rear requests, ask the human to point the phone and say "ready"; do not claim you saw anything until a visual result arrives. After a successful blink, speak truthfully in the past tense ("I saw...") and make clear you are no longer looking. If capture fails, say so briefly and invite a spoken description. Do not advertise image upload, photo sharing, file upload/creation, screen sharing, image generation, device control, reminders, messaging, purchasing, booking, or other external actions. The experience should feel like one presence: no visible interface beyond AKI itself.`}))}catch(e){console.warn('AKI philosophy instruction:',e)}
+    try{dc.send(JSON.stringify({type:'session.instructions.append',content:`AKI's core philosophy is "More of you." You are a calm, warm, intelligent thinking companion. The human remains the creator, observer, experiencer and actor. Your job is to help them think, imagine, articulate, explore, practice, decide and get unstuck — not to take over the experience. Listen carefully. Reflect the strongest thread. Ask one useful question at a time when a question helps. When the user's thoughts become complicated, become simpler. Prefer one useful next step over lists, information dumps, menus, workflows or many options. Encourage the user to describe what they see, imagine, feel, want to make, or want to try. Explore hypothetical and creative spaces conversationally. BORROWED EYES — AKI is voice-first and has temporary sight only when the human explicitly invites you to look. Never watch continuously and never claim to still be seeing after the captured moment. There is no camera interface, preview, shutter button, photo library, upload flow, or saved visual memory. "Look at me", "can you see me", and similar requests mean one FRONT-camera blink. "Look at this", "see what I'm seeing", "I want to show you something", and similar requests mean one REAR-camera blink. BOTH front and rear requests require a tiny readiness exchange before capture: ask the human to get positioned or point the phone and say "ready". Only after "ready", "okay", "go ahead", "now", or an equivalent confirmation may the application capture. At the exact captured moment the application plays a subtle short electronic boop so the human knows which instant was borrowed; it is not a camera shutter sound. If the human dislikes the captured instant, natural requests such as "do that again", "look again", "retake that", or "try again" should repeat the last front/rear blink, again waiting for readiness. Do not claim you saw anything until a visual result arrives. After a successful blink, speak truthfully in the past tense ("I saw...") and make clear you are no longer looking. If capture fails, say so briefly and invite a spoken description. Do not advertise image upload, photo sharing, file upload/creation, screen sharing, image generation, device control, reminders, messaging, purchasing, booking, or other external actions. The experience should feel like one presence: no visible interface beyond AKI itself.`}))}catch(e){console.warn('AKI philosophy instruction:',e)}
   });
   dc.addEventListener('message',e=>{try{const m=JSON.parse(e.data),type=m.type||'',nested=m.event?.type||'',all=(type+' '+nested).toLowerCase();
     if(type==='session.started'){powered=true;powerLook('on');latency('session-started',{voice:m.session?.audio?.output?.voice||m.session?.voice||akiVoice})}
@@ -254,7 +349,7 @@ async function startAki(){
     if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
     if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('delegation.created'))responseStarted();
     if(all.includes('output_audio.delta')||all.includes('audio.delta'))firstAudio();
-    if(type==='error')console.error('AKI Live event error:',m)
+    if(type==='error')console.error('[AKI 7.2.1 Live error]',{type:m.type,code:m.error?.code||m.code,message:m.error?.message||m.message,param:m.error?.param||m.param,event:m})
   }catch{}});
   pc.addEventListener('connectionstatechange',()=>{const cs=pc?.connectionState;latency('connection-state',{state:cs});if(['failed','closed'].includes(cs)&&powered&&!restarting)stopAki()});
   const offer=await pc.createOffer();await pc.setLocalDescription(offer);const localSdp=pc.localDescription?.sdp||offer.sdp;
@@ -262,7 +357,7 @@ async function startAki(){
   const r=await fetch('/api/aki',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sdp:localSdp,voice:akiVoice,language:akiLanguage})});
   const answer=await r.text();if(!r.ok)throw new Error(answer);await pc.setRemoteDescription({type:'answer',sdp:answer});
   powered=true;powerLook('on');
- }catch(err){console.error('AKI 7.2 start error:',err);await stopAki();powerLook('error')}finally{starting=false}
+ }catch(err){console.error('AKI 7.2.1 start error:',err);await stopAki();powerLook('error')}finally{starting=false}
 }
 async function toggle(){if(starting||stopping)return;if(powered||pc||micStream)await stopAki();else await startAki()}
 akiButton.addEventListener('click',e=>{e.stopPropagation();toggle()});
