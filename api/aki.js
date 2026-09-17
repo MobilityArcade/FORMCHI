@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   if (!process.env.OPENAI_API_KEY) return res.status(500).json({ error: 'OPENAI_API_KEY is not configured' });
 
-  // AKI 7.4 Borrowed Eyes — one ephemeral still, analyzed server-side.
+  // AKI 8.0 Borrowed Eyes — one ephemeral still, analyzed server-side.
   if ((req.headers["content-type"] || "").includes("application/json") && req.body?.action === "borrowed_eyes") {
     try {
       const { image, facing } = req.body || {};
@@ -25,14 +25,14 @@ export default async function handler(req, res) {
       });
       const data=await visionResponse.json();
       if(!visionResponse.ok){
-        console.error("AKI 7.4 vision API error",data);
+        console.error("AKI 8.0 vision API error",data);
         return res.status(visionResponse.status).json({error:data?.error?.message||"Vision analysis failed"});
       }
       const observation=data.output_text||data.output?.flatMap?.(o=>o.content||[]).find?.(c=>c.type==="output_text")?.text||"";
       if(!observation)return res.status(502).json({error:"Vision returned no observation"});
       return res.status(200).json({observation});
     } catch(err) {
-      console.error("AKI 7.4 vision route error",err);
+      console.error("AKI 8.0 vision route error",err);
       return res.status(500).json({error:err?.message||"Borrowed Eyes failed"});
     }
   }
@@ -84,7 +84,25 @@ export default async function handler(req, res) {
     res.setHeader('Content-Type', 'application/sdp');
     return res.status(200).send(answer);
   } catch (err) {
-    console.error('AKI 7.4 session error', err);
+    console.error('AKI 8.0 session error', err);
     return res.status(500).json({ error: err?.message || 'Unable to create AKI Live session' });
   }
 }
+
+/*
+AKI 8.0 SHARED SCREEN CONTRACT
+- "capture this" is the exact spoken capture command.
+- "look at this", "do you see this", "ready", "take a look", and conversational variants MUST NOT be treated as capture authorization.
+- A screen-share stream is not permission to claim continuous vision.
+- Only a SHARED VISION HARDWARE TRUTH message containing a CURRENT CAPTURE VERIFIED OBSERVATION authorizes visual description.
+- Never claim a capture, screenshot, beep, or observation unless hardware truth reports it.
+*/
+
+/*
+AKI 8.0 SHARED SCREEN UI CONTRACT
+- The AKI torus/ring is NEVER a screen-share control, capture control, shutter, status indicator, or permission control.
+- Do not change the torus animation, brightness, scale, color, hit area, or behavior for Shared Screen.
+- Screen sharing is a separate capability and must use only the browser/OS native sharing authorization flow.
+- The exact spoken capture command remains: "capture this".
+- Never claim a screen capture occurred unless SHARED VISION HARDWARE TRUTH reports a verified current capture.
+*/
