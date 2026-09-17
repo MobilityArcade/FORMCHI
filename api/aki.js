@@ -51,7 +51,7 @@ CAPABILITY TRUTH: Describe only capabilities available in THIS AKI experience, n
     res.setHeader('Content-Type', 'application/sdp');
     return res.status(200).send(answer);
   } catch (err) {
-    console.error('AKI 7.1.3 session error', err);
+    console.error('AKI 7.1.3.1 session error', err);
     return res.status(500).json({ error: err?.message || 'Unable to create AKI Live session' });
   }
 }
