@@ -1,8 +1,11 @@
+/* 
+HARDWARE TRUTH RULE: Never claim that a camera opened, a picture/frame was captured, a beep occurred, or that you saw anything merely because the user requested it or said Ready. Only a HARDWARE TRUTH message containing a verified current observation authorizes visual claims. If hardware reports failure, do not infer, imagine, reuse, or ask the user what you were supposed to see.
+ */
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   if (!process.env.OPENAI_API_KEY) return res.status(500).json({ error: 'OPENAI_API_KEY is not configured' });
 
-  // AKI 7.3 Borrowed Eyes — one ephemeral still, analyzed server-side.
+  // AKI 7.3.1 Borrowed Eyes — one ephemeral still, analyzed server-side.
   if ((req.headers["content-type"] || "").includes("application/json") && req.body?.action === "borrowed_eyes") {
     try {
       const { image, facing } = req.body || {};
@@ -22,14 +25,14 @@ export default async function handler(req, res) {
       });
       const data=await visionResponse.json();
       if(!visionResponse.ok){
-        console.error("AKI 7.3 vision API error",data);
+        console.error("AKI 7.3.1 vision API error",data);
         return res.status(visionResponse.status).json({error:data?.error?.message||"Vision analysis failed"});
       }
       const observation=data.output_text||data.output?.flatMap?.(o=>o.content||[]).find?.(c=>c.type==="output_text")?.text||"";
       if(!observation)return res.status(502).json({error:"Vision returned no observation"});
       return res.status(200).json({observation});
     } catch(err) {
-      console.error("AKI 7.3 vision route error",err);
+      console.error("AKI 7.3.1 vision route error",err);
       return res.status(500).json({error:err?.message||"Borrowed Eyes failed"});
     }
   }
@@ -81,7 +84,7 @@ export default async function handler(req, res) {
     res.setHeader('Content-Type', 'application/sdp');
     return res.status(200).send(answer);
   } catch (err) {
-    console.error('AKI 7.3 session error', err);
+    console.error('AKI 7.3.1 session error', err);
     return res.status(500).json({ error: err?.message || 'Unable to create AKI Live session' });
   }
 }
