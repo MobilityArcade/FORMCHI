@@ -121,7 +121,7 @@ function chime(){
       g.gain.setValueAtTime(0,t+i*.055);g.gain.linearRampToValueAtTime(.022,t+.025+i*.055);g.gain.exponentialRampToValueAtTime(.0001,t+.32+i*.055);
       o.connect(g);g.connect(audioCtx.destination);o.start(t+i*.055);o.stop(t+.36+i*.055)})}catch{}
 }
-function latency(label,extra={}){console.log('[AKI 7.1.6.4 latency]',label,{at:new Date().toISOString(),...extra})}
+function latency(label,extra={}){console.log('[AKI 7.1.6.4.4.1 latency]',label,{at:new Date().toISOString(),...extra})}
 function turnEnded(){
   turnEndAt=performance.now();responseStartAt=firstAudioAt=0;
   latency('user-turn-ended');chime();
@@ -211,7 +211,7 @@ function pitchIntent(text){
  const f=noteToFrequency(note);return f?{note,frequency:f}:null;
 }
 async function playReferenceTone(freq,duration=1.35){
- // AKI 7.1.6.4.4: local piano/keyboard-style reference note. No AI voice is involved.
+ // AKI 7.1.6.4.3: local piano/keyboard-style reference note. No AI voice is involved.
  audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')await audioCtx.resume();
  const t=audioCtx.currentTime, master=audioCtx.createGain();
  master.gain.setValueAtTime(.0001,t);master.gain.exponentialRampToValueAtTime(.20,t+.012);master.gain.exponentialRampToValueAtTime(.075,t+.34);master.gain.exponentialRampToValueAtTime(.0001,t+duration);
@@ -255,7 +255,7 @@ async function runPitchPractice(target){
    if(!measured){await injectTruth(`PITCH MEASUREMENT RESULT. I played an exact ${target.note} reference at ${target.frequency.toFixed(2)} Hz, but the local detector did not get a stable sung pitch. Briefly ask me to try again and hold one clear steady note. Do not invent a measurement.`);return}
    const cents=1200*Math.log2(measured/target.frequency),nearest=frequencyToNote(measured);const direction=Math.abs(cents)<=8?'centered':cents>0?'sharp':'flat';
    await injectTruth(`PITCH MEASUREMENT RESULT. Target: ${target.note} at ${target.frequency.toFixed(2)} Hz. Measured stable fundamental: ${measured.toFixed(2)} Hz. Relative to the TARGET, the singer was ${Math.abs(cents).toFixed(1)} cents ${direction==='centered'?'from center':direction}. Nearest detected note: ${nearest.note}. Coach this briefly and encouragingly. If within 8 cents, call it centered/very close; otherwise say sharp or flat and invite one more attempt. This measurement came from AKI's local pitch detector, not from guessing by ear.`);
- }catch(err){console.error('[AKI 7.1.6.4.4 pitch]',err);try{await injectTruth('PITCH TOOL FAILED. The local pitch measurement did not complete. Say that briefly and do not invent a pitch result.')}catch{}}
+ }catch(err){console.error('[AKI 7.1.6.4.3 pitch]',err);try{await injectTruth('PITCH TOOL FAILED. The local pitch measurement did not complete. Say that briefly and do not invent a pitch result.')}catch{}}
  finally{if(audioEl)audioEl.muted=false;pitchBusy=false}
 }
 async function handleSpokenIntent(text){
@@ -263,7 +263,7 @@ async function handleSpokenIntent(text){
  if(p&&!pitchBusy){
    lastPitchAt=Date.now();
    pitchTarget=p;
-   // KEYBOARD TONE 7.1.6.4.4: a pitch command is owned by the LOCAL instrument.
+   // KEYBOARD TONE 7.1.6.4.3: a pitch command is owned by the LOCAL instrument.
    // Mute Marin immediately so generated speech can never become the reference note.
    if(audioEl)audioEl.muted=true;
    clearTimeout(pitchTimer);pitchTimer=setTimeout(()=>runPitchPractice(p),80);
@@ -272,20 +272,6 @@ async function handleSpokenIntent(text){
  await handleVoiceIntent(text);
 }
 
-async function handlePitchToolCall(m){
- if(m?.type!=='response.function_call_arguments.done'||m?.name!=='play_reference_note')return false;
- let args={};try{args=JSON.parse(m.arguments||'{}')}catch{}
- let note=String(args.note||'A4').trim();
- let frequency=Number(args.frequency)||noteToFrequency(note)||440;
- if(!Number.isFinite(frequency)||frequency<70||frequency>1100)frequency=440;
- if(!noteToFrequency(note)){const nearest=frequencyToNote(frequency);note=nearest?.note||'A4'}
- const target={note,frequency};pitchTarget=target;lastPitchAt=Date.now();
- // Complete the function call in conversation, but DO NOT ask Marin to speak.
- try{dc?.send(JSON.stringify({type:'conversation.item.create',item:{type:'function_call_output',call_id:m.call_id,output:JSON.stringify({ok:true,handled_locally:true,note,frequency})}}))}catch{}
- if(audioEl)audioEl.muted=true;
- clearTimeout(pitchTimer);pitchTimer=setTimeout(()=>runPitchPractice(target),40);
- return true;
-}
 function absorbTranscript(m){
  // CRITICAL 7.1 FIX: only the USER'S input transcript may control voice identity.
  // AKI's own output transcript is ignored, preventing it from switching itself.
@@ -314,11 +300,10 @@ async function startAki(){
   dc=pc.createDataChannel('oai-events');dc.addEventListener('open',()=>{
     latency('data-channel-open',{voice:akiVoice});
     // AKI 7.1.5 — WRITE ABOVE / CAMERAS BELOW. Three invisible interaction regions; no persistent visible controls.
-    try{dc.send(JSON.stringify({type:'session.update',session:{instructions:`AKI's core philosophy is "More of you." You are a calm, warm, intelligent thinking companion. The human remains the creator, observer, experiencer and actor. Your job is to help them think, imagine, articulate, explore, practice, decide and get unstuck — not to take over the experience. Listen carefully. Reflect the strongest thread. Ask one useful question at a time when a question helps. When the user's thoughts become complicated, become simpler. Prefer one useful next step over lists, information dumps, menus, workflows or many options. CAPABILITY TRUTH — speak only about capabilities THIS AKI experience actually exposes. AKI can listen and talk. In the negative space ABOVE AKI, the upper-left invisible region opens a temporary writing surface: the iPhone keyboard rises from below while typed or pasted words appear only in the clear space above the sphere; Return sends the words into this same conversation and the writing surface disappears. The upper-right invisible region opens the device's full deliberate handoff chooser, which may offer Photo Library, Take Photo, or Choose File on iPhone. Images are visually analyzed and documents/files are read through their verified handoff paths. The lower-left invisible region opens a one-time front/selfie camera capture; the lower-right invisible region opens a one-time rear/world camera capture. Never advertise these controls unprompted and never recite them as a feature list unless the human explicitly asks how input works. If the human says they cannot talk, wants to type, paste text, write something, or paste a website link, tell them briefly: tap the upper left and type or paste it. If they want to share, upload, attach, or give you a photo, screenshot, document, or file, ALWAYS tell them: tap the upper right and choose what they want to bring in. Never call upper-left a file/photo sharing area. Website URLs pasted through upper-left can be browsed through AKI's verified web-reading path; never claim a webpage was read until that verified result arrives. For a selfie/front photo: tap the lower left. To photograph something in front of them: tap the lower right. The camera actions are deliberate one-time captures, not continuous camera access. Never claim to see/read anything until a verified image or file result has actually arrived. If analysis fails, say it did not come through. AKI has NO continuous camera access, NO continuous visual access, NO screen viewing/sharing, and NO video watching. AKI also has no image generation, device control, reminders/alarms, messaging, purchasing, booking, or external actions unless explicitly supplied. If asked "what can you do?", describe AKI's conversational role rather than reciting features; mention image sharing only if the user's question or context specifically concerns showing you something. Natural multilingual conversation is welcome. PITCH PRACTICE: AKI has a local piano/keyboard-style reference-note generator and local fundamental-frequency detector. If the human asks to practice, train, check, or match pitch, or asks for a specific musical note, DO NOT speak a setup sentence and DO NOT attempt the note yourself. The local instrument owns the reference-note moment. Do NOT sing, hum, vocalize, imitate, or say ‘ah’ on the reference pitch. The reference sound comes ONLY from AKI's local electronic piano/keyboard-style tone generator. Remain silent until a PITCH MEASUREMENT RESULT arrives. Do NOT claim a pitch measurement until that verified result arrives. The local tool defaults to A4 = 440 Hz when no note is specified. When a verified pitch result arrives, coach from the measured cents sharp/flat/centered. This is practice feedback, not medical voice diagnosis. Keep ordinary spoken responses concise and human, usually 1–3 short sentences unless the user explicitly asks for depth. If they say "Aki" to begin or regain your attention, respond naturally with "I am here. How can I help you?" The experience should feel like one presence: no visible interface beyond AKI itself.`}}))}catch(e){console.warn('AKI philosophy instruction:',e)}
+    try{dc.send(JSON.stringify({type:'session.instructions.append',content:`AKI's core philosophy is "More of you." You are a calm, warm, intelligent thinking companion. The human remains the creator, observer, experiencer and actor. Your job is to help them think, imagine, articulate, explore, practice, decide and get unstuck — not to take over the experience. Listen carefully. Reflect the strongest thread. Ask one useful question at a time when a question helps. When the user's thoughts become complicated, become simpler. Prefer one useful next step over lists, information dumps, menus, workflows or many options. CAPABILITY TRUTH — speak only about capabilities THIS AKI experience actually exposes. AKI can listen and talk. In the negative space ABOVE AKI, the upper-left invisible region opens a temporary writing surface: the iPhone keyboard rises from below while typed or pasted words appear only in the clear space above the sphere; Return sends the words into this same conversation and the writing surface disappears. The upper-right invisible region opens the device's full deliberate handoff chooser, which may offer Photo Library, Take Photo, or Choose File on iPhone. Images are visually analyzed and documents/files are read through their verified handoff paths. The lower-left invisible region opens a one-time front/selfie camera capture; the lower-right invisible region opens a one-time rear/world camera capture. Never advertise these controls unprompted and never recite them as a feature list unless the human explicitly asks how input works. If the human says they cannot talk, wants to type, paste text, write something, or paste a website link, tell them briefly: tap the upper left and type or paste it. If they want to share, upload, attach, or give you a photo, screenshot, document, or file, ALWAYS tell them: tap the upper right and choose what they want to bring in. Never call upper-left a file/photo sharing area. Website URLs pasted through upper-left can be browsed through AKI's verified web-reading path; never claim a webpage was read until that verified result arrives. For a selfie/front photo: tap the lower left. To photograph something in front of them: tap the lower right. The camera actions are deliberate one-time captures, not continuous camera access. Never claim to see/read anything until a verified image or file result has actually arrived. If analysis fails, say it did not come through. AKI has NO continuous camera access, NO continuous visual access, NO screen viewing/sharing, and NO video watching. AKI also has no image generation, device control, reminders/alarms, messaging, purchasing, booking, or external actions unless explicitly supplied. If asked "what can you do?", describe AKI's conversational role rather than reciting features; mention image sharing only if the user's question or context specifically concerns showing you something. Natural multilingual conversation is welcome. PITCH PRACTICE: AKI has a local piano/keyboard-style reference-note generator and local fundamental-frequency detector. If the human asks to practice, train, check, or match pitch, or asks for a specific musical note, DO NOT speak a setup sentence and DO NOT attempt the note yourself. The local instrument owns the reference-note moment. Do NOT sing, hum, vocalize, imitate, or say ‘ah’ on the reference pitch. The reference sound comes ONLY from AKI's local electronic piano/keyboard-style tone generator. Remain silent until a PITCH MEASUREMENT RESULT arrives. Do NOT claim a pitch measurement until that verified result arrives. The local tool defaults to A4 = 440 Hz when no note is specified. When a verified pitch result arrives, coach from the measured cents sharp/flat/centered. This is practice feedback, not medical voice diagnosis. Keep ordinary spoken responses concise and human, usually 1–3 short sentences unless the user explicitly asks for depth. If they say "Aki" to begin or regain your attention, respond naturally with "I am here. How can I help you?" The experience should feel like one presence: no visible interface beyond AKI itself.`}))}catch(e){console.warn('AKI philosophy instruction:',e)}
   });
   dc.addEventListener('message',e=>{try{const m=JSON.parse(e.data),type=m.type||'',nested=m.event?.type||'',all=(type+' '+nested).toLowerCase();
     if(type==='session.started'){powered=true;powerLook('on');latency('session-started',{voice:m.session?.audio?.output?.voice||m.session?.voice||akiVoice})}
-    handlePitchToolCall(m);
     absorbTranscript(m);
     if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
     if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('delegation.created'))responseStarted();
@@ -331,7 +316,7 @@ async function startAki(){
   const r=await fetch('/api/aki',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sdp:localSdp,voice:akiVoice,language:akiLanguage})});
   const answer=await r.text();if(!r.ok)throw new Error(answer);await pc.setRemoteDescription({type:'answer',sdp:answer});
   powered=true;powerLook('on');
- }catch(err){console.error('AKI 7.1.6.4.4 start error:',err);await stopAki();powerLook('error')}finally{starting=false}
+ }catch(err){console.error('AKI 7.1.6.4.3 start error:',err);await stopAki();powerLook('error')}finally{starting=false}
 }
 
 function canvasToDataURL(canvas,type='image/jpeg',quality=.84){
