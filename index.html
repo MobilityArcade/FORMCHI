@@ -96,6 +96,13 @@ let starting=false,stopping=false,powered=false,restarting=false;
 let transcript='',turnEndAt=0,responseStartAt=0,firstAudioAt=0,lastChime=0;
 let latencyTimer=null,hardWatchdog=null,preferenceTimer=null;
 let imageBusy=false,shareBusy=false;
+// 7.1.6.3 voice audition: start every existing install on Marin once so the
+// same canonical AKI voice can be compared across iPhone, iPad, and desktop.
+if(localStorage.getItem('akiVoiceBaseline')!=='7.1.6.3-marin'){
+  localStorage.setItem('akiVoice','marin');
+  localStorage.setItem('akiVoiceLocked','true');
+  localStorage.setItem('akiVoiceBaseline','7.1.6.3-marin');
+}
 let akiVoice=localStorage.getItem('akiVoice')||'marin';
 let akiLanguage=localStorage.getItem('akiLanguage')||'auto';
 
@@ -151,6 +158,9 @@ function voiceIntent(text){
  // A voice change requires an explicit first-person command/request directed at AKI.
  const explicit=/(aki[, ]+)?(please )?(change|switch|use|give me|let me hear|i want|i'd like|i would like|i prefer|can you change|could you change|can i have|go back to)/.test(t);
  if(!explicit)return null;
+ if(/(marin|marine voice)/.test(t))return {kind:'change',voice:'marin'};
+ if(/(cedar|cedar voice)/.test(t))return {kind:'change',voice:'cedar'};
+ if(/(ash|ash voice)/.test(t))return {kind:'change',voice:'ash'};
  if(/(male voice|man's voice|voice of a man|masculine voice|voz masculina|voz de hombre)/.test(t))return {kind:'change',voice:'ash'};
  if(/(female voice|woman's voice|voice of a woman|feminine voice|voz femenina|voz de mujer)/.test(t))return {kind:'change',voice:'marin'};
  if(/(different voice|another voice|other voice|change your voice|switch your voice|new voice)/.test(t)){
