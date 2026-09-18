@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#020304">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -11,7 +14,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=45">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=45">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=45">
-<title>AKI 8.0.2 — Visual Continuity</title>
+<title>AKI 8.0.3 — Input + Camera Continuity</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}
 body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
@@ -54,12 +57,16 @@ body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
 /* Desktop uses broad outer-corner hit fields. The previous calc() could become
    negative when AKI filled most of a short desktop viewport, leaving no clickable area. */
 @media (pointer:fine){
-  #zoneWrite,#zoneShare,#zoneSelfie,#zoneWorld{width:50%;height:50%}
-  #zoneWrite{left:0;top:0;right:auto;bottom:auto;clip-path:polygon(0 0,100% 0,100% 34%,78% 44%,58% 64%,46% 82%,34% 100%,0 100%)}
-  #zoneShare{right:0;top:0;left:auto;bottom:auto;clip-path:polygon(0 0,100% 0,100% 100%,66% 100%,54% 82%,42% 64%,22% 44%,0 34%)}
-  #zoneSelfie{left:0;bottom:0;right:auto;top:auto;clip-path:polygon(0 0,34% 0,46% 18%,58% 36%,78% 56%,100% 66%,100% 100%,0 100%)}
-  #zoneWorld{right:0;bottom:0;left:auto;top:auto;clip-path:polygon(66% 0,100% 0,100% 100%,0 100%,0 66%,22% 56%,42% 36%,54% 18%)}
-  .zone:hover{background:radial-gradient(circle,rgba(80,190,255,.018),transparent 70%)}
+  /* 8.0.3 desktop: four literal half-screen hit fields. No clip-path and no
+     viewport-dependent height math. The AKI mark sits above them, so TALK wins
+     in the center while every outer quadrant is a real pointer target. */
+  #zoneWrite,#zoneShare,#zoneSelfie,#zoneWorld{width:50%;height:50%;clip-path:none;z-index:12;cursor:pointer}
+  #zoneWrite{left:0;top:0;right:auto;bottom:auto}
+  #zoneShare{right:0;top:0;left:auto;bottom:auto}
+  #zoneSelfie{left:0;bottom:0;right:auto;top:auto}
+  #zoneWorld{right:0;bottom:0;left:auto;top:auto}
+  .mark{z-index:30}
+  .zone:hover{background:radial-gradient(circle,rgba(80,190,255,.014),transparent 72%)}
 }
 .visualize-view{position:absolute;z-index:60;inset:0;display:none;background:#020304;align-items:center;justify-content:center}
 .visualize-view.open{display:flex}
@@ -128,6 +135,7 @@ body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
 </main>
 <script>
 const app=document.querySelector('#app');
+console.info('[AKI 8.0.3] INPUT + CAMERA CONTINUITY loaded');
 const akiButton=document.querySelector('#akiButton');
 const selfiePicker=document.querySelector('#selfiePicker');
 const worldPicker=document.querySelector('#worldPicker');
@@ -459,40 +467,52 @@ function speakVerifiedObservation(observation){
 }
 async function shareImage(file){
  if(!file||imageBusy)return;
- // iOS may report HEIC/HEIF inconsistently, so accept image MIME types and
- // common photo extensions, then prove decodability during normalization.
  const looksImage=file.type?.startsWith('image/')||/\.(heic|heif|jpe?g|png|webp|gif)$/i.test(file.name||'');
- if(!looksImage){console.warn('[AKI 7.1.5] rejected non-image');return}
+ if(!looksImage){console.warn('[AKI 8.0.3] rejected non-image');return}
  imageBusy=true;
  try{
+   latency('show-me-selected',{name:file.name||'image',type:file.type||'unknown',size:file.size});
+   // Camera/file capture is independent of the Live voice connection. Decode first.
+   // The exact normalized pixels become Visualize's source immediately, even if
+   // the separate description step or Live reconnection later has a problem.
+   const normalized=await normalizeImageForIOS(file);
+   visualSourceVersion++;
+   lastImageDataUrl=normalized.dataUrl;
+   lastImageObservation='';
+   lastImageAt=Date.now();
+   latency('visual-source-ready',{version:visualSourceVersion,width:normalized.width,height:normalized.height,encoded_chars:normalized.dataUrl.length});
+
+   // Vision description is useful for conversation, but is no longer a gate for editing.
+   let observation='';
+   try{
+     const r=await fetch('/api/show-me',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:normalized.dataUrl})});
+     const payload=await r.json().catch(()=>({}));
+     if(!r.ok||!payload?.ok||!payload?.observation)throw new Error(payload?.error||`Image analysis failed (${r.status})`);
+     observation=payload.observation;
+     // Only attach the observation if this is still the newest source.
+     if(lastImageDataUrl===normalized.dataUrl){lastImageObservation=observation;rememberConversation('aki',`Verified image observation: ${observation}`)}
+     latency('show-me-verified',{observation_chars:observation.length});
+   }catch(visionErr){
+     console.warn('[AKI 8.0.3 image description]',visionErr);
+   }
+
+   // Reconnect voice only after the image is safely captured as a visual source.
    if(!powered||!dc||dc.readyState!=='open')await startAki();
    const deadline=Date.now()+12000;
    while((!dc||dc.readyState!=='open')&&Date.now()<deadline)await new Promise(r=>setTimeout(r,80));
-   if(!dc||dc.readyState!=='open')throw new Error('AKI voice session is not ready');
-
-   latency('show-me-selected',{name:file.name||'image',type:file.type||'unknown',size:file.size});
-   // A new deliberate image invalidates the previous visual source immediately.
-   // Only a successfully verified image becomes the canonical source for Visualize.
-   visualSourceVersion++;lastImageDataUrl=null;lastImageObservation=null;lastImageAt=0;
-   const normalized=await normalizeImageForIOS(file);
-   latency('show-me-normalized',{width:normalized.width,height:normalized.height,encoded_chars:normalized.dataUrl.length});
-
-   const r=await fetch('/api/show-me',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:normalized.dataUrl})});
-   const payload=await r.json().catch(()=>({}));
-   if(!r.ok||!payload?.ok||!payload?.observation)throw new Error(payload?.error||`Image analysis failed (${r.status})`);
-
-   latency('show-me-verified',{observation_chars:payload.observation.length});
-   lastImageDataUrl=normalized.dataUrl;lastImageObservation=payload.observation;lastImageAt=Date.now();rememberConversation('aki',`Verified image observation: ${payload.observation}`);
-   speakVerifiedObservation(payload.observation);
- }catch(err){
-   console.error('[AKI 7.1.5 Show Me error]',err);
    if(dc?.readyState==='open'){
-     try{
-       const id='show_me_failed_'+Date.now();
-       dc.send(JSON.stringify({type:'response.item.create',event_id:id,item:{type:'message',role:'user',content:[{type:'input_text',text:'SHOW ME FAILED: The image I selected was not successfully received or analyzed. Tell me briefly that the image did not come through and ask me to try another image. Do not claim you saw it.'}]}}));
+     if(observation)speakVerifiedObservation(observation);
+     else{
+       const id='image_ready_'+Date.now();
+       dc.send(JSON.stringify({type:'response.item.create',event_id:id,item:{type:'message',role:'user',content:[{type:'input_text',text:'IMAGE SOURCE READY. I deliberately captured or selected an image. The exact image is now available to AKI Visualize, but the separate descriptive analysis did not return. Tell me briefly the image is ready and ask what change I want to visualize. Do not claim visual details you did not verify.'}]}}));
        dc.send(JSON.stringify({type:'response.create',event_id:id+'_respond'}));
-     }catch{}
+     }
    }
+ }catch(err){
+   console.error('[AKI 8.0.3 Show Me error]',err);
+   // A decode failure really means there is no usable source.
+   visualSourceVersion++;lastImageDataUrl=null;lastImageObservation=null;lastImageAt=0;
+   try{await injectTruth('IMAGE HANDOFF FAILED. The image itself could not be prepared on this device. Tell me briefly that it did not come through and ask me to try another image. Do not claim you saw it.')}catch{}
  }finally{imageBusy=false;[selfiePicker,worldPicker].forEach(resetPicker)}
 }
 function resetPicker(input){ try{input.value=''}catch{} }
