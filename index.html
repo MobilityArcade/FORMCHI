@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=45">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=45">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=45">
-<title>AKI 8.0.3 — Input + Camera Continuity</title>
+<title>AKI 8.1 — TEN KEEPS</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}
 body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
@@ -47,7 +47,7 @@ body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
 @media(max-width:600px){.orb{width:88vw}.mark{width:47vw}}
 @media(prefers-reduced-motion:reduce){.ambient,.orb,.halo,.rim,.oil,.oil2{animation:none!important}}
 
-/* AKI 8.0 — pristine five-input surface + full-screen visualization result */
+/* AKI 8.1 — pristine five-input surface + ten text-only Keeps */
 .zone{position:absolute;z-index:12;background:transparent;border:0;padding:0;margin:0;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;outline:none}
 .zone:focus-visible{outline:1px solid rgba(120,220,255,.22);outline-offset:-2px}
 #zoneWrite{left:0;top:0;width:50%;height:calc(48% - min(44vw,350px))}
@@ -68,20 +68,6 @@ body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
   .mark{z-index:30}
   .zone:hover{background:radial-gradient(circle,rgba(80,190,255,.014),transparent 72%)}
 }
-.visualize-view{position:absolute;z-index:60;inset:0;display:none;background:#020304;align-items:center;justify-content:center}
-.visualize-view.open{display:flex}
-.visualize-view img{width:100%;height:100%;object-fit:contain;background:#020304}
-.visualize-actions{position:absolute;z-index:62;left:0;right:0;bottom:max(24px,calc(env(safe-area-inset-bottom) + 18px));display:flex;justify-content:center;gap:14px;pointer-events:none}
-.visualize-btn{pointer-events:auto;min-width:86px;height:46px;border-radius:999px;border:1px solid rgba(225,240,255,.28);background:rgba(3,6,10,.72);color:#f5fbff;font:500 12px/1 system-ui,-apple-system,sans-serif;letter-spacing:.12em;backdrop-filter:blur(14px);cursor:pointer}
-.visualize-exit{position:absolute;z-index:62;right:max(18px,env(safe-area-inset-right));top:max(18px,calc(env(safe-area-inset-top) + 12px));width:46px;height:46px;border-radius:50%;border:1px solid rgba(225,240,255,.22);background:rgba(3,6,10,.68);color:#f5fbff;font:300 25px/1 system-ui;cursor:pointer;backdrop-filter:blur(14px)}
-.visualize-status{position:absolute;z-index:61;left:10%;right:10%;top:50%;transform:translateY(-50%);text-align:center;color:rgba(230,241,252,.72);font:300 15px/1.5 system-ui;letter-spacing:.04em}
-/* AKI 8.0.2 — visualization progress stays inside AKI. The arc uses the same
-   iridescent palette as the torus and is deliberately thin/subordinate. */
-.visual-progress{position:absolute;z-index:9;left:50%;top:48%;width:min(70vw,557px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;opacity:0;transition:opacity .35s ease;--aki-progress:0deg;background:conic-gradient(from -90deg,rgba(79,231,255,.98) 0deg,rgba(75,116,255,.97) calc(var(--aki-progress)*.28),rgba(161,70,255,.94) calc(var(--aki-progress)*.56),rgba(231,70,255,.92) calc(var(--aki-progress)*.78),rgba(255,149,103,.88) var(--aki-progress),transparent var(--aki-progress) 360deg);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));filter:drop-shadow(0 0 3px rgba(90,205,255,.34))}
-.visual-progress.active{opacity:.82}
-.visual-progress.complete{opacity:1;filter:drop-shadow(0 0 5px rgba(90,205,255,.48))}
-@media(max-width:600px){.visual-progress{width:70vw}}
-@media(prefers-reduced-motion:reduce){.visual-progress{transition:none}}
 </style>
 
 <style id="aki-icon-match">
@@ -122,20 +108,13 @@ body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
   <button id="zoneShare" class="zone" aria-label="Share a photo, file, or document"></button>
   <button id="zoneSelfie" class="zone" aria-label="Open front camera"></button>
   <button id="zoneWorld" class="zone" aria-label="Open rear camera"></button>
-  <div id="visualProgress" class="visual-progress" aria-hidden="true"></div>
-  <section id="visualizeView" class="visualize-view" aria-label="AKI visualization">
-    <div id="visualizeStatus" class="visualize-status"></div>
-    <img id="visualizeImage" alt="AKI generated visualization" hidden>
-    <button id="visualizeExit" class="visualize-exit" type="button" aria-label="Close visualization">×</button>
-    <div class="visualize-actions"><button id="visualizeSave" class="visualize-btn" type="button" hidden>SAVE</button></div>
-  </section>
   <div class="ambient"></div>
   <div class="orb"><div class="halo"></div><div class="rim"></div><div class="oil"></div><div class="oil2"></div><div class="core"></div></div>
   <svg id="akiButton" class="mark" viewBox="0 0 210 90" role="button" tabindex="0" aria-label="Turn AKI on" aria-pressed="false"><path d="M15 72 L45 18 L75 72 M95 18 L95 72 M96 48 L142 18 M96 48 L144 72 M172 18 L172 72"/></svg>
 </main>
 <script>
 const app=document.querySelector('#app');
-console.info('[AKI 8.0.3] INPUT + CAMERA CONTINUITY loaded');
+console.info('[AKI 8.1] TEN KEEPS loaded');
 const akiButton=document.querySelector('#akiButton');
 const selfiePicker=document.querySelector('#selfiePicker');
 const worldPicker=document.querySelector('#worldPicker');
@@ -143,13 +122,12 @@ const filePicker=document.querySelector('#filePicker');
 const writeLayer=document.querySelector('#writeLayer');
 const writeBox=document.querySelector('#writeBox');
 const zoneWrite=document.querySelector('#zoneWrite'),zoneShare=document.querySelector('#zoneShare'),zoneSelfie=document.querySelector('#zoneSelfie'),zoneWorld=document.querySelector('#zoneWorld');
-const visualizeView=document.querySelector('#visualizeView'),visualizeImage=document.querySelector('#visualizeImage'),visualizeStatus=document.querySelector('#visualizeStatus'),visualizeExit=document.querySelector('#visualizeExit'),visualizeSave=document.querySelector('#visualizeSave'),visualProgress=document.querySelector('#visualProgress');
 let pc=null,dc=null,micStream=null,audioEl=null,audioCtx=null;
 let starting=false,stopping=false,powered=false,restarting=false;
 let transcript='',turnEndAt=0,responseStartAt=0,firstAudioAt=0,lastChime=0;
 let latencyTimer=null,hardWatchdog=null,preferenceTimer=null;
-let imageBusy=false,shareBusy=false,visualizeBusy=false;
-let lastImageDataUrl=null,lastImageObservation=null,lastImageAt=0,lastVisualizationDataUrl=null,visualSourceVersion=0,visualizeRequestId=0,visualizeAbort=null,visualProgressTimer=null,visualProgressValue=0;
+let imageBusy=false,shareBusy=false;
+
 let recentConversation=[];
 let pendingKeepReplace=null;
 let pitchBusy=false,pitchTimer=null,pitchAnalyser=null,pitchSource=null;
@@ -318,25 +296,24 @@ async function handleSpokenIntent(text){
  const clean=String(text||'').trim();if(!clean)return;
  rememberConversation('user',clean);
  if(await handleKeepIntent(clean))return;
- if(await handleVisualizeIntent(clean))return;
  await handleVoiceIntent(clean);
 }
 
 
 const KEEPS_KEY='akiKeepsV1';
-function getKeeps(){try{const v=JSON.parse(localStorage.getItem(KEEPS_KEY)||'[]');return Array.isArray(v)?v.slice(0,5):[]}catch{return []}}
-function setKeeps(v){localStorage.setItem(KEEPS_KEY,JSON.stringify(v.slice(0,5)))}
+function getKeeps(){try{const v=JSON.parse(localStorage.getItem(KEEPS_KEY)||'[]');return Array.isArray(v)?v.slice(0,10):[]}catch{return []}}
+function setKeeps(v){localStorage.setItem(KEEPS_KEY,JSON.stringify(v.slice(0,10)))}
 function rememberConversation(role,text){const t=String(text||'').trim();if(!t)return;recentConversation.push({role,text:t,at:Date.now()});if(recentConversation.length>18)recentConversation=recentConversation.slice(-18)}
 function keepsContext(){const k=getKeeps();return k.length?k.map((x,i)=>`${i+1}. ${x.title}: ${x.summary}`).join('\n'):'No Keeps saved on this device yet.'}
 function keepListSpeech(){const k=getKeeps();if(!k.length)return 'You currently have no Keeps saved on this device.';return `Your ${k.length} Keep${k.length===1?' is':'s are'}: `+k.map((x,i)=>`${i+1}, ${x.title}`).join('; ')+'.';}
 function keepIntent(text){
  const t=normalizedSpeech(text);
  if(/\b(what|which|read|list|tell me|show me)\b.{0,24}\b(keep|keeps|things (?:you|we) (?:kept|saved|remembered))\b|\bwhat are my keeps\b/.test(t))return {kind:'list'};
- let m=t.match(/\b(?:forget|delete|remove)\s+(?:keep\s*)?(?:number\s*)?([1-5])\b/);if(m)return {kind:'deleteIndex',index:Number(m[1])-1};
- m=t.match(/\b(?:replace|use)\s+(?:keep\s*)?(?:number\s*)?([1-5])\b/);if(m&&pendingKeepReplace)return {kind:'replaceIndex',index:Number(m[1])-1};
+ let m=t.match(/\b(?:forget|delete|remove)\s+(?:keep\s*)?(?:number\s*)?(10|[1-9])\b/);if(m)return {kind:'deleteIndex',index:Number(m[1])-1};
+ m=t.match(/\b(?:replace|use)\s+(?:keep\s*)?(?:number\s*)?(10|[1-9])\b/);if(m&&pendingKeepReplace)return {kind:'replaceIndex',index:Number(m[1])-1};
  if(/\b(keep this|remember this|save this (?:thought|idea|conversation|moment)|make this a keep|keep what (?:we|i) (?:decided|said|made|created))\b/.test(t))return {kind:'save'};
  m=t.match(/\b(?:do you remember|pull up|continue|go back to|what did we (?:say|decide) about)\s+(.{2,80})/);if(m)return {kind:'recall',query:m[1].replace(/[?.!]+$/,'').trim()};
- if(pendingKeepReplace){m=t.match(/^(?:number\s*)?([1-5])\b/);if(m)return {kind:'replaceIndex',index:Number(m[1])-1};}
+ if(pendingKeepReplace){m=t.match(/^(?:number\s*)?(10|[1-9])\b/);if(m)return {kind:'replaceIndex',index:Number(m[1])-1};}
  return null;
 }
 async function summarizeKeep(){
@@ -353,37 +330,17 @@ async function handleKeepIntent(text){
    const q=intent.query.toLowerCase();let best=keeps.find(x=>x.title.toLowerCase().includes(q)||q.includes(x.title.toLowerCase()));
    if(!best)best=keeps.find(x=>x.summary.toLowerCase().includes(q));
    if(best){await injectTruth(`AKI KEEP RECALLED — DEVICE MEMORY. Title: ${best.title}. Saved meaning: ${best.summary}. Continue naturally from this saved context. Do not claim to remember anything beyond this Keep.`)}
-   else await injectTruth(`AKI KEEPS. I checked the five device-local Keeps and could not find one matching "${intent.query}". Say that briefly and, if useful, offer to read the Keep titles.`);
+   else await injectTruth(`AKI KEEPS. I checked the ten device-local Keeps and could not find one matching "${intent.query}". Say that briefly and, if useful, offer to read the Keep titles.`);
    return true;
  }
  if(intent.kind==='save'){
-   try{const keep=await summarizeKeep();if(keeps.length<5){keeps.push({...keep,updatedAt:new Date().toISOString()});setKeeps(keeps);pendingKeepReplace=null;await injectTruth(`AKI KEEP SAVED — DEVICE MEMORY. Saved as Keep ${keeps.length}: "${keep.title}". Summary: ${keep.summary}. Confirm naturally and briefly.`)}else{pendingKeepReplace={keep,createdAt:Date.now()};await injectTruth(`AKI KEEPS FULL. All five Keeps are occupied. The new memory is "${keep.title}". Read the five current Keep titles in order and ask me which number, 1 through 5, I want to replace. Do not replace anything until I choose. Current Keeps:\n${keeps.map((x,i)=>`${i+1}. ${x.title}`).join('\n')}`)}}catch(e){console.error('[AKI 8.0 keep]',e);await injectTruth('AKI KEEP FAILED. I could not save that Keep on this device. Say that briefly and do not pretend it was saved.')};return true
+   try{const keep=await summarizeKeep();if(keeps.length<10){keeps.push({...keep,updatedAt:new Date().toISOString()});setKeeps(keeps);pendingKeepReplace=null;await injectTruth(`AKI KEEP SAVED — DEVICE MEMORY. Saved as Keep ${keeps.length}: "${keep.title}". Summary: ${keep.summary}. Confirm naturally and briefly.`)}else{pendingKeepReplace={keep,createdAt:Date.now()};await injectTruth(`AKI KEEPS FULL. All ten Keeps are occupied. The new memory is "${keep.title}". Read the ten current Keep titles in order and ask me which number, 1 through 10, I want to replace. Do not replace anything until I choose. Current Keeps:\n${keeps.map((x,i)=>`${i+1}. ${x.title}`).join('\n')}`)}}catch(e){console.error('[AKI 8.0 keep]',e);await injectTruth('AKI KEEP FAILED. I could not save that Keep on this device. Say that briefly and do not pretend it was saved.')};return true
  }
  if(intent.kind==='replaceIndex'){
    if(!pendingKeepReplace||!keeps[intent.index])return false;const old=keeps[intent.index];keeps[intent.index]={...pendingKeepReplace.keep,updatedAt:new Date().toISOString()};setKeeps(keeps);const fresh=keeps[intent.index];pendingKeepReplace=null;await injectTruth(`AKI KEEP REPLACED — DEVICE MEMORY. Keep ${intent.index+1}, "${old.title}", was replaced with "${fresh.title}". Confirm that briefly.`);return true
  }
  return false;
 }
-function visualizeIntent(text){
- const t=normalizedSpeech(text);
- // Natural edit language after a verified image: "turn the cat purple",
- // "paint the cabinets navy", "recolor this white", etc.
- return /\b(visuali[sz]e|mock ?up|render|show me what|show me how|what would .{0,40} look like|make .{1,90}(?:look|color|colour|blue|purple|red|green|white|black|wood|navy|finish)|change .{1,90}(?:to|into)|turn .{1,90}(?:to |into )?(?:blue|purple|red|green|yellow|orange|pink|white|black|gray|grey|brown|navy|teal|cyan|magenta|gold|silver)|paint .{1,90}(?:blue|purple|red|green|yellow|orange|pink|white|black|gray|grey|brown|navy|teal|cyan|magenta|gold|silver)|recolou?r|restyle|replace .{1,90} with)\b/.test(t)
-}
-async function handleVisualizeIntent(text){if(!visualizeIntent(text))return false;if(!lastImageDataUrl||Date.now()-lastImageAt>45*60*1000){await injectTruth('AKI VISUALIZE. I can create a visualization from a photo you deliberately give me, but I do not currently have a recent source image in this session. Tell me briefly to show or share the image first.');return true}await createVisualization(text);return true}
-function setVisualProgress(v){visualProgressValue=Math.max(0,Math.min(100,v));visualProgress.style.setProperty('--aki-progress',`${visualProgressValue*3.6}deg`)}
-function startVisualProgress(){clearInterval(visualProgressTimer);setVisualProgress(2);visualProgress.classList.remove('complete');visualProgress.classList.add('active');visualProgressTimer=setInterval(()=>{const remaining=90-visualProgressValue;if(remaining<=.4)return;setVisualProgress(visualProgressValue+Math.max(.35,remaining*.045))},420)}
-function finishVisualProgress(){clearInterval(visualProgressTimer);visualProgressTimer=null;setVisualProgress(100);visualProgress.classList.add('complete')}
-function clearVisualProgress(delay=0){clearInterval(visualProgressTimer);visualProgressTimer=null;const clear=()=>{visualProgress.classList.remove('active','complete');setVisualProgress(0)};delay?setTimeout(clear,delay):clear()}
-async function createVisualization(instruction){
- if(visualizeBusy||!lastImageDataUrl)return;visualizeBusy=true;const requestId=++visualizeRequestId;const sourceVersion=visualSourceVersion;const sourceImage=lastImageDataUrl;const sourceObservation=lastImageObservation||'';visualizeAbort?.abort();visualizeAbort=new AbortController();lastVisualizationDataUrl=null;visualizeView.classList.remove('open');visualizeImage.hidden=true;visualizeSave.hidden=true;visualizeStatus.textContent='';startVisualProgress();
- try{const r=await fetch('/api/visualize',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:sourceImage,instruction,observation:sourceObservation}),signal:visualizeAbort.signal});const p=await r.json().catch(()=>({}));if(!r.ok||!p.ok||!p.image)throw new Error(p.error||'Visualization failed');if(requestId!==visualizeRequestId||sourceVersion!==visualSourceVersion)return;lastVisualizationDataUrl=p.image;finishVisualProgress();await new Promise(r=>setTimeout(r,320));visualizeImage.src=p.image;visualizeImage.hidden=false;visualizeStatus.textContent='';visualizeSave.hidden=false;visualizeView.classList.add('open');clearVisualProgress(180);rememberConversation('aki','Created a temporary visualization from the user-provided image.');}
- catch(e){if(e?.name==='AbortError')return;console.error('[AKI 8.0.2 visualize]',e);clearVisualProgress();await injectTruth('AKI VISUALIZE FAILED. The visualization did not come through. Say that briefly and invite me to try again. Do not claim an image was created.');}finally{if(requestId===visualizeRequestId){visualizeBusy=false;visualizeAbort=null}}
-}
-function closeVisualization(){visualizeRequestId++;visualizeAbort?.abort();visualizeAbort=null;visualizeBusy=false;clearVisualProgress();visualizeView.classList.remove('open');visualizeImage.hidden=true;visualizeImage.removeAttribute('src');visualizeStatus.textContent='';visualizeSave.hidden=true;lastVisualizationDataUrl=null}
-visualizeExit.addEventListener('click',closeVisualization);
-visualizeSave.addEventListener('click',async()=>{if(!lastVisualizationDataUrl)return;try{const blob=await (await fetch(lastVisualizationDataUrl)).blob();const file=new File([blob],`AKI-visualization-${Date.now()}.png`,{type:blob.type||'image/png'});if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:'AKI visualization'});return}const a=document.createElement('a');a.href=lastVisualizationDataUrl;a.download=file.name;document.body.appendChild(a);a.click();a.remove()}catch(e){console.error('[AKI 8.0 save image]',e)}});
-
 function absorbTranscript(m){
  // CRITICAL 7.1 FIX: only the USER'S input transcript may control voice identity.
  // AKI's own output transcript is ignored, preventing it from switching itself.
@@ -413,7 +370,7 @@ async function startAki(){
     latency('data-channel-open',{voice:akiVoice});
     try{dc.send(JSON.stringify({type:'session.instructions.append',content:`AKI KEEPS DEVICE CONTEXT at session start. These are the only deliberate Keeps currently stored on this device:\n${keepsContext()}\nUse them only when relevant or when the human asks. Do not imply you remember anything else from earlier sessions.`}))}catch(e){console.warn('AKI keeps context:',e)}
     // AKI 7.1.5 — WRITE ABOVE / CAMERAS BELOW. Three invisible interaction regions; no persistent visible controls.
-    try{dc.send(JSON.stringify({type:'session.instructions.append',content:`AKI's core philosophy is "More of you." You are a calm, warm, intelligent thinking companion. The human remains the creator, observer, experiencer and actor. Your job is to help them think, imagine, articulate, explore, practice, decide and get unstuck — not to take over the experience. Listen carefully. Reflect the strongest thread. Ask one useful question at a time when a question helps. When the user's thoughts become complicated, become simpler. Prefer one useful next step over lists, information dumps, menus, workflows or many options. CAPABILITY TRUTH — speak only about capabilities THIS AKI experience actually exposes. AKI can listen and talk. In the negative space ABOVE AKI, the upper-left invisible region opens a temporary writing surface: the iPhone keyboard rises from below while typed or pasted words appear only in the clear space above the sphere; Return sends the words into this same conversation and the writing surface disappears. The upper-right invisible region opens the device's full deliberate handoff chooser, which may offer Photo Library, Take Photo, or Choose File on iPhone. Images are visually analyzed and documents/files are read through their verified handoff paths. The lower-left invisible region opens a one-time front/selfie camera capture; the lower-right invisible region opens a one-time rear/world camera capture. Never advertise these controls unprompted and never recite them as a feature list unless the human explicitly asks how input works. If the human says they cannot talk, wants to type, paste text, write something, or paste a website link, tell them briefly: tap the upper left and type or paste it. If they want to share, upload, attach, or give you a photo, screenshot, document, or file, ALWAYS tell them: tap the upper right and choose what they want to bring in. Never call upper-left a file/photo sharing area. Website URLs pasted through upper-left can be browsed through AKI's verified web-reading path; never claim a webpage was read until that verified result arrives. For a selfie/front photo: tap the lower left. To photograph something in front of them: tap the lower right. The camera actions are deliberate one-time captures, not continuous camera access. Never claim to see/read anything until a verified image or file result has actually arrived. If analysis fails, say it did not come through. AKI has NO continuous camera access, NO continuous visual access, NO screen viewing/sharing, and NO video watching. AKI can also create a temporary edited visualization from the most recently and deliberately shared/captured image when the human naturally asks to visualize, mock up, render, or show a described change. The generated result temporarily takes over the screen and can be saved through the device share/save flow or closed. AKI does not keep generated images. AKI also has no device control, reminders/alarms, messaging, purchasing, booking, or other external actions unless explicitly supplied. If asked "what can you do?", describe AKI's conversational role rather than reciting features; mention image sharing only if the user's question or context specifically concerns showing you something. Natural multilingual conversation is welcome. KEEPS: AKI supports up to five deliberate, text-only device-local Keeps. A Keep preserves meaning, decisions, ideas, and enough context to continue; it never stores photos, generated images, documents, audio, or other files. The client handles save, list, recall, delete, and replacement. Never claim a Keep exists until the client provides an AKI KEEP SAVED or AKI KEEP RECALLED result. When all five are full, nothing is replaced until the human chooses which numbered Keep to replace. Keep ordinary spoken responses concise and human, usually 1–3 short sentences unless the user explicitly asks for depth. If they say "Aki" to begin or regain your attention, respond naturally with "I am here. How can I help you?" The experience should feel like one presence: no visible interface beyond AKI itself.`}))}catch(e){console.warn('AKI philosophy instruction:',e)}
+    try{dc.send(JSON.stringify({type:'session.instructions.append',content:`AKI's core philosophy is "More of you." You are a calm, warm, intelligent thinking companion. The human remains the creator, observer, experiencer and actor. Your job is to help them think, imagine, articulate, explore, practice, decide and get unstuck — not to take over the experience. Listen carefully. Reflect the strongest thread. Ask one useful question at a time when a question helps. When the user's thoughts become complicated, become simpler. Prefer one useful next step over lists, information dumps, menus, workflows or many options. CAPABILITY TRUTH — speak only about capabilities THIS AKI experience actually exposes. AKI can listen and talk. In the negative space ABOVE AKI, the upper-left invisible region opens a temporary writing surface: the iPhone keyboard rises from below while typed or pasted words appear only in the clear space above the sphere; Return sends the words into this same conversation and the writing surface disappears. The upper-right invisible region opens the device's full deliberate handoff chooser, which may offer Photo Library, Take Photo, or Choose File on iPhone. Images are visually analyzed and documents/files are read through their verified handoff paths. The lower-left invisible region opens a one-time front/selfie camera capture; the lower-right invisible region opens a one-time rear/world camera capture. Never advertise these controls unprompted and never recite them as a feature list unless the human explicitly asks how input works. If the human says they cannot talk, wants to type, paste text, write something, or paste a website link, tell them briefly: tap the upper left and type or paste it. If they want to share, upload, attach, or give you a photo, screenshot, document, or file, ALWAYS tell them: tap the upper right and choose what they want to bring in. Never call upper-left a file/photo sharing area. Website URLs pasted through upper-left can be browsed through AKI's verified web-reading path; never claim a webpage was read until that verified result arrives. For a selfie/front photo: tap the lower left. To photograph something in front of them: tap the lower right. The camera actions are deliberate one-time captures, not continuous camera access. Never claim to see/read anything until a verified image or file result has actually arrived. If analysis fails, say it did not come through. AKI has NO continuous camera access, NO continuous visual access, NO screen viewing/sharing, and NO video watching. AKI also has no device control, reminders/alarms, messaging, purchasing, booking, or other external actions unless explicitly supplied. If asked "what can you do?", describe AKI's conversational role rather than reciting features; mention image sharing only if the user's question or context specifically concerns showing you something. Natural multilingual conversation is welcome. KEEPS: AKI supports up to ten deliberate, text-only device-local Keeps. A Keep preserves meaning, decisions, ideas, and enough context to continue; it never stores photos, generated images, documents, audio, or other files. The client handles save, list, recall, delete, and replacement. Never claim a Keep exists until the client provides an AKI KEEP SAVED or AKI KEEP RECALLED result. When all ten are full, nothing is replaced until the human chooses which numbered Keep to replace. Keep ordinary spoken responses concise and human, usually 1–3 short sentences unless the user explicitly asks for depth. If they say "Aki" to begin or regain your attention, respond naturally with "I am here. How can I help you?" The experience should feel like one presence: no visible interface beyond AKI itself.`}))}catch(e){console.warn('AKI philosophy instruction:',e)}
   });
   dc.addEventListener('message',e=>{try{const m=JSON.parse(e.data),type=m.type||'',nested=m.event?.type||'',all=(type+' '+nested).toLowerCase();
     if(type==='session.started'){powered=true;powerLook('on');latency('session-started',{voice:m.session?.audio?.output?.voice||m.session?.voice||akiVoice})}
@@ -476,11 +433,6 @@ async function shareImage(file){
    // The exact normalized pixels become Visualize's source immediately, even if
    // the separate description step or Live reconnection later has a problem.
    const normalized=await normalizeImageForIOS(file);
-   visualSourceVersion++;
-   lastImageDataUrl=normalized.dataUrl;
-   lastImageObservation='';
-   lastImageAt=Date.now();
-   latency('visual-source-ready',{version:visualSourceVersion,width:normalized.width,height:normalized.height,encoded_chars:normalized.dataUrl.length});
 
    // Vision description is useful for conversation, but is no longer a gate for editing.
    let observation='';
@@ -490,7 +442,7 @@ async function shareImage(file){
      if(!r.ok||!payload?.ok||!payload?.observation)throw new Error(payload?.error||`Image analysis failed (${r.status})`);
      observation=payload.observation;
      // Only attach the observation if this is still the newest source.
-     if(lastImageDataUrl===normalized.dataUrl){lastImageObservation=observation;rememberConversation('aki',`Verified image observation: ${observation}`)}
+     rememberConversation('aki',`Verified image observation: ${observation}`)
      latency('show-me-verified',{observation_chars:observation.length});
    }catch(visionErr){
      console.warn('[AKI 8.0.3 image description]',visionErr);
@@ -504,14 +456,13 @@ async function shareImage(file){
      if(observation)speakVerifiedObservation(observation);
      else{
        const id='image_ready_'+Date.now();
-       dc.send(JSON.stringify({type:'response.item.create',event_id:id,item:{type:'message',role:'user',content:[{type:'input_text',text:'IMAGE SOURCE READY. I deliberately captured or selected an image. The exact image is now available to AKI Visualize, but the separate descriptive analysis did not return. Tell me briefly the image is ready and ask what change I want to visualize. Do not claim visual details you did not verify.'}]}}));
+       dc.send(JSON.stringify({type:'response.item.create',event_id:id,item:{type:'message',role:'user',content:[{type:'input_text',text:'IMAGE RECEIVED. I deliberately captured or selected an image, but the separate descriptive analysis did not return. Tell me briefly that the image came through but you could not verify its visual details. Do not invent visual details.'}]}}));
        dc.send(JSON.stringify({type:'response.create',event_id:id+'_respond'}));
      }
    }
  }catch(err){
    console.error('[AKI 8.0.3 Show Me error]',err);
    // A decode failure really means there is no usable source.
-   visualSourceVersion++;lastImageDataUrl=null;lastImageObservation=null;lastImageAt=0;
    try{await injectTruth('IMAGE HANDOFF FAILED. The image itself could not be prepared on this device. Tell me briefly that it did not come through and ask me to try another image. Do not claim you saw it.')}catch{}
  }finally{imageBusy=false;[selfiePicker,worldPicker].forEach(resetPicker)}
 }
