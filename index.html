@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=45">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=45">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=45">
-<title>AKI 8.1.1 — TEN KEEPS CAPACITY TRUTH</title>
+<title>AKI 8.1.2 — WRITE FOCUS + ACCESSIBLE ZOOM</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}
 body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
@@ -42,7 +42,7 @@ body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
 @keyframes oilTurn{to{transform:rotate(360deg)}}@keyframes oilTurn2{to{transform:rotate(-360deg)}}
 .write-layer{position:absolute;z-index:20;left:max(7vw,22px);right:max(7vw,22px);top:max(calc(env(safe-area-inset-top) + 7vh),86px);height:clamp(82px,14vh,150px);display:none;align-items:flex-start;pointer-events:none}
 .write-layer.open{display:flex}
-#writeBox{width:100%;max-height:100%;resize:none;overflow:auto;border:0;outline:0;background:transparent;color:rgba(238,247,255,.92);font:300 clamp(18px,4.7vw,30px)/1.35 system-ui,-apple-system,sans-serif;letter-spacing:.01em;padding:8px 0 12px;caret-color:#65e8ff;text-shadow:0 0 12px rgba(99,211,255,.12);pointer-events:auto}
+#writeBox{width:100%;max-height:100%;resize:none;overflow:auto;border:0;outline:0;background:transparent;color:rgba(238,247,255,.92);font:300 clamp(20px,5.2vw,30px)/1.35 system-ui,-apple-system,sans-serif;letter-spacing:.01em;padding:8px 0 12px;caret-color:#65e8ff;text-shadow:0 0 12px rgba(99,211,255,.12);pointer-events:auto}
 #writeBox::placeholder{color:rgba(204,214,232,.38)}
 @media(max-width:600px){.orb{width:88vw}.mark{width:47vw}}
 @media(prefers-reduced-motion:reduce){.ambient,.orb,.halo,.rim,.oil,.oil2{animation:none!important}}
@@ -114,7 +114,7 @@ body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
 </main>
 <script>
 const app=document.querySelector('#app');
-console.info('[AKI 8.1.1] TEN KEEPS CAPACITY TRUTH loaded');
+console.info('[AKI 8.1.2] WRITE FOCUS + ACCESSIBLE ZOOM loaded');
 const akiButton=document.querySelector('#akiButton');
 const selfiePicker=document.querySelector('#selfiePicker');
 const worldPicker=document.querySelector('#worldPicker');
@@ -525,10 +525,19 @@ async function injectFileFailure(message){
 
 function openWrite(){
  if(imageBusy||shareBusy)return;
- if(writeLayer.classList.contains('open')){closeWrite();return}
+ // AKI 8.1.2: iOS only raises the software keyboard reliably when focus()
+ // happens synchronously inside the user's tap gesture. Do not defer this
+ // first focus to requestAnimationFrame.
+ if(writeLayer.classList.contains('open')){
+  try{writeBox.focus({preventScroll:true})}catch{writeBox.focus()}
+  return;
+ }
  writeLayer.classList.add('open');
  writeBox.value='';
- requestAnimationFrame(()=>{try{writeBox.focus({preventScroll:true})}catch{writeBox.focus()}});
+ try{writeBox.focus({preventScroll:true})}catch{writeBox.focus()}
+ // A second focus on the next frame is harmless and helps browsers that
+ // finish laying out the newly-visible textarea after the gesture.
+ requestAnimationFrame(()=>{if(writeLayer.classList.contains('open')&&document.activeElement!==writeBox){try{writeBox.focus({preventScroll:true})}catch{writeBox.focus()}}});
 }
 function closeWrite(){
  writeBox.blur();writeBox.value='';writeLayer.classList.remove('open');
@@ -572,9 +581,10 @@ writeLayer.addEventListener('submit',async e=>{
  closeWrite();
  try{await sendWrittenText(text)}catch(err){console.error('[AKI 7.1.5 write error]',err);powerLook('error')}
 });
-writeBox.addEventListener('click',e=>{
- if(writeLayer.classList.contains('open')&&!writeBox.value.trim()){e.preventDefault();e.stopPropagation();closeWrite()}
-});
+// AKI 8.1.2: tapping the empty writing field must place the caret and keep
+// the keyboard open. The old handler closed the field on exactly that tap.
+writeBox.addEventListener('pointerdown',e=>{e.stopPropagation()});
+writeBox.addEventListener('click',e=>{e.stopPropagation()});
 writeBox.addEventListener('keydown',e=>{
  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();writeLayer.requestSubmit()}
  if(e.key==='Escape'){e.preventDefault();closeWrite()}
