@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=45">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=45">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=45">
-<title>AKI 8.0 — Keeps + Visualize</title>
+<title>AKI 8.0.2 — Visual Continuity</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}
 body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
@@ -51,7 +51,16 @@ body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
 #zoneShare{right:0;top:0;width:50%;height:calc(48% - min(44vw,350px))}
 #zoneSelfie{left:0;bottom:0;width:50%;height:calc(52% - min(44vw,350px))}
 #zoneWorld{right:0;bottom:0;width:50%;height:calc(52% - min(44vw,350px))}
-@media(pointer:fine){.zone:hover{background:radial-gradient(circle,rgba(80,190,255,.018),transparent 70%)}}
+/* Desktop uses broad outer-corner hit fields. The previous calc() could become
+   negative when AKI filled most of a short desktop viewport, leaving no clickable area. */
+@media (pointer:fine){
+  #zoneWrite,#zoneShare,#zoneSelfie,#zoneWorld{width:50%;height:50%}
+  #zoneWrite{left:0;top:0;right:auto;bottom:auto;clip-path:polygon(0 0,100% 0,100% 34%,78% 44%,58% 64%,46% 82%,34% 100%,0 100%)}
+  #zoneShare{right:0;top:0;left:auto;bottom:auto;clip-path:polygon(0 0,100% 0,100% 100%,66% 100%,54% 82%,42% 64%,22% 44%,0 34%)}
+  #zoneSelfie{left:0;bottom:0;right:auto;top:auto;clip-path:polygon(0 0,34% 0,46% 18%,58% 36%,78% 56%,100% 66%,100% 100%,0 100%)}
+  #zoneWorld{right:0;bottom:0;left:auto;top:auto;clip-path:polygon(66% 0,100% 0,100% 100%,0 100%,0 66%,22% 56%,42% 36%,54% 18%)}
+  .zone:hover{background:radial-gradient(circle,rgba(80,190,255,.018),transparent 70%)}
+}
 .visualize-view{position:absolute;z-index:60;inset:0;display:none;background:#020304;align-items:center;justify-content:center}
 .visualize-view.open{display:flex}
 .visualize-view img{width:100%;height:100%;object-fit:contain;background:#020304}
@@ -59,6 +68,13 @@ body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
 .visualize-btn{pointer-events:auto;min-width:86px;height:46px;border-radius:999px;border:1px solid rgba(225,240,255,.28);background:rgba(3,6,10,.72);color:#f5fbff;font:500 12px/1 system-ui,-apple-system,sans-serif;letter-spacing:.12em;backdrop-filter:blur(14px);cursor:pointer}
 .visualize-exit{position:absolute;z-index:62;right:max(18px,env(safe-area-inset-right));top:max(18px,calc(env(safe-area-inset-top) + 12px));width:46px;height:46px;border-radius:50%;border:1px solid rgba(225,240,255,.22);background:rgba(3,6,10,.68);color:#f5fbff;font:300 25px/1 system-ui;cursor:pointer;backdrop-filter:blur(14px)}
 .visualize-status{position:absolute;z-index:61;left:10%;right:10%;top:50%;transform:translateY(-50%);text-align:center;color:rgba(230,241,252,.72);font:300 15px/1.5 system-ui;letter-spacing:.04em}
+/* AKI 8.0.2 — visualization progress stays inside AKI. The arc uses the same
+   iridescent palette as the torus and is deliberately thin/subordinate. */
+.visual-progress{position:absolute;z-index:9;left:50%;top:48%;width:min(70vw,557px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;opacity:0;transition:opacity .35s ease;--aki-progress:0deg;background:conic-gradient(from -90deg,rgba(79,231,255,.98) 0deg,rgba(75,116,255,.97) calc(var(--aki-progress)*.28),rgba(161,70,255,.94) calc(var(--aki-progress)*.56),rgba(231,70,255,.92) calc(var(--aki-progress)*.78),rgba(255,149,103,.88) var(--aki-progress),transparent var(--aki-progress) 360deg);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));filter:drop-shadow(0 0 3px rgba(90,205,255,.34))}
+.visual-progress.active{opacity:.82}
+.visual-progress.complete{opacity:1;filter:drop-shadow(0 0 5px rgba(90,205,255,.48))}
+@media(max-width:600px){.visual-progress{width:70vw}}
+@media(prefers-reduced-motion:reduce){.visual-progress{transition:none}}
 </style>
 
 <style id="aki-icon-match">
@@ -99,6 +115,7 @@ body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
   <button id="zoneShare" class="zone" aria-label="Share a photo, file, or document"></button>
   <button id="zoneSelfie" class="zone" aria-label="Open front camera"></button>
   <button id="zoneWorld" class="zone" aria-label="Open rear camera"></button>
+  <div id="visualProgress" class="visual-progress" aria-hidden="true"></div>
   <section id="visualizeView" class="visualize-view" aria-label="AKI visualization">
     <div id="visualizeStatus" class="visualize-status"></div>
     <img id="visualizeImage" alt="AKI generated visualization" hidden>
@@ -118,13 +135,13 @@ const filePicker=document.querySelector('#filePicker');
 const writeLayer=document.querySelector('#writeLayer');
 const writeBox=document.querySelector('#writeBox');
 const zoneWrite=document.querySelector('#zoneWrite'),zoneShare=document.querySelector('#zoneShare'),zoneSelfie=document.querySelector('#zoneSelfie'),zoneWorld=document.querySelector('#zoneWorld');
-const visualizeView=document.querySelector('#visualizeView'),visualizeImage=document.querySelector('#visualizeImage'),visualizeStatus=document.querySelector('#visualizeStatus'),visualizeExit=document.querySelector('#visualizeExit'),visualizeSave=document.querySelector('#visualizeSave');
+const visualizeView=document.querySelector('#visualizeView'),visualizeImage=document.querySelector('#visualizeImage'),visualizeStatus=document.querySelector('#visualizeStatus'),visualizeExit=document.querySelector('#visualizeExit'),visualizeSave=document.querySelector('#visualizeSave'),visualProgress=document.querySelector('#visualProgress');
 let pc=null,dc=null,micStream=null,audioEl=null,audioCtx=null;
 let starting=false,stopping=false,powered=false,restarting=false;
 let transcript='',turnEndAt=0,responseStartAt=0,firstAudioAt=0,lastChime=0;
 let latencyTimer=null,hardWatchdog=null,preferenceTimer=null;
 let imageBusy=false,shareBusy=false,visualizeBusy=false;
-let lastImageDataUrl=null,lastImageObservation=null,lastImageAt=0,lastVisualizationDataUrl=null;
+let lastImageDataUrl=null,lastImageObservation=null,lastImageAt=0,lastVisualizationDataUrl=null,visualSourceVersion=0,visualizeRequestId=0,visualizeAbort=null,visualProgressTimer=null,visualProgressValue=0;
 let recentConversation=[];
 let pendingKeepReplace=null;
 let pitchBusy=false,pitchTimer=null,pitchAnalyser=null,pitchSource=null;
@@ -339,14 +356,23 @@ async function handleKeepIntent(text){
  }
  return false;
 }
-function visualizeIntent(text){const t=normalizedSpeech(text);return /\b(visuali[sz]e|mock ?up|render|show me what|show me how|what would .{0,30} look like|make (?:this|these|the) .{0,60}(?:look|color|colour|blue|white|black|wood|navy|finish)|change (?:this|these|the) .{0,60}(?:to|into))\b/.test(t)}
-async function handleVisualizeIntent(text){if(!visualizeIntent(text))return false;if(!lastImageDataUrl||Date.now()-lastImageAt>45*60*1000){await injectTruth('AKI VISUALIZE. I can create a visualization from a photo you deliberately give me, but I do not currently have a recent source image in this session. Tell me briefly to show or share the image first.');return true}await createVisualization(text);return true}
-async function createVisualization(instruction){
- if(visualizeBusy)return;visualizeBusy=true;visualizeView.classList.add('open');visualizeImage.hidden=true;visualizeSave.hidden=true;visualizeStatus.textContent='Creating your visualization…';
- try{const r=await fetch('/api/visualize',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:lastImageDataUrl,instruction,observation:lastImageObservation||''})});const p=await r.json().catch(()=>({}));if(!r.ok||!p.ok||!p.image)throw new Error(p.error||'Visualization failed');lastVisualizationDataUrl=p.image;visualizeImage.src=p.image;visualizeImage.hidden=false;visualizeStatus.textContent='';visualizeSave.hidden=false;rememberConversation('aki','Created a temporary visualization from the user-provided image.');}
- catch(e){console.error('[AKI 8.0 visualize]',e);visualizeStatus.textContent='The visualization did not come through. Close this view and try again.';}finally{visualizeBusy=false}
+function visualizeIntent(text){
+ const t=normalizedSpeech(text);
+ // Natural edit language after a verified image: "turn the cat purple",
+ // "paint the cabinets navy", "recolor this white", etc.
+ return /\b(visuali[sz]e|mock ?up|render|show me what|show me how|what would .{0,40} look like|make .{1,90}(?:look|color|colour|blue|purple|red|green|white|black|wood|navy|finish)|change .{1,90}(?:to|into)|turn .{1,90}(?:to |into )?(?:blue|purple|red|green|yellow|orange|pink|white|black|gray|grey|brown|navy|teal|cyan|magenta|gold|silver)|paint .{1,90}(?:blue|purple|red|green|yellow|orange|pink|white|black|gray|grey|brown|navy|teal|cyan|magenta|gold|silver)|recolou?r|restyle|replace .{1,90} with)\b/.test(t)
 }
-function closeVisualization(){visualizeView.classList.remove('open');visualizeImage.hidden=true;visualizeImage.removeAttribute('src');visualizeStatus.textContent='';visualizeSave.hidden=true;lastVisualizationDataUrl=null}
+async function handleVisualizeIntent(text){if(!visualizeIntent(text))return false;if(!lastImageDataUrl||Date.now()-lastImageAt>45*60*1000){await injectTruth('AKI VISUALIZE. I can create a visualization from a photo you deliberately give me, but I do not currently have a recent source image in this session. Tell me briefly to show or share the image first.');return true}await createVisualization(text);return true}
+function setVisualProgress(v){visualProgressValue=Math.max(0,Math.min(100,v));visualProgress.style.setProperty('--aki-progress',`${visualProgressValue*3.6}deg`)}
+function startVisualProgress(){clearInterval(visualProgressTimer);setVisualProgress(2);visualProgress.classList.remove('complete');visualProgress.classList.add('active');visualProgressTimer=setInterval(()=>{const remaining=90-visualProgressValue;if(remaining<=.4)return;setVisualProgress(visualProgressValue+Math.max(.35,remaining*.045))},420)}
+function finishVisualProgress(){clearInterval(visualProgressTimer);visualProgressTimer=null;setVisualProgress(100);visualProgress.classList.add('complete')}
+function clearVisualProgress(delay=0){clearInterval(visualProgressTimer);visualProgressTimer=null;const clear=()=>{visualProgress.classList.remove('active','complete');setVisualProgress(0)};delay?setTimeout(clear,delay):clear()}
+async function createVisualization(instruction){
+ if(visualizeBusy||!lastImageDataUrl)return;visualizeBusy=true;const requestId=++visualizeRequestId;const sourceVersion=visualSourceVersion;const sourceImage=lastImageDataUrl;const sourceObservation=lastImageObservation||'';visualizeAbort?.abort();visualizeAbort=new AbortController();lastVisualizationDataUrl=null;visualizeView.classList.remove('open');visualizeImage.hidden=true;visualizeSave.hidden=true;visualizeStatus.textContent='';startVisualProgress();
+ try{const r=await fetch('/api/visualize',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:sourceImage,instruction,observation:sourceObservation}),signal:visualizeAbort.signal});const p=await r.json().catch(()=>({}));if(!r.ok||!p.ok||!p.image)throw new Error(p.error||'Visualization failed');if(requestId!==visualizeRequestId||sourceVersion!==visualSourceVersion)return;lastVisualizationDataUrl=p.image;finishVisualProgress();await new Promise(r=>setTimeout(r,320));visualizeImage.src=p.image;visualizeImage.hidden=false;visualizeStatus.textContent='';visualizeSave.hidden=false;visualizeView.classList.add('open');clearVisualProgress(180);rememberConversation('aki','Created a temporary visualization from the user-provided image.');}
+ catch(e){if(e?.name==='AbortError')return;console.error('[AKI 8.0.2 visualize]',e);clearVisualProgress();await injectTruth('AKI VISUALIZE FAILED. The visualization did not come through. Say that briefly and invite me to try again. Do not claim an image was created.');}finally{if(requestId===visualizeRequestId){visualizeBusy=false;visualizeAbort=null}}
+}
+function closeVisualization(){visualizeRequestId++;visualizeAbort?.abort();visualizeAbort=null;visualizeBusy=false;clearVisualProgress();visualizeView.classList.remove('open');visualizeImage.hidden=true;visualizeImage.removeAttribute('src');visualizeStatus.textContent='';visualizeSave.hidden=true;lastVisualizationDataUrl=null}
 visualizeExit.addEventListener('click',closeVisualization);
 visualizeSave.addEventListener('click',async()=>{if(!lastVisualizationDataUrl)return;try{const blob=await (await fetch(lastVisualizationDataUrl)).blob();const file=new File([blob],`AKI-visualization-${Date.now()}.png`,{type:blob.type||'image/png'});if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:'AKI visualization'});return}const a=document.createElement('a');a.href=lastVisualizationDataUrl;a.download=file.name;document.body.appendChild(a);a.click();a.remove()}catch(e){console.error('[AKI 8.0 save image]',e)}});
 
@@ -445,8 +471,10 @@ async function shareImage(file){
    if(!dc||dc.readyState!=='open')throw new Error('AKI voice session is not ready');
 
    latency('show-me-selected',{name:file.name||'image',type:file.type||'unknown',size:file.size});
+   // A new deliberate image invalidates the previous visual source immediately.
+   // Only a successfully verified image becomes the canonical source for Visualize.
+   visualSourceVersion++;lastImageDataUrl=null;lastImageObservation=null;lastImageAt=0;
    const normalized=await normalizeImageForIOS(file);
-   lastImageDataUrl=normalized.dataUrl;lastImageAt=Date.now();
    latency('show-me-normalized',{width:normalized.width,height:normalized.height,encoded_chars:normalized.dataUrl.length});
 
    const r=await fetch('/api/show-me',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:normalized.dataUrl})});
@@ -454,7 +482,7 @@ async function shareImage(file){
    if(!r.ok||!payload?.ok||!payload?.observation)throw new Error(payload?.error||`Image analysis failed (${r.status})`);
 
    latency('show-me-verified',{observation_chars:payload.observation.length});
-   lastImageObservation=payload.observation;rememberConversation('aki',`Verified image observation: ${payload.observation}`);
+   lastImageDataUrl=normalized.dataUrl;lastImageObservation=payload.observation;lastImageAt=Date.now();rememberConversation('aki',`Verified image observation: ${payload.observation}`);
    speakVerifiedObservation(payload.observation);
  }catch(err){
    console.error('[AKI 7.1.5 Show Me error]',err);
