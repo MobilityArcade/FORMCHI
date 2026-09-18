@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#020304">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AKI">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=45">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=45">
+<link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=45">
+<title>AKI 8.1.1 — TEN KEEPS CAPACITY TRUTH</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}
+body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
+.presence{position:relative;width:100%;height:100dvh;overflow:hidden;isolation:isolate;background:radial-gradient(circle at 50% 47%,#0e1420 0,#070a10 42%,#030507 76%,#020304 100%);cursor:default;-webkit-tap-highlight-color:transparent}
+.ambient{position:absolute;inset:-18%;background:radial-gradient(circle at 50% 48%,rgba(20,82,145,.10) 0 18%,rgba(72,30,112,.07) 34%,rgba(8,10,16,.03) 54%,transparent 72%);filter:blur(48px);animation:ambient 14s ease-in-out infinite}
+.orb{position:absolute;left:50%;top:48%;width:min(88vw,700px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:#010207;box-shadow:0 0 24px rgba(93,218,255,.14),0 0 70px rgba(65,126,255,.15),0 0 124px rgba(150,53,255,.10);animation:orbBreath 8.4s ease-in-out infinite;transition:filter .9s ease,transform .9s ease}
+.halo,.rim,.oil,.oil2,.core{position:absolute;border-radius:50%;pointer-events:none}
+.halo{inset:-7%;background:conic-gradient(from 205deg,rgba(16,199,255,0),rgba(26,195,255,.34),rgba(83,77,255,.34),rgba(216,65,255,.28),rgba(255,104,178,.22),rgba(255,159,93,.18),rgba(34,210,255,.22),rgba(16,199,255,0));filter:blur(30px);opacity:.68;animation:oilTurn 34s linear infinite}
+.rim{inset:-1.2%;background:conic-gradient(from 220deg,rgba(255,127,194,.92),rgba(161,70,255,.94),rgba(75,116,255,.97),rgba(79,231,255,.98),rgba(225,247,255,.93),rgba(75,207,255,.94),rgba(110,73,255,.92),rgba(231,70,255,.92),rgba(255,149,103,.88),rgba(255,127,194,.92));filter:blur(3.8px) saturate(1.28);opacity:.91;animation:oilTurn 31s linear infinite}
+.rim:after{content:"";position:absolute;inset:1.9%;border-radius:50%;background:rgba(1,2,7,.93);filter:blur(3px)}
+.oil{inset:1.2%;background:conic-gradient(from 18deg,transparent 0 4%,rgba(35,212,255,.88) 10%,rgba(56,113,255,.74) 19%,rgba(172,60,255,.84) 30%,rgba(255,65,189,.72) 39%,rgba(255,156,92,.66) 47%,transparent 55% 65%,rgba(22,207,255,.84) 74%,rgba(100,73,255,.78) 84%,rgba(228,75,255,.67) 91%,transparent 98%);filter:blur(12px) saturate(1.45);opacity:.92;animation:oilTurn 28s linear infinite}
+.oil:after{content:"";position:absolute;inset:8.5%;border-radius:50%;background:rgba(1,2,7,.91);filter:blur(11px)}
+.oil2{inset:4%;background:conic-gradient(from 160deg,transparent 0 10%,rgba(255,83,190,.52) 19%,rgba(115,65,255,.66) 31%,rgba(30,204,255,.70) 43%,transparent 55% 70%,rgba(255,135,82,.43) 80%,rgba(130,64,255,.54) 91%,transparent);filter:blur(20px) saturate(1.38);opacity:.68;animation:oilTurn2 38s linear infinite}
+.oil2:after{content:"";position:absolute;inset:13.5%;border-radius:50%;background:rgba(1,2,7,.88);filter:blur(14px)}
+/* 4.5: center is no longer a crisp black disk. Its edge feathers into the torus. */
+.core{inset:11.5%;background:radial-gradient(circle at 44% 38%,rgba(9,24,44,.28) 0%,rgba(1,2,7,.985) 55%,rgba(1,2,7,.96) 78%,rgba(1,2,7,.82) 87%,rgba(1,2,7,.48) 94%,rgba(1,2,7,.12) 98%,transparent 100%);box-shadow:inset 0 0 88px rgba(46,112,190,.08);filter:blur(2.4px)}
+.mark{position:absolute;z-index:8;left:50%;top:48%;transform:translate(-50%,-50%);width:min(48vw,360px);height:auto;opacity:.23;filter:blur(.32px) drop-shadow(0 0 4px rgba(154,216,255,.05));transition:opacity .55s ease,filter .55s ease;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.mark path{fill:none;stroke:rgba(222,231,241,.76);stroke-width:1.02;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.mark.on{opacity:.72;filter:blur(.28px) drop-shadow(0 0 7px rgba(154,216,255,.16))}
+.mark.starting{opacity:.47}
+.mark.error{opacity:.16}
+/* AKI 4.7: constant presence. Conversation state never changes the torus. */
+@keyframes ambient{0%,100%{transform:scale(.98);opacity:.58}50%{transform:scale(1.025);opacity:.78}}
+@keyframes orbBreath{0%,100%{transform:translate(-50%,-50%) scale(.982)}50%{transform:translate(-50%,-50%) scale(1.012)}}
+@keyframes oilTurn{to{transform:rotate(360deg)}}@keyframes oilTurn2{to{transform:rotate(-360deg)}}
+.write-layer{position:absolute;z-index:20;left:max(7vw,22px);right:max(7vw,22px);top:max(calc(env(safe-area-inset-top) + 7vh),86px);height:clamp(82px,14vh,150px);display:none;align-items:flex-start;pointer-events:none}
+.write-layer.open{display:flex}
+#writeBox{width:100%;max-height:100%;resize:none;overflow:auto;border:0;outline:0;background:transparent;color:rgba(238,247,255,.92);font:300 clamp(18px,4.7vw,30px)/1.35 system-ui,-apple-system,sans-serif;letter-spacing:.01em;padding:8px 0 12px;caret-color:#65e8ff;text-shadow:0 0 12px rgba(99,211,255,.12);pointer-events:auto}
+#writeBox::placeholder{color:rgba(204,214,232,.38)}
+@media(max-width:600px){.orb{width:88vw}.mark{width:47vw}}
+@media(prefers-reduced-motion:reduce){.ambient,.orb,.halo,.rim,.oil,.oil2{animation:none!important}}
+
+/* AKI 8.1 — pristine five-input surface + ten text-only Keeps */
+.zone{position:absolute;z-index:12;background:transparent;border:0;padding:0;margin:0;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;outline:none}
+.zone:focus-visible{outline:1px solid rgba(120,220,255,.22);outline-offset:-2px}
+#zoneWrite{left:0;top:0;width:50%;height:calc(48% - min(44vw,350px))}
+#zoneShare{right:0;top:0;width:50%;height:calc(48% - min(44vw,350px))}
+#zoneSelfie{left:0;bottom:0;width:50%;height:calc(52% - min(44vw,350px))}
+#zoneWorld{right:0;bottom:0;width:50%;height:calc(52% - min(44vw,350px))}
+/* Desktop uses broad outer-corner hit fields. The previous calc() could become
+   negative when AKI filled most of a short desktop viewport, leaving no clickable area. */
+@media (pointer:fine){
+  /* 8.0.3 desktop: four literal half-screen hit fields. No clip-path and no
+     viewport-dependent height math. The AKI mark sits above them, so TALK wins
+     in the center while every outer quadrant is a real pointer target. */
+  #zoneWrite,#zoneShare,#zoneSelfie,#zoneWorld{width:50%;height:50%;clip-path:none;z-index:12;cursor:pointer}
+  #zoneWrite{left:0;top:0;right:auto;bottom:auto}
+  #zoneShare{right:0;top:0;left:auto;bottom:auto}
+  #zoneSelfie{left:0;bottom:0;right:auto;top:auto}
+  #zoneWorld{right:0;bottom:0;left:auto;top:auto}
+  .mark{z-index:30}
+  .zone:hover{background:radial-gradient(circle,rgba(80,190,255,.014),transparent 72%)}
+}
+</style>
+
+<style id="aki-icon-match">
+/* 4.7 icon-match visual refinement */
+.mark{
+  border:0!important; outline:0!important; background:transparent!important;
+  box-shadow:none!important; border-radius:50%!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+.mark:focus,.mark:focus-visible,.mark:active{
+  border:0!important; outline:0!important; background:transparent!important;
+  box-shadow:none!important;
+}
+.mark.on{
+  opacity:1!important;
+  filter:drop-shadow(0 0 1px rgba(255,255,255,1))
+         drop-shadow(0 0 4px rgba(190,235,255,.98))
+         drop-shadow(0 0 10px rgba(55,190,255,.78))!important;
+}
+.mark.on path{
+  stroke:#f8fdff!important; stroke-opacity:1!important;
+  stroke-width:2.35!important; stroke-linecap:round!important; stroke-linejoin:round!important;
+}
+.rim,.oil,.oil2{
+  filter:saturate(1.42) contrast(1.08) brightness(1.10)!important;
+}
+</style>
+</head>
+<body>
+<main id="app" class="presence" aria-label="AKI">
+  <input id="selfiePicker" type="file" accept="image/*" capture="user" hidden aria-hidden="true">
+  <input id="worldPicker" type="file" accept="image/*" capture="environment" hidden aria-hidden="true">
+  <input id="filePicker" type="file" accept="image/*,application/pdf,text/plain,text/markdown,text/csv,application/json,.pdf,.txt,.md,.csv,.json,.doc,.docx,.xls,.xlsx,.ppt,.pptx" hidden aria-hidden="true">
+  <form id="writeLayer" class="write-layer" autocomplete="off">
+    <textarea id="writeBox" rows="1" aria-label="Type or paste for AKI" placeholder="Type or paste for AKI…"></textarea>
+  </form>
+  <button id="zoneWrite" class="zone" aria-label="Write or paste"></button>
+  <button id="zoneShare" class="zone" aria-label="Share a photo, file, or document"></button>
+  <button id="zoneSelfie" class="zone" aria-label="Open front camera"></button>
+  <button id="zoneWorld" class="zone" aria-label="Open rear camera"></button>
+  <div class="ambient"></div>
+  <div class="orb"><div class="halo"></div><div class="rim"></div><div class="oil"></div><div class="oil2"></div><div class="core"></div></div>
+  <svg id="akiButton" class="mark" viewBox="0 0 210 90" role="button" tabindex="0" aria-label="Turn AKI on" aria-pressed="false"><path d="M15 72 L45 18 L75 72 M95 18 L95 72 M96 48 L142 18 M96 48 L144 72 M172 18 L172 72"/></svg>
+</main>
+<script>
+const app=document.querySelector('#app');
+console.info('[AKI 8.1.1] TEN KEEPS CAPACITY TRUTH loaded');
+const akiButton=document.querySelector('#akiButton');
+const selfiePicker=document.querySelector('#selfiePicker');
+const worldPicker=document.querySelector('#worldPicker');
+const filePicker=document.querySelector('#filePicker');
+const writeLayer=document.querySelector('#writeLayer');
+const writeBox=document.querySelector('#writeBox');
+const zoneWrite=document.querySelector('#zoneWrite'),zoneShare=document.querySelector('#zoneShare'),zoneSelfie=document.querySelector('#zoneSelfie'),zoneWorld=document.querySelector('#zoneWorld');
+let pc=null,dc=null,micStream=null,audioEl=null,audioCtx=null;
+let starting=false,stopping=false,powered=false,restarting=false;
+let transcript='',turnEndAt=0,responseStartAt=0,firstAudioAt=0,lastChime=0;
+let latencyTimer=null,hardWatchdog=null,preferenceTimer=null;
+let imageBusy=false,shareBusy=false;
+
+let recentConversation=[];
+let pendingKeepReplace=null;
+let pitchBusy=false,pitchTimer=null,pitchAnalyser=null,pitchSource=null;
+let pitchTarget={note:'A4',frequency:440};
+let lastPitchAt=0;
+// 7.1.6.4 — Marin is AKI's canonical default identity. A deliberate voice
+// change is saved on this device; ordinary conversation can never change it.
+if(!localStorage.getItem('akiVoice')) localStorage.setItem('akiVoice','marin');
+if(!localStorage.getItem('akiVoiceLocked')) localStorage.setItem('akiVoiceLocked','true');
+localStorage.setItem('akiVoiceBaseline','7.1.6.4-marin-default');
+let akiVoice=localStorage.getItem('akiVoice')||'marin';
+let akiLanguage=localStorage.getItem('akiLanguage')||'auto';
+
+function powerLook(mode){
+  akiButton.classList.remove('on','starting','error');
+  if(mode==='on'){akiButton.classList.add('on');akiButton.setAttribute('aria-pressed','true');akiButton.setAttribute('aria-label','Turn AKI off')}
+  else if(mode==='starting'){akiButton.classList.add('starting');akiButton.setAttribute('aria-pressed','false');akiButton.setAttribute('aria-label','AKI is starting')}
+  else if(mode==='error'){akiButton.classList.add('error');akiButton.setAttribute('aria-pressed','false');akiButton.setAttribute('aria-label','AKI connection failed. Tap to retry')}
+  else{akiButton.setAttribute('aria-pressed','false');akiButton.setAttribute('aria-label','Turn AKI on')}
+}
+function chime(){
+  const now=Date.now();if(now-lastChime<1800)return;lastChime=now;
+  try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();const t=audioCtx.currentTime;
+    [523.25,783.99].forEach((f,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.value=f;
+      g.gain.setValueAtTime(0,t+i*.055);g.gain.linearRampToValueAtTime(.022,t+.025+i*.055);g.gain.exponentialRampToValueAtTime(.0001,t+.32+i*.055);
+      o.connect(g);g.connect(audioCtx.destination);o.start(t+i*.055);o.stop(t+.36+i*.055)})}catch{}
+}
+function latency(label,extra={}){console.log('[AKI 8.0 latency]',label,{at:new Date().toISOString(),...extra})}
+function turnEnded(){
+  turnEndAt=performance.now();responseStartAt=firstAudioAt=0;
+  latency('user-turn-ended');chime();
+  clearTimeout(latencyTimer);clearTimeout(hardWatchdog);
+  latencyTimer=setTimeout(()=>{
+    if(powered&&!firstAudioAt)latency('slow-response-warning',{waiting_ms:Math.round(performance.now()-turnEndAt)})
+  },3000);
+  // 4.7 hard escape: never leave a dead Live session hanging indefinitely.
+  // This does not fake an answer. It cleanly reconnects AKI if no output audio
+  // has begun 15 seconds after a recognized end-of-turn.
+  hardWatchdog=setTimeout(async()=>{
+    if(powered&&!firstAudioAt&&!restarting){
+      latency('15-second-recovery',{waiting_ms:Math.round(performance.now()-turnEndAt)});
+      restarting=true;chime();
+      await stopAki(true);
+      await new Promise(r=>setTimeout(r,220));
+      restarting=false;
+      await startAki();
+    }
+  },15000);
+}
+function responseStarted(){if(responseStartAt)return;responseStartAt=performance.now();latency('response-started',{from_turn_end_ms:turnEndAt?Math.round(responseStartAt-turnEndAt):null})}
+function firstAudio(){if(firstAudioAt)return;firstAudioAt=performance.now();clearTimeout(latencyTimer);clearTimeout(hardWatchdog);latency('first-audio',{from_turn_end_ms:turnEndAt?Math.round(firstAudioAt-turnEndAt):null,from_response_start_ms:responseStartAt?Math.round(firstAudioAt-responseStartAt):null})}
+
+function normalizedSpeech(text){
+ return (text||'').toLowerCase().replace(/[’]/g,"'").replace(/\s+/g,' ').trim();
+}
+function voiceIntent(text){
+ const t=normalizedSpeech(text);
+ // Voice identity is locked by default. Merely SAYING words like man, woman,
+ // male, female or voice can never switch AKI.
+ const lock=/(keep|save|lock|remember|stay with|stick with).{0,28}(this|current|your).{0,18}voice|i (really )?like (this|your) voice|make this my voice|use this voice (from now on|until i (say|tell) otherwise)/.test(t);
+ if(lock)return {kind:'lock'};
+
+ // A voice change requires an explicit first-person command/request directed at AKI.
+ const explicit=/(aki[, ]+)?(please )?(change|switch|use|give me|let me hear|i want|i'd like|i would like|i prefer|can you change|could you change|can i have|go back to)/.test(t);
+ if(!explicit)return null;
+ if(/(marin|marine voice)/.test(t))return {kind:'change',voice:'marin'};
+ if(/(cedar|cedar voice)/.test(t))return {kind:'change',voice:'cedar'};
+ if(/(ash|ash voice)/.test(t))return {kind:'change',voice:'ash'};
+ if(/(male voice|man's voice|voice of a man|masculine voice|voz masculina|voz de hombre)/.test(t))return {kind:'change',voice:'ash'};
+ if(/(female voice|woman's voice|voice of a woman|feminine voice|voz femenina|voz de mujer)/.test(t))return {kind:'change',voice:'marin'};
+ if(/(different voice|another voice|other voice|change your voice|switch your voice|new voice)/.test(t)){
+   const cycle=['marin','cedar','ash'];
+   return {kind:'change',voice:cycle[(cycle.indexOf(akiVoice)+1+cycle.length)%cycle.length]};
+ }
+ return null;
+}
+async function handleVoiceIntent(text){
+ const intent=voiceIntent(text);if(!intent)return;
+ if(intent.kind==='lock'){
+   localStorage.setItem('akiVoice',akiVoice);
+   localStorage.setItem('akiVoiceLocked','true');
+   latency('voice-locked',{voice:akiVoice});
+   return;
+ }
+ const v=intent.voice;if(!v||v===akiVoice||restarting)return;
+ akiVoice=v;
+ // Every deliberately selected voice becomes the persistent voice immediately.
+ localStorage.setItem('akiVoice',v);
+ localStorage.setItem('akiVoiceLocked','true');
+ latency('voice-change-explicit',{voice:v});
+ restarting=true;chime();
+ await stopAki(true);await new Promise(r=>setTimeout(r,220));restarting=false;await startAki();
+}
+
+function noteToFrequency(note){
+ const m=String(note||'').trim().toUpperCase().match(/^([A-G])([#B]?)(-?\d)$/);if(!m)return null;
+ const semis={C:0,D:2,E:4,F:5,G:7,A:9,B:11};let n=semis[m[1]];
+ if(m[2]==='#')n++;if(m[2]==='B')n--;
+ const midi=(Number(m[3])+1)*12+n;return 440*Math.pow(2,(midi-69)/12);
+}
+function frequencyToNote(freq){
+ if(!freq||freq<=0)return null;const midi=69+12*Math.log2(freq/440),nearest=Math.round(midi);
+ const names=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+ return {note:names[(nearest%12+12)%12]+(Math.floor(nearest/12)-1),cents:1200*Math.log2(freq/(440*Math.pow(2,(nearest-69)/12))),midi:nearest};
+}
+function pitchIntent(text){
+ const t=normalizedSpeech(text);
+ const repeat=/^(?:please\s+)?(?:do|play|give|try)(?:\s+it)?\s+again\b|^(?:again|one more(?: time)?|repeat(?: it)?)\b/.test(t);
+ const wants=/(practice|train|work on|check|test|match|help me with).{0,22}(pitch|note|singing|voice)|play.{0,16}(note|tone)|give me.{0,12}[a-g](?: sharp| flat|#|b)?\s*[0-8]?/.test(t) || (repeat && Date.now()-lastPitchAt<120000);
+ if(!wants)return null;
+ if(repeat && Date.now()-lastPitchAt<120000)return {...pitchTarget};
+ let note='A4';
+ const n=t.match(/\b([a-g])\s*(sharp|flat|#|b)?\s*([0-8])\b/);
+ if(n){note=n[1].toUpperCase()+(n[2]==='sharp'?'#':n[2]==='flat'?'b':(n[2]||''))+n[3]}
+ const f=noteToFrequency(note);return f?{note,frequency:f}:null;
+}
+async function playReferenceTone(freq,duration=1.35){
+ // AKI 7.1.6.4.3: local piano/keyboard-style reference note. No AI voice is involved.
+ audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')await audioCtx.resume();
+ const t=audioCtx.currentTime, master=audioCtx.createGain();
+ master.gain.setValueAtTime(.0001,t);master.gain.exponentialRampToValueAtTime(.20,t+.012);master.gain.exponentialRampToValueAtTime(.075,t+.34);master.gain.exponentialRampToValueAtTime(.0001,t+duration);
+ master.connect(audioCtx.destination);
+ const partials=[[1,1],[2,.32],[3,.14],[4,.07],[5,.035]];
+ for(const [multiple,level] of partials){const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=multiple===1?'triangle':'sine';o.frequency.setValueAtTime(freq*multiple,t);g.gain.setValueAtTime(level,t);o.connect(g);g.connect(master);o.start(t);o.stop(t+duration+.04)}
+ await new Promise(r=>setTimeout(r,duration*1000+90));
+}
+function autoCorrelate(buf,sampleRate){
+ let rms=0;for(let i=0;i<buf.length;i++)rms+=buf[i]*buf[i];rms=Math.sqrt(rms/buf.length);if(rms<.012)return null;
+ let bestOffset=-1,best=0;const min=Math.floor(sampleRate/1100),max=Math.min(Math.floor(sampleRate/70),buf.length/2);
+ for(let off=min;off<=max;off++){let c=0;for(let i=0;i<buf.length-off;i++)c+=buf[i]*buf[i+off];if(c>best){best=c;bestOffset=off}}
+ if(bestOffset<0)return null;return sampleRate/bestOffset;
+}
+async function measurePitch(ms=2400){
+ if(!micStream)throw new Error('Microphone is not active');
+ audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')await audioCtx.resume();
+ const analyser=audioCtx.createAnalyser();analyser.fftSize=4096;const source=audioCtx.createMediaStreamSource(micStream);source.connect(analyser);pitchAnalyser=analyser;pitchSource=source;
+ const buf=new Float32Array(analyser.fftSize),samples=[],end=performance.now()+ms;
+ while(performance.now()<end){analyser.getFloatTimeDomainData(buf);const f=autoCorrelate(buf,audioCtx.sampleRate);if(f&&f>=70&&f<=1100)samples.push(f);await new Promise(r=>setTimeout(r,55))}
+ try{source.disconnect()}catch{}pitchAnalyser=pitchSource=null;if(samples.length<4)return null;samples.sort((a,b)=>a-b);return samples[Math.floor(samples.length/2)];
+}
+async function runPitchPractice(target){
+ if(pitchBusy)return;pitchBusy=true;pitchTarget=target;
+ try{
+   if(!powered||!dc||dc.readyState!=='open')await startAki();
+   const deadline=Date.now()+12000;while((!dc||dc.readyState!=='open')&&Date.now()<deadline)await new Promise(r=>setTimeout(r,80));
+   // TUNER TONE 7.1.6.4.2: no spoken setup is allowed in the reference-note path.
+   // The pitch command goes directly to this local Web Audio oscillator.
+   const remoteWasMuted=!!audioEl?.muted;
+   if(audioEl)audioEl.muted=true;
+   await new Promise(r=>setTimeout(r,120));
+   await playReferenceTone(target.frequency,1.15);
+   await new Promise(r=>setTimeout(r,500));
+   // Temporarily stop sending the mic to AKI while the local detector measures the sung note.
+   const sender=pc?.getSenders?.().find(x=>x.track?.kind==='audio');const track=micStream?.getAudioTracks?.()[0]||null;
+   if(sender)try{await sender.replaceTrack(null)}catch{}
+   const measured=await measurePitch(2600);
+   if(sender&&track)try{await sender.replaceTrack(track)}catch{}
+   if(audioEl)audioEl.muted=remoteWasMuted;
+   if(!measured){await injectTruth(`PITCH MEASUREMENT RESULT. I played an exact ${target.note} reference at ${target.frequency.toFixed(2)} Hz, but the local detector did not get a stable sung pitch. Briefly ask me to try again and hold one clear steady note. Do not invent a measurement.`);return}
+   const cents=1200*Math.log2(measured/target.frequency),nearest=frequencyToNote(measured);const direction=Math.abs(cents)<=8?'centered':cents>0?'sharp':'flat';
+   await injectTruth(`PITCH MEASUREMENT RESULT. Target: ${target.note} at ${target.frequency.toFixed(2)} Hz. Measured stable fundamental: ${measured.toFixed(2)} Hz. Relative to the TARGET, the singer was ${Math.abs(cents).toFixed(1)} cents ${direction==='centered'?'from center':direction}. Nearest detected note: ${nearest.note}. Coach this briefly and encouragingly. If within 8 cents, call it centered/very close; otherwise say sharp or flat and invite one more attempt. This measurement came from AKI's local pitch detector, not from guessing by ear.`);
+ }catch(err){console.error('[AKI 7.1.6.4.3 pitch]',err);try{await injectTruth('PITCH TOOL FAILED. The local pitch measurement did not complete. Say that briefly and do not invent a pitch result.')}catch{}}
+ finally{if(audioEl)audioEl.muted=false;pitchBusy=false}
+}
+async function handleSpokenIntent(text){
+ const clean=String(text||'').trim();if(!clean)return;
+ rememberConversation('user',clean);
+ if(await handleKeepIntent(clean))return;
+ await handleVoiceIntent(clean);
+}
+
+
+const KEEPS_KEY='akiKeepsV1';
+function getKeeps(){try{const v=JSON.parse(localStorage.getItem(KEEPS_KEY)||'[]');return Array.isArray(v)?v.slice(0,10):[]}catch{return []}}
+function setKeeps(v){localStorage.setItem(KEEPS_KEY,JSON.stringify(v.slice(0,10)))}
+function rememberConversation(role,text){const t=String(text||'').trim();if(!t)return;recentConversation.push({role,text:t,at:Date.now()});if(recentConversation.length>18)recentConversation=recentConversation.slice(-18)}
+function keepsContext(){const k=getKeeps();return k.length?k.map((x,i)=>`${i+1}. ${x.title}: ${x.summary}`).join('\n'):'No Keeps saved on this device yet.'}
+function keepListSpeech(){const k=getKeeps();if(!k.length)return 'You currently have no Keeps saved on this device.';return `Your ${k.length} Keep${k.length===1?' is':'s are'}: `+k.map((x,i)=>`${i+1}, ${x.title}`).join('; ')+'.';}
+function keepIntent(text){
+ const t=normalizedSpeech(text);
+ if(/\bhow many\b.{0,30}\bkeeps?\b|\bkeeps?\b.{0,30}\b(?:limit|capacity|maximum|max)\b|\bhow many\b.{0,20}\b(?:can|could)\b.{0,20}\b(?:keep|remember|save)\b/.test(t))return {kind:'capacity'};
+ if(/\b(what|which|read|list|tell me|show me)\b.{0,24}\b(keep|keeps|things (?:you|we) (?:kept|saved|remembered))\b|\bwhat are my keeps\b/.test(t))return {kind:'list'};
+ let m=t.match(/\b(?:forget|delete|remove)\s+(?:keep\s*)?(?:number\s*)?(10|[1-9])\b/);if(m)return {kind:'deleteIndex',index:Number(m[1])-1};
+ m=t.match(/\b(?:replace|use)\s+(?:keep\s*)?(?:number\s*)?(10|[1-9])\b/);if(m&&pendingKeepReplace)return {kind:'replaceIndex',index:Number(m[1])-1};
+ if(/\b(keep this|remember this|save this (?:thought|idea|conversation|moment)|make this a keep|keep what (?:we|i) (?:decided|said|made|created))\b/.test(t))return {kind:'save'};
+ m=t.match(/\b(?:do you remember|pull up|continue|go back to|what did we (?:say|decide) about)\s+(.{2,80})/);if(m)return {kind:'recall',query:m[1].replace(/[?.!]+$/,'').trim()};
+ if(pendingKeepReplace){m=t.match(/^(?:number\s*)?(10|[1-9])\b/);if(m)return {kind:'replaceIndex',index:Number(m[1])-1};}
+ return null;
+}
+async function summarizeKeep(){
+ const conversation=recentConversation.slice(-14).map(x=>`${x.role.toUpperCase()}: ${x.text}`).join('\n');
+ const r=await fetch('/api/keep',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({conversation})});
+ const p=await r.json().catch(()=>({}));if(!r.ok||!p.ok||!p.keep)throw new Error(p.error||'Keep summary failed');return p.keep;
+}
+async function handleKeepIntent(text){
+ const intent=keepIntent(text);if(!intent)return false;
+ const keeps=getKeeps();
+ if(intent.kind==='capacity'){await injectTruth(`AKI KEEPS — CAPACITY TRUTH. AKI supports exactly 10 Keep slots on this device. ${keeps.length} of 10 are currently occupied and ${10-keeps.length} are available. If the human asks how many Keeps they have, distinguish capacity from currently saved Keeps and state both numbers. Never say the Keep capacity is five.`);return true}
+ if(intent.kind==='list'){await injectTruth(`AKI KEEPS — DEVICE MEMORY. ${keepListSpeech()} These are the only saved Keeps. Read them naturally and briefly. Do not invent others.`);return true}
+ if(intent.kind==='deleteIndex'){if(!keeps[intent.index]){await injectTruth(`AKI KEEPS. There is no Keep ${intent.index+1}. Say that briefly.`);return true}const removed=keeps.splice(intent.index,1)[0];setKeeps(keeps);await injectTruth(`AKI KEEPS. I deliberately removed the Keep titled "${removed.title}" from this device. Confirm that briefly.`);return true}
+ if(intent.kind==='recall'){
+   const q=intent.query.toLowerCase();let best=keeps.find(x=>x.title.toLowerCase().includes(q)||q.includes(x.title.toLowerCase()));
+   if(!best)best=keeps.find(x=>x.summary.toLowerCase().includes(q));
+   if(best){await injectTruth(`AKI KEEP RECALLED — DEVICE MEMORY. Title: ${best.title}. Saved meaning: ${best.summary}. Continue naturally from this saved context. Do not claim to remember anything beyond this Keep.`)}
+   else await injectTruth(`AKI KEEPS. I checked the ten device-local Keeps and could not find one matching "${intent.query}". Say that briefly and, if useful, offer to read the Keep titles.`);
+   return true;
+ }
+ if(intent.kind==='save'){
+   try{const keep=await summarizeKeep();if(keeps.length<10){keeps.push({...keep,updatedAt:new Date().toISOString()});setKeeps(keeps);pendingKeepReplace=null;await injectTruth(`AKI KEEP SAVED — DEVICE MEMORY. Saved as Keep ${keeps.length}: "${keep.title}". Summary: ${keep.summary}. Confirm naturally and briefly.`)}else{pendingKeepReplace={keep,createdAt:Date.now()};await injectTruth(`AKI KEEPS FULL. All ten Keeps are occupied. The new memory is "${keep.title}". Read the ten current Keep titles in order and ask me which number, 1 through 10, I want to replace. Do not replace anything until I choose. Current Keeps:\n${keeps.map((x,i)=>`${i+1}. ${x.title}`).join('\n')}`)}}catch(e){console.error('[AKI 8.0 keep]',e);await injectTruth('AKI KEEP FAILED. I could not save that Keep on this device. Say that briefly and do not pretend it was saved.')};return true
+ }
+ if(intent.kind==='replaceIndex'){
+   if(!pendingKeepReplace||!keeps[intent.index])return false;const old=keeps[intent.index];keeps[intent.index]={...pendingKeepReplace.keep,updatedAt:new Date().toISOString()};setKeeps(keeps);const fresh=keeps[intent.index];pendingKeepReplace=null;await injectTruth(`AKI KEEP REPLACED — DEVICE MEMORY. Keep ${intent.index+1}, "${old.title}", was replaced with "${fresh.title}". Confirm that briefly.`);return true
+ }
+ return false;
+}
+function absorbTranscript(m){
+ // CRITICAL 7.1 FIX: only the USER'S input transcript may control voice identity.
+ // AKI's own output transcript is ignored, preventing it from switching itself.
+ const type=String(m.type||'').toLowerCase();
+ const nested=String(m.event?.type||'').toLowerCase();
+ const isInput=/input.*transcript|transcript.*input/.test(type)||/input.*transcript|transcript.*input/.test(nested);
+ if(!isInput)return;
+ const d=(typeof m.delta==='string'?m.delta:'')||(typeof m.transcript==='string'?m.transcript:'')||(typeof m.event?.delta==='string'?m.event.delta:'')||(typeof m.event?.transcript==='string'?m.event.transcript:'');
+ if(d){transcript+=d;clearTimeout(preferenceTimer);preferenceTimer=setTimeout(()=>{const h=transcript;transcript='';handleSpokenIntent(h)},500)}
+}
+
+async function stopAki(keepLook=false){
+ if(stopping)return;stopping=true;powered=false;clearTimeout(latencyTimer);clearTimeout(hardWatchdog);clearTimeout(preferenceTimer);
+ try{dc?.close()}catch{} try{pc?.getSenders?.().forEach(x=>x.track?.stop())}catch{} try{pc?.close()}catch{}
+ try{micStream?.getTracks().forEach(t=>{t.enabled=false;t.stop()})}catch{}
+ if(audioEl){try{audioEl.pause()}catch{}audioEl.srcObject=null;audioEl.remove();audioEl=null}
+ pc=dc=micStream=null;transcript='';if(!keepLook)powerLook('off');stopping=false;
+}
+async function startAki(){
+ if(powered||starting||stopping)return;starting=true;powerLook('starting');
+ try{
+  audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')await audioCtx.resume();
+  micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+  pc=new RTCPeerConnection();audioEl=document.createElement('audio');audioEl.autoplay=true;audioEl.playsInline=true;document.body.appendChild(audioEl);
+  pc.ontrack=e=>{audioEl.srcObject=e.streams[0];audioEl.play().catch(()=>{})};micStream.getTracks().forEach(t=>pc.addTrack(t,micStream));
+  dc=pc.createDataChannel('oai-events');dc.addEventListener('open',()=>{
+    latency('data-channel-open',{voice:akiVoice});
+    try{dc.send(JSON.stringify({type:'session.instructions.append',content:`AKI KEEPS DEVICE CONTEXT at session start. These are the only deliberate Keeps currently stored on this device:\n${keepsContext()}\nUse them only when relevant or when the human asks. Do not imply you remember anything else from earlier sessions.`}))}catch(e){console.warn('AKI keeps context:',e)}
+    // AKI 7.1.5 — WRITE ABOVE / CAMERAS BELOW. Three invisible interaction regions; no persistent visible controls.
+    try{dc.send(JSON.stringify({type:'session.instructions.append',content:`AKI's core philosophy is "More of you." You are a calm, warm, intelligent thinking companion. The human remains the creator, observer, experiencer and actor. Your job is to help them think, imagine, articulate, explore, practice, decide and get unstuck — not to take over the experience. Listen carefully. Reflect the strongest thread. Ask one useful question at a time when a question helps. When the user's thoughts become complicated, become simpler. Prefer one useful next step over lists, information dumps, menus, workflows or many options. CAPABILITY TRUTH — speak only about capabilities THIS AKI experience actually exposes. AKI can listen and talk. In the negative space ABOVE AKI, the upper-left invisible region opens a temporary writing surface: the iPhone keyboard rises from below while typed or pasted words appear only in the clear space above the sphere; Return sends the words into this same conversation and the writing surface disappears. The upper-right invisible region opens the device's full deliberate handoff chooser, which may offer Photo Library, Take Photo, or Choose File on iPhone. Images are visually analyzed and documents/files are read through their verified handoff paths. The lower-left invisible region opens a one-time front/selfie camera capture; the lower-right invisible region opens a one-time rear/world camera capture. Never advertise these controls unprompted and never recite them as a feature list unless the human explicitly asks how input works. If the human says they cannot talk, wants to type, paste text, write something, or paste a website link, tell them briefly: tap the upper left and type or paste it. If they want to share, upload, attach, or give you a photo, screenshot, document, or file, ALWAYS tell them: tap the upper right and choose what they want to bring in. Never call upper-left a file/photo sharing area. Website URLs pasted through upper-left can be browsed through AKI's verified web-reading path; never claim a webpage was read until that verified result arrives. For a selfie/front photo: tap the lower left. To photograph something in front of them: tap the lower right. The camera actions are deliberate one-time captures, not continuous camera access. Never claim to see/read anything until a verified image or file result has actually arrived. If analysis fails, say it did not come through. AKI has NO continuous camera access, NO continuous visual access, NO screen viewing/sharing, and NO video watching. AKI also has no device control, reminders/alarms, messaging, purchasing, booking, or other external actions unless explicitly supplied. If asked "what can you do?", describe AKI's conversational role rather than reciting features; mention image sharing only if the user's question or context specifically concerns showing you something. Natural multilingual conversation is welcome. KEEPS: AKI supports exactly ten deliberate, text-only device-local Keep slots. A Keep preserves meaning, decisions, ideas, and enough context to continue; it never stores photos, generated images, documents, audio, or other files. The client handles save, list, recall, delete, and replacement. Never claim a Keep exists until the client provides an AKI KEEP SAVED or AKI KEEP RECALLED result. When all ten are full, nothing is replaced until the human chooses which numbered Keep to replace. Keep ordinary spoken responses concise and human, usually 1–3 short sentences unless the user explicitly asks for depth. If they say "Aki" to begin or regain your attention, respond naturally with "I am here. How can I help you?" The experience should feel like one presence: no visible interface beyond AKI itself.`}))}catch(e){console.warn('AKI philosophy instruction:',e)}
+  });
+  dc.addEventListener('message',e=>{try{const m=JSON.parse(e.data),type=m.type||'',nested=m.event?.type||'',all=(type+' '+nested).toLowerCase();
+    if(type==='session.started'){powered=true;powerLook('on');latency('session-started',{voice:m.session?.audio?.output?.voice||m.session?.voice||akiVoice})}
+    absorbTranscript(m);
+    if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
+    if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('delegation.created'))responseStarted();
+    if(all.includes('output_audio.delta')||all.includes('audio.delta'))firstAudio();
+    if(type==='error')console.error('AKI Live event error:',m)
+  }catch{}});
+  pc.addEventListener('connectionstatechange',()=>{const cs=pc?.connectionState;latency('connection-state',{state:cs});if(['failed','closed'].includes(cs)&&powered&&!restarting)stopAki()});
+  const offer=await pc.createOffer();await pc.setLocalDescription(offer);const localSdp=pc.localDescription?.sdp||offer.sdp;
+  if(!localSdp||!localSdp.trim().startsWith('v=0'))throw new Error('Browser did not create a valid SDP offer');
+  const r=await fetch('/api/aki',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sdp:localSdp,voice:akiVoice,language:akiLanguage})});
+  const answer=await r.text();if(!r.ok)throw new Error(answer);await pc.setRemoteDescription({type:'answer',sdp:answer});
+  powered=true;powerLook('on');
+ }catch(err){console.error('AKI 8.0 start error:',err);await stopAki();powerLook('error')}finally{starting=false}
+}
+
+function canvasToDataURL(canvas,type='image/jpeg',quality=.84){
+ return canvas.toDataURL(type,quality);
+}
+async function normalizeImageForIOS(file){
+ // iPhone Photos commonly returns HEIC/HEIF or very large camera images.
+ // Decode locally and re-encode to a modest JPEG before upload. This also
+ // avoids sending multi-megabyte base64 payloads through the Live data channel.
+ const objectUrl=URL.createObjectURL(file);
+ try{
+   const img=new Image();
+   img.decoding='async';
+   await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(new Error('This image could not be decoded on this device'));img.src=objectUrl});
+   const sourceW=img.naturalWidth||img.width,sourceH=img.naturalHeight||img.height;
+   if(!sourceW||!sourceH)throw new Error('The selected image has no readable dimensions');
+   const maxSide=1600;
+   const scale=Math.min(1,maxSide/Math.max(sourceW,sourceH));
+   const w=Math.max(1,Math.round(sourceW*scale)),h=Math.max(1,Math.round(sourceH*scale));
+   const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+   const ctx=canvas.getContext('2d',{alpha:false});
+   if(!ctx)throw new Error('Image conversion is unavailable');
+   ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);
+   return {dataUrl:canvasToDataURL(canvas,'image/jpeg',.84),width:w,height:h};
+ }finally{URL.revokeObjectURL(objectUrl)}
+}
+function speakVerifiedObservation(observation){
+ if(!observation||!dc||dc.readyState!=='open')throw new Error('AKI voice session is not ready for the image result');
+ const id='show_me_verified_'+Date.now();
+ dc.send(JSON.stringify({
+   type:'response.item.create',event_id:id,
+   item:{type:'message',role:'user',content:[{type:'input_text',text:`SHOW ME VERIFIED IMAGE RESULT. A separate vision step successfully inspected the exact image I deliberately selected. Its grounded observation is:\n${observation}\n\nRespond naturally as AKI. Acknowledge only details contained in that verified observation. Do not claim continuous sight or access to anything beyond this one selected image. Ask what I want to figure out only if that is the natural next step.`}]}
+ }));
+ dc.send(JSON.stringify({type:'response.create',event_id:id+'_respond'}));
+}
+async function shareImage(file){
+ if(!file||imageBusy)return;
+ const looksImage=file.type?.startsWith('image/')||/\.(heic|heif|jpe?g|png|webp|gif)$/i.test(file.name||'');
+ if(!looksImage){console.warn('[AKI 8.0.3] rejected non-image');return}
+ imageBusy=true;
+ try{
+   latency('show-me-selected',{name:file.name||'image',type:file.type||'unknown',size:file.size});
+   // Camera/file capture is independent of the Live voice connection. Decode first.
+   // The exact normalized pixels become Visualize's source immediately, even if
+   // the separate description step or Live reconnection later has a problem.
+   const normalized=await normalizeImageForIOS(file);
+
+   // Vision description is useful for conversation, but is no longer a gate for editing.
+   let observation='';
+   try{
+     const r=await fetch('/api/show-me',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:normalized.dataUrl})});
+     const payload=await r.json().catch(()=>({}));
+     if(!r.ok||!payload?.ok||!payload?.observation)throw new Error(payload?.error||`Image analysis failed (${r.status})`);
+     observation=payload.observation;
+     // Only attach the observation if this is still the newest source.
+     rememberConversation('aki',`Verified image observation: ${observation}`)
+     latency('show-me-verified',{observation_chars:observation.length});
+   }catch(visionErr){
+     console.warn('[AKI 8.0.3 image description]',visionErr);
+   }
+
+   // Reconnect voice only after the image is safely captured as a visual source.
+   if(!powered||!dc||dc.readyState!=='open')await startAki();
+   const deadline=Date.now()+12000;
+   while((!dc||dc.readyState!=='open')&&Date.now()<deadline)await new Promise(r=>setTimeout(r,80));
+   if(dc?.readyState==='open'){
+     if(observation)speakVerifiedObservation(observation);
+     else{
+       const id='image_ready_'+Date.now();
+       dc.send(JSON.stringify({type:'response.item.create',event_id:id,item:{type:'message',role:'user',content:[{type:'input_text',text:'IMAGE RECEIVED. I deliberately captured or selected an image, but the separate descriptive analysis did not return. Tell me briefly that the image came through but you could not verify its visual details. Do not invent visual details.'}]}}));
+       dc.send(JSON.stringify({type:'response.create',event_id:id+'_respond'}));
+     }
+   }
+ }catch(err){
+   console.error('[AKI 8.0.3 Show Me error]',err);
+   // A decode failure really means there is no usable source.
+   try{await injectTruth('IMAGE HANDOFF FAILED. The image itself could not be prepared on this device. Tell me briefly that it did not come through and ask me to try another image. Do not claim you saw it.')}catch{}
+ }finally{imageBusy=false;[selfiePicker,worldPicker].forEach(resetPicker)}
+}
+function resetPicker(input){ try{input.value=''}catch{} }
+function openDoor(input){
+ if(imageBusy||shareBusy)return;
+ resetPicker(input);
+ // iOS owns the native picker/camera UI. Separate inputs let each invisible
+ // quadrant request a distinct source instead of AKI presenting its own menu.
+ if(typeof input.showPicker==='function'){ try{input.showPicker();return}catch{} }
+ input.click();
+}
+
+function fileToBase64(file){
+ return new Promise((resolve,reject)=>{
+  const reader=new FileReader();
+  reader.onerror=()=>reject(reader.error||new Error('Could not read file'));
+  reader.onload=()=>{const result=String(reader.result||'');const comma=result.indexOf(',');resolve(comma>=0?result.slice(comma+1):result)};
+  reader.readAsDataURL(file);
+ });
+}
+async function shareFile(file){
+ if(!file||shareBusy||imageBusy)return;
+ // Vercel Functions accept at most 4.5 MB request bodies. Base64 expands data,
+ // so keep this experimental direct handoff below 3 MB.
+ if(file.size>3_000_000){
+  console.warn('[AKI 7.1.6.2 file] too large',file.size);
+  await injectFileFailure('That file is too large for this AKI web handoff right now.');
+  return;
+ }
+ shareBusy=true;
+ try{
+  latency('file-selected',{name:file.name||'document',type:file.type||'unknown',size:file.size});
+  const data=await fileToBase64(file);
+  const r=await fetch('/api/show-file',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filename:file.name||'document',mime:file.type||'application/octet-stream',data})});
+  const payload=await r.json().catch(()=>({}));
+  if(!r.ok||!payload.ok||!payload.observation)throw new Error(payload.error||'File analysis failed');
+  if(!powered||!dc||dc.readyState!=='open')await startAki();
+  const deadline=Date.now()+12000;while((!dc||dc.readyState!=='open')&&Date.now()<deadline)await new Promise(r=>setTimeout(r,80));
+  if(!dc||dc.readyState!=='open')throw new Error('AKI voice session is not ready');
+  const id='verified_file_'+Date.now();
+  dc.send(JSON.stringify({type:'response.item.create',event_id:id,item:{type:'message',role:'user',content:[{type:'input_text',text:`FILE VERIFIED. I deliberately selected the file "${file.name||'document'}". A separate file-analysis step successfully read it and returned this grounded observation:\n${payload.observation}\n\nRespond naturally as AKI. Acknowledge only what this verified file result supports. Do not claim access to any other files. Ask what I want to do with it only if that is the natural next step.`}]}}));
+  dc.send(JSON.stringify({type:'response.create',event_id:id+'_respond'}));
+  latency('file-verified',{name:file.name||'document',observation_chars:payload.observation.length});
+ }catch(err){console.error('[AKI 7.1.6.2 file error]',err);await injectFileFailure('The file did not come through clearly.');}
+ finally{shareBusy=false;resetPicker(filePicker)}
+}
+async function injectFileFailure(message){
+ try{
+  if(!powered||!dc||dc.readyState!=='open')await startAki();
+  const deadline=Date.now()+10000;while((!dc||dc.readyState!=='open')&&Date.now()<deadline)await new Promise(r=>setTimeout(r,80));
+  if(!dc||dc.readyState!=='open')return;
+  const id='file_failed_'+Date.now();
+  dc.send(JSON.stringify({type:'response.item.create',event_id:id,item:{type:'message',role:'user',content:[{type:'input_text',text:`FILE HANDOFF FAILED. ${message} Tell me that briefly and do not pretend you read the file.`}]}}));
+  dc.send(JSON.stringify({type:'response.create',event_id:id+'_respond'}));
+ }catch{}
+}
+
+function openWrite(){
+ if(imageBusy||shareBusy)return;
+ if(writeLayer.classList.contains('open')){closeWrite();return}
+ writeLayer.classList.add('open');
+ writeBox.value='';
+ requestAnimationFrame(()=>{try{writeBox.focus({preventScroll:true})}catch{writeBox.focus()}});
+}
+function closeWrite(){
+ writeBox.blur();writeBox.value='';writeLayer.classList.remove('open');
+}
+function extractUrl(text){
+ const m=String(text||'').trim().match(/(?:https?:\/\/|www\.)[^\s]+/i);
+ if(!m)return null;
+ let u=m[0].replace(/[),.;!?]+$/,'');
+ if(/^www\./i.test(u))u='https://'+u;
+ try{const parsed=new URL(u);return /^https?:$/.test(parsed.protocol)?parsed.href:null}catch{return null}
+}
+async function injectTruth(message){
+ if(!powered||!dc||dc.readyState!=='open')await startAki();
+ const deadline=Date.now()+12000;while((!dc||dc.readyState!=='open')&&Date.now()<deadline)await new Promise(r=>setTimeout(r,80));
+ if(!dc||dc.readyState!=='open')throw new Error('AKI voice session is not ready');
+ const id='truth_'+Date.now();
+ dc.send(JSON.stringify({type:'response.item.create',event_id:id,item:{type:'message',role:'user',content:[{type:'input_text',text:message}]}}));
+ dc.send(JSON.stringify({type:'response.create',event_id:id+'_respond'}));
+}
+async function browseUrl(url,originalText){
+ try{
+  const r=await fetch('/api/browse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,context:originalText})});
+  const payload=await r.json().catch(()=>({}));
+  if(!r.ok||!payload.ok||!payload.observation)throw new Error(payload.error||'Website reading failed');
+  await injectTruth(`WEBSITE VERIFIED. I deliberately pasted the URL ${url}. AKI's separate web-reading step successfully accessed web information for that URL and returned this grounded result:\n${payload.observation}\n\nRespond naturally. Discuss only what this verified result supports. If the page was inaccessible, paywalled, blocked, or only partially readable, say that limitation clearly. Do not claim continuous browsing or access to pages not actually retrieved.`);
+  latency('website-verified',{url,observation_chars:payload.observation.length});
+ }catch(err){
+  console.error('[AKI 7.1.6.2 website error]',err);
+  await injectTruth(`WEBSITE HANDOFF FAILED. I pasted ${url}, but AKI could not reliably access or read that website. Tell me that briefly and do not pretend you saw the page.`);
+ }
+}
+async function sendWrittenText(text){
+ const clean=String(text||'').trim();if(!clean)return;
+ const url=extractUrl(clean);
+ if(url){await browseUrl(url,clean);return}
+ await injectTruth(clean);
+ latency('written-input-sent',{chars:clean.length});
+}
+writeLayer.addEventListener('submit',async e=>{
+ e.preventDefault();const text=writeBox.value;if(!text.trim())return;
+ closeWrite();
+ try{await sendWrittenText(text)}catch(err){console.error('[AKI 7.1.5 write error]',err);powerLook('error')}
+});
+writeBox.addEventListener('click',e=>{
+ if(writeLayer.classList.contains('open')&&!writeBox.value.trim()){e.preventDefault();e.stopPropagation();closeWrite()}
+});
+writeBox.addEventListener('keydown',e=>{
+ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();writeLayer.requestSubmit()}
+ if(e.key==='Escape'){e.preventDefault();closeWrite()}
+});
+selfiePicker.addEventListener('change',()=>{const f=selfiePicker.files?.[0];if(f)shareImage(f)});
+worldPicker.addEventListener('change',()=>{const f=worldPicker.files?.[0];if(f)shareImage(f)});
+filePicker.addEventListener('change',()=>{const f=filePicker.files?.[0];if(!f)return;const isImage=f.type?.startsWith('image/')||/\.(heic|heif|jpe?g|png|webp|gif)$/i.test(f.name||'');if(isImage)shareImage(f).finally(()=>resetPicker(filePicker));else shareFile(f)});
+function zoneAction(el,fn){
+ el.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();fn()});
+ el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fn()}});
+}
+zoneAction(zoneWrite,()=>openWrite());
+zoneAction(zoneShare,()=>openDoor(filePicker));
+zoneAction(zoneSelfie,()=>openDoor(selfiePicker));
+zoneAction(zoneWorld,()=>openDoor(worldPicker));
+
+async function toggle(){if(starting||stopping)return;if(powered||pc||micStream)await stopAki();else await startAki()}
+akiButton.addEventListener('click',e=>{e.stopPropagation();toggle()});
+akiButton.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&pc&&['failed','closed'].includes(pc.connectionState))stopAki()});
+window.addEventListener('pagehide',()=>stopAki());
+powerLook('off');
+</script>
+</body>
+</html>
