@@ -37,7 +37,7 @@ body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
 @keyframes ambient{0%,100%{transform:scale(.98);opacity:.58}50%{transform:scale(1.025);opacity:.78}}
 @keyframes orbBreath{0%,100%{transform:translate(-50%,-50%) scale(.982)}50%{transform:translate(-50%,-50%) scale(1.012)}}
 @keyframes oilTurn{to{transform:rotate(360deg)}}@keyframes oilTurn2{to{transform:rotate(-360deg)}}
-.write-layer{position:absolute;z-index:20;left:max(7vw,22px);right:max(7vw,22px);top:max(env(safe-area-inset-top),18px);height:calc(48% - min(44vw,350px) - 18px);min-height:74px;display:none;align-items:flex-end;pointer-events:none}
+.write-layer{position:absolute;z-index:20;left:max(7vw,22px);right:max(7vw,22px);top:max(calc(env(safe-area-inset-top) + 7vh),86px);height:clamp(82px,14vh,150px);display:none;align-items:flex-start;pointer-events:none}
 .write-layer.open{display:flex}
 #writeBox{width:100%;max-height:100%;resize:none;overflow:auto;border:0;outline:0;background:transparent;color:rgba(238,247,255,.92);font:300 clamp(18px,4.7vw,30px)/1.35 system-ui,-apple-system,sans-serif;letter-spacing:.01em;padding:8px 0 12px;caret-color:#65e8ff;text-shadow:0 0 12px rgba(99,211,255,.12);pointer-events:auto}
 #writeBox::placeholder{color:rgba(204,214,232,.38)}
@@ -75,6 +75,7 @@ body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
 <main id="app" class="presence" aria-label="AKI">
   <input id="selfiePicker" type="file" accept="image/*" capture="user" hidden aria-hidden="true">
   <input id="worldPicker" type="file" accept="image/*" capture="environment" hidden aria-hidden="true">
+  <input id="filePicker" type="file" accept="image/*,application/pdf,text/plain,text/markdown,text/csv,application/json,.pdf,.txt,.md,.csv,.json,.doc,.docx,.xls,.xlsx,.ppt,.pptx" hidden aria-hidden="true">
   <form id="writeLayer" class="write-layer" autocomplete="off">
     <textarea id="writeBox" rows="1" aria-label="Type or paste for AKI" placeholder="Type or paste for AKI…"></textarea>
   </form>
@@ -87,6 +88,7 @@ const app=document.querySelector('#app');
 const akiButton=document.querySelector('#akiButton');
 const selfiePicker=document.querySelector('#selfiePicker');
 const worldPicker=document.querySelector('#worldPicker');
+const filePicker=document.querySelector('#filePicker');
 const writeLayer=document.querySelector('#writeLayer');
 const writeBox=document.querySelector('#writeBox');
 let pc=null,dc=null,micStream=null,audioEl=null,audioCtx=null;
@@ -202,7 +204,7 @@ async function startAki(){
   dc=pc.createDataChannel('oai-events');dc.addEventListener('open',()=>{
     latency('data-channel-open',{voice:akiVoice});
     // AKI 7.1.5 — WRITE ABOVE / CAMERAS BELOW. Three invisible interaction regions; no persistent visible controls.
-    try{dc.send(JSON.stringify({type:'session.instructions.append',content:`AKI's core philosophy is "More of you." You are a calm, warm, intelligent thinking companion. The human remains the creator, observer, experiencer and actor. Your job is to help them think, imagine, articulate, explore, practice, decide and get unstuck — not to take over the experience. Listen carefully. Reflect the strongest thread. Ask one useful question at a time when a question helps. When the user's thoughts become complicated, become simpler. Prefer one useful next step over lists, information dumps, menus, workflows or many options. CAPABILITY TRUTH — speak only about capabilities THIS AKI experience actually exposes. AKI can listen and talk. Tapping anywhere in the negative space ABOVE AKI opens a temporary writing surface: the iPhone keyboard rises from below while typed or pasted words appear only in the clear space above the sphere; Return sends the words into this same conversation and the writing surface disappears. The lower-left invisible region opens a one-time front/selfie camera capture; the lower-right invisible region opens a one-time rear/world camera capture. Never advertise these controls unprompted and never recite them as a feature list unless the human explicitly asks how input works. If the human says they cannot talk, wants to type, paste text, or write something, tell them briefly: tap above me and type or paste it. For a selfie/front photo: tap the lower left. To photograph something in front of them: tap the lower right. The camera actions are deliberate one-time captures, not continuous camera access. Never claim to see/read anything until a verified image or file result has actually arrived. If analysis fails, say it did not come through. AKI has NO continuous camera access, NO continuous visual access, NO screen viewing/sharing, and NO video watching. AKI also has no image generation, device control, reminders/alarms, messaging, purchasing, booking, or external actions unless explicitly supplied. If asked "what can you do?", describe AKI's conversational role rather than reciting features; mention image sharing only if the user's question or context specifically concerns showing you something. Natural multilingual conversation is welcome. Keep ordinary spoken responses concise and human, usually 1–3 short sentences unless the user explicitly asks for depth. If they say "Aki" to begin or regain your attention, respond naturally with "I am here. How can I help you?" The experience should feel like one presence: no visible interface beyond AKI itself.`}))}catch(e){console.warn('AKI philosophy instruction:',e)}
+    try{dc.send(JSON.stringify({type:'session.instructions.append',content:`AKI's core philosophy is "More of you." You are a calm, warm, intelligent thinking companion. The human remains the creator, observer, experiencer and actor. Your job is to help them think, imagine, articulate, explore, practice, decide and get unstuck — not to take over the experience. Listen carefully. Reflect the strongest thread. Ask one useful question at a time when a question helps. When the user's thoughts become complicated, become simpler. Prefer one useful next step over lists, information dumps, menus, workflows or many options. CAPABILITY TRUTH — speak only about capabilities THIS AKI experience actually exposes. AKI can listen and talk. In the negative space ABOVE AKI, the upper-left invisible region opens a temporary writing surface: the iPhone keyboard rises from below while typed or pasted words appear only in the clear space above the sphere; Return sends the words into this same conversation and the writing surface disappears. The upper-right invisible region opens the device's full deliberate handoff chooser, which may offer Photo Library, Take Photo, or Choose File on iPhone. Images are visually analyzed and documents/files are read through their verified handoff paths. The lower-left invisible region opens a one-time front/selfie camera capture; the lower-right invisible region opens a one-time rear/world camera capture. Never advertise these controls unprompted and never recite them as a feature list unless the human explicitly asks how input works. If the human says they cannot talk, wants to type, paste text, or write something, tell them briefly: tap the upper left and type or paste it. If they want to give you a photo, take a photo, or give you a document/file, tell them briefly: tap the upper right and choose what they want to bring in. For a selfie/front photo: tap the lower left. To photograph something in front of them: tap the lower right. The camera actions are deliberate one-time captures, not continuous camera access. Never claim to see/read anything until a verified image or file result has actually arrived. If analysis fails, say it did not come through. AKI has NO continuous camera access, NO continuous visual access, NO screen viewing/sharing, and NO video watching. AKI also has no image generation, device control, reminders/alarms, messaging, purchasing, booking, or external actions unless explicitly supplied. If asked "what can you do?", describe AKI's conversational role rather than reciting features; mention image sharing only if the user's question or context specifically concerns showing you something. Natural multilingual conversation is welcome. Keep ordinary spoken responses concise and human, usually 1–3 short sentences unless the user explicitly asks for depth. If they say "Aki" to begin or regain your attention, respond naturally with "I am here. How can I help you?" The experience should feel like one presence: no visible interface beyond AKI itself.`}))}catch(e){console.warn('AKI philosophy instruction:',e)}
   });
   dc.addEventListener('message',e=>{try{const m=JSON.parse(e.data),type=m.type||'',nested=m.event?.type||'',all=(type+' '+nested).toLowerCase();
     if(type==='session.started'){powered=true;powerLook('on');latency('session-started',{voice:m.session?.audio?.output?.voice||m.session?.voice||akiVoice})}
@@ -297,6 +299,52 @@ function openDoor(input){
  if(typeof input.showPicker==='function'){ try{input.showPicker();return}catch{} }
  input.click();
 }
+
+function fileToBase64(file){
+ return new Promise((resolve,reject)=>{
+  const reader=new FileReader();
+  reader.onerror=()=>reject(reader.error||new Error('Could not read file'));
+  reader.onload=()=>{const result=String(reader.result||'');const comma=result.indexOf(',');resolve(comma>=0?result.slice(comma+1):result)};
+  reader.readAsDataURL(file);
+ });
+}
+async function shareFile(file){
+ if(!file||shareBusy||imageBusy)return;
+ // Vercel Functions accept at most 4.5 MB request bodies. Base64 expands data,
+ // so keep this experimental direct handoff below 3 MB.
+ if(file.size>3_000_000){
+  console.warn('[AKI 7.1.6.1 file] too large',file.size);
+  await injectFileFailure('That file is too large for this AKI web handoff right now.');
+  return;
+ }
+ shareBusy=true;
+ try{
+  latency('file-selected',{name:file.name||'document',type:file.type||'unknown',size:file.size});
+  const data=await fileToBase64(file);
+  const r=await fetch('/api/show-file',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filename:file.name||'document',mime:file.type||'application/octet-stream',data})});
+  const payload=await r.json().catch(()=>({}));
+  if(!r.ok||!payload.ok||!payload.observation)throw new Error(payload.error||'File analysis failed');
+  if(!powered||!dc||dc.readyState!=='open')await startAki();
+  const deadline=Date.now()+12000;while((!dc||dc.readyState!=='open')&&Date.now()<deadline)await new Promise(r=>setTimeout(r,80));
+  if(!dc||dc.readyState!=='open')throw new Error('AKI voice session is not ready');
+  const id='verified_file_'+Date.now();
+  dc.send(JSON.stringify({type:'response.item.create',event_id:id,item:{type:'message',role:'user',content:[{type:'input_text',text:`FILE VERIFIED. I deliberately selected the file "${file.name||'document'}". A separate file-analysis step successfully read it and returned this grounded observation:\n${payload.observation}\n\nRespond naturally as AKI. Acknowledge only what this verified file result supports. Do not claim access to any other files. Ask what I want to do with it only if that is the natural next step.`}]}}));
+  dc.send(JSON.stringify({type:'response.create',event_id:id+'_respond'}));
+  latency('file-verified',{name:file.name||'document',observation_chars:payload.observation.length});
+ }catch(err){console.error('[AKI 7.1.6.1 file error]',err);await injectFileFailure('The file did not come through clearly.');}
+ finally{shareBusy=false;resetPicker(filePicker)}
+}
+async function injectFileFailure(message){
+ try{
+  if(!powered||!dc||dc.readyState!=='open')await startAki();
+  const deadline=Date.now()+10000;while((!dc||dc.readyState!=='open')&&Date.now()<deadline)await new Promise(r=>setTimeout(r,80));
+  if(!dc||dc.readyState!=='open')return;
+  const id='file_failed_'+Date.now();
+  dc.send(JSON.stringify({type:'response.item.create',event_id:id,item:{type:'message',role:'user',content:[{type:'input_text',text:`FILE HANDOFF FAILED. ${message} Tell me that briefly and do not pretend you read the file.`}]}}));
+  dc.send(JSON.stringify({type:'response.create',event_id:id+'_respond'}));
+ }catch{}
+}
+
 function openWrite(){
  if(imageBusy||shareBusy)return;
  writeLayer.classList.add('open');
@@ -328,14 +376,18 @@ writeBox.addEventListener('keydown',e=>{
 });
 selfiePicker.addEventListener('change',()=>{const f=selfiePicker.files?.[0];if(f)shareImage(f)});
 worldPicker.addEventListener('change',()=>{const f=worldPicker.files?.[0];if(f)shareImage(f)});
+filePicker.addEventListener('change',()=>{const f=filePicker.files?.[0];if(!f)return;const isImage=f.type?.startsWith('image/')||/\.(heic|heif|jpe?g|png|webp|gif)$/i.test(f.name||'');if(isImage)shareImage(f).finally(()=>resetPicker(filePicker));else shareFile(f)});
 app.addEventListener('click',e=>{
- if(e.target===akiButton||akiButton.contains(e.target)||e.target===writeBox||writeLayer.contains(e.target)||[selfiePicker,worldPicker].includes(e.target))return;
+ if(e.target===akiButton||akiButton.contains(e.target)||e.target===writeBox||writeLayer.contains(e.target)||[selfiePicker,worldPicker,filePicker].includes(e.target))return;
  const r=app.getBoundingClientRect();
  const x=e.clientX-r.left,y=e.clientY-r.top;
- // The sphere/AKI remains sacred visual space. Outside it: above = write;
- // below = the two already-proven direct camera capture doors.
+ // AKI 7.1.6.1 FULL DOOR invisible map: upper-left = write, upper-right = full handoff door;
+ // lower-left = front camera, lower-right = rear camera. The sphere stays sacred.
  const orbRect=document.querySelector('.orb').getBoundingClientRect();
- if(y < orbRect.top-r.top){openWrite();return}
+ if(y < orbRect.top-r.top){
+   if(x<r.width/2)openWrite();else openDoor(filePicker);
+   return;
+ }
  if(y > orbRect.bottom-r.top){
    if(x<r.width/2)openDoor(selfiePicker);else openDoor(worldPicker);
  }
