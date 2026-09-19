@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=45">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=45">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=45">
-<title>AKI 10.1 — STREAMLINE</title>
+<title>AKI 10.1.1 — MARIN GREETING FIX</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#eef7ff}.presence{position:relative;width:100%;height:100dvh;overflow:hidden;isolation:isolate;background:radial-gradient(circle at 50% 46%,#11162a 0,#080b13 40%,#030507 74%,#020304 100%);-webkit-tap-highlight-color:transparent}.ambient{position:absolute;inset:-18%;background:radial-gradient(circle at 50% 48%,rgba(20,82,145,.14),rgba(72,30,112,.08) 34%,transparent 70%);filter:blur(48px);animation:ambient 14s ease-in-out infinite}.orb{position:absolute;left:50%;top:47%;width:min(84vw,680px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:#010207;box-shadow:0 0 20px rgba(35,205,255,.18),0 0 58px rgba(57,105,255,.15),0 0 105px rgba(188,49,255,.10);animation:orbBreath 8.4s ease-in-out infinite}.halo,.rim,.oil,.oil2,.core{position:absolute;border-radius:50%;pointer-events:none}.halo{inset:-4.8%;background:conic-gradient(from 215deg,transparent 0 7%,rgba(0,210,255,.22) 14%,rgba(61,91,255,.18) 29%,rgba(211,38,255,.20) 45%,rgba(255,70,169,.16) 57%,rgba(255,115,70,.14) 68%,rgba(24,202,255,.18) 83%,transparent 96%);filter:blur(22px);opacity:.58;animation:oilTurn 34s linear infinite}.rim{inset:-1.0%;background:conic-gradient(from 220deg,#ff729e 0deg,#ff3dbb 38deg,#bb31ff 78deg,#514cff 120deg,#1b7cff 164deg,#13dfff 207deg,#c9fbff 230deg,#27c8ff 248deg,#395eff 282deg,#a42aff 318deg,#ff729e 360deg);filter:saturate(1.5) brightness(1.18);opacity:1;box-shadow:0 0 5px rgba(92,220,255,.58),0 0 13px rgba(118,75,255,.30);animation:oilTurn 31s linear infinite}.rim:after{content:"";position:absolute;inset:2.0%;border-radius:50%;background:#010207;box-shadow:inset 0 0 18px rgba(18,157,255,.16)}.oil{inset:2.4%;background:conic-gradient(from 12deg,#14d7ff 0 12%,#0b79ff 20%,#5239f4 31%,#bc29f0 42%,#f222bf 51%,#ff6d72 61%,#ff8b3d 68%,#55259e 77%,#061018 83%,#0bbfe9 94%,#14d7ff 100%);filter:saturate(1.55) brightness(1.05);opacity:.96;animation:oilTurn 28s linear infinite;box-shadow:inset 0 0 10px rgba(255,255,255,.08)}.oil:after{content:"";position:absolute;inset:12.2%;border-radius:50%;background:radial-gradient(circle at 50% 45%,#02040a 0%,#010207 72%,#02030a 88%,#02040b 100%);box-shadow:0 0 10px rgba(1,2,7,.9),inset 0 0 24px rgba(19,99,180,.08)}.oil2{inset:5.5%;background:conic-gradient(from 165deg,transparent 0 11%,rgba(13,207,255,.26) 20%,rgba(69,72,255,.20) 33%,rgba(215,36,255,.22) 46%,transparent 58% 72%,rgba(255,111,57,.16) 82%,rgba(119,44,255,.20) 92%,transparent);filter:blur(7px) saturate(1.3);opacity:.52;animation:oilTurn2 38s linear infinite}.oil2:after{content:"";position:absolute;inset:14%;border-radius:50%;background:#010207}.core{inset:14.5%;background:radial-gradient(circle at 46% 39%,rgba(5,17,31,.24),#010207 57%,#010207 100%);box-shadow:inset 0 0 38px rgba(34,123,210,.06)}
 .top-compose{position:absolute;z-index:30;top:max(calc(env(safe-area-inset-top) + 5.5vh),62px);left:6vw;right:6vw;height:clamp(54px,7.5vh,68px)}.write-trigger,.write-layer{position:absolute;inset:0;border-radius:999px;border:1.4px solid transparent;background:linear-gradient(#0a0d18,#0a0d18) padding-box,linear-gradient(90deg,#20ddff,#536bff,#df48ff) border-box;box-shadow:0 0 22px rgba(62,132,255,.13);color:rgba(211,221,238,.55)}.write-trigger{display:flex;align-items:center;gap:16px;padding:0 22px;font:300 clamp(18px,4.5vw,27px)/1 system-ui;border-width:1.4px;text-align:left;width:100%;cursor:text}.write-trigger svg{width:27px;height:27px;flex:none;stroke:#eaf8ff;filter:drop-shadow(0 0 5px rgba(100,220,255,.45))}.write-layer{display:none;align-items:center;padding:0 20px}.write-layer.open{display:flex}.write-layer.open~.write-trigger{visibility:hidden}#writeBox{width:100%;height:100%;resize:none;overflow:auto;border:0;outline:0;background:transparent;color:#eef7ff;font:300 clamp(20px,4.7vw,28px)/1.3 system-ui;padding:14px 4px;caret-color:#65e8ff}#writeBox::placeholder{color:rgba(204,214,232,.42)}.write-hint{position:absolute;top:calc(100% + 13px);left:0;right:0;text-align:center;color:rgba(194,205,226,.58);font:300 clamp(12px,3.1vw,17px)/1.2 system-ui;letter-spacing:.01em}
@@ -45,7 +45,7 @@
 </main>
 <script>
 const app=document.querySelector('#app');
-console.info('[AKI 10.1] STREAMLINE loaded');
+console.info('[AKI 10.1.1] MARIN GREETING FIX loaded');
 const akiButton=document.querySelector('#akiButton');
 const worldPicker=document.querySelector('#worldPicker');
 const filePicker=document.querySelector('#filePicker');
@@ -265,11 +265,12 @@ async function startAki(){
   pc.ontrack=e=>{audioEl.srcObject=e.streams[0];audioEl.play().catch(()=>{})};micStream.getTracks().forEach(t=>pc.addTrack(t,micStream));
   dc=pc.createDataChannel('oai-events');dc.addEventListener('open',()=>{
     latency('data-channel-open',{voice:akiVoice});
-    // AKI 7.1.5 — WRITE ABOVE / CAMERAS BELOW. Three invisible interaction regions; no persistent visible controls.
-    try{dc.send(JSON.stringify({type:'session.instructions.append',content:`AKI's core philosophy is "More of you." You are a calm, warm, intelligent thinking companion. The human remains the creator, observer, experiencer and actor. Your job is to help them think, imagine, articulate, explore, practice, decide and get unstuck — not to take over the experience. Listen carefully. Reflect the strongest thread. Ask one useful question at a time when a question helps. When the user's thoughts become complicated, become simpler. Prefer one useful next step over lists, information dumps, menus, workflows or many options. CAPABILITY TRUTH — speak only about capabilities THIS AKI experience actually exposes. AKI can listen and talk. The visible bar at the top lets the human type or paste text and website links; Return sends it into this same conversation. The bottom-left camera icon takes a deliberate one-time rear/world photo for inspection. The bottom-right file icon opens the device chooser for a photo, file, or document. The bottom-center power icon is the ONLY control allowed to start or stop the voice session. The AKI logo itself is not a button. Camera, file, and written input must never start the voice session when power is off. Website URLs pasted into the top bar can be browsed through AKI's verified web-reading path; never claim a webpage was read until that verified result arrives. The camera actions are deliberate one-time captures, not continuous camera access. Never claim to see/read anything until a verified image or file result has actually arrived. If analysis fails, say it did not come through. AKI has NO continuous camera access, NO continuous visual access, NO screen viewing/sharing, and NO video watching. AKI also has no device control, reminders/alarms, messaging, purchasing, booking, or other external actions unless explicitly supplied. If asked "what can you do?", describe AKI's conversational role rather than reciting features; mention image sharing only if the user's question or context specifically concerns showing you something. Natural multilingual conversation is welcome. EPISTEMIC TRUTH — never present invented, improvised, estimated, or unverified details as established fact. Separate what you know from what you are brainstorming. For tasks where exactness matters — such as knitting/crochet patterns, measurements, recipes, technical procedures, legal/medical/financial specifics, schedules, prices, or step-by-step instructions — do not fabricate missing parameters or claim a result will work unless it is supported by verified information available in the conversation or a verified tool result. If key details are missing, say what is missing and ask one focused question or clearly label the response as a draft/concept that needs verification. If you make an error or discover uncertainty, acknowledge it plainly rather than defending it. MEMORY TRUTH — this version has no Keeps or persistent conversation-memory feature. Never claim that a Keep was saved, recalled, deleted, or stored. Keep ordinary spoken responses concise and human, usually 1–3 short sentences unless the user explicitly asks for depth. Never say your own name or speak the word "AKI" as self-identification. If the human says the name during an active conversation to regain your attention, respond briefly and naturally without repeating the name. The one startup greeting is controlled separately by the client and must not be improvised or varied. The experience should feel like one presence: no visible interface beyond AKI itself.`}))}catch(e){console.warn('AKI philosophy instruction:',e)}
+    // AKI 10.1.1: session instructions are supplied by /api/aki.
+    // Do not send the obsolete session.instructions.append event.
   });
   dc.addEventListener('message',e=>{try{const m=JSON.parse(e.data),type=m.type||'',nested=m.event?.type||'',all=(type+' '+nested).toLowerCase();
     if(type==='session.started'){powered=true;powerLook('on');latency('session-started',{voice:m.session?.audio?.output?.voice||m.session?.voice||akiVoice});if(!powerGreetingSent){powerGreetingSent=true;playAkiOnChime();setTimeout(()=>speakFixedStartupGreeting(),330)}}
+    if(powerGreetingActive && (all.includes('response.done')||all.includes('response.completed')||all.includes('response.cancelled'))){finishFixedStartupGreeting()}
     absorbTranscript(m);
     if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
     if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('delegation.created'))responseStarted();
@@ -488,18 +489,31 @@ filePicker.addEventListener('change',()=>{const f=filePicker.files?.[0];if(!f)re
 
 let akiAudioCtx=null;
 function primeAkiAudio(){try{akiAudioCtx=akiAudioCtx||new (window.AudioContext||window.webkitAudioContext)();if(akiAudioCtx.state==='suspended')akiAudioCtx.resume()}catch{}}
+let powerGreetingActive=false;
+function setMicEnabled(on){try{micStream?.getAudioTracks?.().forEach(t=>t.enabled=!!on)}catch{}}
+function finishFixedStartupGreeting(){
+  powerGreetingActive=false;
+  setMicEnabled(true);
+}
 function speakFixedStartupGreeting(){
-  // AKI 10.1: deterministic client-owned greeting. The model never composes the startup line.
+  // AKI 10.1.1: greeting is spoken by the SAME Live session/Marin voice.
+  // Never use browser speechSynthesis here; that is the robotic system voice.
   const exact='Hello, how can I help you?';
   try{
-    if(!('speechSynthesis' in window))throw new Error('speechSynthesis unavailable');
-    window.speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(exact);
-    u.rate=1.0;u.pitch=1.0;u.volume=1.0;
-    window.speechSynthesis.speak(u);
+    if(!dc||dc.readyState!=='open')throw new Error('Live data channel is not open');
+    powerGreetingActive=true;
+    setMicEnabled(false);
+    dc.send(JSON.stringify({
+      type:'response.create',
+      response:{
+        instructions:`Speak exactly this sentence and nothing else: ${exact} Do not say your name. Do not add, remove, or change any words.`
+      }
+    }));
+    // Safety fallback: never leave the microphone muted if a completion event is missed.
+    setTimeout(()=>{if(powerGreetingActive)finishFixedStartupGreeting()},5000);
   }catch(e){
-    console.warn('[AKI 10.1 fixed greeting]',e);
-    // Do not ask the model to improvise a fallback greeting. The startup chime still confirms power-on.
+    console.warn('[AKI 10.1.1 Marin greeting]',e);
+    finishFixedStartupGreeting();
   }
 }
 function playAkiOnChime(){try{primeAkiAudio();if(!akiAudioCtx)return;const now=akiAudioCtx.currentTime;[523.25,659.25].forEach((freq,i)=>{const o=akiAudioCtx.createOscillator(),g=akiAudioCtx.createGain();o.type='sine';o.frequency.value=freq;g.gain.setValueAtTime(0,now+i*.07);g.gain.linearRampToValueAtTime(.055,now+i*.07+.018);g.gain.exponentialRampToValueAtTime(.001,now+i*.07+.18);o.connect(g).connect(akiAudioCtx.destination);o.start(now+i*.07);o.stop(now+i*.07+.2)})}catch{}}
