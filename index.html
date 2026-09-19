@@ -14,114 +14,48 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=45">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=45">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=45">
-<title>AKI 8.1.2 — WRITE FOCUS + ACCESSIBLE ZOOM</title>
+<title>AKI 9 — SIMPLE VISUAL NAVIGATION</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}
-body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif}
-.presence{position:relative;width:100%;height:100dvh;overflow:hidden;isolation:isolate;background:radial-gradient(circle at 50% 47%,#0e1420 0,#070a10 42%,#030507 76%,#020304 100%);cursor:default;-webkit-tap-highlight-color:transparent}
-.ambient{position:absolute;inset:-18%;background:radial-gradient(circle at 50% 48%,rgba(20,82,145,.10) 0 18%,rgba(72,30,112,.07) 34%,rgba(8,10,16,.03) 54%,transparent 72%);filter:blur(48px);animation:ambient 14s ease-in-out infinite}
-.orb{position:absolute;left:50%;top:48%;width:min(88vw,700px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:#010207;box-shadow:0 0 24px rgba(93,218,255,.14),0 0 70px rgba(65,126,255,.15),0 0 124px rgba(150,53,255,.10);animation:orbBreath 8.4s ease-in-out infinite;transition:filter .9s ease,transform .9s ease}
-.halo,.rim,.oil,.oil2,.core{position:absolute;border-radius:50%;pointer-events:none}
-.halo{inset:-7%;background:conic-gradient(from 205deg,rgba(16,199,255,0),rgba(26,195,255,.34),rgba(83,77,255,.34),rgba(216,65,255,.28),rgba(255,104,178,.22),rgba(255,159,93,.18),rgba(34,210,255,.22),rgba(16,199,255,0));filter:blur(30px);opacity:.68;animation:oilTurn 34s linear infinite}
-.rim{inset:-1.2%;background:conic-gradient(from 220deg,rgba(255,127,194,.92),rgba(161,70,255,.94),rgba(75,116,255,.97),rgba(79,231,255,.98),rgba(225,247,255,.93),rgba(75,207,255,.94),rgba(110,73,255,.92),rgba(231,70,255,.92),rgba(255,149,103,.88),rgba(255,127,194,.92));filter:blur(3.8px) saturate(1.28);opacity:.91;animation:oilTurn 31s linear infinite}
-.rim:after{content:"";position:absolute;inset:1.9%;border-radius:50%;background:rgba(1,2,7,.93);filter:blur(3px)}
-.oil{inset:1.2%;background:conic-gradient(from 18deg,transparent 0 4%,rgba(35,212,255,.88) 10%,rgba(56,113,255,.74) 19%,rgba(172,60,255,.84) 30%,rgba(255,65,189,.72) 39%,rgba(255,156,92,.66) 47%,transparent 55% 65%,rgba(22,207,255,.84) 74%,rgba(100,73,255,.78) 84%,rgba(228,75,255,.67) 91%,transparent 98%);filter:blur(12px) saturate(1.45);opacity:.92;animation:oilTurn 28s linear infinite}
-.oil:after{content:"";position:absolute;inset:8.5%;border-radius:50%;background:rgba(1,2,7,.91);filter:blur(11px)}
-.oil2{inset:4%;background:conic-gradient(from 160deg,transparent 0 10%,rgba(255,83,190,.52) 19%,rgba(115,65,255,.66) 31%,rgba(30,204,255,.70) 43%,transparent 55% 70%,rgba(255,135,82,.43) 80%,rgba(130,64,255,.54) 91%,transparent);filter:blur(20px) saturate(1.38);opacity:.68;animation:oilTurn2 38s linear infinite}
-.oil2:after{content:"";position:absolute;inset:13.5%;border-radius:50%;background:rgba(1,2,7,.88);filter:blur(14px)}
-/* 4.5: center is no longer a crisp black disk. Its edge feathers into the torus. */
-.core{inset:11.5%;background:radial-gradient(circle at 44% 38%,rgba(9,24,44,.28) 0%,rgba(1,2,7,.985) 55%,rgba(1,2,7,.96) 78%,rgba(1,2,7,.82) 87%,rgba(1,2,7,.48) 94%,rgba(1,2,7,.12) 98%,transparent 100%);box-shadow:inset 0 0 88px rgba(46,112,190,.08);filter:blur(2.4px)}
-.mark{position:absolute;z-index:8;left:50%;top:48%;transform:translate(-50%,-50%);width:min(48vw,360px);height:auto;opacity:.23;filter:blur(.32px) drop-shadow(0 0 4px rgba(154,216,255,.05));transition:opacity .55s ease,filter .55s ease;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-.mark path{fill:none;stroke:rgba(222,231,241,.76);stroke-width:1.02;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
-.mark.on{opacity:.72;filter:blur(.28px) drop-shadow(0 0 7px rgba(154,216,255,.16))}
-.mark.starting{opacity:.47}
-.mark.error{opacity:.16}
-/* AKI 4.7: constant presence. Conversation state never changes the torus. */
-@keyframes ambient{0%,100%{transform:scale(.98);opacity:.58}50%{transform:scale(1.025);opacity:.78}}
-@keyframes orbBreath{0%,100%{transform:translate(-50%,-50%) scale(.982)}50%{transform:translate(-50%,-50%) scale(1.012)}}
-@keyframes oilTurn{to{transform:rotate(360deg)}}@keyframes oilTurn2{to{transform:rotate(-360deg)}}
-.write-layer{position:absolute;z-index:20;left:max(7vw,22px);right:max(7vw,22px);top:max(calc(env(safe-area-inset-top) + 7vh),86px);height:clamp(82px,14vh,150px);display:none;align-items:flex-start;pointer-events:none}
-.write-layer.open{display:flex}
-#writeBox{width:100%;max-height:100%;resize:none;overflow:auto;border:0;outline:0;background:transparent;color:rgba(238,247,255,.92);font:300 clamp(20px,5.2vw,30px)/1.35 system-ui,-apple-system,sans-serif;letter-spacing:.01em;padding:8px 0 12px;caret-color:#65e8ff;text-shadow:0 0 12px rgba(99,211,255,.12);pointer-events:auto}
-#writeBox::placeholder{color:rgba(204,214,232,.38)}
-@media(max-width:600px){.orb{width:88vw}.mark{width:47vw}}
-@media(prefers-reduced-motion:reduce){.ambient,.orb,.halo,.rim,.oil,.oil2{animation:none!important}}
-
-/* AKI 8.1 — pristine five-input surface + ten text-only Keeps */
-.zone{position:absolute;z-index:12;background:transparent;border:0;padding:0;margin:0;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;outline:none}
-.zone:focus-visible{outline:1px solid rgba(120,220,255,.22);outline-offset:-2px}
-#zoneWrite{left:0;top:0;width:50%;height:calc(48% - min(44vw,350px))}
-#zoneShare{right:0;top:0;width:50%;height:calc(48% - min(44vw,350px))}
-#zoneSelfie{left:0;bottom:0;width:50%;height:calc(52% - min(44vw,350px))}
-#zoneWorld{right:0;bottom:0;width:50%;height:calc(52% - min(44vw,350px))}
-/* Desktop uses broad outer-corner hit fields. The previous calc() could become
-   negative when AKI filled most of a short desktop viewport, leaving no clickable area. */
-@media (pointer:fine){
-  /* 8.0.3 desktop: four literal half-screen hit fields. No clip-path and no
-     viewport-dependent height math. The AKI mark sits above them, so TALK wins
-     in the center while every outer quadrant is a real pointer target. */
-  #zoneWrite,#zoneShare,#zoneSelfie,#zoneWorld{width:50%;height:50%;clip-path:none;z-index:12;cursor:pointer}
-  #zoneWrite{left:0;top:0;right:auto;bottom:auto}
-  #zoneShare{right:0;top:0;left:auto;bottom:auto}
-  #zoneSelfie{left:0;bottom:0;right:auto;top:auto}
-  #zoneWorld{right:0;bottom:0;left:auto;top:auto}
-  .mark{z-index:30}
-  .zone:hover{background:radial-gradient(circle,rgba(80,190,255,.014),transparent 72%)}
-}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#eef7ff}.presence{position:relative;width:100%;height:100dvh;overflow:hidden;isolation:isolate;background:radial-gradient(circle at 50% 46%,#11162a 0,#080b13 40%,#030507 74%,#020304 100%);-webkit-tap-highlight-color:transparent}.ambient{position:absolute;inset:-18%;background:radial-gradient(circle at 50% 48%,rgba(20,82,145,.14),rgba(72,30,112,.08) 34%,transparent 70%);filter:blur(48px);animation:ambient 14s ease-in-out infinite}.orb{position:absolute;left:50%;top:47%;width:min(84vw,680px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:#010207;box-shadow:0 0 24px rgba(93,218,255,.16),0 0 80px rgba(65,126,255,.16),0 0 130px rgba(150,53,255,.12);animation:orbBreath 8.4s ease-in-out infinite}.halo,.rim,.oil,.oil2,.core{position:absolute;border-radius:50%;pointer-events:none}.halo{inset:-7%;background:conic-gradient(from 205deg,transparent,rgba(26,195,255,.36),rgba(83,77,255,.36),rgba(216,65,255,.30),rgba(255,104,178,.24),rgba(255,159,93,.20),rgba(34,210,255,.24),transparent);filter:blur(30px);opacity:.72;animation:oilTurn 34s linear infinite}.rim{inset:-1.2%;background:conic-gradient(from 220deg,#ff7fc2,#a146ff,#4b74ff,#4fe7ff,#e1f7ff,#4bcfff,#6e49ff,#e746ff,#ff9567,#ff7fc2);filter:blur(3.8px) saturate(1.42) brightness(1.10);opacity:.94;animation:oilTurn 31s linear infinite}.rim:after{content:"";position:absolute;inset:1.9%;border-radius:50%;background:rgba(1,2,7,.93);filter:blur(3px)}.oil{inset:1.2%;background:conic-gradient(from 18deg,transparent 0 4%,rgba(35,212,255,.9) 10%,rgba(56,113,255,.76) 19%,rgba(172,60,255,.86) 30%,rgba(255,65,189,.74) 39%,rgba(255,156,92,.68) 47%,transparent 55% 65%,rgba(22,207,255,.86) 74%,rgba(100,73,255,.8) 84%,rgba(228,75,255,.7) 91%,transparent 98%);filter:blur(12px) saturate(1.45);opacity:.92;animation:oilTurn 28s linear infinite}.oil:after{content:"";position:absolute;inset:8.5%;border-radius:50%;background:rgba(1,2,7,.91);filter:blur(11px)}.oil2{inset:4%;background:conic-gradient(from 160deg,transparent 0 10%,rgba(255,83,190,.52) 19%,rgba(115,65,255,.66) 31%,rgba(30,204,255,.70) 43%,transparent 55% 70%,rgba(255,135,82,.43) 80%,rgba(130,64,255,.54) 91%,transparent);filter:blur(20px);opacity:.68;animation:oilTurn2 38s linear infinite}.oil2:after{content:"";position:absolute;inset:13.5%;border-radius:50%;background:rgba(1,2,7,.88);filter:blur(14px)}.core{inset:11.5%;background:radial-gradient(circle at 44% 38%,rgba(9,24,44,.28),rgba(1,2,7,.985) 55%,rgba(1,2,7,.82) 87%,transparent 100%);box-shadow:inset 0 0 88px rgba(46,112,190,.08);filter:blur(2.4px)}
+.top-compose{position:absolute;z-index:30;top:max(calc(env(safe-area-inset-top) + 5.5vh),62px);left:6vw;right:6vw;height:clamp(54px,7.5vh,68px)}.write-trigger,.write-layer{position:absolute;inset:0;border-radius:999px;border:1.4px solid transparent;background:linear-gradient(#0a0d18,#0a0d18) padding-box,linear-gradient(90deg,#20ddff,#536bff,#df48ff) border-box;box-shadow:0 0 22px rgba(62,132,255,.13);color:rgba(211,221,238,.55)}.write-trigger{display:flex;align-items:center;gap:16px;padding:0 22px;font:300 clamp(18px,4.5vw,27px)/1 system-ui;border-width:1.4px;text-align:left;width:100%;cursor:text}.write-trigger svg{width:27px;height:27px;flex:none;stroke:#eaf8ff;filter:drop-shadow(0 0 5px rgba(100,220,255,.45))}.write-layer{display:none;align-items:center;padding:0 20px}.write-layer.open{display:flex}.write-layer.open~.write-trigger{visibility:hidden}#writeBox{width:100%;height:100%;resize:none;overflow:auto;border:0;outline:0;background:transparent;color:#eef7ff;font:300 clamp(20px,4.7vw,28px)/1.3 system-ui;padding:14px 4px;caret-color:#65e8ff}#writeBox::placeholder{color:rgba(204,214,232,.42)}.write-hint{position:absolute;top:calc(100% + 13px);left:0;right:0;text-align:center;color:rgba(194,205,226,.58);font:300 clamp(12px,3.1vw,17px)/1.2 system-ui;letter-spacing:.01em}
+.mark{position:absolute;z-index:32;left:50%;top:47%;transform:translate(-50%,-50%);width:min(48vw,350px);height:auto;opacity:.32;cursor:pointer;touch-action:manipulation;transition:opacity .45s ease,filter .45s ease}.mark path{fill:none;stroke:rgba(238,247,255,.84);stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}.mark.on{opacity:1;filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 10px rgba(55,190,255,.78))}.mark.on path{stroke:#fff;stroke-width:2.2}.mark.starting{opacity:.58}.mark.error{opacity:.18}.talk-control{position:absolute;z-index:33;left:50%;top:calc(47% + min(16vw,128px));transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}.power-icon{width:clamp(35px,9vw,58px);height:clamp(35px,9vw,58px);stroke:#dff8ff;fill:none;stroke-width:2;filter:drop-shadow(0 0 6px rgba(74,196,255,.7))}.talk-label{font:400 clamp(11px,2.8vw,16px)/1 system-ui;letter-spacing:.28em;color:rgba(246,250,255,.88);white-space:nowrap}
+.action-row{position:absolute;z-index:35;left:8vw;right:8vw;bottom:max(calc(env(safe-area-inset-bottom) + 8vh),70px);display:grid;grid-template-columns:repeat(3,1fr);align-items:start;gap:8vw}.action{border:0;background:transparent;color:#f4f8ff;padding:0;display:flex;flex-direction:column;align-items:center;gap:9px;cursor:pointer;-webkit-tap-highlight-color:transparent}.action-circle{width:clamp(58px,14vw,88px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;border:1.4px solid transparent;background:linear-gradient(#080b14,#080b14) padding-box,linear-gradient(135deg,#28e7ff,#596cff,#dc43ff) border-box;box-shadow:0 0 18px rgba(82,111,255,.16)}.action svg{width:46%;height:46%;stroke:#f2fbff;fill:none;stroke-width:1.8;filter:drop-shadow(0 0 5px rgba(125,221,255,.55))}.action span{font:400 clamp(10px,2.6vw,14px)/1 system-ui;letter-spacing:.25em;white-space:nowrap}.action:active .action-circle{transform:scale(.96)}
+@keyframes ambient{0%,100%{transform:scale(.98);opacity:.58}50%{transform:scale(1.025);opacity:.78}}@keyframes orbBreath{0%,100%{transform:translate(-50%,-50%) scale(.982)}50%{transform:translate(-50%,-50%) scale(1.012)}}@keyframes oilTurn{to{transform:rotate(360deg)}}@keyframes oilTurn2{to{transform:rotate(-360deg)}}@media(max-height:700px){.orb{width:min(72vw,540px)}.action-row{bottom:max(calc(env(safe-area-inset-bottom) + 4vh),34px)}.top-compose{top:max(calc(env(safe-area-inset-top) + 3vh),38px)}}@media(prefers-reduced-motion:reduce){.ambient,.orb,.halo,.rim,.oil,.oil2{animation:none!important}}
 </style>
 
-<style id="aki-icon-match">
-/* 4.7 icon-match visual refinement */
-.mark{
-  border:0!important; outline:0!important; background:transparent!important;
-  box-shadow:none!important; border-radius:50%!important;
-  -webkit-tap-highlight-color:transparent!important;
-}
-.mark:focus,.mark:focus-visible,.mark:active{
-  border:0!important; outline:0!important; background:transparent!important;
-  box-shadow:none!important;
-}
-.mark.on{
-  opacity:1!important;
-  filter:drop-shadow(0 0 1px rgba(255,255,255,1))
-         drop-shadow(0 0 4px rgba(190,235,255,.98))
-         drop-shadow(0 0 10px rgba(55,190,255,.78))!important;
-}
-.mark.on path{
-  stroke:#f8fdff!important; stroke-opacity:1!important;
-  stroke-width:2.35!important; stroke-linecap:round!important; stroke-linejoin:round!important;
-}
-.rim,.oil,.oil2{
-  filter:saturate(1.42) contrast(1.08) brightness(1.10)!important;
-}
-</style>
+
 </head>
 <body>
-<main id="app" class="presence" aria-label="AKI">
-  <input id="selfiePicker" type="file" accept="image/*" capture="user" hidden aria-hidden="true">
+<main id="app" class="presence" aria-label="AKI 9">
   <input id="worldPicker" type="file" accept="image/*" capture="environment" hidden aria-hidden="true">
   <input id="filePicker" type="file" accept="image/*,application/pdf,text/plain,text/markdown,text/csv,application/json,.pdf,.txt,.md,.csv,.json,.doc,.docx,.xls,.xlsx,.ppt,.pptx" hidden aria-hidden="true">
-  <form id="writeLayer" class="write-layer" autocomplete="off">
-    <textarea id="writeBox" rows="1" aria-label="Type or paste for AKI" placeholder="Type or paste for AKI…"></textarea>
-  </form>
-  <button id="zoneWrite" class="zone" aria-label="Write or paste"></button>
-  <button id="zoneShare" class="zone" aria-label="Share a photo, file, or document"></button>
-  <button id="zoneSelfie" class="zone" aria-label="Open front camera"></button>
-  <button id="zoneWorld" class="zone" aria-label="Open rear camera"></button>
   <div class="ambient"></div>
+  <div class="top-compose">
+    <form id="writeLayer" class="write-layer" autocomplete="off"><textarea id="writeBox" rows="1" aria-label="Type or paste for AKI" placeholder="Type or paste for AKI…"></textarea></form>
+    <button id="writeTrigger" class="write-trigger" type="button" aria-label="Type or paste for AKI"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="7" width="26" height="18" rx="3"/><path d="M7 12h2m3 0h2m3 0h2m3 0h2M7 16h2m3 0h2m3 0h2m3 0h2M8 20h16"/></svg><span>Type or paste for AKI…</span></button>
+    <div class="write-hint">Ask a question, share a thought, or paste a link…</div>
+  </div>
   <div class="orb"><div class="halo"></div><div class="rim"></div><div class="oil"></div><div class="oil2"></div><div class="core"></div></div>
   <svg id="akiButton" class="mark" viewBox="0 0 210 90" role="button" tabindex="0" aria-label="Turn AKI on" aria-pressed="false"><path d="M15 72 L45 18 L75 72 M95 18 L95 72 M96 48 L142 18 M96 48 L144 72 M172 18 L172 72"/></svg>
+  <div class="talk-control" aria-hidden="true"><svg class="power-icon" viewBox="0 0 32 32"><path d="M16 3v12M9.2 7.2a11 11 0 1 0 13.6 0"/></svg><div class="talk-label">TAP TO TALK</div></div>
+  <div class="action-row">
+    <button id="cameraButton" class="action" type="button" aria-label="Show AKI something with the camera"><span class="action-circle"><svg viewBox="0 0 32 32"><path d="M4 10h6l2-3h8l2 3h6v16H4z"/><circle cx="16" cy="18" r="6"/></svg></span><span>SHOW ME</span></button>
+    <button id="helpButton" class="action" type="button" aria-label="Ask AKI for help navigating"><span class="action-circle"><svg viewBox="0 0 32 32"><path d="M11.5 11a5 5 0 0 1 9.2 2.7c0 4-4.7 4.2-4.7 8"/><path d="M16 26h.01"/></svg></span><span>HELP</span></button>
+    <button id="giveButton" class="action" type="button" aria-label="Give AKI a photo, file, or document"><span class="action-circle"><svg viewBox="0 0 32 32"><path d="M8 3h11l6 6v20H8z"/><path d="M19 3v7h6M12 17h9M12 22h9"/></svg></span><span>GIVE</span></button>
+  </div>
 </main>
 <script>
 const app=document.querySelector('#app');
-console.info('[AKI 8.1.2] WRITE FOCUS + ACCESSIBLE ZOOM loaded');
+console.info('[AKI 9] SIMPLE VISUAL NAVIGATION loaded');
 const akiButton=document.querySelector('#akiButton');
-const selfiePicker=document.querySelector('#selfiePicker');
 const worldPicker=document.querySelector('#worldPicker');
 const filePicker=document.querySelector('#filePicker');
 const writeLayer=document.querySelector('#writeLayer');
+const writeTrigger=document.querySelector('#writeTrigger');
+const cameraButton=document.querySelector('#cameraButton');
+const helpButton=document.querySelector('#helpButton');
+const giveButton=document.querySelector('#giveButton');
 const writeBox=document.querySelector('#writeBox');
-const zoneWrite=document.querySelector('#zoneWrite'),zoneShare=document.querySelector('#zoneShare'),zoneSelfie=document.querySelector('#zoneSelfie'),zoneWorld=document.querySelector('#zoneWorld');
 let pc=null,dc=null,micStream=null,audioEl=null,audioCtx=null;
 let starting=false,stopping=false,powered=false,restarting=false;
 let transcript='',turnEndAt=0,responseStartAt=0,firstAudioAt=0,lastChime=0;
@@ -372,10 +306,10 @@ async function startAki(){
     latency('data-channel-open',{voice:akiVoice});
     try{dc.send(JSON.stringify({type:'session.instructions.append',content:`AKI KEEPS DEVICE CONTEXT at session start. These are the only deliberate Keeps currently stored on this device:\n${keepsContext()}\nUse them only when relevant or when the human asks. Do not imply you remember anything else from earlier sessions.`}))}catch(e){console.warn('AKI keeps context:',e)}
     // AKI 7.1.5 — WRITE ABOVE / CAMERAS BELOW. Three invisible interaction regions; no persistent visible controls.
-    try{dc.send(JSON.stringify({type:'session.instructions.append',content:`AKI's core philosophy is "More of you." You are a calm, warm, intelligent thinking companion. The human remains the creator, observer, experiencer and actor. Your job is to help them think, imagine, articulate, explore, practice, decide and get unstuck — not to take over the experience. Listen carefully. Reflect the strongest thread. Ask one useful question at a time when a question helps. When the user's thoughts become complicated, become simpler. Prefer one useful next step over lists, information dumps, menus, workflows or many options. CAPABILITY TRUTH — speak only about capabilities THIS AKI experience actually exposes. AKI can listen and talk. In the negative space ABOVE AKI, the upper-left invisible region opens a temporary writing surface: the iPhone keyboard rises from below while typed or pasted words appear only in the clear space above the sphere; Return sends the words into this same conversation and the writing surface disappears. The upper-right invisible region opens the device's full deliberate handoff chooser, which may offer Photo Library, Take Photo, or Choose File on iPhone. Images are visually analyzed and documents/files are read through their verified handoff paths. The lower-left invisible region opens a one-time front/selfie camera capture; the lower-right invisible region opens a one-time rear/world camera capture. Never advertise these controls unprompted and never recite them as a feature list unless the human explicitly asks how input works. If the human says they cannot talk, wants to type, paste text, write something, or paste a website link, tell them briefly: tap the upper left and type or paste it. If they want to share, upload, attach, or give you a photo, screenshot, document, or file, ALWAYS tell them: tap the upper right and choose what they want to bring in. Never call upper-left a file/photo sharing area. Website URLs pasted through upper-left can be browsed through AKI's verified web-reading path; never claim a webpage was read until that verified result arrives. For a selfie/front photo: tap the lower left. To photograph something in front of them: tap the lower right. The camera actions are deliberate one-time captures, not continuous camera access. Never claim to see/read anything until a verified image or file result has actually arrived. If analysis fails, say it did not come through. AKI has NO continuous camera access, NO continuous visual access, NO screen viewing/sharing, and NO video watching. AKI also has no device control, reminders/alarms, messaging, purchasing, booking, or other external actions unless explicitly supplied. If asked "what can you do?", describe AKI's conversational role rather than reciting features; mention image sharing only if the user's question or context specifically concerns showing you something. Natural multilingual conversation is welcome. KEEPS: AKI supports exactly ten deliberate, text-only device-local Keep slots. A Keep preserves meaning, decisions, ideas, and enough context to continue; it never stores photos, generated images, documents, audio, or other files. The client handles save, list, recall, delete, and replacement. Never claim a Keep exists until the client provides an AKI KEEP SAVED or AKI KEEP RECALLED result. When all ten are full, nothing is replaced until the human chooses which numbered Keep to replace. Keep ordinary spoken responses concise and human, usually 1–3 short sentences unless the user explicitly asks for depth. If they say "Aki" to begin or regain your attention, respond naturally with "I am here. How can I help you?" The experience should feel like one presence: no visible interface beyond AKI itself.`}))}catch(e){console.warn('AKI philosophy instruction:',e)}
+    try{dc.send(JSON.stringify({type:'session.instructions.append',content:`AKI's core philosophy is "More of you." You are a calm, warm, intelligent thinking companion. The human remains the creator, observer, experiencer and actor. Your job is to help them think, imagine, articulate, explore, practice, decide and get unstuck — not to take over the experience. Listen carefully. Reflect the strongest thread. Ask one useful question at a time when a question helps. When the user's thoughts become complicated, become simpler. Prefer one useful next step over lists, information dumps, menus, workflows or many options. CAPABILITY TRUTH — speak only about capabilities THIS AKI experience actually exposes. AKI can listen and talk. The visible bar at the top lets the human type or paste text and website links; Return sends it into this same conversation. The visible SHOW ME camera button takes a deliberate one-time rear/world photo for AKI to inspect. The visible GIVE button opens the device chooser for a photo, file, or document. The visible HELP button asks AKI to help the human navigate the experience conversationally, one simple step at a time. The AKI center/power control turns voice on or off. Website URLs pasted into the top bar can be browsed through AKI's verified web-reading path; never claim a webpage was read until that verified result arrives. The camera actions are deliberate one-time captures, not continuous camera access. Never claim to see/read anything until a verified image or file result has actually arrived. If analysis fails, say it did not come through. AKI has NO continuous camera access, NO continuous visual access, NO screen viewing/sharing, and NO video watching. AKI also has no device control, reminders/alarms, messaging, purchasing, booking, or other external actions unless explicitly supplied. If asked "what can you do?", describe AKI's conversational role rather than reciting features; mention image sharing only if the user's question or context specifically concerns showing you something. Natural multilingual conversation is welcome. KEEPS: AKI supports exactly ten deliberate, text-only device-local Keep slots. A Keep preserves meaning, decisions, ideas, and enough context to continue; it never stores photos, generated images, documents, audio, or other files. The client handles save, list, recall, delete, and replacement. Never claim a Keep exists until the client provides an AKI KEEP SAVED or AKI KEEP RECALLED result. When all ten are full, nothing is replaced until the human chooses which numbered Keep to replace. Keep ordinary spoken responses concise and human, usually 1–3 short sentences unless the user explicitly asks for depth. If they say "Aki" to begin or regain your attention, respond naturally with "I am here. How can I help you?" The experience should feel like one presence: no visible interface beyond AKI itself.`}))}catch(e){console.warn('AKI philosophy instruction:',e)}
   });
   dc.addEventListener('message',e=>{try{const m=JSON.parse(e.data),type=m.type||'',nested=m.event?.type||'',all=(type+' '+nested).toLowerCase();
-    if(type==='session.started'){powered=true;powerLook('on');latency('session-started',{voice:m.session?.audio?.output?.voice||m.session?.voice||akiVoice})}
+    if(type==='session.started'){powered=true;powerLook('on');playAkiOnChime();latency('session-started',{voice:m.session?.audio?.output?.voice||m.session?.voice||akiVoice})}
     absorbTranscript(m);
     if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
     if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('delegation.created'))responseStarted();
@@ -466,7 +400,7 @@ async function shareImage(file){
    console.error('[AKI 8.0.3 Show Me error]',err);
    // A decode failure really means there is no usable source.
    try{await injectTruth('IMAGE HANDOFF FAILED. The image itself could not be prepared on this device. Tell me briefly that it did not come through and ask me to try another image. Do not claim you saw it.')}catch{}
- }finally{imageBusy=false;[selfiePicker,worldPicker].forEach(resetPicker)}
+ }finally{imageBusy=false;[worldPicker].forEach(resetPicker)}
 }
 function resetPicker(input){ try{input.value=''}catch{} }
 function openDoor(input){
@@ -589,19 +523,21 @@ writeBox.addEventListener('keydown',e=>{
  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();writeLayer.requestSubmit()}
  if(e.key==='Escape'){e.preventDefault();closeWrite()}
 });
-selfiePicker.addEventListener('change',()=>{const f=selfiePicker.files?.[0];if(f)shareImage(f)});
 worldPicker.addEventListener('change',()=>{const f=worldPicker.files?.[0];if(f)shareImage(f)});
 filePicker.addEventListener('change',()=>{const f=filePicker.files?.[0];if(!f)return;const isImage=f.type?.startsWith('image/')||/\.(heic|heif|jpe?g|png|webp|gif)$/i.test(f.name||'');if(isImage)shareImage(f).finally(()=>resetPicker(filePicker));else shareFile(f)});
-function zoneAction(el,fn){
- el.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();fn()});
- el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fn()}});
-}
-zoneAction(zoneWrite,()=>openWrite());
-zoneAction(zoneShare,()=>openDoor(filePicker));
-zoneAction(zoneSelfie,()=>openDoor(selfiePicker));
-zoneAction(zoneWorld,()=>openDoor(worldPicker));
 
-async function toggle(){if(starting||stopping)return;if(powered||pc||micStream)await stopAki();else await startAki()}
+let akiAudioCtx=null;
+function primeAkiAudio(){try{akiAudioCtx=akiAudioCtx||new (window.AudioContext||window.webkitAudioContext)();if(akiAudioCtx.state==='suspended')akiAudioCtx.resume()}catch{}}
+function playAkiOnChime(){try{primeAkiAudio();if(!akiAudioCtx)return;const now=akiAudioCtx.currentTime;[523.25,659.25].forEach((freq,i)=>{const o=akiAudioCtx.createOscillator(),g=akiAudioCtx.createGain();o.type='sine';o.frequency.value=freq;g.gain.setValueAtTime(0,now+i*.07);g.gain.linearRampToValueAtTime(.055,now+i*.07+.018);g.gain.exponentialRampToValueAtTime(.001,now+i*.07+.18);o.connect(g).connect(akiAudioCtx.destination);o.start(now+i*.07);o.stop(now+i*.07+.2)})}catch{}}
+async function openHelp(){
+ primeAkiAudio();
+ try{await injectTruth(`AKI HELP REQUEST. The human deliberately pressed the visible Help button because they want help navigating AKI. Greet them briefly and ask what they would like help with. If they are unsure, explain conversationally and one step at a time: they can type or paste in the bar at the top, tap AKI to talk, use SHOW ME to take a photo of something for AKI to look at, or use GIVE to choose a photo, file, or document. Do not dump a long feature list. Ask one simple question at a time and help them do the next action.`)}catch(e){console.error('[AKI 9 help]',e)}
+}
+writeTrigger.addEventListener('click',e=>{e.preventDefault();openWrite()});
+cameraButton.addEventListener('click',()=>openDoor(worldPicker));
+giveButton.addEventListener('click',()=>openDoor(filePicker));
+helpButton.addEventListener('click',()=>openHelp());
+async function toggle(){if(starting||stopping)return;if(powered||pc||micStream)await stopAki();else{primeAkiAudio();await startAki()}}
 akiButton.addEventListener('click',e=>{e.stopPropagation();toggle()});
 akiButton.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&pc&&['failed','closed'].includes(pc.connectionState))stopAki()});
