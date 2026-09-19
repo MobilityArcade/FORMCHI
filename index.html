@@ -21,13 +21,15 @@
 .mark{position:absolute;z-index:32;left:50%;top:47%;transform:translate(-50%,-50%);width:min(48vw,350px);height:auto;opacity:.32;pointer-events:none;touch-action:none;transition:opacity .45s ease,filter .45s ease}.mark path{fill:none;stroke:rgba(238,247,255,.84);stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}.mark.on{opacity:1;filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 10px rgba(55,190,255,.78))}.mark.on path{stroke:#fff;stroke-width:2.2}.mark.starting{opacity:.58}.mark.error{opacity:.18}.talk-control{position:absolute;z-index:33;left:50%;top:calc(47% + min(16vw,128px));transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:auto;border:0;background:transparent;color:inherit;padding:10px 18px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}.power-icon{width:clamp(35px,9vw,58px);height:clamp(35px,9vw,58px);stroke:#dff8ff;fill:none;stroke-width:2;filter:drop-shadow(0 0 6px rgba(74,196,255,.7))}.talk-control:active{transform:translate(-50%,-50%) scale(.96)}.talk-label{font:400 clamp(11px,2.8vw,16px)/1 system-ui;letter-spacing:.28em;color:rgba(246,250,255,.88);white-space:nowrap}
 .action-row{position:absolute;z-index:35;left:8vw;right:8vw;bottom:max(calc(env(safe-area-inset-bottom) + 8vh),70px);display:grid;grid-template-columns:repeat(3,1fr);align-items:start;gap:8vw}.action{border:0;background:transparent;color:#f4f8ff;padding:0;display:flex;flex-direction:column;align-items:center;gap:0;cursor:pointer;-webkit-tap-highlight-color:transparent}.action-circle{width:clamp(58px,14vw,88px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;border:1.4px solid transparent;background:linear-gradient(#080b14,#080b14) padding-box,linear-gradient(135deg,#28e7ff,#596cff,#dc43ff) border-box;box-shadow:0 0 18px rgba(82,111,255,.16)}.action svg{width:46%;height:46%;stroke:#f2fbff;fill:none;stroke-width:1.8;filter:drop-shadow(0 0 5px rgba(125,221,255,.55))}.action span{font:400 clamp(10px,2.6vw,14px)/1 system-ui;letter-spacing:.25em;white-space:nowrap}.action:active .action-circle{transform:scale(.96)}
 @keyframes ambient{0%,100%{transform:scale(.98);opacity:.58}50%{transform:scale(1.025);opacity:.78}}@keyframes orbBreath{0%,100%{transform:translate(-50%,-50%) scale(.982)}50%{transform:translate(-50%,-50%) scale(1.012)}}@keyframes oilTurn{to{transform:rotate(360deg)}}@keyframes oilTurn2{to{transform:rotate(-360deg)}}@media(max-height:700px){.orb{width:min(72vw,540px)}.action-row{bottom:max(calc(env(safe-area-inset-bottom) + 4vh),34px)}.top-compose{top:max(calc(env(safe-area-inset-top) + 3vh),38px)}}@media(prefers-reduced-motion:reduce){.ambient,.orb,.halo,.rim,.oil,.oil2{animation:none!important}}
+.camera-menu{display:none;position:absolute;z-index:80;left:50%;bottom:calc(max(env(safe-area-inset-bottom),18px) + clamp(94px,14vh,138px));transform:translateX(-50%);width:min(78vw,330px);padding:8px;border-radius:22px;border:1px solid rgba(105,185,255,.38);background:rgba(8,11,20,.96);box-shadow:0 16px 50px rgba(0,0,0,.65),0 0 26px rgba(87,96,255,.18);backdrop-filter:blur(18px)}.camera-menu.open{display:block}.camera-choice{width:100%;border:0;background:transparent;color:#edf7ff;text-align:left;padding:15px 16px;border-radius:15px;font:400 16px/1.15 system-ui;cursor:pointer}.camera-choice+.camera-choice{border-top:1px solid rgba(190,210,240,.12)}.camera-choice:active{background:rgba(90,130,255,.12)}
 </style>
 
 
 </head>
 <body>
-<main id="app" class="presence" aria-label="AKI 10.2">
+<main id="app" class="presence" aria-label="AKI 10.2.1">
   <input id="worldPicker" type="file" accept="image/*" capture="environment" hidden aria-hidden="true">
+  <input id="photoPicker" type="file" accept="image/*" hidden aria-hidden="true">
   <input id="filePicker" type="file" accept="image/*,application/pdf,text/plain,text/markdown,text/csv,application/json,.pdf,.txt,.md,.csv,.json,.doc,.docx,.xls,.xlsx,.ppt,.pptx" hidden aria-hidden="true">
   <div class="ambient"></div>
   <div class="top-compose">
@@ -42,12 +44,17 @@
     <button id="powerButton" class="action" type="button" aria-label="Turn AKI on" aria-pressed="false"><span class="action-circle"><svg viewBox="0 0 32 32"><path d="M16 3v12M9.2 7.2a11 11 0 1 0 13.6 0"/></svg></span></button>
     <button id="giveButton" class="action" type="button" aria-label="Save or share note; file when no note"><span class="action-circle"><svg viewBox="0 0 32 32"><path d="M8 3h11l6 6v20H8z"/><path d="M19 3v7h6M12 17h9M12 22h9"/></svg></span></button>
   </div>
+  <div id="cameraMenu" class="camera-menu" role="menu" aria-label="Choose image source">
+    <button id="takePhotoChoice" class="camera-choice" type="button" role="menuitem">Take Photo</button>
+    <button id="photoLibraryChoice" class="camera-choice" type="button" role="menuitem">Photo Library</button>
+  </div>
 </main>
 <script>
 const app=document.querySelector('#app');
-console.info('[AKI 10.2] NOTES + SHARE loaded');
+console.info('[AKI 10.2.1] NOTE RECALL + PHOTO LIBRARY loaded');
 const akiButton=document.querySelector('#akiButton');
 const worldPicker=document.querySelector('#worldPicker');
+const photoPicker=document.querySelector('#photoPicker');
 const filePicker=document.querySelector('#filePicker');
 const writeLayer=document.querySelector('#writeLayer');
 const writeTrigger=document.querySelector('#writeTrigger');
@@ -55,6 +62,7 @@ const cameraButton=document.querySelector('#cameraButton');
 const giveButton=document.querySelector('#giveButton');
 const writeBox=document.querySelector('#writeBox');
 const noteCard=document.querySelector('#noteCard'),noteBox=document.querySelector('#noteBox'),noteDismiss=document.querySelector('#noteDismiss');
+const cameraMenu=document.querySelector('#cameraMenu'),takePhotoChoice=document.querySelector('#takePhotoChoice'),photoLibraryChoice=document.querySelector('#photoLibraryChoice');
 let pc=null,dc=null,micStream=null,audioEl=null,audioCtx=null;
 let starting=false,stopping=false,powered=false,restarting=false;
 let transcript='',turnEndAt=0,responseStartAt=0,firstAudioAt=0,lastChime=0;
@@ -226,9 +234,14 @@ async function runPitchPractice(target){
  }catch(err){console.error('[AKI 7.1.6.4.3 pitch]',err);try{await injectTruth('PITCH TOOL FAILED. The local pitch measurement did not complete. Say that briefly and do not invent a pitch result.')}catch{}}
  finally{if(audioEl)audioEl.muted=false;pitchBusy=false}
 }
+function isNoteRecallRequest(text){
+ const t=normalizedSpeech(text);
+ return /\b(show|open|see|view|bring back|pull up|display)\b.{0,28}\b(note|notes)\b|\b(note|notes)\b.{0,20}\b(again|back|show|open)\b/.test(t);
+}
 function isNoteRequest(text){
  const t=normalizedSpeech(text);
- return /\b(make|create|write|give|prepare|save)\b.{0,30}\b(note|notes|summary)\b|\b(note|notes)\b.{0,20}\b(this|that|conversation|what we|what i|idea)\b/.test(t);
+ if(isNoteRecallRequest(t))return false;
+ return /\b(make|create|write|give|prepare)\b.{0,30}\b(note|notes|summary)\b|\b(note|notes)\b.{0,20}\b(this|that|conversation|what we|what i|idea)\b/.test(t);
 }
 function showNote(text){
  currentNote=String(text||'').trim();if(!currentNote)return;
@@ -242,7 +255,7 @@ async function createConversationNote(){
   const r=await fetch('/api/note',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({conversation:context})});
   const data=await r.json().catch(()=>({}));if(!r.ok||!data.note)throw new Error(data.error||'Note generation failed');
   showNote(data.note);latency('note-created',{chars:data.note.length});
- }catch(err){console.error('[AKI 10.2 note]',err);try{await injectTruth('NOTE TOOL FAILED. Tell me briefly that the note could not be prepared and that the conversation is still available right now. Do not claim it was saved.')}catch{}}
+ }catch(err){console.error('[AKI 10.2.1 note]',err);try{await injectTruth('NOTE TOOL FAILED. Tell me briefly that the note could not be prepared and that the conversation is still available right now. Do not claim it was saved.')}catch{}}
  finally{noteBusy=false}
 }
 function absorbAssistantTranscript(m){
@@ -257,13 +270,19 @@ async function shareCurrentNote(){
  try{
   if(navigator.share){await navigator.share({title:(text.split('\n')[0]||'AKI Note').slice(0,80),text});latency('note-shared',{chars:text.length});return true}
   if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(text);latency('note-copied',{chars:text.length});return true}
- }catch(err){if(err?.name!=='AbortError')console.warn('[AKI 10.2 share]',err)}
+ }catch(err){if(err?.name!=='AbortError')console.warn('[AKI 10.2.1 share]',err)}
  return false;
 }
 async function handleSpokenIntent(text){
  const clean=String(text||'').trim();if(!clean)return;
  rememberConversation('user',clean);
- if(isNoteRequest(clean))createConversationNote();
+ if(isNoteRecallRequest(clean)){
+   if(currentNote||noteBox.value.trim()){
+     showNote(noteBox.value||currentNote);
+   }else{
+     try{await injectTruth('NOTE RECALL RESULT. There is no temporary note in this current AKI session. Say that briefly and offer to make one from the current conversation. Do not claim a saved note exists.')}catch{}
+   }
+ }else if(isNoteRequest(clean)){createConversationNote()}
  await handleVoiceIntent(clean);
 }
 
@@ -290,7 +309,7 @@ async function stopAki(keepLook=false){
  try{dc?.close()}catch{} try{pc?.getSenders?.().forEach(x=>x.track?.stop())}catch{} try{pc?.close()}catch{}
  try{micStream?.getTracks().forEach(t=>{t.enabled=false;t.stop()})}catch{}
  if(audioEl){try{audioEl.pause()}catch{}audioEl.srcObject=null;audioEl.remove();audioEl=null}
- pc=dc=micStream=null;transcript='';if(!keepLook)powerLook('off');stopping=false;
+ pc=dc=micStream=null;transcript='';if(!keepLook){currentNote='';noteBox.value='';dismissNote();giveButton.classList.remove('note-ready');giveButton.setAttribute('aria-label','Save or share note; file when no note');powerLook('off')}stopping=false;
 }
 async function startAki(){
  if(powered||starting||stopping)return;powerGreetingSent=false;transcript='';starting=true;powerLook('starting');
@@ -396,7 +415,7 @@ async function shareImage(file){
    console.error('[AKI 8.0.3 Show Me error]',err);
    // A decode failure really means there is no usable source.
    try{await injectTruth('IMAGE HANDOFF FAILED. The image itself could not be prepared on this device. Tell me briefly that it did not come through and ask me to try another image. Do not claim you saw it.')}catch{}
- }finally{imageBusy=false;[worldPicker].forEach(resetPicker)}
+ }finally{imageBusy=false;[worldPicker,photoPicker].forEach(resetPicker)}
 }
 function resetPicker(input){ try{input.value=''}catch{} }
 function openDoor(input){
@@ -526,7 +545,7 @@ filePicker.addEventListener('change',()=>{const f=filePicker.files?.[0];if(!f)re
 
 let akiAudioCtx=null;
 function primeAkiAudio(){try{akiAudioCtx=akiAudioCtx||new (window.AudioContext||window.webkitAudioContext)();if(akiAudioCtx.state==='suspended')akiAudioCtx.resume()}catch{}}
-// AKI 10.2 — deterministic startup: chime, then exact Marin TTS greeting, then listen.
+// AKI 10.2.1 — deterministic startup: chime, then exact Marin TTS greeting, then listen.
 // The Live model does NOT invent the greeting. /api/greeting returns the exact sentence in Marin.
 let marinGreetingBytesPromise=null;
 let greetingInFlight=false;
@@ -557,19 +576,31 @@ async function playFixedMarinGreeting(){
   try{
     const decoded=await akiAudioCtx.decodeAudioData(raw.slice(0));
     await new Promise((resolve,reject)=>{
-      const src=akiAudioCtx.createBufferSource();src.buffer=decoded;src.connect(akiAudioCtx.destination);src.onended=resolve;
+      const src=akiAudioCtx.createBufferSource();src.buffer=decoded;
+      // iPadOS can render this WebAudio startup clip quieter than the remote Live media stream.
+      // Apply a modest iPad-only gain so the greeting better matches the following conversation.
+      const isiPad=/iPad/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+      if(isiPad){const gain=akiAudioCtx.createGain();gain.gain.value=1.28;src.connect(gain).connect(akiAudioCtx.destination)}else src.connect(akiAudioCtx.destination);
+      src.onended=resolve;
       try{src.start()}catch(e){reject(e)}
     });
   }catch(e){
-    console.error('[AKI 10.1.3 Marin greeting playback]',e);
+    console.error('[AKI 10.2.1 Marin greeting playback]',e);
     throw e;
   }
 }
 // Warm the server/cache, but never let a preload failure break power-on.
-preloadMarinGreeting().catch(e=>console.warn('[AKI 10.1.3 greeting preload]',e));
+preloadMarinGreeting().catch(e=>console.warn('[AKI 10.2.1 greeting preload]',e));
 function playAkiOnChime(){try{primeAkiAudio();if(!akiAudioCtx)return;const now=akiAudioCtx.currentTime;[523.25,659.25].forEach((freq,i)=>{const o=akiAudioCtx.createOscillator(),g=akiAudioCtx.createGain();o.type='sine';o.frequency.value=freq;g.gain.setValueAtTime(0,now+i*.07);g.gain.linearRampToValueAtTime(.055,now+i*.07+.018);g.gain.exponentialRampToValueAtTime(.001,now+i*.07+.18);o.connect(g).connect(akiAudioCtx.destination);o.start(now+i*.07);o.stop(now+i*.07+.2)})}catch{}}
 writeTrigger.addEventListener('click',e=>{e.preventDefault();if(!powered)return;openWrite()});
-cameraButton.addEventListener('click',()=>{if(!powered)return;openDoor(worldPicker)});
+function closeCameraMenu(){cameraMenu.classList.remove('open')}
+function openCameraMenu(){if(!powered)return;cameraMenu.classList.toggle('open')}
+cameraButton.addEventListener('click',e=>{e.stopPropagation();openCameraMenu()});
+takePhotoChoice.addEventListener('click',e=>{e.stopPropagation();closeCameraMenu();openDoor(worldPicker)});
+photoLibraryChoice.addEventListener('click',e=>{e.stopPropagation();closeCameraMenu();openDoor(photoPicker)});
+photoPicker.addEventListener('change',()=>{const f=photoPicker.files?.[0];if(f)shareImage(f)});
+
+document.addEventListener('click',e=>{if(cameraMenu.classList.contains('open')&&!cameraMenu.contains(e.target)&&e.target!==cameraButton)closeCameraMenu()});
 giveButton.addEventListener('click',async()=>{if(!powered)return;if(currentNote||noteBox.value.trim()){await shareCurrentNote();return}openDoor(filePicker)});
 noteDismiss.addEventListener('click',e=>{e.stopPropagation();dismissNote()});
 noteBox.addEventListener('input',()=>{currentNote=noteBox.value});
