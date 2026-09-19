@@ -14,60 +14,51 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=45">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=45">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=45">
-<title>AKI 10.2 — NOTES</title>
+<title>AKI 10.3.1 — iPAD GREETING AUDIO PATCH</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#eef7ff}.presence{position:relative;width:100%;height:100dvh;overflow:hidden;isolation:isolate;background:radial-gradient(circle at 50% 46%,#11162a 0,#080b13 40%,#030507 74%,#020304 100%);-webkit-tap-highlight-color:transparent}.ambient{position:absolute;inset:-18%;background:radial-gradient(circle at 50% 48%,rgba(20,82,145,.14),rgba(72,30,112,.08) 34%,transparent 70%);filter:blur(48px);animation:ambient 14s ease-in-out infinite}.orb{position:absolute;left:50%;top:47%;width:min(84vw,680px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:#010207;box-shadow:0 0 20px rgba(35,205,255,.18),0 0 58px rgba(57,105,255,.15),0 0 105px rgba(188,49,255,.10);animation:orbBreath 8.4s ease-in-out infinite}.halo,.rim,.oil,.oil2,.core{position:absolute;border-radius:50%;pointer-events:none}.halo{inset:-4.8%;background:conic-gradient(from 215deg,transparent 0 7%,rgba(0,210,255,.22) 14%,rgba(61,91,255,.18) 29%,rgba(211,38,255,.20) 45%,rgba(255,70,169,.16) 57%,rgba(255,115,70,.14) 68%,rgba(24,202,255,.18) 83%,transparent 96%);filter:blur(22px);opacity:.58;animation:oilTurn 34s linear infinite}.rim{inset:-1.0%;background:conic-gradient(from 220deg,#ff729e 0deg,#ff3dbb 38deg,#bb31ff 78deg,#514cff 120deg,#1b7cff 164deg,#13dfff 207deg,#c9fbff 230deg,#27c8ff 248deg,#395eff 282deg,#a42aff 318deg,#ff729e 360deg);filter:saturate(1.5) brightness(1.18);opacity:1;box-shadow:0 0 5px rgba(92,220,255,.58),0 0 13px rgba(118,75,255,.30);animation:oilTurn 31s linear infinite}.rim:after{content:"";position:absolute;inset:2.0%;border-radius:50%;background:#010207;box-shadow:inset 0 0 18px rgba(18,157,255,.16)}.oil{inset:2.4%;background:conic-gradient(from 12deg,#14d7ff 0 12%,#0b79ff 20%,#5239f4 31%,#bc29f0 42%,#f222bf 51%,#ff6d72 61%,#ff8b3d 68%,#55259e 77%,#061018 83%,#0bbfe9 94%,#14d7ff 100%);filter:saturate(1.55) brightness(1.05);opacity:.96;animation:oilTurn 28s linear infinite;box-shadow:inset 0 0 10px rgba(255,255,255,.08)}.oil:after{content:"";position:absolute;inset:12.2%;border-radius:50%;background:radial-gradient(circle at 50% 45%,#02040a 0%,#010207 72%,#02030a 88%,#02040b 100%);box-shadow:0 0 10px rgba(1,2,7,.9),inset 0 0 24px rgba(19,99,180,.08)}.oil2{inset:5.5%;background:conic-gradient(from 165deg,transparent 0 11%,rgba(13,207,255,.26) 20%,rgba(69,72,255,.20) 33%,rgba(215,36,255,.22) 46%,transparent 58% 72%,rgba(255,111,57,.16) 82%,rgba(119,44,255,.20) 92%,transparent);filter:blur(7px) saturate(1.3);opacity:.52;animation:oilTurn2 38s linear infinite}.oil2:after{content:"";position:absolute;inset:14%;border-radius:50%;background:#010207}.core{inset:14.5%;background:radial-gradient(circle at 46% 39%,rgba(5,17,31,.24),#010207 57%,#010207 100%);box-shadow:inset 0 0 38px rgba(34,123,210,.06)}
-.top-compose{position:absolute;z-index:30;top:max(calc(env(safe-area-inset-top) + 5.5vh),62px);left:6vw;right:6vw;height:clamp(54px,7.5vh,68px)}.write-trigger,.write-layer{position:absolute;inset:0;border-radius:999px;border:1.4px solid transparent;background:linear-gradient(#0a0d18,#0a0d18) padding-box,linear-gradient(90deg,#20ddff,#536bff,#df48ff) border-box;box-shadow:0 0 22px rgba(62,132,255,.13);color:rgba(211,221,238,.55)}.write-trigger{display:flex;align-items:center;gap:16px;padding:0 22px;font:300 clamp(18px,4.5vw,27px)/1 system-ui;border-width:1.4px;text-align:left;width:100%;cursor:text}.write-trigger svg{width:27px;height:27px;flex:none;stroke:#eaf8ff;filter:drop-shadow(0 0 5px rgba(100,220,255,.45))}.write-layer{display:none;align-items:center;padding:0 20px}.write-layer.open{display:flex}.write-layer.open~.write-trigger{visibility:hidden}#writeBox{width:100%;height:100%;resize:none;overflow:auto;border:0;outline:0;background:transparent;color:#eef7ff;font:300 clamp(20px,4.7vw,28px)/1.3 system-ui;padding:14px 4px;caret-color:#65e8ff}#writeBox::placeholder{color:rgba(204,214,232,.42)}.write-hint{position:absolute;top:calc(100% + 13px);left:0;right:0;text-align:center;color:rgba(194,205,226,.58);font:300 clamp(12px,3.1vw,17px)/1.2 system-ui;letter-spacing:.01em}.note-card{display:none;position:absolute;z-index:45;top:calc(100% + 12px);left:0;right:0;max-height:min(38vh,360px);padding:18px 18px 16px;border-radius:24px;border:1.4px solid transparent;background:linear-gradient(rgba(7,10,18,.98),rgba(7,10,18,.98)) padding-box,linear-gradient(120deg,#20ddff,#536bff,#df48ff) border-box;box-shadow:0 12px 42px rgba(0,0,0,.55),0 0 24px rgba(82,111,255,.13)}.note-card.open{display:block}.note-card textarea{width:100%;min-height:150px;max-height:30vh;resize:none;overflow:auto;border:0;outline:0;background:transparent;color:#eef7ff;font:350 clamp(15px,3.7vw,19px)/1.45 system-ui;caret-color:#65e8ff}.note-meta{display:flex;justify-content:space-between;align-items:center;margin-top:10px;color:rgba(204,214,232,.55);font:400 11px/1 system-ui;letter-spacing:.08em}.note-dismiss{border:0;background:transparent;color:rgba(225,235,250,.72);font:500 12px/1 system-ui;padding:7px;cursor:pointer}.top-compose.note-open .write-hint{display:none}.action.note-ready .action-circle{box-shadow:0 0 13px rgba(32,221,255,.45),0 0 28px rgba(223,72,255,.32)}
+.top-compose{position:absolute;z-index:30;top:max(calc(env(safe-area-inset-top) + 5.5vh),62px);left:6vw;right:6vw;height:clamp(54px,7.5vh,68px)}.write-trigger,.write-layer{position:absolute;inset:0;border-radius:999px;border:1.4px solid transparent;background:linear-gradient(#0a0d18,#0a0d18) padding-box,linear-gradient(90deg,#20ddff,#536bff,#df48ff) border-box;box-shadow:0 0 22px rgba(62,132,255,.13);color:rgba(211,221,238,.55)}.write-trigger{display:flex;align-items:center;gap:16px;padding:0 22px;font:300 clamp(18px,4.5vw,27px)/1 system-ui;border-width:1.4px;text-align:left;width:100%;cursor:text}.write-trigger svg{width:27px;height:27px;flex:none;stroke:#eaf8ff;filter:drop-shadow(0 0 5px rgba(100,220,255,.45))}.write-layer{display:none;align-items:center;padding:0 20px}.write-layer.open{display:flex}.write-layer.open~.write-trigger{visibility:hidden}#writeBox{width:100%;height:100%;resize:none;overflow:auto;border:0;outline:0;background:transparent;color:#eef7ff;font:300 clamp(20px,4.7vw,28px)/1.3 system-ui;padding:14px 4px;caret-color:#65e8ff}#writeBox::placeholder{color:rgba(204,214,232,.42)}.write-hint{position:absolute;top:calc(100% + 13px);left:0;right:0;text-align:center;color:rgba(194,205,226,.58);font:300 clamp(12px,3.1vw,17px)/1.2 system-ui;letter-spacing:.01em}
 .mark{position:absolute;z-index:32;left:50%;top:47%;transform:translate(-50%,-50%);width:min(48vw,350px);height:auto;opacity:.32;pointer-events:none;touch-action:none;transition:opacity .45s ease,filter .45s ease}.mark path{fill:none;stroke:rgba(238,247,255,.84);stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}.mark.on{opacity:1;filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 10px rgba(55,190,255,.78))}.mark.on path{stroke:#fff;stroke-width:2.2}.mark.starting{opacity:.58}.mark.error{opacity:.18}.talk-control{position:absolute;z-index:33;left:50%;top:calc(47% + min(16vw,128px));transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:auto;border:0;background:transparent;color:inherit;padding:10px 18px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}.power-icon{width:clamp(35px,9vw,58px);height:clamp(35px,9vw,58px);stroke:#dff8ff;fill:none;stroke-width:2;filter:drop-shadow(0 0 6px rgba(74,196,255,.7))}.talk-control:active{transform:translate(-50%,-50%) scale(.96)}.talk-label{font:400 clamp(11px,2.8vw,16px)/1 system-ui;letter-spacing:.28em;color:rgba(246,250,255,.88);white-space:nowrap}
 .action-row{position:absolute;z-index:35;left:8vw;right:8vw;bottom:max(calc(env(safe-area-inset-bottom) + 8vh),70px);display:grid;grid-template-columns:repeat(3,1fr);align-items:start;gap:8vw}.action{border:0;background:transparent;color:#f4f8ff;padding:0;display:flex;flex-direction:column;align-items:center;gap:0;cursor:pointer;-webkit-tap-highlight-color:transparent}.action-circle{width:clamp(58px,14vw,88px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;border:1.4px solid transparent;background:linear-gradient(#080b14,#080b14) padding-box,linear-gradient(135deg,#28e7ff,#596cff,#dc43ff) border-box;box-shadow:0 0 18px rgba(82,111,255,.16)}.action svg{width:46%;height:46%;stroke:#f2fbff;fill:none;stroke-width:1.8;filter:drop-shadow(0 0 5px rgba(125,221,255,.55))}.action span{font:400 clamp(10px,2.6vw,14px)/1 system-ui;letter-spacing:.25em;white-space:nowrap}.action:active .action-circle{transform:scale(.96)}
 @keyframes ambient{0%,100%{transform:scale(.98);opacity:.58}50%{transform:scale(1.025);opacity:.78}}@keyframes orbBreath{0%,100%{transform:translate(-50%,-50%) scale(.982)}50%{transform:translate(-50%,-50%) scale(1.012)}}@keyframes oilTurn{to{transform:rotate(360deg)}}@keyframes oilTurn2{to{transform:rotate(-360deg)}}@media(max-height:700px){.orb{width:min(72vw,540px)}.action-row{bottom:max(calc(env(safe-area-inset-bottom) + 4vh),34px)}.top-compose{top:max(calc(env(safe-area-inset-top) + 3vh),38px)}}@media(prefers-reduced-motion:reduce){.ambient,.orb,.halo,.rim,.oil,.oil2{animation:none!important}}
-.camera-menu{display:none;position:absolute;z-index:80;left:50%;bottom:calc(max(env(safe-area-inset-bottom),18px) + clamp(94px,14vh,138px));transform:translateX(-50%);width:min(78vw,330px);padding:8px;border-radius:22px;border:1px solid rgba(105,185,255,.38);background:rgba(8,11,20,.96);box-shadow:0 16px 50px rgba(0,0,0,.65),0 0 26px rgba(87,96,255,.18);backdrop-filter:blur(18px)}.camera-menu.open{display:block}.camera-choice{width:100%;border:0;background:transparent;color:#edf7ff;text-align:left;padding:15px 16px;border-radius:15px;font:400 16px/1.15 system-ui;cursor:pointer}.camera-choice+.camera-choice{border-top:1px solid rgba(190,210,240,.12)}.camera-choice:active{background:rgba(90,130,255,.12)}
 </style>
 
 
 </head>
 <body>
-<main id="app" class="presence" aria-label="AKI 10.2.1">
+<main id="app" class="presence" aria-label="AKI 10.3.1">
   <input id="worldPicker" type="file" accept="image/*" capture="environment" hidden aria-hidden="true">
-  <input id="photoPicker" type="file" accept="image/*" hidden aria-hidden="true">
   <input id="filePicker" type="file" accept="image/*,application/pdf,text/plain,text/markdown,text/csv,application/json,.pdf,.txt,.md,.csv,.json,.doc,.docx,.xls,.xlsx,.ppt,.pptx" hidden aria-hidden="true">
   <div class="ambient"></div>
   <div class="top-compose">
     <form id="writeLayer" class="write-layer" autocomplete="off"><textarea id="writeBox" rows="1" aria-label="Type or paste for AKI" placeholder="Type or paste for AKI…"></textarea></form>
     <button id="writeTrigger" class="write-trigger" type="button" aria-label="Type or paste for AKI"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="7" width="26" height="18" rx="3"/><path d="M7 12h2m3 0h2m3 0h2m3 0h2M7 16h2m3 0h2m3 0h2m3 0h2M8 20h16"/></svg><span>Type or paste for AKI…</span></button>
-    <div class="write-hint">Ask a question, share a thought, or paste a link…</div><div id="noteCard" class="note-card" aria-live="polite"><textarea id="noteBox" aria-label="AKI note"></textarea><div class="note-meta"><span>Tap text to edit or copy</span><button id="noteDismiss" class="note-dismiss" type="button">CLOSE</button></div></div>
+    <div class="write-hint">Ask a question, share a thought, or paste a link…</div>
   </div>
   <div class="orb"><div class="halo"></div><div class="rim"></div><div class="oil"></div><div class="oil2"></div><div class="core"></div></div>
   <svg id="akiButton" class="mark" viewBox="0 0 210 90" aria-hidden="true"><path d="M15 72 L45 18 L75 72 M95 18 L95 72 M96 48 L142 18 M96 48 L144 72 M172 18 L172 72"/></svg>
   <div class="action-row">
     <button id="cameraButton" class="action" type="button" aria-label="Camera"><span class="action-circle"><svg viewBox="0 0 32 32"><path d="M4 10h6l2-3h8l2 3h6v16H4z"/><circle cx="16" cy="18" r="6"/></svg></span></button>
     <button id="powerButton" class="action" type="button" aria-label="Turn AKI on" aria-pressed="false"><span class="action-circle"><svg viewBox="0 0 32 32"><path d="M16 3v12M9.2 7.2a11 11 0 1 0 13.6 0"/></svg></span></button>
-    <button id="giveButton" class="action" type="button" aria-label="Save or share note; file when no note"><span class="action-circle"><svg viewBox="0 0 32 32"><path d="M8 3h11l6 6v20H8z"/><path d="M19 3v7h6M12 17h9M12 22h9"/></svg></span></button>
-  </div>
-  <div id="cameraMenu" class="camera-menu" role="menu" aria-label="Choose image source">
-    <button id="takePhotoChoice" class="camera-choice" type="button" role="menuitem">Take Photo</button>
-    <button id="photoLibraryChoice" class="camera-choice" type="button" role="menuitem">Photo Library</button>
+    <button id="giveButton" class="action" type="button" aria-label="File"><span class="action-circle"><svg viewBox="0 0 32 32"><path d="M8 3h11l6 6v20H8z"/><path d="M19 3v7h6M12 17h9M12 22h9"/></svg></span></button>
   </div>
 </main>
 <script>
 const app=document.querySelector('#app');
-console.info('[AKI 10.2.1] NOTE RECALL + PHOTO LIBRARY loaded');
+console.info('[AKI 10.3.1] iPAD GREETING AUDIO PATCH loaded');
 const akiButton=document.querySelector('#akiButton');
 const worldPicker=document.querySelector('#worldPicker');
-const photoPicker=document.querySelector('#photoPicker');
 const filePicker=document.querySelector('#filePicker');
 const writeLayer=document.querySelector('#writeLayer');
 const writeTrigger=document.querySelector('#writeTrigger');
 const cameraButton=document.querySelector('#cameraButton');
 const giveButton=document.querySelector('#giveButton');
 const writeBox=document.querySelector('#writeBox');
-const noteCard=document.querySelector('#noteCard'),noteBox=document.querySelector('#noteBox'),noteDismiss=document.querySelector('#noteDismiss');
-const cameraMenu=document.querySelector('#cameraMenu'),takePhotoChoice=document.querySelector('#takePhotoChoice'),photoLibraryChoice=document.querySelector('#photoLibraryChoice');
 let pc=null,dc=null,micStream=null,audioEl=null,audioCtx=null;
 let starting=false,stopping=false,powered=false,restarting=false;
 let transcript='',turnEndAt=0,responseStartAt=0,firstAudioAt=0,lastChime=0;
 let latencyTimer=null,hardWatchdog=null,preferenceTimer=null;
-let imageBusy=false,shareBusy=false,noteBusy=false,currentNote='',assistantTranscript='';
+let imageBusy=false,shareBusy=false;
 let powerGreetingSent=false;
 
 let recentConversation=[];
@@ -234,55 +225,9 @@ async function runPitchPractice(target){
  }catch(err){console.error('[AKI 7.1.6.4.3 pitch]',err);try{await injectTruth('PITCH TOOL FAILED. The local pitch measurement did not complete. Say that briefly and do not invent a pitch result.')}catch{}}
  finally{if(audioEl)audioEl.muted=false;pitchBusy=false}
 }
-function isNoteRecallRequest(text){
- const t=normalizedSpeech(text);
- return /\b(show|open|see|view|bring back|pull up|display)\b.{0,28}\b(note|notes)\b|\b(note|notes)\b.{0,20}\b(again|back|show|open)\b/.test(t);
-}
-function isNoteRequest(text){
- const t=normalizedSpeech(text);
- if(isNoteRecallRequest(t))return false;
- return /\b(make|create|write|give|prepare)\b.{0,30}\b(note|notes|summary)\b|\b(note|notes)\b.{0,20}\b(this|that|conversation|what we|what i|idea)\b/.test(t);
-}
-function showNote(text){
- currentNote=String(text||'').trim();if(!currentNote)return;
- noteBox.value=currentNote;noteCard.classList.add('open');document.querySelector('.top-compose')?.classList.add('note-open');giveButton.classList.add('note-ready');giveButton.setAttribute('aria-label','Save or share current note');
-}
-function dismissNote(){noteCard.classList.remove('open');document.querySelector('.top-compose')?.classList.remove('note-open')}
-async function createConversationNote(){
- if(noteBusy)return;noteBusy=true;
- try{
-  const context=recentConversation.filter(x=>x.text&&!/^make|^create|^write|^give me a note/i.test(x.text)).slice(-20);
-  const r=await fetch('/api/note',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({conversation:context})});
-  const data=await r.json().catch(()=>({}));if(!r.ok||!data.note)throw new Error(data.error||'Note generation failed');
-  showNote(data.note);latency('note-created',{chars:data.note.length});
- }catch(err){console.error('[AKI 10.2.1 note]',err);try{await injectTruth('NOTE TOOL FAILED. Tell me briefly that the note could not be prepared and that the conversation is still available right now. Do not claim it was saved.')}catch{}}
- finally{noteBusy=false}
-}
-function absorbAssistantTranscript(m){
- const type=String(m.type||'').toLowerCase(),nested=String(m.event?.type||'').toLowerCase(),all=type+' '+nested;
- if(!/(output|response).*(transcript|text)|(transcript|text).*(output|response)/.test(all))return;
- const d=(typeof m.delta==='string'?m.delta:'')||(typeof m.transcript==='string'?m.transcript:'')||(typeof m.text==='string'?m.text:'')||(typeof m.event?.delta==='string'?m.event.delta:'')||(typeof m.event?.transcript==='string'?m.event.transcript:'')||(typeof m.event?.text==='string'?m.event.text:'');
- if(d)assistantTranscript+=d;
- if(/done|completed/.test(all)&&assistantTranscript.trim()){rememberConversation('aki',assistantTranscript.trim());assistantTranscript=''}
-}
-async function shareCurrentNote(){
- const text=String(noteBox.value||currentNote||'').trim();if(!text)return false;currentNote=text;
- try{
-  if(navigator.share){await navigator.share({title:(text.split('\n')[0]||'AKI Note').slice(0,80),text});latency('note-shared',{chars:text.length});return true}
-  if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(text);latency('note-copied',{chars:text.length});return true}
- }catch(err){if(err?.name!=='AbortError')console.warn('[AKI 10.2.1 share]',err)}
- return false;
-}
 async function handleSpokenIntent(text){
  const clean=String(text||'').trim();if(!clean)return;
  rememberConversation('user',clean);
- if(isNoteRecallRequest(clean)){
-   if(currentNote||noteBox.value.trim()){
-     showNote(noteBox.value||currentNote);
-   }else{
-     try{await injectTruth('NOTE RECALL RESULT. There is no temporary note in this current AKI session. Say that briefly and offer to make one from the current conversation. Do not claim a saved note exists.')}catch{}
-   }
- }else if(isNoteRequest(clean)){createConversationNote()}
  await handleVoiceIntent(clean);
 }
 
@@ -309,7 +254,7 @@ async function stopAki(keepLook=false){
  try{dc?.close()}catch{} try{pc?.getSenders?.().forEach(x=>x.track?.stop())}catch{} try{pc?.close()}catch{}
  try{micStream?.getTracks().forEach(t=>{t.enabled=false;t.stop()})}catch{}
  if(audioEl){try{audioEl.pause()}catch{}audioEl.srcObject=null;audioEl.remove();audioEl=null}
- pc=dc=micStream=null;transcript='';if(!keepLook){currentNote='';noteBox.value='';dismissNote();giveButton.classList.remove('note-ready');giveButton.setAttribute('aria-label','Save or share note; file when no note');powerLook('off')}stopping=false;
+ pc=dc=micStream=null;transcript='';if(!keepLook)powerLook('off');stopping=false;
 }
 async function startAki(){
  if(powered||starting||stopping)return;powerGreetingSent=false;transcript='';starting=true;powerLook('starting');
@@ -325,7 +270,6 @@ async function startAki(){
   dc.addEventListener('message',e=>{try{const m=JSON.parse(e.data),type=m.type||'',nested=m.event?.type||'',all=(type+' '+nested).toLowerCase();
     if(type==='session.started'){powered=true;powerLook('on');latency('session-started',{voice:m.session?.audio?.output?.voice||m.session?.voice||akiVoice});startPowerGreetingOnce()}
     absorbTranscript(m);
-    absorbAssistantTranscript(m);
     if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
     if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('delegation.created'))responseStarted();
     if(all.includes('output_audio.delta')||all.includes('audio.delta'))firstAudio();
@@ -415,7 +359,7 @@ async function shareImage(file){
    console.error('[AKI 8.0.3 Show Me error]',err);
    // A decode failure really means there is no usable source.
    try{await injectTruth('IMAGE HANDOFF FAILED. The image itself could not be prepared on this device. Tell me briefly that it did not come through and ask me to try another image. Do not claim you saw it.')}catch{}
- }finally{imageBusy=false;[worldPicker,photoPicker].forEach(resetPicker)}
+ }finally{imageBusy=false;[worldPicker].forEach(resetPicker)}
 }
 function resetPicker(input){ try{input.value=''}catch{} }
 function openDoor(input){
@@ -520,8 +464,6 @@ async function browseUrl(url,originalText){
 }
 async function sendWrittenText(text){
  const clean=String(text||'').trim();if(!clean)return;
- rememberConversation('user',clean);
- if(isNoteRequest(clean))createConversationNote();
  const url=extractUrl(clean);
  if(url){await browseUrl(url,clean);return}
  await injectTruth(clean);
@@ -545,7 +487,7 @@ filePicker.addEventListener('change',()=>{const f=filePicker.files?.[0];if(!f)re
 
 let akiAudioCtx=null;
 function primeAkiAudio(){try{akiAudioCtx=akiAudioCtx||new (window.AudioContext||window.webkitAudioContext)();if(akiAudioCtx.state==='suspended')akiAudioCtx.resume()}catch{}}
-// AKI 10.2.1 — deterministic startup: chime, then exact Marin TTS greeting, then listen.
+// AKI 10.1.3 — deterministic startup: chime, then exact Marin TTS greeting, then listen.
 // The Live model does NOT invent the greeting. /api/greeting returns the exact sentence in Marin.
 let marinGreetingBytesPromise=null;
 let greetingInFlight=false;
@@ -576,34 +518,28 @@ async function playFixedMarinGreeting(){
   try{
     const decoded=await akiAudioCtx.decodeAudioData(raw.slice(0));
     await new Promise((resolve,reject)=>{
-      const src=akiAudioCtx.createBufferSource();src.buffer=decoded;
-      // iPadOS can render this WebAudio startup clip quieter than the remote Live media stream.
-      // Apply a modest iPad-only gain so the greeting better matches the following conversation.
-      const isiPad=/iPad/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-      if(isiPad){const gain=akiAudioCtx.createGain();gain.gain.value=1.28;src.connect(gain).connect(akiAudioCtx.destination)}else src.connect(akiAudioCtx.destination);
-      src.onended=resolve;
+      const src=akiAudioCtx.createBufferSource();
+      const gain=akiAudioCtx.createGain();
+      src.buffer=decoded;
+      // iPadOS can render this decoded startup clip materially quieter than the
+      // following WebRTC Live audio. Apply a modest iPad-only gain to the fixed
+      // greeting; iPhone/desktop stay at unity gain.
+      const isIPad=/iPad/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+      gain.gain.value=isIPad?1.65:1.0;
+      src.connect(gain).connect(akiAudioCtx.destination);src.onended=resolve;
       try{src.start()}catch(e){reject(e)}
     });
   }catch(e){
-    console.error('[AKI 10.2.1 Marin greeting playback]',e);
+    console.error('[AKI 10.3.1 Marin greeting playback]',e);
     throw e;
   }
 }
 // Warm the server/cache, but never let a preload failure break power-on.
-preloadMarinGreeting().catch(e=>console.warn('[AKI 10.2.1 greeting preload]',e));
+preloadMarinGreeting().catch(e=>console.warn('[AKI 10.3.1 greeting preload]',e));
 function playAkiOnChime(){try{primeAkiAudio();if(!akiAudioCtx)return;const now=akiAudioCtx.currentTime;[523.25,659.25].forEach((freq,i)=>{const o=akiAudioCtx.createOscillator(),g=akiAudioCtx.createGain();o.type='sine';o.frequency.value=freq;g.gain.setValueAtTime(0,now+i*.07);g.gain.linearRampToValueAtTime(.055,now+i*.07+.018);g.gain.exponentialRampToValueAtTime(.001,now+i*.07+.18);o.connect(g).connect(akiAudioCtx.destination);o.start(now+i*.07);o.stop(now+i*.07+.2)})}catch{}}
 writeTrigger.addEventListener('click',e=>{e.preventDefault();if(!powered)return;openWrite()});
-function closeCameraMenu(){cameraMenu.classList.remove('open')}
-function openCameraMenu(){if(!powered)return;cameraMenu.classList.toggle('open')}
-cameraButton.addEventListener('click',e=>{e.stopPropagation();openCameraMenu()});
-takePhotoChoice.addEventListener('click',e=>{e.stopPropagation();closeCameraMenu();openDoor(worldPicker)});
-photoLibraryChoice.addEventListener('click',e=>{e.stopPropagation();closeCameraMenu();openDoor(photoPicker)});
-photoPicker.addEventListener('change',()=>{const f=photoPicker.files?.[0];if(f)shareImage(f)});
-
-document.addEventListener('click',e=>{if(cameraMenu.classList.contains('open')&&!cameraMenu.contains(e.target)&&e.target!==cameraButton)closeCameraMenu()});
-giveButton.addEventListener('click',async()=>{if(!powered)return;if(currentNote||noteBox.value.trim()){await shareCurrentNote();return}openDoor(filePicker)});
-noteDismiss.addEventListener('click',e=>{e.stopPropagation();dismissNote()});
-noteBox.addEventListener('input',()=>{currentNote=noteBox.value});
+cameraButton.addEventListener('click',()=>{if(!powered)return;openDoor(worldPicker)});
+giveButton.addEventListener('click',()=>{if(!powered)return;openDoor(filePicker)});
 async function toggle(){if(starting||stopping)return;if(powered||pc||micStream)await stopAki();else{primeAkiAudio();await startAki()}}
 powerButton.addEventListener('click',e=>{e.stopPropagation();toggle()});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&pc&&['failed','closed'].includes(pc.connectionState))stopAki()});
