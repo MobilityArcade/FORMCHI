@@ -57,7 +57,7 @@
 </main>
 <script>
 const app=document.querySelector('#app');
-console.info('[AKI 10.5.4] SIGNATURE + HANDOFF STABILITY loaded');
+console.info('[AKI 10.5.5] USAGE METER loaded');
 const akiButton=document.querySelector('#akiButton');
 const worldPicker=document.querySelector('#worldPicker');
 const filePicker=document.querySelector('#filePicker');
@@ -75,6 +75,13 @@ let latencyTimer=null,hardWatchdog=null,preferenceTimer=null;
 let imageBusy=false,shareBusy=false;
 let powerGreetingSent=false;
 let assistantTranscript='',assistantTranscriptTimer=null;
+// AKI 10.5.5 — anonymous session-time meter. No transcript/audio/content is recorded.
+let usageSessionId=null,usageStartedAt=0,usageStopSent=false;
+const usageDeviceId=(()=>{let id=localStorage.getItem('akiUsageDeviceId');if(!id){id=(crypto.randomUUID?.()||('aki-'+Date.now()+'-'+Math.random().toString(36).slice(2)));localStorage.setItem('akiUsageDeviceId',id)}return id})();
+function usageId(){return crypto.randomUUID?.()||('s-'+Date.now()+'-'+Math.random().toString(36).slice(2))}
+function beginUsageSession(){if(usageStartedAt)return;usageSessionId=usageId();usageStartedAt=Date.now();usageStopSent=false;fetch('/api/usage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event:'start',session_id:usageSessionId,device_id:usageDeviceId,started_at:new Date(usageStartedAt).toISOString(),version:'10.5.5'})}).catch(()=>{})}
+function finishUsageSession(useBeacon=false){if(!usageStartedAt||usageStopSent)return;usageStopSent=true;const ended=Date.now(),seconds=Math.max(1,Math.round((ended-usageStartedAt)/1000));const payload={event:'stop',session_id:usageSessionId,device_id:usageDeviceId,started_at:new Date(usageStartedAt).toISOString(),ended_at:new Date(ended).toISOString(),duration_seconds:seconds,version:'10.5.5'};try{const key='akiUsageTotalSeconds';localStorage.setItem(key,String((Number(localStorage.getItem(key))||0)+seconds));localStorage.setItem('akiUsageLastSession',JSON.stringify(payload))}catch{};const body=JSON.stringify(payload);if(useBeacon&&navigator.sendBeacon){try{navigator.sendBeacon('/api/usage',new Blob([body],{type:'application/json'}))}catch{}}else fetch('/api/usage',{method:'POST',headers:{'Content-Type':'application/json'},body,keepalive:true}).catch(()=>{});usageStartedAt=0;usageSessionId=null}
+window.AKIUsage=()=>({device_id:usageDeviceId,total_seconds:Number(localStorage.getItem('akiUsageTotalSeconds'))||0,last_session:JSON.parse(localStorage.getItem('akiUsageLastSession')||'null')});
 
 let recentConversation=[];
 let pitchBusy=false,pitchTimer=null,pitchAnalyser=null,pitchSource=null;
@@ -314,7 +321,7 @@ function absorbTranscript(m){
 }
 
 async function stopAki(keepLook=false){
- if(stopping)return;stopping=true;powered=false;powerGreetingSent=false;clearTimeout(latencyTimer);clearTimeout(hardWatchdog);clearTimeout(preferenceTimer);
+ if(stopping)return;stopping=true;finishUsageSession();powered=false;powerGreetingSent=false;clearTimeout(latencyTimer);clearTimeout(hardWatchdog);clearTimeout(preferenceTimer);
  try{dc?.close()}catch{} try{pc?.getSenders?.().forEach(x=>x.track?.stop())}catch{} try{pc?.close()}catch{}
  try{micStream?.getTracks().forEach(t=>{t.enabled=false;t.stop()})}catch{}
  if(audioEl){try{audioEl.pause()}catch{}audioEl.srcObject=null;audioEl.remove();audioEl=null}
@@ -332,7 +339,7 @@ async function startAki(){
     // AKI 10.1.3 — session instructions are configured server-side in /api/aki.
   });
   dc.addEventListener('message',e=>{try{const m=JSON.parse(e.data),type=m.type||'',nested=m.event?.type||'',all=(type+' '+nested).toLowerCase();
-    if(type==='session.started'){powered=true;powerLook('on');latency('session-started',{voice:m.session?.audio?.output?.voice||m.session?.voice||akiVoice});startPowerGreetingOnce()}
+    if(type==='session.started'){powered=true;beginUsageSession();powerLook('on');latency('session-started',{voice:m.session?.audio?.output?.voice||m.session?.voice||akiVoice});startPowerGreetingOnce()}
     absorbTranscript(m);absorbAssistantTranscript(m);
     if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
     if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('delegation.created')){if(!greetingInFlight)flushSpokenTranscript();responseStarted();}
@@ -345,7 +352,7 @@ async function startAki(){
   if(!localSdp||!localSdp.trim().startsWith('v=0'))throw new Error('Browser did not create a valid SDP offer');
   const r=await fetch('/api/aki',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sdp:localSdp,voice:akiVoice,language:akiLanguage})});
   const answer=await r.text();if(!r.ok)throw new Error(answer);await pc.setRemoteDescription({type:'answer',sdp:answer});
-  powered=true;powerLook('on');setTimeout(()=>startPowerGreetingOnce(),180);
+  powered=true;beginUsageSession();powerLook('on');setTimeout(()=>startPowerGreetingOnce(),180);
  }catch(err){console.error('AKI 10.5.3 start error:',err);await stopAki();powerLook('error')}finally{starting=false}
 }
 
@@ -603,7 +610,7 @@ giveButton.addEventListener('click',()=>{if(!powered)return;openDoor(filePicker)
 async function toggle(){if(starting||stopping)return;if(powered||pc||micStream)await stopAki();else{primeAkiAudio();await startAki()}}
 powerButton.addEventListener('click',e=>{e.stopPropagation();toggle()});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&pc&&['failed','closed'].includes(pc.connectionState))stopAki()});
-window.addEventListener('pagehide',()=>stopAki());
+window.addEventListener('pagehide',()=>{finishUsageSession(true);stopAki()});
 powerLook('off');
 </script>
 </body>
