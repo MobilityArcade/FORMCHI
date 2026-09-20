@@ -19,7 +19,7 @@
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#eef7ff}.presence{position:relative;width:100%;height:100dvh;overflow:hidden;isolation:isolate;background:radial-gradient(circle at 50% 46%,#11162a 0,#080b13 40%,#030507 74%,#020304 100%);-webkit-tap-highlight-color:transparent}.ambient{position:absolute;inset:-18%;background:radial-gradient(circle at 50% 48%,rgba(20,82,145,.14),rgba(72,30,112,.08) 34%,transparent 70%);filter:blur(48px);animation:ambient 14s ease-in-out infinite}.orb{position:absolute;left:50%;top:47%;width:min(84vw,680px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:#010207;box-shadow:0 0 20px rgba(35,205,255,.18),0 0 58px rgba(57,105,255,.15),0 0 105px rgba(188,49,255,.10);animation:orbBreath 8.4s ease-in-out infinite}.halo,.rim,.oil,.oil2,.core{position:absolute;border-radius:50%;pointer-events:none}.halo{inset:-4.8%;background:conic-gradient(from 215deg,transparent 0 7%,rgba(0,210,255,.22) 14%,rgba(61,91,255,.18) 29%,rgba(211,38,255,.20) 45%,rgba(255,70,169,.16) 57%,rgba(255,115,70,.14) 68%,rgba(24,202,255,.18) 83%,transparent 96%);filter:blur(22px);opacity:.58;animation:oilTurn 34s linear infinite}.rim{inset:-1.0%;background:conic-gradient(from 220deg,#ff729e 0deg,#ff3dbb 38deg,#bb31ff 78deg,#514cff 120deg,#1b7cff 164deg,#13dfff 207deg,#c9fbff 230deg,#27c8ff 248deg,#395eff 282deg,#a42aff 318deg,#ff729e 360deg);filter:saturate(1.5) brightness(1.18);opacity:1;box-shadow:0 0 5px rgba(92,220,255,.58),0 0 13px rgba(118,75,255,.30);animation:oilTurn 31s linear infinite}.rim:after{content:"";position:absolute;inset:2.0%;border-radius:50%;background:#010207;box-shadow:inset 0 0 18px rgba(18,157,255,.16)}.oil{inset:2.4%;background:conic-gradient(from 12deg,#14d7ff 0 12%,#0b79ff 20%,#5239f4 31%,#bc29f0 42%,#f222bf 51%,#ff6d72 61%,#ff8b3d 68%,#55259e 77%,#061018 83%,#0bbfe9 94%,#14d7ff 100%);filter:saturate(1.55) brightness(1.05);opacity:.96;animation:oilTurn 28s linear infinite;box-shadow:inset 0 0 10px rgba(255,255,255,.08)}.oil:after{content:"";position:absolute;inset:12.2%;border-radius:50%;background:radial-gradient(circle at 50% 45%,#02040a 0%,#010207 72%,#02030a 88%,#02040b 100%);box-shadow:0 0 10px rgba(1,2,7,.9),inset 0 0 24px rgba(19,99,180,.08)}.oil2{inset:5.5%;background:conic-gradient(from 165deg,transparent 0 11%,rgba(13,207,255,.26) 20%,rgba(69,72,255,.20) 33%,rgba(215,36,255,.22) 46%,transparent 58% 72%,rgba(255,111,57,.16) 82%,rgba(119,44,255,.20) 92%,transparent);filter:blur(7px) saturate(1.3);opacity:.52;animation:oilTurn2 38s linear infinite}.oil2:after{content:"";position:absolute;inset:14%;border-radius:50%;background:#010207}.core{inset:14.5%;background:radial-gradient(circle at 46% 39%,rgba(5,17,31,.24),#010207 57%,#010207 100%);box-shadow:inset 0 0 38px rgba(34,123,210,.06)}
 .top-compose{position:absolute;z-index:30;top:max(calc(env(safe-area-inset-top) + 5.5vh),62px);left:6vw;right:6vw;height:clamp(54px,7.5vh,68px)}.write-trigger,.write-layer{position:absolute;inset:0;border-radius:999px;border:1.4px solid transparent;background:linear-gradient(#0a0d18,#0a0d18) padding-box,linear-gradient(90deg,#20ddff,#536bff,#df48ff) border-box;box-shadow:0 0 22px rgba(62,132,255,.13);color:rgba(211,221,238,.55)}.write-trigger{display:flex;align-items:center;gap:16px;padding:0 22px;font:300 clamp(18px,4.5vw,27px)/1 system-ui;border-width:1.4px;text-align:left;width:100%;cursor:text}.write-trigger svg{width:27px;height:27px;flex:none;stroke:#eaf8ff;filter:drop-shadow(0 0 5px rgba(100,220,255,.45))}.write-layer{display:none;align-items:center;padding:0 20px}.write-layer.open{display:flex}.write-layer.open~.write-trigger{visibility:hidden}#writeBox{width:100%;height:100%;resize:none;overflow:auto;border:0;outline:0;background:transparent;color:#eef7ff;font:300 clamp(20px,4.7vw,28px)/1.3 system-ui;padding:14px 4px;caret-color:#65e8ff}#writeBox::placeholder{color:rgba(204,214,232,.42)}.write-hint{position:absolute;top:calc(100% + 13px);left:0;right:0;text-align:center;color:rgba(194,205,226,.58);font:300 clamp(12px,3.1vw,17px)/1.2 system-ui;letter-spacing:.01em}
 .mark{position:absolute;z-index:32;left:50%;top:47%;transform:translate(-50%,-50%);width:min(48vw,350px);height:auto;opacity:.32;pointer-events:none;touch-action:none;transition:opacity .45s ease,filter .45s ease}.mark path{fill:none;stroke:rgba(238,247,255,.84);stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}.mark.on{opacity:1;filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 10px rgba(55,190,255,.78))}.mark.on path{stroke:#fff;stroke-width:2.2}.mark.starting{opacity:.58}.mark.error{opacity:.18}.talk-control{position:absolute;z-index:33;left:50%;top:calc(47% + min(16vw,128px));transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:auto;border:0;background:transparent;color:inherit;padding:10px 18px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}.power-icon{width:clamp(35px,9vw,58px);height:clamp(35px,9vw,58px);stroke:#dff8ff;fill:none;stroke-width:2;filter:drop-shadow(0 0 6px rgba(74,196,255,.7))}.talk-control:active{transform:translate(-50%,-50%) scale(.96)}.talk-label{font:400 clamp(11px,2.8vw,16px)/1 system-ui;letter-spacing:.28em;color:rgba(246,250,255,.88);white-space:nowrap}
-.action-row{position:absolute;z-index:35;left:8vw;right:8vw;bottom:max(calc(env(safe-area-inset-bottom) + 8vh),70px);display:grid;grid-template-columns:repeat(3,1fr);align-items:start;gap:8vw}.action{border:0;background:transparent;color:#f4f8ff;padding:0;display:flex;flex-direction:column;align-items:center;gap:0;cursor:pointer;-webkit-tap-highlight-color:transparent}.action-circle{width:clamp(58px,14vw,88px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;border:1.4px solid transparent;background:linear-gradient(#080b14,#080b14) padding-box,linear-gradient(135deg,#28e7ff,#596cff,#dc43ff) border-box;box-shadow:0 0 18px rgba(82,111,255,.16)}.action svg{width:46%;height:46%;stroke:#f2fbff;fill:none;stroke-width:1.8;filter:drop-shadow(0 0 5px rgba(125,221,255,.55))}.action span{font:400 clamp(10px,2.6vw,14px)/1 system-ui;letter-spacing:.25em;white-space:nowrap}.action:active .action-circle{transform:scale(.96)}
+.action-row{position:absolute;z-index:35;left:8vw;right:8vw;bottom:max(calc(env(safe-area-inset-bottom) + 8vh),70px);display:grid;grid-template-columns:repeat(4,1fr);align-items:start;gap:3vw}.action{border:0;background:transparent;color:#f4f8ff;padding:0;display:flex;flex-direction:column;align-items:center;gap:0;cursor:pointer;-webkit-tap-highlight-color:transparent}.action-circle{width:clamp(58px,14vw,88px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;border:1.4px solid transparent;background:linear-gradient(#080b14,#080b14) padding-box,linear-gradient(135deg,#28e7ff,#596cff,#dc43ff) border-box;box-shadow:0 0 18px rgba(82,111,255,.16)}.action svg{width:46%;height:46%;stroke:#f2fbff;fill:none;stroke-width:1.8;filter:drop-shadow(0 0 5px rgba(125,221,255,.55))}.action span{font:400 clamp(10px,2.6vw,14px)/1 system-ui;letter-spacing:.25em;white-space:nowrap}.action:active .action-circle{transform:scale(.96)}.action.paused .action-circle{background:linear-gradient(#080b14,#080b14) padding-box,linear-gradient(135deg,#28e7ff,#ff6d72,#dc43ff) border-box;box-shadow:0 0 22px rgba(82,111,255,.28)}
 /* AKI 10.5.1 — Clean Handoff; Presence Core + explicit temporary copy/search handoff. */
 .presence:not(.is-on) .halo,.presence:not(.is-on) .rim,.presence:not(.is-on) .oil,.presence:not(.is-on) .oil2{opacity:.11!important;filter:grayscale(.92) saturate(.18) brightness(.42);animation-play-state:paused!important}
 .presence:not(.is-on) .orb{box-shadow:0 0 12px rgba(90,110,140,.06);animation-play-state:paused}
@@ -52,39 +52,41 @@
   <div class="action-row">
     <button id="cameraButton" class="action" type="button" aria-label="Camera"><span class="action-circle"><svg viewBox="0 0 32 32"><path d="M4 10h6l2-3h8l2 3h6v16H4z"/><circle cx="16" cy="18" r="6"/></svg></span></button>
     <button id="powerButton" class="action" type="button" aria-label="Turn AKI on" aria-pressed="false"><span class="action-circle"><svg viewBox="0 0 32 32"><path d="M16 3v12M9.2 7.2a11 11 0 1 0 13.6 0"/></svg></span></button>
+    <button id="pauseButton" class="action" type="button" aria-label="Pause conversation" aria-pressed="false"><span class="action-circle"><svg viewBox="0 0 32 32"><path d="M11 8v16M21 8v16"/></svg></span></button>
     <button id="giveButton" class="action" type="button" aria-label="File"><span class="action-circle"><svg viewBox="0 0 32 32"><path d="M8 3h11l6 6v20H8z"/><path d="M19 3v7h6M12 17h9M12 22h9"/></svg></span></button>
   </div>
 </main>
 <script>
 const app=document.querySelector('#app');
-console.info('[AKI 10.5.7] USAGE ANALYTICS loaded');
+console.info('[AKI 10.5.9] PAUSE + INTERRUPTION RECOVERY loaded');
 const akiButton=document.querySelector('#akiButton');
 const worldPicker=document.querySelector('#worldPicker');
 const filePicker=document.querySelector('#filePicker');
 const writeLayer=document.querySelector('#writeLayer');
 const writeTrigger=document.querySelector('#writeTrigger');
 const cameraButton=document.querySelector('#cameraButton');
+const pauseButton=document.querySelector('#pauseButton');
 const giveButton=document.querySelector('#giveButton');
 const writeBox=document.querySelector('#writeBox');
 const handoff=document.querySelector('#handoff'),handoffText=document.querySelector('#handoffText'),handoffCopy=document.querySelector('#handoffCopy'),handoffOpen=document.querySelector('#handoffOpen'),handoffClose=document.querySelector('#handoffClose');
 let currentHandoff=null,handoffBusy=false;
 let pc=null,dc=null,micStream=null,audioEl=null,audioCtx=null;
 let starting=false,stopping=false,powered=false,restarting=false;
-// AKI 10.5.8 — iOS interruption recovery. `wantsPower` tracks the human's intent
+// AKI 10.5.9 — pause + iOS interruption recovery. `wantsPower` tracks the human's intent
 // separately from the transient WebRTC connection so calls/alarms/timers can
 // tear down audio without making AKI forget that it should still be on.
-let wantsPower=false,interruptionHidden=false,recoveryTimer=null,recoveryAttempts=0,lastRecoveryAt=0;
+let wantsPower=false,interruptionHidden=false,recoveryTimer=null,recoveryAttempts=0,lastRecoveryAt=0,manuallyPaused=false;
 let transcript='',turnEndAt=0,responseStartAt=0,firstAudioAt=0,lastChime=0;
 let latencyTimer=null,hardWatchdog=null,preferenceTimer=null;
 let imageBusy=false,shareBusy=false;
 let powerGreetingSent=false;
 let assistantTranscript='',assistantTranscriptTimer=null;
-// AKI 10.5.8 — anonymous session-time meter + interruption-safe sessions. No transcript/audio/content is recorded.
+// AKI 10.5.9 — anonymous session-time meter + interruption-safe sessions. No transcript/audio/content is recorded.
 let usageSessionId=null,usageStartedAt=0,usageStopSent=false;
 const usageDeviceId=(()=>{let id=localStorage.getItem('akiUsageDeviceId');if(!id){id=(crypto.randomUUID?.()||('aki-'+Date.now()+'-'+Math.random().toString(36).slice(2)));localStorage.setItem('akiUsageDeviceId',id)}return id})();
 function usageId(){return crypto.randomUUID?.()||('s-'+Date.now()+'-'+Math.random().toString(36).slice(2))}
-function beginUsageSession(){if(usageStartedAt)return;usageSessionId=usageId();usageStartedAt=Date.now();usageStopSent=false;fetch('/api/usage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event:'start',session_id:usageSessionId,device_id:usageDeviceId,started_at:new Date(usageStartedAt).toISOString(),version:'10.5.8'})}).catch(()=>{})}
-function finishUsageSession(useBeacon=false){if(!usageStartedAt||usageStopSent)return;usageStopSent=true;const ended=Date.now(),seconds=Math.max(1,Math.round((ended-usageStartedAt)/1000));const payload={event:'stop',session_id:usageSessionId,device_id:usageDeviceId,started_at:new Date(usageStartedAt).toISOString(),ended_at:new Date(ended).toISOString(),duration_seconds:seconds,version:'10.5.8'};try{const key='akiUsageTotalSeconds';localStorage.setItem(key,String((Number(localStorage.getItem(key))||0)+seconds));localStorage.setItem('akiUsageLastSession',JSON.stringify(payload))}catch{};const body=JSON.stringify(payload);if(useBeacon&&navigator.sendBeacon){try{navigator.sendBeacon('/api/usage',new Blob([body],{type:'application/json'}))}catch{}}else fetch('/api/usage',{method:'POST',headers:{'Content-Type':'application/json'},body,keepalive:true}).catch(()=>{});usageStartedAt=0;usageSessionId=null}
+function beginUsageSession(){if(usageStartedAt)return;usageSessionId=usageId();usageStartedAt=Date.now();usageStopSent=false;fetch('/api/usage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event:'start',session_id:usageSessionId,device_id:usageDeviceId,started_at:new Date(usageStartedAt).toISOString(),version:'10.5.9'})}).catch(()=>{})}
+function finishUsageSession(useBeacon=false){if(!usageStartedAt||usageStopSent)return;usageStopSent=true;const ended=Date.now(),seconds=Math.max(1,Math.round((ended-usageStartedAt)/1000));const payload={event:'stop',session_id:usageSessionId,device_id:usageDeviceId,started_at:new Date(usageStartedAt).toISOString(),ended_at:new Date(ended).toISOString(),duration_seconds:seconds,version:'10.5.9'};try{const key='akiUsageTotalSeconds';localStorage.setItem(key,String((Number(localStorage.getItem(key))||0)+seconds));localStorage.setItem('akiUsageLastSession',JSON.stringify(payload))}catch{};const body=JSON.stringify(payload);if(useBeacon&&navigator.sendBeacon){try{navigator.sendBeacon('/api/usage',new Blob([body],{type:'application/json'}))}catch{}}else fetch('/api/usage',{method:'POST',headers:{'Content-Type':'application/json'},body,keepalive:true}).catch(()=>{});usageStartedAt=0;usageSessionId=null}
 window.AKIUsage=()=>({device_id:usageDeviceId,total_seconds:Number(localStorage.getItem('akiUsageTotalSeconds'))||0,last_session:JSON.parse(localStorage.getItem('akiUsageLastSession')||'null')});
 
 let recentConversation=[];
@@ -325,7 +327,7 @@ function absorbTranscript(m){
 }
 
 async function stopAki(keepLook=false,preserveIntent=false){
- if(stopping)return;stopping=true;if(!preserveIntent)wantsPower=false;finishUsageSession();powered=false;powerGreetingSent=false;clearTimeout(latencyTimer);clearTimeout(hardWatchdog);clearTimeout(preferenceTimer);clearTimeout(recoveryTimer);
+ if(stopping)return;stopping=true;if(!preserveIntent){wantsPower=false;pauseLook(false);}finishUsageSession();powered=false;powerGreetingSent=false;clearTimeout(latencyTimer);clearTimeout(hardWatchdog);clearTimeout(preferenceTimer);clearTimeout(recoveryTimer);
  try{dc?.close()}catch{} try{pc?.getSenders?.().forEach(x=>x.track?.stop())}catch{} try{pc?.close()}catch{}
  try{micStream?.getTracks().forEach(t=>{t.enabled=false;t.stop()})}catch{}
  if(audioEl){try{audioEl.pause()}catch{}audioEl.srcObject=null;audioEl.remove();audioEl=null}
@@ -343,7 +345,7 @@ async function startAki(recovery=false){
     // AKI 10.1.3 — session instructions are configured server-side in /api/aki.
   });
   dc.addEventListener('message',e=>{try{const m=JSON.parse(e.data),type=m.type||'',nested=m.event?.type||'',all=(type+' '+nested).toLowerCase();
-    if(type==='session.started'){powered=true;beginUsageSession();powerLook('on');latency('session-started',{voice:m.session?.audio?.output?.voice||m.session?.voice||akiVoice});if(recovery){restoreConversationContext();recoveryAttempts=0}else startPowerGreetingOnce()}
+    if(type==='session.started'){powered=true;beginUsageSession();powerLook('on');if(manuallyPaused)setConversationPaused(true);latency('session-started',{voice:m.session?.audio?.output?.voice||m.session?.voice||akiVoice});if(recovery){restoreConversationContext();recoveryAttempts=0}else startPowerGreetingOnce()}
     absorbTranscript(m);absorbAssistantTranscript(m);
     if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
     if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('delegation.created')){if(!greetingInFlight)flushSpokenTranscript();responseStarted();}
@@ -357,7 +359,7 @@ async function startAki(recovery=false){
   if(!localSdp||!localSdp.trim().startsWith('v=0'))throw new Error('Browser did not create a valid SDP offer');
   const r=await fetch('/api/aki',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sdp:localSdp,voice:akiVoice,language:akiLanguage})});
   const answer=await r.text();if(!r.ok)throw new Error(answer);await pc.setRemoteDescription({type:'answer',sdp:answer});
-  powered=true;beginUsageSession();powerLook('on');if(recovery){setTimeout(()=>restoreConversationContext(),180);recoveryAttempts=0}else setTimeout(()=>startPowerGreetingOnce(),180);
+  powered=true;beginUsageSession();powerLook('on');if(manuallyPaused)setConversationPaused(true);if(recovery){setTimeout(()=>restoreConversationContext(),180);recoveryAttempts=0}else setTimeout(()=>startPowerGreetingOnce(),180);
  }catch(err){console.error('[AKI 10.5.8 start/recovery error]',err);await stopAki(true,true);if(wantsPower&&recovery&&recoveryAttempts<3)scheduleInterruptionRecovery('retry');else if(!recovery){wantsPower=false;powerLook('error')}}finally{starting=false}
 }
 
@@ -612,6 +614,19 @@ function playAkiOnChime(){try{primeAkiAudio();if(!akiAudioCtx)return;const now=a
 writeTrigger.addEventListener('click',e=>{e.preventDefault();if(!powered)return;openWrite()});
 cameraButton.addEventListener('click',()=>{if(!powered)return;openDoor(worldPicker)});
 giveButton.addEventListener('click',()=>{if(!powered)return;openDoor(filePicker)});
+function pauseLook(paused){
+ manuallyPaused=!!paused;
+ if(pauseButton){pauseButton.setAttribute('aria-pressed',paused?'true':'false');pauseButton.setAttribute('aria-label',paused?'Resume conversation':'Pause conversation');pauseButton.classList.toggle('paused',paused)}
+}
+function setConversationPaused(paused){
+ if(!wantsPower&&!powered)return;
+ pauseLook(paused);
+ const track=micStream?.getAudioTracks?.()[0];if(track)track.enabled=!paused;
+ if(audioEl)audioEl.muted=!!paused;
+ latency(paused?'manual-pause':'manual-resume',{});
+ if(!paused){try{if(audioCtx?.state==='suspended')audioCtx.resume()}catch{};if(wantsPower&&(!pc||!dc||dc.readyState!=='open'||!track||track.readyState==='ended'))scheduleInterruptionRecovery('resume-unhealthy')}
+}
+pauseButton.addEventListener('click',e=>{e.stopPropagation();if(!wantsPower&&!powered)return;setConversationPaused(!manuallyPaused)});
 function restoreConversationContext(){
   if(!powered||!dc||dc.readyState!=='open')return;
   const history=recentConversation.slice(-14).map(x=>(x.role==='assistant'?'AKI':'Human')+': '+String(x.text||'').replace(/\s+/g,' ').slice(0,700)).join('\n');
@@ -638,7 +653,7 @@ function scheduleInterruptionRecovery(reason){
 async function toggle(){
   if(starting||stopping)return;
   if(wantsPower||powered||pc||micStream){wantsPower=false;await stopAki()}
-  else{wantsPower=true;primeAkiAudio();await startAki(false)}
+  else{wantsPower=true;pauseLook(false);primeAkiAudio();await startAki(false)}
 }
 powerButton.addEventListener('click',e=>{e.stopPropagation();toggle()});
 document.addEventListener('visibilitychange',()=>{
