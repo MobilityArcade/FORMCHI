@@ -14,19 +14,25 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=45">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=45">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=45">
-<title>AKI 10.3.2 — Unified Live Audio</title>
+<title>AKI 10.4.1 — Hold Space Core</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#eef7ff}.presence{position:relative;width:100%;height:100dvh;overflow:hidden;isolation:isolate;background:radial-gradient(circle at 50% 46%,#11162a 0,#080b13 40%,#030507 74%,#020304 100%);-webkit-tap-highlight-color:transparent}.ambient{position:absolute;inset:-18%;background:radial-gradient(circle at 50% 48%,rgba(20,82,145,.14),rgba(72,30,112,.08) 34%,transparent 70%);filter:blur(48px);animation:ambient 14s ease-in-out infinite}.orb{position:absolute;left:50%;top:47%;width:min(84vw,680px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:#010207;box-shadow:0 0 20px rgba(35,205,255,.18),0 0 58px rgba(57,105,255,.15),0 0 105px rgba(188,49,255,.10);animation:orbBreath 8.4s ease-in-out infinite}.halo,.rim,.oil,.oil2,.core{position:absolute;border-radius:50%;pointer-events:none}.halo{inset:-4.8%;background:conic-gradient(from 215deg,transparent 0 7%,rgba(0,210,255,.22) 14%,rgba(61,91,255,.18) 29%,rgba(211,38,255,.20) 45%,rgba(255,70,169,.16) 57%,rgba(255,115,70,.14) 68%,rgba(24,202,255,.18) 83%,transparent 96%);filter:blur(22px);opacity:.58;animation:oilTurn 34s linear infinite}.rim{inset:-1.0%;background:conic-gradient(from 220deg,#ff729e 0deg,#ff3dbb 38deg,#bb31ff 78deg,#514cff 120deg,#1b7cff 164deg,#13dfff 207deg,#c9fbff 230deg,#27c8ff 248deg,#395eff 282deg,#a42aff 318deg,#ff729e 360deg);filter:saturate(1.5) brightness(1.18);opacity:1;box-shadow:0 0 5px rgba(92,220,255,.58),0 0 13px rgba(118,75,255,.30);animation:oilTurn 31s linear infinite}.rim:after{content:"";position:absolute;inset:2.0%;border-radius:50%;background:#010207;box-shadow:inset 0 0 18px rgba(18,157,255,.16)}.oil{inset:2.4%;background:conic-gradient(from 12deg,#14d7ff 0 12%,#0b79ff 20%,#5239f4 31%,#bc29f0 42%,#f222bf 51%,#ff6d72 61%,#ff8b3d 68%,#55259e 77%,#061018 83%,#0bbfe9 94%,#14d7ff 100%);filter:saturate(1.55) brightness(1.05);opacity:.96;animation:oilTurn 28s linear infinite;box-shadow:inset 0 0 10px rgba(255,255,255,.08)}.oil:after{content:"";position:absolute;inset:12.2%;border-radius:50%;background:radial-gradient(circle at 50% 45%,#02040a 0%,#010207 72%,#02030a 88%,#02040b 100%);box-shadow:0 0 10px rgba(1,2,7,.9),inset 0 0 24px rgba(19,99,180,.08)}.oil2{inset:5.5%;background:conic-gradient(from 165deg,transparent 0 11%,rgba(13,207,255,.26) 20%,rgba(69,72,255,.20) 33%,rgba(215,36,255,.22) 46%,transparent 58% 72%,rgba(255,111,57,.16) 82%,rgba(119,44,255,.20) 92%,transparent);filter:blur(7px) saturate(1.3);opacity:.52;animation:oilTurn2 38s linear infinite}.oil2:after{content:"";position:absolute;inset:14%;border-radius:50%;background:#010207}.core{inset:14.5%;background:radial-gradient(circle at 46% 39%,rgba(5,17,31,.24),#010207 57%,#010207 100%);box-shadow:inset 0 0 38px rgba(34,123,210,.06)}
 .top-compose{position:absolute;z-index:30;top:max(calc(env(safe-area-inset-top) + 5.5vh),62px);left:6vw;right:6vw;height:clamp(54px,7.5vh,68px)}.write-trigger,.write-layer{position:absolute;inset:0;border-radius:999px;border:1.4px solid transparent;background:linear-gradient(#0a0d18,#0a0d18) padding-box,linear-gradient(90deg,#20ddff,#536bff,#df48ff) border-box;box-shadow:0 0 22px rgba(62,132,255,.13);color:rgba(211,221,238,.55)}.write-trigger{display:flex;align-items:center;gap:16px;padding:0 22px;font:300 clamp(18px,4.5vw,27px)/1 system-ui;border-width:1.4px;text-align:left;width:100%;cursor:text}.write-trigger svg{width:27px;height:27px;flex:none;stroke:#eaf8ff;filter:drop-shadow(0 0 5px rgba(100,220,255,.45))}.write-layer{display:none;align-items:center;padding:0 20px}.write-layer.open{display:flex}.write-layer.open~.write-trigger{visibility:hidden}#writeBox{width:100%;height:100%;resize:none;overflow:auto;border:0;outline:0;background:transparent;color:#eef7ff;font:300 clamp(20px,4.7vw,28px)/1.3 system-ui;padding:14px 4px;caret-color:#65e8ff}#writeBox::placeholder{color:rgba(204,214,232,.42)}.write-hint{position:absolute;top:calc(100% + 13px);left:0;right:0;text-align:center;color:rgba(194,205,226,.58);font:300 clamp(12px,3.1vw,17px)/1.2 system-ui;letter-spacing:.01em}
 .mark{position:absolute;z-index:32;left:50%;top:47%;transform:translate(-50%,-50%);width:min(48vw,350px);height:auto;opacity:.32;pointer-events:none;touch-action:none;transition:opacity .45s ease,filter .45s ease}.mark path{fill:none;stroke:rgba(238,247,255,.84);stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}.mark.on{opacity:1;filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 10px rgba(55,190,255,.78))}.mark.on path{stroke:#fff;stroke-width:2.2}.mark.starting{opacity:.58}.mark.error{opacity:.18}.talk-control{position:absolute;z-index:33;left:50%;top:calc(47% + min(16vw,128px));transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:auto;border:0;background:transparent;color:inherit;padding:10px 18px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}.power-icon{width:clamp(35px,9vw,58px);height:clamp(35px,9vw,58px);stroke:#dff8ff;fill:none;stroke-width:2;filter:drop-shadow(0 0 6px rgba(74,196,255,.7))}.talk-control:active{transform:translate(-50%,-50%) scale(.96)}.talk-label{font:400 clamp(11px,2.8vw,16px)/1 system-ui;letter-spacing:.28em;color:rgba(246,250,255,.88);white-space:nowrap}
 .action-row{position:absolute;z-index:35;left:8vw;right:8vw;bottom:max(calc(env(safe-area-inset-bottom) + 8vh),70px);display:grid;grid-template-columns:repeat(3,1fr);align-items:start;gap:8vw}.action{border:0;background:transparent;color:#f4f8ff;padding:0;display:flex;flex-direction:column;align-items:center;gap:0;cursor:pointer;-webkit-tap-highlight-color:transparent}.action-circle{width:clamp(58px,14vw,88px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;border:1.4px solid transparent;background:linear-gradient(#080b14,#080b14) padding-box,linear-gradient(135deg,#28e7ff,#596cff,#dc43ff) border-box;box-shadow:0 0 18px rgba(82,111,255,.16)}.action svg{width:46%;height:46%;stroke:#f2fbff;fill:none;stroke-width:1.8;filter:drop-shadow(0 0 5px rgba(125,221,255,.55))}.action span{font:400 clamp(10px,2.6vw,14px)/1 system-ui;letter-spacing:.25em;white-space:nowrap}.action:active .action-circle{transform:scale(.96)}
+/* AKI 10.4.1 — Hold Space Core; presence still communicates OFF vs ON. */
+.presence:not(.is-on) .halo,.presence:not(.is-on) .rim,.presence:not(.is-on) .oil,.presence:not(.is-on) .oil2{opacity:.11!important;filter:grayscale(.92) saturate(.18) brightness(.42);animation-play-state:paused!important}
+.presence:not(.is-on) .orb{box-shadow:0 0 12px rgba(90,110,140,.06);animation-play-state:paused}
+.presence.is-on .halo,.presence.is-on .rim,.presence.is-on .oil,.presence.is-on .oil2{transition:opacity .65s ease,filter .65s ease}
+.handoff{position:absolute;z-index:40;top:calc(100% + 10px);left:0;right:0;display:none;align-items:center;gap:10px;padding:12px 14px;border-radius:18px;border:1px solid rgba(91,154,255,.42);background:rgba(5,9,18,.96);box-shadow:0 10px 30px rgba(0,0,0,.34),0 0 20px rgba(67,111,255,.10);backdrop-filter:blur(16px)}
+.handoff.show{display:flex}.handoff a{min-width:0;flex:1;color:#eef8ff;text-decoration:none;font:400 clamp(14px,3.4vw,18px)/1.25 system-ui;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.handoff small{display:block;color:rgba(191,205,230,.58);font-size:.72em;margin-top:3px}.handoff-copy,.handoff-close{flex:none;border:0;background:transparent;color:#dff7ff;font:500 12px/1 system-ui;padding:9px;cursor:pointer}.handoff-close{font-size:18px;color:rgba(220,230,245,.7)}
 @keyframes ambient{0%,100%{transform:scale(.98);opacity:.58}50%{transform:scale(1.025);opacity:.78}}@keyframes orbBreath{0%,100%{transform:translate(-50%,-50%) scale(.982)}50%{transform:translate(-50%,-50%) scale(1.012)}}@keyframes oilTurn{to{transform:rotate(360deg)}}@keyframes oilTurn2{to{transform:rotate(-360deg)}}@media(max-height:700px){.orb{width:min(72vw,540px)}.action-row{bottom:max(calc(env(safe-area-inset-bottom) + 4vh),34px)}.top-compose{top:max(calc(env(safe-area-inset-top) + 3vh),38px)}}@media(prefers-reduced-motion:reduce){.ambient,.orb,.halo,.rim,.oil,.oil2{animation:none!important}}
 </style>
 
 
 </head>
 <body>
-<main id="app" class="presence" aria-label="AKI 10.3.2">
+<main id="app" class="presence" aria-label="AKI 10.4.1">
   <input id="worldPicker" type="file" accept="image/*" capture="environment" hidden aria-hidden="true">
   <input id="filePicker" type="file" accept="image/*,application/pdf,text/plain,text/markdown,text/csv,application/json,.pdf,.txt,.md,.csv,.json,.doc,.docx,.xls,.xlsx,.ppt,.pptx" hidden aria-hidden="true">
   <div class="ambient"></div>
@@ -34,6 +40,7 @@
     <form id="writeLayer" class="write-layer" autocomplete="off"><textarea id="writeBox" rows="1" aria-label="Type or paste for AKI" placeholder="Type or paste for AKI…"></textarea></form>
     <button id="writeTrigger" class="write-trigger" type="button" aria-label="Type or paste for AKI"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="7" width="26" height="18" rx="3"/><path d="M7 12h2m3 0h2m3 0h2m3 0h2M7 16h2m3 0h2m3 0h2m3 0h2M8 20h16"/></svg><span>Type or paste for AKI…</span></button>
     <div class="write-hint">Ask a question, share a thought, or paste a link…</div>
+    <div id="handoff" class="handoff" role="status" aria-live="polite"><a id="handoffLink" href="#" target="_blank" rel="noopener"><span id="handoffLabel">Search</span><small>Tap to open • temporary</small></a><button id="handoffCopy" class="handoff-copy" type="button" aria-label="Copy link">COPY</button><button id="handoffClose" class="handoff-close" type="button" aria-label="Dismiss">×</button></div>
   </div>
   <div class="orb"><div class="halo"></div><div class="rim"></div><div class="oil"></div><div class="oil2"></div><div class="core"></div></div>
   <svg id="akiButton" class="mark" viewBox="0 0 210 90" aria-hidden="true"><path d="M15 72 L45 18 L75 72 M95 18 L95 72 M96 48 L142 18 M96 48 L144 72 M172 18 L172 72"/></svg>
@@ -45,13 +52,14 @@
 </main>
 <script>
 const app=document.querySelector('#app');
-console.info('[AKI 10.3.2] UNIFIED LIVE AUDIO loaded');
+console.info('[AKI 10.4.1] HOLD SPACE CORE loaded');
 const akiButton=document.querySelector('#akiButton');
 const worldPicker=document.querySelector('#worldPicker');
 const filePicker=document.querySelector('#filePicker');
 const writeLayer=document.querySelector('#writeLayer');
 const writeTrigger=document.querySelector('#writeTrigger');
 const cameraButton=document.querySelector('#cameraButton');
+const handoff=document.querySelector('#handoff'),handoffLink=document.querySelector('#handoffLink'),handoffLabel=document.querySelector('#handoffLabel'),handoffCopy=document.querySelector('#handoffCopy'),handoffClose=document.querySelector('#handoffClose');
 const giveButton=document.querySelector('#giveButton');
 const writeBox=document.querySelector('#writeBox');
 let pc=null,dc=null,micStream=null,audioEl=null,audioCtx=null;
@@ -60,6 +68,7 @@ let transcript='',turnEndAt=0,responseStartAt=0,firstAudioAt=0,lastChime=0;
 let latencyTimer=null,hardWatchdog=null,preferenceTimer=null;
 let imageBusy=false,shareBusy=false;
 let powerGreetingSent=false;
+let assistantTranscript='',assistantTranscriptTimer=null;
 
 let recentConversation=[];
 let pitchBusy=false,pitchTimer=null,pitchAnalyser=null,pitchSource=null;
@@ -74,6 +83,7 @@ let akiVoice=localStorage.getItem('akiVoice')||'marin';
 let akiLanguage=localStorage.getItem('akiLanguage')||'auto';
 
 function powerLook(mode){
+ app.classList.toggle('is-on',mode==='on');
  if(typeof powerButton!=='undefined'&&powerButton){powerButton.setAttribute('aria-pressed',mode==='on'?'true':'false');powerButton.setAttribute('aria-label',mode==='on'?'Turn AKI off':'Turn AKI on');}
   akiButton.classList.remove('on','starting','error');
   if(mode==='on'){akiButton.classList.add('on');akiButton.setAttribute('aria-pressed','true');akiButton.setAttribute('aria-label','Turn AKI off')}
@@ -225,9 +235,38 @@ async function runPitchPractice(target){
  }catch(err){console.error('[AKI 7.1.6.4.3 pitch]',err);try{await injectTruth('PITCH TOOL FAILED. The local pitch measurement did not complete. Say that briefly and do not invent a pitch result.')}catch{}}
  finally{if(audioEl)audioEl.muted=false;pitchBusy=false}
 }
+function isHandoffRequest(text){
+ const t=normalizedSpeech(text);
+ return /\b(give|send|show|put|make|create|open)\b.{0,35}\b(link|search link|google link|something i can (copy|tap)|in the text (bar|box))\b|\b(link|search link|google link)\b.{0,24}\b(that|this|it|book|product|recommendation|color|colour|place|website)\b/.test(t);
+}
+function handoffSearchSource(request){
+ const prior=recentConversation.filter(x=>x.role==='assistant').slice(-2).map(x=>x.text).join(' ').trim();
+ if(prior)return prior;
+ const users=recentConversation.filter(x=>x.role==='user').slice(-3,-1).map(x=>x.text).join(' ').trim();
+ return users||request;
+}
+function showTemporarySearchLink(query){
+ const q=String(query||'').replace(/\s+/g,' ').trim().slice(0,420);if(!q)return;
+ const url='https://www.google.com/search?q='+encodeURIComponent(q);
+ handoffLink.href=url;handoffLabel.textContent='Search: '+(q.length>72?q.slice(0,69)+'…':q);handoff.classList.add('show');
+ handoff.dataset.url=url;
+}
+async function handleHandoffRequest(text){
+ if(!isHandoffRequest(text))return false;
+ showTemporarySearchLink(handoffSearchSource(text));
+ try{await injectTruth('HANDOFF READY. I asked for a link or something I can tap/copy. A temporary Google search link based on the recent conversation is now visible in the top text area. Tell me briefly that you put the search link there. Do not claim it is saved.')}catch{}
+ return true;
+}
+function absorbAssistantTranscript(m){
+ const type=String(m.type||'').toLowerCase(),nested=String(m.event?.type||'').toLowerCase(),all=type+' '+nested;
+ if(!/output.*transcript|transcript.*output|response.*audio.*transcript/.test(all))return;
+ const d=(typeof m.delta==='string'?m.delta:'')||(typeof m.transcript==='string'?m.transcript:'')||(typeof m.event?.delta==='string'?m.event.delta:'')||(typeof m.event?.transcript==='string'?m.event.transcript:'');
+ if(!d)return;assistantTranscript+=d;clearTimeout(assistantTranscriptTimer);assistantTranscriptTimer=setTimeout(()=>{const t=assistantTranscript.trim();assistantTranscript='';if(t&&!/^hello,? how can i help you\??$/i.test(t))rememberConversation('assistant',t)},650);
+}
 async function handleSpokenIntent(text){
  const clean=String(text||'').trim();if(!clean)return;
  rememberConversation('user',clean);
+ if(await handleHandoffRequest(clean))return;
  await handleVoiceIntent(clean);
 }
 
@@ -269,7 +308,7 @@ async function startAki(){
   });
   dc.addEventListener('message',e=>{try{const m=JSON.parse(e.data),type=m.type||'',nested=m.event?.type||'',all=(type+' '+nested).toLowerCase();
     if(type==='session.started'){powered=true;powerLook('on');latency('session-started',{voice:m.session?.audio?.output?.voice||m.session?.voice||akiVoice});startPowerGreetingOnce()}
-    absorbTranscript(m);
+    absorbTranscript(m);absorbAssistantTranscript(m);
     if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
     if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('delegation.created'))responseStarted();
     if(all.includes('output_audio.delta')||all.includes('audio.delta'))firstAudio();
@@ -282,7 +321,7 @@ async function startAki(){
   const r=await fetch('/api/aki',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sdp:localSdp,voice:akiVoice,language:akiLanguage})});
   const answer=await r.text();if(!r.ok)throw new Error(answer);await pc.setRemoteDescription({type:'answer',sdp:answer});
   powered=true;powerLook('on');setTimeout(()=>startPowerGreetingOnce(),180);
- }catch(err){console.error('AKI 10.3.2 start error:',err);await stopAki();powerLook('error')}finally{starting=false}
+ }catch(err){console.error('AKI 10.4.1 start error:',err);await stopAki();powerLook('error')}finally{starting=false}
 }
 
 function canvasToDataURL(canvas,type='image/jpeg',quality=.84){
@@ -486,9 +525,12 @@ writeBox.addEventListener('keydown',e=>{
 worldPicker.addEventListener('change',()=>{const f=worldPicker.files?.[0];if(f)shareImage(f)});
 filePicker.addEventListener('change',()=>{const f=filePicker.files?.[0];if(!f)return;const isImage=f.type?.startsWith('image/')||/\.(heic|heif|jpe?g|png|webp|gif)$/i.test(f.name||'');if(isImage)shareImage(f).finally(()=>resetPicker(filePicker));else shareFile(f)});
 
+handoffClose.addEventListener('click',()=>handoff.classList.remove('show'));
+handoffCopy.addEventListener('click',async()=>{const u=handoff.dataset.url||handoffLink.href;try{await navigator.clipboard.writeText(u);handoffCopy.textContent='COPIED';setTimeout(()=>handoffCopy.textContent='COPY',1100)}catch{}});
+
 let akiAudioCtx=null;
 function primeAkiAudio(){try{akiAudioCtx=akiAudioCtx||new (window.AudioContext||window.webkitAudioContext)();if(akiAudioCtx.state==='suspended')akiAudioCtx.resume()}catch{}}
-// AKI 10.3.2 — unified startup audio.
+// AKI 10.4.1 — preserves 10.3.2 unified startup audio and 10.4 Presence + Handoff.
 // The opening sentence is generated by the SAME Live/WebRTC Marin session used
 // for the rest of the conversation. This avoids iPadOS treating a decoded TTS
 // clip at a different playback level from the Live stream.
@@ -510,7 +552,7 @@ function startPowerGreetingOnce(){
     }catch(e){
       greetingInFlight=false;
       if(powered)tracks.forEach(t=>t.enabled=true);
-      console.error('[AKI 10.3.2 Live greeting]',e);
+      console.error('[AKI 10.4.1 Live greeting]',e);
     }
   },330);
 }
