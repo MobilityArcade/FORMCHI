@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=45">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=45">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=45">
-<title>AKI 10.3.1 — iPAD GREETING AUDIO PATCH</title>
+<title>AKI 10.3.2 — Unified Live Audio</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#eef7ff}.presence{position:relative;width:100%;height:100dvh;overflow:hidden;isolation:isolate;background:radial-gradient(circle at 50% 46%,#11162a 0,#080b13 40%,#030507 74%,#020304 100%);-webkit-tap-highlight-color:transparent}.ambient{position:absolute;inset:-18%;background:radial-gradient(circle at 50% 48%,rgba(20,82,145,.14),rgba(72,30,112,.08) 34%,transparent 70%);filter:blur(48px);animation:ambient 14s ease-in-out infinite}.orb{position:absolute;left:50%;top:47%;width:min(84vw,680px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:#010207;box-shadow:0 0 20px rgba(35,205,255,.18),0 0 58px rgba(57,105,255,.15),0 0 105px rgba(188,49,255,.10);animation:orbBreath 8.4s ease-in-out infinite}.halo,.rim,.oil,.oil2,.core{position:absolute;border-radius:50%;pointer-events:none}.halo{inset:-4.8%;background:conic-gradient(from 215deg,transparent 0 7%,rgba(0,210,255,.22) 14%,rgba(61,91,255,.18) 29%,rgba(211,38,255,.20) 45%,rgba(255,70,169,.16) 57%,rgba(255,115,70,.14) 68%,rgba(24,202,255,.18) 83%,transparent 96%);filter:blur(22px);opacity:.58;animation:oilTurn 34s linear infinite}.rim{inset:-1.0%;background:conic-gradient(from 220deg,#ff729e 0deg,#ff3dbb 38deg,#bb31ff 78deg,#514cff 120deg,#1b7cff 164deg,#13dfff 207deg,#c9fbff 230deg,#27c8ff 248deg,#395eff 282deg,#a42aff 318deg,#ff729e 360deg);filter:saturate(1.5) brightness(1.18);opacity:1;box-shadow:0 0 5px rgba(92,220,255,.58),0 0 13px rgba(118,75,255,.30);animation:oilTurn 31s linear infinite}.rim:after{content:"";position:absolute;inset:2.0%;border-radius:50%;background:#010207;box-shadow:inset 0 0 18px rgba(18,157,255,.16)}.oil{inset:2.4%;background:conic-gradient(from 12deg,#14d7ff 0 12%,#0b79ff 20%,#5239f4 31%,#bc29f0 42%,#f222bf 51%,#ff6d72 61%,#ff8b3d 68%,#55259e 77%,#061018 83%,#0bbfe9 94%,#14d7ff 100%);filter:saturate(1.55) brightness(1.05);opacity:.96;animation:oilTurn 28s linear infinite;box-shadow:inset 0 0 10px rgba(255,255,255,.08)}.oil:after{content:"";position:absolute;inset:12.2%;border-radius:50%;background:radial-gradient(circle at 50% 45%,#02040a 0%,#010207 72%,#02030a 88%,#02040b 100%);box-shadow:0 0 10px rgba(1,2,7,.9),inset 0 0 24px rgba(19,99,180,.08)}.oil2{inset:5.5%;background:conic-gradient(from 165deg,transparent 0 11%,rgba(13,207,255,.26) 20%,rgba(69,72,255,.20) 33%,rgba(215,36,255,.22) 46%,transparent 58% 72%,rgba(255,111,57,.16) 82%,rgba(119,44,255,.20) 92%,transparent);filter:blur(7px) saturate(1.3);opacity:.52;animation:oilTurn2 38s linear infinite}.oil2:after{content:"";position:absolute;inset:14%;border-radius:50%;background:#010207}.core{inset:14.5%;background:radial-gradient(circle at 46% 39%,rgba(5,17,31,.24),#010207 57%,#010207 100%);box-shadow:inset 0 0 38px rgba(34,123,210,.06)}
 .top-compose{position:absolute;z-index:30;top:max(calc(env(safe-area-inset-top) + 5.5vh),62px);left:6vw;right:6vw;height:clamp(54px,7.5vh,68px)}.write-trigger,.write-layer{position:absolute;inset:0;border-radius:999px;border:1.4px solid transparent;background:linear-gradient(#0a0d18,#0a0d18) padding-box,linear-gradient(90deg,#20ddff,#536bff,#df48ff) border-box;box-shadow:0 0 22px rgba(62,132,255,.13);color:rgba(211,221,238,.55)}.write-trigger{display:flex;align-items:center;gap:16px;padding:0 22px;font:300 clamp(18px,4.5vw,27px)/1 system-ui;border-width:1.4px;text-align:left;width:100%;cursor:text}.write-trigger svg{width:27px;height:27px;flex:none;stroke:#eaf8ff;filter:drop-shadow(0 0 5px rgba(100,220,255,.45))}.write-layer{display:none;align-items:center;padding:0 20px}.write-layer.open{display:flex}.write-layer.open~.write-trigger{visibility:hidden}#writeBox{width:100%;height:100%;resize:none;overflow:auto;border:0;outline:0;background:transparent;color:#eef7ff;font:300 clamp(20px,4.7vw,28px)/1.3 system-ui;padding:14px 4px;caret-color:#65e8ff}#writeBox::placeholder{color:rgba(204,214,232,.42)}.write-hint{position:absolute;top:calc(100% + 13px);left:0;right:0;text-align:center;color:rgba(194,205,226,.58);font:300 clamp(12px,3.1vw,17px)/1.2 system-ui;letter-spacing:.01em}
@@ -26,7 +26,7 @@
 
 </head>
 <body>
-<main id="app" class="presence" aria-label="AKI 10.3.1">
+<main id="app" class="presence" aria-label="AKI 10.3.2">
   <input id="worldPicker" type="file" accept="image/*" capture="environment" hidden aria-hidden="true">
   <input id="filePicker" type="file" accept="image/*,application/pdf,text/plain,text/markdown,text/csv,application/json,.pdf,.txt,.md,.csv,.json,.doc,.docx,.xls,.xlsx,.ppt,.pptx" hidden aria-hidden="true">
   <div class="ambient"></div>
@@ -45,7 +45,7 @@
 </main>
 <script>
 const app=document.querySelector('#app');
-console.info('[AKI 10.3.1] iPAD GREETING AUDIO PATCH loaded');
+console.info('[AKI 10.3.2] UNIFIED LIVE AUDIO loaded');
 const akiButton=document.querySelector('#akiButton');
 const worldPicker=document.querySelector('#worldPicker');
 const filePicker=document.querySelector('#filePicker');
@@ -273,7 +273,8 @@ async function startAki(){
     if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
     if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('delegation.created'))responseStarted();
     if(all.includes('output_audio.delta')||all.includes('audio.delta'))firstAudio();
-    if(type==='error')console.error('AKI Live event error:',m)
+    if(greetingInFlight&&(all.includes('response.done')||all.includes('response.completed')||all.includes('response.output_item.done')))finishLiveGreeting();
+    if(type==='error'){if(greetingInFlight)finishLiveGreeting();console.error('AKI Live event error:',m)}
   }catch{}});
   pc.addEventListener('connectionstatechange',()=>{const cs=pc?.connectionState;latency('connection-state',{state:cs});if(['failed','closed'].includes(cs)&&powered&&!restarting)stopAki()});
   const offer=await pc.createOffer();await pc.setLocalDescription(offer);const localSdp=pc.localDescription?.sdp||offer.sdp;
@@ -281,7 +282,7 @@ async function startAki(){
   const r=await fetch('/api/aki',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sdp:localSdp,voice:akiVoice,language:akiLanguage})});
   const answer=await r.text();if(!r.ok)throw new Error(answer);await pc.setRemoteDescription({type:'answer',sdp:answer});
   powered=true;powerLook('on');setTimeout(()=>startPowerGreetingOnce(),180);
- }catch(err){console.error('AKI 10.1 start error:',err);await stopAki();powerLook('error')}finally{starting=false}
+ }catch(err){console.error('AKI 10.3.2 start error:',err);await stopAki();powerLook('error')}finally{starting=false}
 }
 
 function canvasToDataURL(canvas,type='image/jpeg',quality=.84){
@@ -487,55 +488,37 @@ filePicker.addEventListener('change',()=>{const f=filePicker.files?.[0];if(!f)re
 
 let akiAudioCtx=null;
 function primeAkiAudio(){try{akiAudioCtx=akiAudioCtx||new (window.AudioContext||window.webkitAudioContext)();if(akiAudioCtx.state==='suspended')akiAudioCtx.resume()}catch{}}
-// AKI 10.1.3 — deterministic startup: chime, then exact Marin TTS greeting, then listen.
-// The Live model does NOT invent the greeting. /api/greeting returns the exact sentence in Marin.
-let marinGreetingBytesPromise=null;
+// AKI 10.3.2 — unified startup audio.
+// The opening sentence is generated by the SAME Live/WebRTC Marin session used
+// for the rest of the conversation. This avoids iPadOS treating a decoded TTS
+// clip at a different playback level from the Live stream.
 let greetingInFlight=false;
-function preloadMarinGreeting(){
-  if(!marinGreetingBytesPromise){
-    marinGreetingBytesPromise=fetch('/api/greeting',{cache:'no-store'})
-      .then(async r=>{if(!r.ok)throw new Error('Greeting endpoint '+r.status+': '+await r.text());return r.arrayBuffer()})
-      .catch(e=>{marinGreetingBytesPromise=null;throw e});
-  }
-  return marinGreetingBytesPromise;
-}
 function startPowerGreetingOnce(){
-  if(powerGreetingSent||greetingInFlight||!powered)return;
+  if(powerGreetingSent||greetingInFlight||!powered||!dc||dc.readyState!=='open')return;
   powerGreetingSent=true;greetingInFlight=true;
   const tracks=micStream?.getAudioTracks?.()||[];
   tracks.forEach(t=>t.enabled=false);
   playAkiOnChime();
-  setTimeout(async()=>{
-    try{await playFixedMarinGreeting()}
-    finally{greetingInFlight=false;if(powered)tracks.forEach(t=>t.enabled=true)}
+  setTimeout(()=>{
+    try{
+      const id='aki_startup_'+Date.now();
+      dc.send(JSON.stringify({
+        type:'response.item.create',event_id:id,
+        item:{type:'message',role:'user',content:[{type:'input_text',text:'STARTUP HANDSHAKE. Speak exactly these words and nothing else: Hello, how can I help you? Do not introduce yourself. Do not add or remove any words.'}]}
+      }));
+      dc.send(JSON.stringify({type:'response.create',event_id:id+'_respond'}));
+    }catch(e){
+      greetingInFlight=false;
+      if(powered)tracks.forEach(t=>t.enabled=true);
+      console.error('[AKI 10.3.2 Live greeting]',e);
+    }
   },330);
 }
-async function playFixedMarinGreeting(){
-  primeAkiAudio();
-  const raw=await preloadMarinGreeting();
-  if(!akiAudioCtx)throw new Error('Audio context unavailable');
-  if(akiAudioCtx.state==='suspended')await akiAudioCtx.resume();
-  try{
-    const decoded=await akiAudioCtx.decodeAudioData(raw.slice(0));
-    await new Promise((resolve,reject)=>{
-      const src=akiAudioCtx.createBufferSource();
-      const gain=akiAudioCtx.createGain();
-      src.buffer=decoded;
-      // iPadOS can render this decoded startup clip materially quieter than the
-      // following WebRTC Live audio. Apply a modest iPad-only gain to the fixed
-      // greeting; iPhone/desktop stay at unity gain.
-      const isIPad=/iPad/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-      gain.gain.value=isIPad?1.65:1.0;
-      src.connect(gain).connect(akiAudioCtx.destination);src.onended=resolve;
-      try{src.start()}catch(e){reject(e)}
-    });
-  }catch(e){
-    console.error('[AKI 10.3.1 Marin greeting playback]',e);
-    throw e;
-  }
+function finishLiveGreeting(){
+  if(!greetingInFlight)return;
+  greetingInFlight=false;
+  if(powered)(micStream?.getAudioTracks?.()||[]).forEach(t=>t.enabled=true);
 }
-// Warm the server/cache, but never let a preload failure break power-on.
-preloadMarinGreeting().catch(e=>console.warn('[AKI 10.3.1 greeting preload]',e));
 function playAkiOnChime(){try{primeAkiAudio();if(!akiAudioCtx)return;const now=akiAudioCtx.currentTime;[523.25,659.25].forEach((freq,i)=>{const o=akiAudioCtx.createOscillator(),g=akiAudioCtx.createGain();o.type='sine';o.frequency.value=freq;g.gain.setValueAtTime(0,now+i*.07);g.gain.linearRampToValueAtTime(.055,now+i*.07+.018);g.gain.exponentialRampToValueAtTime(.001,now+i*.07+.18);o.connect(g).connect(akiAudioCtx.destination);o.start(now+i*.07);o.stop(now+i*.07+.2)})}catch{}}
 writeTrigger.addEventListener('click',e=>{e.preventDefault();if(!powered)return;openWrite()});
 cameraButton.addEventListener('click',()=>{if(!powered)return;openDoor(worldPicker)});
