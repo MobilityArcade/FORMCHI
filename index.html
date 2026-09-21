@@ -14,22 +14,25 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=45">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=45">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=45">
-<title>AQUI 1.5 — Center Voice</title>
+<title>AQUI 1.6 — Voice Wave</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#eef7ff}.presence{position:relative;width:100%;height:100dvh;overflow:hidden;isolation:isolate;background:radial-gradient(circle at 50% 46%,#11162a 0,#080b13 40%,#030507 74%,#020304 100%);-webkit-tap-highlight-color:transparent}.ambient{position:absolute;inset:-18%;background:radial-gradient(circle at 50% 48%,rgba(20,82,145,.14),rgba(72,30,112,.08) 34%,transparent 70%);filter:blur(48px);animation:ambient 14s ease-in-out infinite}.orb{position:absolute;left:50%;top:47%;width:min(84vw,680px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:#010207;box-shadow:0 0 20px rgba(35,205,255,.18),0 0 58px rgba(57,105,255,.15),0 0 105px rgba(188,49,255,.10);animation:orbBreath 8.4s ease-in-out infinite}.halo,.rim,.oil,.oil2,.core{position:absolute;border-radius:50%;pointer-events:none}.halo{inset:-4.8%;background:conic-gradient(from 215deg,transparent 0 7%,rgba(0,210,255,.22) 14%,rgba(61,91,255,.18) 29%,rgba(211,38,255,.20) 45%,rgba(255,70,169,.16) 57%,rgba(255,115,70,.14) 68%,rgba(24,202,255,.18) 83%,transparent 96%);filter:blur(22px);opacity:.58;animation:oilTurn 34s linear infinite}.rim{inset:-1.0%;background:conic-gradient(from 220deg,#ff729e 0deg,#ff3dbb 38deg,#bb31ff 78deg,#514cff 120deg,#1b7cff 164deg,#13dfff 207deg,#c9fbff 230deg,#27c8ff 248deg,#395eff 282deg,#a42aff 318deg,#ff729e 360deg);filter:saturate(1.5) brightness(1.18);opacity:1;box-shadow:0 0 5px rgba(92,220,255,.58),0 0 13px rgba(118,75,255,.30);animation:oilTurn 31s linear infinite}.rim:after{content:"";position:absolute;inset:2.0%;border-radius:50%;background:#010207;box-shadow:inset 0 0 18px rgba(18,157,255,.16)}.oil{inset:2.4%;background:conic-gradient(from 12deg,#14d7ff 0 12%,#0b79ff 20%,#5239f4 31%,#bc29f0 42%,#f222bf 51%,#ff6d72 61%,#ff8b3d 68%,#55259e 77%,#061018 83%,#0bbfe9 94%,#14d7ff 100%);filter:saturate(1.55) brightness(1.05);opacity:.96;animation:oilTurn 28s linear infinite;box-shadow:inset 0 0 10px rgba(255,255,255,.08)}.oil:after{content:"";position:absolute;inset:12.2%;border-radius:50%;background:radial-gradient(circle at 50% 45%,#02040a 0%,#010207 72%,#02030a 88%,#02040b 100%);box-shadow:0 0 10px rgba(1,2,7,.9),inset 0 0 24px rgba(19,99,180,.08)}.oil2{inset:5.5%;background:conic-gradient(from 165deg,transparent 0 11%,rgba(13,207,255,.26) 20%,rgba(69,72,255,.20) 33%,rgba(215,36,255,.22) 46%,transparent 58% 72%,rgba(255,111,57,.16) 82%,rgba(119,44,255,.20) 92%,transparent);filter:blur(7px) saturate(1.3);opacity:.52;animation:oilTurn2 38s linear infinite}.oil2:after{content:"";position:absolute;inset:14%;border-radius:50%;background:#010207}.core{inset:14.5%;background:radial-gradient(circle at 46% 39%,rgba(5,17,31,.24),#010207 57%,#010207 100%);box-shadow:inset 0 0 38px rgba(34,123,210,.06)}
 .top-compose{position:absolute;z-index:30;top:max(calc(env(safe-area-inset-top) + 5.5vh),62px);left:6vw;right:6vw;height:clamp(54px,7.5vh,68px)}.write-trigger,.write-layer{position:absolute;inset:0;border-radius:999px;border:1.4px solid transparent;background:linear-gradient(#0a0d18,#0a0d18) padding-box,linear-gradient(90deg,#20ddff,#536bff,#df48ff) border-box;box-shadow:0 0 22px rgba(62,132,255,.13);color:rgba(211,221,238,.55)}.write-trigger{display:flex;align-items:center;gap:16px;padding:0 22px;font:300 clamp(18px,4.5vw,27px)/1 system-ui;border-width:1.4px;text-align:left;width:100%;cursor:text}.write-trigger svg{width:27px;height:27px;flex:none;stroke:#eaf8ff;filter:drop-shadow(0 0 5px rgba(100,220,255,.45))}.write-layer{display:none;align-items:center;padding:0 20px}.write-layer.open{display:flex}.write-layer.open~.write-trigger{visibility:hidden}#writeBox{width:100%;height:100%;resize:none;overflow:auto;border:0;outline:0;background:transparent;color:#eef7ff;font:300 clamp(20px,4.7vw,28px)/1.3 system-ui;padding:14px 4px;caret-color:#65e8ff}#writeBox::placeholder{color:rgba(204,214,232,.42)}.write-hint{position:absolute;top:calc(100% + 13px);left:0;right:0;text-align:center;color:rgba(194,205,226,.58);font:300 clamp(12px,3.1vw,17px)/1.2 system-ui;letter-spacing:.01em}
 .mark{position:absolute;z-index:32;left:50%;top:47%;transform:translate(-50%,-50%);width:min(48vw,350px);height:auto;opacity:.32;pointer-events:none;touch-action:none;transition:opacity .45s ease,filter .45s ease}.mark path{fill:none;stroke:rgba(238,247,255,.84);stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}.mark.on{opacity:1;filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 10px rgba(55,190,255,.78))}.mark.on path{stroke:#fff;stroke-width:2.2}.mark.starting{opacity:.58}.mark.error{opacity:.18}.talk-control{position:absolute;z-index:33;left:50%;top:calc(47% + min(16vw,128px));transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:auto;border:0;background:transparent;color:inherit;padding:10px 18px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}.power-icon{width:clamp(35px,9vw,58px);height:clamp(35px,9vw,58px);stroke:#dff8ff;fill:none;stroke-width:2;filter:drop-shadow(0 0 6px rgba(74,196,255,.7))}.talk-control:active{transform:translate(-50%,-50%) scale(.96)}.talk-label{font:400 clamp(11px,2.8vw,16px)/1 system-ui;letter-spacing:.28em;color:rgba(246,250,255,.88);white-space:nowrap}
 .action-row{position:absolute;z-index:35;left:8vw;right:8vw;bottom:max(calc(env(safe-area-inset-bottom) + 8vh),70px);display:grid;grid-template-columns:repeat(3,1fr);align-items:start;gap:3vw}.action{border:0;background:transparent;color:#f4f8ff;padding:0;display:flex;flex-direction:column;align-items:center;gap:0;cursor:pointer;-webkit-tap-highlight-color:transparent}.action-circle{width:clamp(58px,14vw,88px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;border:1.4px solid transparent;background:linear-gradient(#080b14,#080b14) padding-box,linear-gradient(135deg,#28e7ff,#596cff,#dc43ff) border-box;box-shadow:0 0 18px rgba(82,111,255,.16)}.action svg{width:46%;height:46%;stroke:#f2fbff;fill:none;stroke-width:1.8;filter:drop-shadow(0 0 5px rgba(125,221,255,.55))}.action span{font:400 clamp(10px,2.6vw,14px)/1 system-ui;letter-spacing:.25em;white-space:nowrap}.action:active .action-circle{transform:scale(.96)}.action.resume-ready .action-circle{box-shadow:0 0 24px rgba(82,111,255,.34),0 0 10px rgba(40,231,255,.2)}
-/* AQUI 1.5 — Center Voice.
-   The iridescent ring stays untouched. AQUI itself illuminates only while the assistant is speaking. */
+/* AQUI 1.6 — Voice Wave. The orb remains untouched. A separate iridescent waveform
+   appears only while AQUI is producing a spoken response. */
 .signal-band{position:absolute;inset:.65%;border-radius:50%;pointer-events:none;border:clamp(4px,.72vw,7px) solid #010207;z-index:3;opacity:1}
-.presence.aqui-speaking-female .mark{opacity:1;filter:drop-shadow(0 0 5px #fff) drop-shadow(0 0 14px rgba(255,61,187,.98)) drop-shadow(0 0 34px rgba(255,61,187,.72));animation:aquiVoiceMark 1.05s ease-in-out infinite}
-.presence.aqui-speaking-female .mark path{stroke:#fff1fb;stroke-width:2.35}
-.presence.aqui-speaking-female .core{box-shadow:inset 0 0 48px rgba(255,61,187,.16),0 0 24px rgba(255,61,187,.10)}
-.presence.aqui-speaking-male .mark{opacity:1;filter:drop-shadow(0 0 5px #fff) drop-shadow(0 0 14px rgba(255,139,61,.98)) drop-shadow(0 0 34px rgba(255,139,61,.72));animation:aquiVoiceMark 1.05s ease-in-out infinite}
-.presence.aqui-speaking-male .mark path{stroke:#fff4e9;stroke-width:2.35}
-.presence.aqui-speaking-male .core{box-shadow:inset 0 0 48px rgba(255,139,61,.16),0 0 24px rgba(255,139,61,.10)}
-@keyframes aquiVoiceMark{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.86}50%{transform:translate(-50%,-50%) scale(1.025);opacity:1}}
+.voice-wave{position:absolute;z-index:34;left:50%;bottom:max(calc(env(safe-area-inset-bottom) + 19vh),150px);transform:translateX(-50%);width:min(32vw,240px);height:54px;display:flex;align-items:center;justify-content:center;gap:clamp(2px,.55vw,4px);opacity:0;filter:drop-shadow(0 0 8px rgba(76,160,255,.18));transition:opacity .22s ease;pointer-events:none}
+.voice-wave::after{content:"";position:absolute;left:3%;right:3%;top:50%;height:1px;background:linear-gradient(90deg,transparent,#16ddff 14%,#3479ff 34%,#8e43ff 52%,#f12ac7 72%,#ff8b3d 88%,transparent);opacity:.34}
+.voice-wave span{display:block;width:3px;height:7px;min-height:3px;border-radius:999px;background:linear-gradient(180deg,#d9fbff 0%,#18dfff 22%,#3479ff 43%,#a63cff 64%,#f12ac7 80%,#ff8b3d 100%);transform-origin:center;box-shadow:0 0 7px currentColor;animation:aquiWave 760ms ease-in-out infinite alternate;animation-play-state:paused}
+.presence.aqui-speaking .voice-wave{opacity:1;filter:drop-shadow(0 0 8px rgba(41,218,255,.36)) drop-shadow(0 0 12px rgba(220,45,255,.20))}
+.presence.aqui-speaking .voice-wave span{animation-play-state:running}
+.voice-wave span:nth-child(2n){animation-duration:620ms}.voice-wave span:nth-child(3n){animation-duration:880ms}.voice-wave span:nth-child(4n){animation-duration:710ms}.voice-wave span:nth-child(5n){animation-duration:960ms}
+.voice-wave span:nth-child(1),.voice-wave span:nth-child(20){--h:1.8}.voice-wave span:nth-child(2),.voice-wave span:nth-child(19){--h:2.7}.voice-wave span:nth-child(3),.voice-wave span:nth-child(18){--h:4.2}.voice-wave span:nth-child(4),.voice-wave span:nth-child(17){--h:2.3}.voice-wave span:nth-child(5),.voice-wave span:nth-child(16){--h:5.7}.voice-wave span:nth-child(6),.voice-wave span:nth-child(15){--h:3.3}.voice-wave span:nth-child(7),.voice-wave span:nth-child(14){--h:6.4}.voice-wave span:nth-child(8),.voice-wave span:nth-child(13){--h:4.6}.voice-wave span:nth-child(9),.voice-wave span:nth-child(12){--h:7.2}.voice-wave span:nth-child(10),.voice-wave span:nth-child(11){--h:5.2}
+@keyframes aquiWave{0%{transform:scaleY(.55);opacity:.72}100%{transform:scaleY(var(--h,3.5));opacity:1}}
+@media(max-height:760px){.voice-wave{bottom:max(calc(env(safe-area-inset-bottom) + 17vh),125px);height:44px}}
+@media(max-width:480px){.voice-wave{width:34vw;min-width:132px;max-width:180px;gap:3px}.voice-wave span{width:2.5px}}
 .presence:not(.is-on) .halo,.presence:not(.is-on) .rim,.presence:not(.is-on) .oil,.presence:not(.is-on) .oil2{opacity:.11!important;filter:grayscale(.92) saturate(.18) brightness(.42);animation-play-state:paused!important}
 .presence:not(.is-on) .orb{box-shadow:0 0 12px rgba(90,110,140,.06);animation-play-state:paused}
 .presence.is-on .halo,.presence.is-on .rim,.presence.is-on .oil,.presence.is-on .oil2{transition:opacity .65s ease,filter .65s ease}
@@ -58,6 +61,7 @@
   </div>
   <div class="orb"><div class="halo"></div><div class="rim"></div><div class="signal-band"></div><div class="oil"></div><div class="oil2"></div><div class="core"></div></div>
   <svg id="akiButton" class="mark" viewBox="0 0 300 90" aria-hidden="true"><path d="M12 72 L42 18 L72 72 M95 45 C95 27 106 18 121 18 C136 18 147 27 147 45 C147 63 136 72 121 72 C106 72 95 63 95 45 M128 58 L151 77 M176 18 L176 54 C176 66 184 72 196 72 C208 72 216 66 216 54 L216 18 M252 18 L252 72"/></svg>
+  <div id="voiceWave" class="voice-wave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
   <div class="action-row">
     <button id="cameraButton" class="action" type="button" aria-label="Camera"><span class="action-circle"><svg viewBox="0 0 32 32"><path d="M4 10h6l2-3h8l2 3h6v16H4z"/><circle cx="16" cy="18" r="6"/></svg></span></button>
     <button id="powerButton" class="action" type="button" aria-label="Turn AQUI on" aria-pressed="false"><span class="action-circle"><svg viewBox="0 0 32 32"><path d="M16 3v12M9.2 7.2a11 11 0 1 0 13.6 0"/></svg></span></button>
@@ -66,7 +70,7 @@
 </main>
 <script>
 const app=document.querySelector('#app');
-console.info('[AQUI 1.5] Center Voice + One-Tap Resume loaded');
+console.info('[AQUI 1.6] Voice Wave + One-Tap Resume loaded');
 const akiButton=document.querySelector('#akiButton');
 const worldPicker=document.querySelector('#worldPicker');
 const filePicker=document.querySelector('#filePicker');
@@ -117,14 +121,21 @@ localStorage.setItem('akiVoiceBaseline','7.1.6.4-marin-default');
 let akiVoice=localStorage.getItem('akiVoice')||'marin';
 let akiLanguage=localStorage.getItem('akiLanguage')||'auto';
 
-let aquiSpeaking=false;
-function setAquiSpeaking(on){
+let aquiSpeaking=false, voiceWaveOffTimer=0;
+function setAquiSpeaking(on, holdMs=0){
   if(!app)return;
-  aquiSpeaking=!!on;
-  app.classList.remove('aqui-speaking-female','aqui-speaking-male');
-  if(aquiSpeaking) app.classList.add(akiVoice==='marin'?'aqui-speaking-female':'aqui-speaking-male');
+  clearTimeout(voiceWaveOffTimer);
+  if(on){
+    aquiSpeaking=true;
+    app.classList.add('aqui-speaking');
+    if(holdMs>0) voiceWaveOffTimer=setTimeout(()=>setAquiSpeaking(false),holdMs);
+  }else{
+    aquiSpeaking=false;
+    app.classList.remove('aqui-speaking');
+  }
 }
-function setAquiConversationState(){ /* AQUI 1.4: only AQUI speaking has a visual signal. */ }
+function touchAquiVoiceWave(){ setAquiSpeaking(true,1350); }
+function setAquiConversationState(){ /* AQUI 1.6: waveform only indicates AQUI speech. */ }
 
 function powerLook(mode){
  app.classList.toggle('is-on',mode==='on');
@@ -341,7 +352,7 @@ function absorbTranscript(m){
  if(d){transcript+=d;clearTimeout(preferenceTimer);preferenceTimer=setTimeout(flushSpokenTranscript,1400)}
 }
 
-// AQUI 1.5 — Center Voice. No amplitude meter; response audio events drive the center voice light.
+// AQUI 1.6 — Voice Wave. No amplitude analysis; output-audio packets keep the procedural wave alive.
 let remoteAnalyser=null,remoteAudioSource=null,voicePulseRAF=0;
 function stopVoiceLightMeter(){ setAquiSpeaking(false); }
 function startRemoteVoiceLight(){ /* AQUI 1.4 does not analyse amplitude. */ }
@@ -374,8 +385,8 @@ async function startAki(recovery=false){
     
     if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
     if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('response.output_item.added')||all.includes('delegation.created')){if(!greetingInFlight)flushSpokenTranscript();responseStarted();}
-    if(all.includes('output_audio.delta')||all.includes('audio.delta')||all.includes('response.audio.delta')||all.includes('response.output_audio.delta')){setAquiSpeaking(true);firstAudio();}
-    if(all.includes('response.done')||all.includes('response.completed')||all.includes('output_audio.done')||all.includes('audio.done')){setAquiSpeaking(false);if(greetingInFlight)finishLiveGreeting()}
+    if(all.includes('audio')&&all.includes('delta')&&!all.includes('input_audio')){touchAquiVoiceWave();firstAudio();}
+    if(all.includes('response.done')||all.includes('response.completed')||all.includes('output_audio.done')||all.includes('audio.done')){if(aquiSpeaking)setAquiSpeaking(true,1150);if(greetingInFlight)finishLiveGreeting()}
     else if(greetingInFlight&&all.includes('response.output_item.done'))finishLiveGreeting();
     if(type==='error'){if(greetingInFlight)finishLiveGreeting();console.error('AKI Live event error:',m)}
   }catch{}});
