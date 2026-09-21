@@ -20,19 +20,12 @@
 .top-compose{position:absolute;z-index:30;top:max(calc(env(safe-area-inset-top) + 5.5vh),62px);left:6vw;right:6vw;height:clamp(54px,7.5vh,68px)}.write-trigger,.write-layer{position:absolute;inset:0;border-radius:999px;border:1.4px solid transparent;background:linear-gradient(#0a0d18,#0a0d18) padding-box,linear-gradient(90deg,#20ddff,#536bff,#df48ff) border-box;box-shadow:0 0 22px rgba(62,132,255,.13);color:rgba(211,221,238,.55)}.write-trigger{display:flex;align-items:center;gap:16px;padding:0 22px;font:300 clamp(18px,4.5vw,27px)/1 system-ui;border-width:1.4px;text-align:left;width:100%;cursor:text}.write-trigger svg{width:27px;height:27px;flex:none;stroke:#eaf8ff;filter:drop-shadow(0 0 5px rgba(100,220,255,.45))}.write-layer{display:none;align-items:center;padding:0 20px}.write-layer.open{display:flex}.write-layer.open~.write-trigger{visibility:hidden}#writeBox{width:100%;height:100%;resize:none;overflow:auto;border:0;outline:0;background:transparent;color:#eef7ff;font:300 clamp(20px,4.7vw,28px)/1.3 system-ui;padding:14px 4px;caret-color:#65e8ff}#writeBox::placeholder{color:rgba(204,214,232,.42)}.write-hint{position:absolute;top:calc(100% + 13px);left:0;right:0;text-align:center;color:rgba(194,205,226,.58);font:300 clamp(12px,3.1vw,17px)/1.2 system-ui;letter-spacing:.01em}
 .mark{position:absolute;z-index:32;left:50%;top:47%;transform:translate(-50%,-50%);width:min(48vw,350px);height:auto;opacity:.32;pointer-events:none;touch-action:none;transition:opacity .45s ease,filter .45s ease}.mark path{fill:none;stroke:rgba(238,247,255,.84);stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}.mark.on{opacity:1;filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 10px rgba(55,190,255,.78))}.mark.on path{stroke:#fff;stroke-width:2.2}.mark.starting{opacity:.58}.mark.error{opacity:.18}.talk-control{position:absolute;z-index:33;left:50%;top:calc(47% + min(16vw,128px));transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:auto;border:0;background:transparent;color:inherit;padding:10px 18px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}.power-icon{width:clamp(35px,9vw,58px);height:clamp(35px,9vw,58px);stroke:#dff8ff;fill:none;stroke-width:2;filter:drop-shadow(0 0 6px rgba(74,196,255,.7))}.talk-control:active{transform:translate(-50%,-50%) scale(.96)}.talk-label{font:400 clamp(11px,2.8vw,16px)/1 system-ui;letter-spacing:.28em;color:rgba(246,250,255,.88);white-space:nowrap}
 .action-row{position:absolute;z-index:35;left:8vw;right:8vw;bottom:max(calc(env(safe-area-inset-bottom) + 8vh),70px);display:grid;grid-template-columns:repeat(3,1fr);align-items:start;gap:3vw}.action{border:0;background:transparent;color:#f4f8ff;padding:0;display:flex;flex-direction:column;align-items:center;gap:0;cursor:pointer;-webkit-tap-highlight-color:transparent}.action-circle{width:clamp(58px,14vw,88px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;border:1.4px solid transparent;background:linear-gradient(#080b14,#080b14) padding-box,linear-gradient(135deg,#28e7ff,#596cff,#dc43ff) border-box;box-shadow:0 0 18px rgba(82,111,255,.16)}.action svg{width:46%;height:46%;stroke:#f2fbff;fill:none;stroke-width:1.8;filter:drop-shadow(0 0 5px rgba(125,221,255,.55))}.action span{font:400 clamp(10px,2.6vw,14px)/1 system-ui;letter-spacing:.25em;white-space:nowrap}.action:active .action-circle{transform:scale(.96)}.action.resume-ready .action-circle{box-shadow:0 0 24px rgba(82,111,255,.34),0 0 10px rgba(40,231,255,.2)}
-/* AQUI 1.3 — Voice Pulse. Keep the original iridescent identity at all times.
-   Only AQUI's actual outgoing audio makes the outer halo come alive. */
-.presence{--aqui-voice-level:0}
-.rim,.halo{transition:box-shadow .12s linear,filter .12s linear,opacity .18s ease}
-.presence.aqui-speaking .halo{
-  animation:none!important;
-  opacity:calc(.62 + (var(--aqui-voice-level) * .32));
-  transform:scale(calc(1 + (var(--aqui-voice-level) * .055)));
-  filter:blur(calc(20px + (var(--aqui-voice-level) * 10px))) saturate(calc(1.05 + (var(--aqui-voice-level) * .55)));
-}
-.presence.aqui-speaking .rim{
-  box-shadow:0 0 calc(7px + (var(--aqui-voice-level) * 14px)) rgba(92,220,255,.68),0 0 calc(16px + (var(--aqui-voice-level) * 38px)) rgba(177,55,255,.42),0 0 calc(28px + (var(--aqui-voice-level) * 52px)) rgba(255,67,174,.22);
-}
+/* AQUI 1.4 — Voice Signal.
+   Preserve the original iridescent ring. The thin separator band lights only while AQUI speaks. */
+.signal-band{position:absolute;inset:.65%;border-radius:50%;pointer-events:none;border:clamp(4px,.72vw,7px) solid #010207;z-index:3;opacity:1;transition:border-color .12s ease,box-shadow .12s ease,opacity .16s ease}
+.presence.aqui-speaking-female .signal-band{border-color:#ff3dbb;box-shadow:0 0 8px rgba(255,61,187,.9),0 0 20px rgba(255,61,187,.58),inset 0 0 12px rgba(255,61,187,.35);animation:voiceSignal 1.05s ease-in-out infinite}
+.presence.aqui-speaking-male .signal-band{border-color:#ff8b3d;box-shadow:0 0 8px rgba(255,139,61,.95),0 0 20px rgba(255,139,61,.58),inset 0 0 12px rgba(255,139,61,.35);animation:voiceSignal 1.05s ease-in-out infinite}
+@keyframes voiceSignal{0%,100%{opacity:.58;filter:brightness(.82)}50%{opacity:1;filter:brightness(1.45)}}
 .presence:not(.is-on) .halo,.presence:not(.is-on) .rim,.presence:not(.is-on) .oil,.presence:not(.is-on) .oil2{opacity:.11!important;filter:grayscale(.92) saturate(.18) brightness(.42);animation-play-state:paused!important}
 .presence:not(.is-on) .orb{box-shadow:0 0 12px rgba(90,110,140,.06);animation-play-state:paused}
 .presence.is-on .halo,.presence.is-on .rim,.presence.is-on .oil,.presence.is-on .oil2{transition:opacity .65s ease,filter .65s ease}
@@ -59,7 +52,7 @@
       <div class="handoff-actions"><button id="handoffCopy" class="handoff-btn" type="button">Copy</button><button id="handoffOpen" class="handoff-btn" type="button">Search</button><button id="handoffClose" class="handoff-btn handoff-close" type="button" aria-label="Close">×</button></div>
     </div>
   </div>
-  <div class="orb"><div class="halo"></div><div class="rim"></div><div class="oil"></div><div class="oil2"></div><div class="core"></div></div>
+  <div class="orb"><div class="halo"></div><div class="rim"></div><div class="signal-band"></div><div class="oil"></div><div class="oil2"></div><div class="core"></div></div>
   <svg id="akiButton" class="mark" viewBox="0 0 300 90" aria-hidden="true"><path d="M12 72 L42 18 L72 72 M95 45 C95 27 106 18 121 18 C136 18 147 27 147 45 C147 63 136 72 121 72 C106 72 95 63 95 45 M128 58 L151 77 M176 18 L176 54 C176 66 184 72 196 72 C208 72 216 66 216 54 L216 18 M252 18 L252 72"/></svg>
   <div class="action-row">
     <button id="cameraButton" class="action" type="button" aria-label="Camera"><span class="action-circle"><svg viewBox="0 0 32 32"><path d="M4 10h6l2-3h8l2 3h6v16H4z"/><circle cx="16" cy="18" r="6"/></svg></span></button>
@@ -95,8 +88,8 @@ let assistantTranscript='',assistantTranscriptTimer=null;
 let usageSessionId=null,usageStartedAt=0,usageStopSent=false;
 const usageDeviceId=(()=>{let id=localStorage.getItem('akiUsageDeviceId');if(!id){id=(crypto.randomUUID?.()||('aki-'+Date.now()+'-'+Math.random().toString(36).slice(2)));localStorage.setItem('akiUsageDeviceId',id)}return id})();
 function usageId(){return crypto.randomUUID?.()||('s-'+Date.now()+'-'+Math.random().toString(36).slice(2))}
-function beginUsageSession(){if(usageStartedAt)return;usageSessionId=usageId();usageStartedAt=Date.now();usageStopSent=false;fetch('/api/usage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event:'start',session_id:usageSessionId,device_id:usageDeviceId,started_at:new Date(usageStartedAt).toISOString(),version:'AQUI-1.3'})}).catch(()=>{})}
-function finishUsageSession(useBeacon=false){if(!usageStartedAt||usageStopSent)return;usageStopSent=true;const ended=Date.now(),seconds=Math.max(1,Math.round((ended-usageStartedAt)/1000));const payload={event:'stop',session_id:usageSessionId,device_id:usageDeviceId,started_at:new Date(usageStartedAt).toISOString(),ended_at:new Date(ended).toISOString(),duration_seconds:seconds,version:'AQUI-1.3'};try{const key='akiUsageTotalSeconds';localStorage.setItem(key,String((Number(localStorage.getItem(key))||0)+seconds));localStorage.setItem('akiUsageLastSession',JSON.stringify(payload))}catch{};const body=JSON.stringify(payload);if(useBeacon&&navigator.sendBeacon){try{navigator.sendBeacon('/api/usage',new Blob([body],{type:'application/json'}))}catch{}}else fetch('/api/usage',{method:'POST',headers:{'Content-Type':'application/json'},body,keepalive:true}).catch(()=>{});usageStartedAt=0;usageSessionId=null}
+function beginUsageSession(){if(usageStartedAt)return;usageSessionId=usageId();usageStartedAt=Date.now();usageStopSent=false;fetch('/api/usage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event:'start',session_id:usageSessionId,device_id:usageDeviceId,started_at:new Date(usageStartedAt).toISOString(),version:'AQUI-1.4'})}).catch(()=>{})}
+function finishUsageSession(useBeacon=false){if(!usageStartedAt||usageStopSent)return;usageStopSent=true;const ended=Date.now(),seconds=Math.max(1,Math.round((ended-usageStartedAt)/1000));const payload={event:'stop',session_id:usageSessionId,device_id:usageDeviceId,started_at:new Date(usageStartedAt).toISOString(),ended_at:new Date(ended).toISOString(),duration_seconds:seconds,version:'AQUI-1.4'};try{const key='akiUsageTotalSeconds';localStorage.setItem(key,String((Number(localStorage.getItem(key))||0)+seconds));localStorage.setItem('akiUsageLastSession',JSON.stringify(payload))}catch{};const body=JSON.stringify(payload);if(useBeacon&&navigator.sendBeacon){try{navigator.sendBeacon('/api/usage',new Blob([body],{type:'application/json'}))}catch{}}else fetch('/api/usage',{method:'POST',headers:{'Content-Type':'application/json'},body,keepalive:true}).catch(()=>{});usageStartedAt=0;usageSessionId=null}
 window.AKIUsage=()=>({device_id:usageDeviceId,total_seconds:Number(localStorage.getItem('akiUsageTotalSeconds'))||0,last_session:JSON.parse(localStorage.getItem('akiUsageLastSession')||'null')});
 
 const ACTIVE_CONTEXT_KEY='akiActiveConversationV1061';
@@ -121,13 +114,13 @@ let akiVoice=localStorage.getItem('akiVoice')||'marin';
 let akiLanguage=localStorage.getItem('akiLanguage')||'auto';
 
 let aquiSpeaking=false;
-function setAquiSpeaking(on,level=0){
+function setAquiSpeaking(on){
   if(!app)return;
   aquiSpeaking=!!on;
-  app.classList.toggle('aqui-speaking',aquiSpeaking);
-  app.style.setProperty('--aqui-voice-level',String(Math.max(0,Math.min(1,level||0))));
+  app.classList.remove('aqui-speaking-female','aqui-speaking-male');
+  if(aquiSpeaking) app.classList.add(akiVoice==='marin'?'aqui-speaking-female':'aqui-speaking-male');
 }
-function setAquiConversationState(){ /* AQUI 1.3: color-state system intentionally retired. */ }
+function setAquiConversationState(){ /* AQUI 1.4: only AQUI speaking has a visual signal. */ }
 
 function powerLook(mode){
  app.classList.toggle('is-on',mode==='on');
@@ -171,7 +164,7 @@ function turnEnded(){
   },15000);
 }
 function responseStarted(){if(responseStartAt)return;responseStartAt=performance.now();latency('response-started',{from_turn_end_ms:turnEndAt?Math.round(responseStartAt-turnEndAt):null})}
-function firstAudio(){if(firstAudioAt)return;firstAudioAt=performance.now();clearTimeout(latencyTimer);clearTimeout(hardWatchdog);latency('first-audio',{from_turn_end_ms:turnEndAt?Math.round(firstAudioAt-turnEndAt):null,from_response_start_ms:responseStartAt?Math.round(firstAudioAt-responseStartAt):null})}
+function firstAudio(){if(firstAudioAt)return;firstAudioAt=performance.now();setAquiSpeaking(true);clearTimeout(latencyTimer);clearTimeout(hardWatchdog);latency('first-audio',{from_turn_end_ms:turnEndAt?Math.round(firstAudioAt-turnEndAt):null,from_response_start_ms:responseStartAt?Math.round(firstAudioAt-responseStartAt):null})}
 
 function normalizedSpeech(text){
  return (text||'').toLowerCase().replace(/[’]/g,"'").replace(/\s+/g,' ').trim();
@@ -344,33 +337,10 @@ function absorbTranscript(m){
  if(d){transcript+=d;clearTimeout(preferenceTimer);preferenceTimer=setTimeout(flushSpokenTranscript,1400)}
 }
 
-// AQUI 1.3 — Voice Pulse. Only AQUI's remote/outgoing audio drives the visual.
+// AQUI 1.4 — Voice Signal. Only AQUI's remote/outgoing audio drives the visual.
 let remoteAnalyser=null,remoteAudioSource=null,voicePulseRAF=0;
-function stopVoiceLightMeter(){
-  if(voicePulseRAF)cancelAnimationFrame(voicePulseRAF);voicePulseRAF=0;
-  try{remoteAudioSource?.disconnect()}catch{} remoteAudioSource=null;remoteAnalyser=null;setAquiSpeaking(false,0);
-}
-function startRemoteVoiceLight(stream){
-  stopVoiceLightMeter();
-  try{
-    remoteAudioSource=audioCtx.createMediaStreamSource(stream);
-    remoteAnalyser=audioCtx.createAnalyser();remoteAnalyser.fftSize=1024;remoteAnalyser.smoothingTimeConstant=.68;
-    remoteAudioSource.connect(remoteAnalyser);
-    const data=new Uint8Array(remoteAnalyser.fftSize);let envelope=0,quietFrames=0;
-    const tick=()=>{
-      if(!powered||!remoteAnalyser){voicePulseRAF=0;return}
-      remoteAnalyser.getByteTimeDomainData(data);
-      let sum=0;for(let i=0;i<data.length;i++){const v=(data[i]-128)/128;sum+=v*v}
-      const rms=Math.sqrt(sum/data.length);
-      const target=Math.max(0,Math.min(1,(rms-.0025)*28));
-      envelope=envelope*.68+target*.32;
-      if(envelope>.025){quietFrames=0;setAquiSpeaking(true,envelope)}
-      else if(++quietFrames>8){setAquiSpeaking(false,0)}
-      voicePulseRAF=requestAnimationFrame(tick);
-    };tick();
-    console.log('[AQUI 1.3 voice-pulse] remote audio meter attached');
-  }catch(err){console.warn('[AQUI 1.3 voice-pulse unavailable]',err)}
-}
+function stopVoiceLightMeter(){ setAquiSpeaking(false); }
+function startRemoteVoiceLight(){ /* AQUI 1.4 does not analyse amplitude. */ }
 
 async function stopAki(keepLook=false,preserveIntent=false){
  if(stopping)return;stopping=true;stopVoiceLightMeter();if(!preserveIntent){wantsPower=false;markActiveConversation(false);recentConversation=[];saveActiveConversation();finishUsageSession();}powered=false;powerGreetingSent=false;clearTimeout(latencyTimer);clearTimeout(hardWatchdog);clearTimeout(preferenceTimer);clearTimeout(recoveryTimer);
@@ -389,7 +359,7 @@ async function startAki(recovery=false){
   audioEl.addEventListener('playing',()=>{if(powered)firstAudio()});
   audioEl.addEventListener('ended',()=>setAquiSpeaking(false,0));
   audioEl.addEventListener('pause',()=>{if(!restarting)setAquiSpeaking(false,0)});
-  pc.ontrack=e=>{const remote=e.streams[0];audioEl.srcObject=remote;startRemoteVoiceLight(remote);audioEl.play().catch(()=>{})};micStream.getTracks().forEach(t=>pc.addTrack(t,micStream));
+  pc.ontrack=e=>{const remote=e.streams[0];audioEl.srcObject=remote;audioEl.play().catch(()=>{})};micStream.getTracks().forEach(t=>pc.addTrack(t,micStream));
   dc=pc.createDataChannel('oai-events');dc.addEventListener('open',()=>{
     latency('data-channel-open',{voice:akiVoice});
     // AKI 10.1.3 — session instructions are configured server-side in /api/aki.
@@ -401,7 +371,7 @@ async function startAki(recovery=false){
     if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
     if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('response.output_item.added')||all.includes('delegation.created')){if(!greetingInFlight)flushSpokenTranscript();responseStarted();}
     if(all.includes('output_audio.delta')||all.includes('audio.delta')||all.includes('response.audio.delta')||all.includes('response.output_audio.delta'))firstAudio();
-    if(all.includes('response.done')||all.includes('response.completed')||all.includes('output_audio.done')||all.includes('audio.done')){if(greetingInFlight)finishLiveGreeting()}
+    if(all.includes('response.done')||all.includes('response.completed')||all.includes('output_audio.done')||all.includes('audio.done')){setAquiSpeaking(false);if(greetingInFlight)finishLiveGreeting()}
     else if(greetingInFlight&&all.includes('response.output_item.done'))finishLiveGreeting();
     if(type==='error'){if(greetingInFlight)finishLiveGreeting();console.error('AKI Live event error:',m)}
   }catch{}});
