@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     return fail(503, 'Native voice is not configured');
   }
   if (!authenticate(req.headers.authorization, token)) return fail(401, 'Unauthorized');
-  if (!process.env.OPENAI_API_KEY) return fail(503, 'Native voice is not configured');
+  if (!process.env.AQUI_NATIVE_OPENAI_API_KEY) return fail(503, 'Native voice is not configured');
   if (!/^application\/sdp(?:\s*;\s*charset=utf-8)?$/i.test(req.headers['content-type'] || '')) {
     return fail(415, 'Expected application/sdp');
   }
@@ -68,7 +68,7 @@ export default async function handler(req, res) {
   try {
     const upstream = await fetch('https://api.openai.com/v1/realtime/calls', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
+      headers: { Authorization: `Bearer ${process.env.AQUI_NATIVE_OPENAI_API_KEY}` },
       body: form,
       signal: AbortSignal.timeout(20_000),
       redirect: 'error'

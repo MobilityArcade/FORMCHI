@@ -23,7 +23,8 @@ async function run({ method = 'POST', auth = `Bearer ${token}`, body = offer, he
 test('native session route: isolated, non-networked contract and failure cases', async t => {
   const originalFetch = globalThis.fetch;
   const originalToken = process.env.AQUI_NATIVE_DEV_TOKEN;
-  const originalKey = process.env.OPENAI_API_KEY;
+  const originalKey = process.env.AQUI_NATIVE_OPENAI_API_KEY;
+  const originalLegacyKey = process.env.OPENAI_API_KEY;
   let calls = 0;
   const fakeKey = randomBytes(32).toString('hex');
   globalThis.fetch = async (url, options) => {
@@ -43,7 +44,8 @@ test('native session route: isolated, non-networked contract and failure cases',
   };
   try {
     process.env.AQUI_NATIVE_DEV_TOKEN = token;
-    process.env.OPENAI_API_KEY = fakeKey;
+    process.env.OPENAI_API_KEY = randomBytes(32).toString("hex"); // Disposable legacy fixture; never used upstream.
+    process.env.AQUI_NATIVE_OPENAI_API_KEY = fakeKey;
     await t.test('method, auth, content type, size and malformed SDP rejected before upstream', async () => {
       assert.equal((await run({ method: 'GET' })).code, 405);
       for (const auth of ['', 'Bearer wrong', `Bearer ${randomBytes(32).toString('base64url')}`]) assert.equal((await run({ auth })).code, 401);
@@ -55,13 +57,13 @@ test('native session route: isolated, non-networked contract and failure cases',
       assert.equal((await run({ headers: { 'content-encoding': 'gzip' } })).code, 415);
       assert.equal(calls, 0);
     });
-    await t.test('missing configuration fails closed', async () => {
+    await t.test('missing native configuration fails closed even with legacy key present', async () => {
       delete process.env.AQUI_NATIVE_DEV_TOKEN;
       assert.equal((await run()).code, 503);
       process.env.AQUI_NATIVE_DEV_TOKEN = token;
-      delete process.env.OPENAI_API_KEY;
+      delete process.env.AQUI_NATIVE_OPENAI_API_KEY;
       assert.equal((await run()).code, 503);
-      process.env.OPENAI_API_KEY = fakeKey;
+      process.env.AQUI_NATIVE_OPENAI_API_KEY = fakeKey;
       assert.equal(calls, 0);
     });
     await t.test('valid offer returns only SDP', async () => {
@@ -87,7 +89,8 @@ test('native session route: isolated, non-networked contract and failure cases',
     });
   } finally {
     globalThis.fetch = originalFetch;
+    if (originalLegacyKey === undefined) delete process.env.OPENAI_API_KEY; else process.env.OPENAI_API_KEY = originalLegacyKey;
     if (originalToken === undefined) delete process.env.AQUI_NATIVE_DEV_TOKEN; else process.env.AQUI_NATIVE_DEV_TOKEN = originalToken;
-    if (originalKey === undefined) delete process.env.OPENAI_API_KEY; else process.env.OPENAI_API_KEY = originalKey;
+    if (originalKey === undefined) delete process.env.AQUI_NATIVE_OPENAI_API_KEY; else process.env.AQUI_NATIVE_OPENAI_API_KEY = originalKey;
   }
 });
