@@ -119,7 +119,24 @@ export async function readPage(input, { resolve = lookup, hop = getHop, signal =
     return { source: url.href, ...extract(result.body, result.type) };
   }
 }
-export function createHandler({ read = readPage } = {}) {
+// Preview test protection only: state is NOT shared across instances or cold starts.
+export function createAdmissionGuard(now = () => performance.now()) {
+  let active = false;
+  let admitted = [];
+  let last = -Infinity;
+  return () => {
+    const time = now();
+    if (!Number.isFinite(time) || time < last) throw new Error('guardUnavailable');
+    last = time;
+    admitted = admitted.filter(t => time - t < 60000);
+    if (active || admitted.length >= 2) return { retryAfter: active ? 8 : Math.max(1, Math.ceil((60000 - (time - admitted[0])) / 1000)) };
+    admitted.push(time);
+    active = true;
+    let released = false;
+    return { release() { if (!released) { released = true; active = false; } } };
+  };
+}
+export function createHandler({ read = readPage, admit = createAdmissionGuard() } = {}) {
   return async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     const error = (status, code) => res.status(status).json({ error: code });
@@ -134,6 +151,15 @@ export function createHandler({ read = readPage } = {}) {
         (req.headers['content-encoding'] && req.headers['content-encoding'] !== 'identity')) return error(415, 'unsupportedContent');
     const length = req.headers['content-length'];
     if (length !== undefined && (!/^\d+$/.test(length) || Number(length) > limits.request)) return error(413, 'tooLarge');
+    let admission;
+    try {
+      admission = admit();
+      if (Number.isInteger(admission?.retryAfter) && admission.retryAfter > 0) {
+        res.setHeader('Retry-After', String(admission.retryAfter));
+        return error(429, 'rateLimited');
+      }
+      if (typeof admission?.release !== 'function') throw new Error('guardUnavailable');
+    } catch { return error(503, 'unavailable'); }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), limits.milliseconds);
     const closed = () => controller.abort();
@@ -149,7 +175,7 @@ export function createHandler({ read = readPage } = {}) {
       const page = await abortable(read(url.href, { signal: controller.signal }), controller.signal);
       return res.status(200).json(page);
     } catch (e) { return error(controller.signal.aborted ? 504 : 422, controller.signal.aborted ? 'timeout' : closedCodes.has(e.code) ? e.code : 'unavailable'); }
-    finally { clearTimeout(timer); req.off('aborted', closed); res.off?.('close', closed); }
+    finally { clearTimeout(timer); req.off('aborted', closed); res.off?.('close', closed); admission.release(); }
   };
 }
 export default createHandler();

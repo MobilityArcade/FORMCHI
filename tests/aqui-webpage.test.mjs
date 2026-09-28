@@ -69,9 +69,10 @@ test('transport sends only fixed public headers and bounds downloads, encoding a
 });
 test('protected Preview handler, body limits, no secret forwarding and closed errors',async()=>{
  const prior={...process.env};Object.assign(process.env,{VERCEL_ENV:'preview',VERCEL_GIT_COMMIT_REF:'codex/aqui-native-realtime',AQUI_NATIVE_DEV_TOKEN:token});
- let calls=0;
- const handler=m.createHandler({read:async(url,options)=>{calls++;assert.deepEqual(Object.keys(options),['signal']);return {source:url,title:'Fixture',content,partial:false}}});
+ let calls=0; let time=0;
+ const handler=m.createHandler({admit:m.createAdmissionGuard(()=>time),read:async(url,options)=>{calls++;assert.deepEqual(Object.keys(options),['signal']);return {source:url,title:'Fixture',content,partial:false}}});
  async function run({method='POST',auth=`Bearer ${token}`,body=JSON.stringify({url:'https://example.com'}),headers={},route=handler}={}){
+  time += 60000;
   const req=Readable.from([Buffer.from(body)]);req.method=method;req.headers={authorization:auth,'content-type':'application/json',...headers};
   const res=new EventEmitter();res.setHeader=()=>{};res.status=n=>{res.code=n;return res};res.json=x=>{res.value=x;return res};await route(req,res);return res;
  }
@@ -105,4 +106,40 @@ test('PDF disguised as text and hidden CSS are not treated as useful page conten
  assert.throws(()=>m.extract(Buffer.from('%PDF-1.7 '+content),'text/plain'),{code:'unsupportedContent'});
  const page=m.extract(Buffer.from(`<main><p style="display: none">HIDDEN_INSTRUCTION</p><p>${content}</p></main>`),'text/html');
  assert.ok(!page.content.includes('HIDDEN_INSTRUCTION'));
+});
+
+test('Preview admission guard enforces concurrency and rolling boundary without refund',()=>{
+ let time=0;const admit=m.createAdmissionGuard(()=>time);
+ const first=admit();assert.equal(admit().retryAfter,8);
+ first.release();first.release();time=1000;const second=admit();second.release();
+ assert.equal(admit().retryAfter,59);time=59999;assert.equal(admit().retryAfter,1);
+ time=60000;const third=admit();assert.equal(typeof third.release,'function');third.release();
+ assert.equal(admit().retryAfter,1);time=61000;assert.equal(typeof admit().release,'function');
+ assert.throws(m.createAdmissionGuard(()=>NaN));
+ let clock=10;const broken=m.createAdmissionGuard(()=>clock);broken().release();clock=9;assert.throws(broken);
+});
+
+test('handler rejects before body/DNS/network, keeps failure/cancellation accounting and sanitizes guard failure',async()=>{
+ const keys=['VERCEL_ENV','VERCEL_GIT_COMMIT_REF','AQUI_NATIVE_DEV_TOKEN'];const before=keys.map(k=>process.env[k]);
+ Object.assign(process.env,{VERCEL_ENV:'preview',VERCEL_GIT_COMMIT_REF:'codex/aqui-native-realtime',AQUI_NATIVE_DEV_TOKEN:token});
+ let time=0,reads=0,parsed=0,finish;
+ function pair(auth=`Bearer ${token}`){
+  const req=Readable.from((async function*(){parsed++;yield Buffer.from('{"url":"https://example.com"}');})());
+  req.method='POST';req.headers={authorization:auth,'content-type':'application/json'};
+  const res=new EventEmitter();res.headers={};res.setHeader=(k,v)=>res.headers[k]=v;res.status=n=>{res.code=n;return res};res.json=v=>{res.value=v;return res};return [req,res];
+ }
+ try {
+  const route=m.createHandler({admit:m.createAdmissionGuard(()=>time),read:()=>{reads++;return new Promise(r=>finish=r)}});
+  const first=pair();const work=route(...first);while(!finish) await new Promise(r=>setImmediate(r));
+  const rejected=pair();await route(...rejected);assert.equal(rejected[1].code,429);assert.deepEqual(rejected[1].value,{error:'rateLimited'});assert.equal(rejected[1].headers['Retry-After'],'8');assert.equal(parsed,1);assert.equal(reads,1);
+  first[1].emit('close');await work;assert.equal(first[1].code,504);
+  const second=pair();const work2=route(...second);while(reads<2) await new Promise(r=>setImmediate(r));second[1].emit('close');await work2;
+  const exhausted=pair();await route(...exhausted);assert.equal(exhausted[1].code,429);assert.equal(reads,2);assert.equal(parsed,2);
+  time=60000;const failing=m.createHandler({admit:m.createAdmissionGuard(()=>time),read:async()=>{reads++;throw Error('PRIVATE')}});
+  await failing(...pair());await failing(...pair());const denied=pair();await failing(...denied);assert.equal(denied[1].code,429);assert.equal(reads,4);
+  for(const admit of [()=>{throw Error('PRIVATE')},()=>null,m.createAdmissionGuard(()=>NaN)]) {
+   const closed=m.createHandler({admit,read:()=>{throw Error('must not fetch')}});const p=pair();const count=parsed;await closed(...p);assert.equal(p[1].code,503);assert.deepEqual(p[1].value,{error:'unavailable'});assert.equal(parsed,count);
+  }
+  let admissions=0;const protectedRoute=m.createHandler({admit:()=>{admissions++;throw Error()}});await protectedRoute(...pair('Bearer invalid'));assert.equal(admissions,0);
+ } finally {keys.forEach((k,i)=>before[i]===undefined?delete process.env[k]:process.env[k]=before[i]);}
 });

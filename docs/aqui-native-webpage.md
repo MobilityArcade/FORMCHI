@@ -1,6 +1,6 @@
 # Native AQUI public webpage reader — development only
 
-Not deployed. Do not merge to main or deploy Production. Existing routes remain
+Preview only. Do not merge to main or deploy Production. Existing routes remain
 unchanged except the reviewed, appended native-session webpage-reference instruction.
 
 `POST /api/aqui-webpage` accepts only `{ "url": "http(s)://..." }` from the
@@ -63,10 +63,16 @@ No live page, Realtime or OpenAI calls are part of these suites.
 
 1. Review/publish only these local changes to the existing development branch/PR,
    separately authorized; keep main and Production unchanged.
-2. Explicitly authorize a narrowly scoped Firewall rate limit for this new route:
-   Preview branch hostname, POST, exact /api/aqui-webpage, client IP, 5/60 seconds,
-   HTTP 429. Existing /api/aqui-realtime rule does not cover it. Do not deploy
-   until this protection is active. Never rely on per-process counters in Vercel.
+2. Use the approved temporary instance-local admission guard: one in-progress
+   request and two admissions per rolling 60 seconds, after authentication and
+   before body parsing/DNS/network work. Failed/cancelled admissions still count;
+   cleanup releases only concurrency. Excess returns 429 with Retry-After; guard
+   failure returns sanitized 503 without fetching. Only timestamps/flags are kept.
+   This is private Preview/test protection, NOT a global/distributed limiter or
+   production abuse control. Cold starts reset counters; multiple instances each
+   have their own allowance. Existing Vercel Authentication and bearer validation
+   remain required. Do one deliberate submission, with no automatic retry.
+   The plan rejected the additional WAF rule; existing Realtime WAF is unchanged.
 3. Confirm branch-scoped AQUI_NATIVE_DEV_TOKEN and deployment protection metadata
    without reading values. No new credential or OpenAI scope is needed for fetching.
 4. Authorize one Preview deployment (existing one-off Ignore Build Step override).
