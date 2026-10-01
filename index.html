@@ -44,6 +44,25 @@
 /* AKI 10.5.1 — temporary handoff lives OUTSIDE the compose field. */
 .handoff{display:none;position:absolute;top:calc(100% + 10px);left:0;right:0;z-index:40;padding:10px 12px;border:1px solid rgba(115,205,255,.45);border-radius:16px;background:rgba(5,8,18,.94);box-shadow:0 10px 32px rgba(0,0,0,.35);backdrop-filter:blur(14px);align-items:center;gap:10px}
 .handoff.show{display:flex}.handoff-text{min-width:0;flex:1;color:#eef7ff;font:500 14px/1.25 system-ui,-apple-system,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.handoff-actions{display:flex;gap:7px}.handoff-btn{border:1px solid rgba(145,215,255,.45);background:rgba(15,22,40,.88);color:#f7fbff;border-radius:999px;padding:7px 10px;font:600 12px system-ui,-apple-system,sans-serif;cursor:pointer}.handoff-close{padding:7px 9px}
+
+/* AQUI EYES EXPERIMENT — visual-only presence layer */
+.aqui-title{position:absolute;z-index:34;left:50%;top:calc(47% - min(48vw,390px));transform:translateX(-50%);width:min(30vw,220px);height:auto;opacity:.34;pointer-events:none;transition:opacity .55s ease,filter .55s ease}
+.aqui-title path{fill:none;stroke:rgba(238,247,255,.84);stroke-width:1.25;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.presence.is-on .aqui-title{opacity:.95;filter:drop-shadow(0 0 4px rgba(255,255,255,.72)) drop-shadow(0 0 9px rgba(55,190,255,.38))}
+.presence:not(.is-on) .aqui-title{opacity:.14;filter:none}
+.eyes{position:absolute;z-index:33;left:50%;top:47%;transform:translate(-50%,-50%);width:min(32vw,235px);height:min(14vw,105px);display:flex;align-items:center;justify-content:center;gap:min(8vw,58px);pointer-events:none;opacity:.16;transition:opacity .55s ease,filter .55s ease}
+.eye{position:relative;width:clamp(17px,5vw,38px);height:clamp(34px,10vw,74px);border-radius:50%;background:#f9fdff;box-shadow:0 0 7px #fff,0 0 15px rgba(80,205,255,.96),0 0 28px rgba(56,126,255,.64);transform-origin:center;transition:height .22s ease,border-radius .22s ease,transform .25s ease,clip-path .25s ease}
+.presence.is-on .eyes{opacity:1;filter:drop-shadow(0 0 6px rgba(80,205,255,.35))}
+.presence.is-on .eye{animation:aquiBlink 6.7s infinite}
+.presence.is-on .eye:nth-child(2){animation-delay:.035s}
+.presence:not(.is-on) .eye{height:3px;box-shadow:0 0 6px rgba(80,205,255,.35),0 0 12px rgba(56,126,255,.24);opacity:.4}
+.eyes.thinking .eye{height:4px;border-radius:999px;transform:translateY(7px);animation:none}
+.eyes.happy .eye{height:22px;background:transparent;box-shadow:none;border:4px solid #f9fdff;border-left-color:transparent;border-right-color:transparent;border-bottom-color:transparent;border-radius:50% 50% 0 0;transform:translateY(9px);filter:drop-shadow(0 0 6px rgba(80,205,255,.9));animation:none}
+.eyes.curious .eye:first-child{transform:translateY(-4px) scaleY(.82)}
+.eyes.curious .eye:last-child{transform:translateY(4px) scaleY(1.06)}
+@keyframes aquiBlink{0%,43%,47%,72%,76%,100%{transform:scaleY(1)}45%,74%{transform:scaleY(.06)}}
+@media(max-height:700px){.aqui-title{top:calc(47% - min(40vw,300px))}}
+
 </style>
 
 
@@ -63,7 +82,8 @@
     </div>
   </div>
   <div class="orb"><div class="halo"></div><div class="rim"></div><div class="signal-band"></div><div class="oil"></div><div class="oil2"></div><div class="core"></div></div>
-  <svg id="akiButton" class="mark" viewBox="0 0 300 90" aria-hidden="true"><path d="M12 72 L42 18 L72 72 M95 45 C95 27 106 18 121 18 C136 18 147 27 147 45 C147 63 136 72 121 72 C106 72 95 63 95 45 M128 58 L151 77 M176 18 L176 54 C176 66 184 72 196 72 C208 72 216 66 216 54 L216 18 M252 18 L252 72"/></svg>
+  <svg id="akiButton" class="aqui-title" viewBox="0 0 300 90" aria-hidden="true"><path d="M12 72 L42 18 L72 72 M95 45 C95 27 106 18 121 18 C136 18 147 27 147 45 C147 63 136 72 121 72 C106 72 95 63 95 45 M128 58 L151 77 M176 18 L176 54 C176 66 184 72 196 72 C208 72 216 66 216 54 L216 18 M252 18 L252 72"/></svg>
+  <div id="aquiEyes" class="eyes neutral" aria-hidden="true"><span class="eye"></span><span class="eye"></span></div>
   <div class="action-row">
     <button id="cameraButton" class="action" type="button" aria-label="Camera"><span class="action-circle"><svg viewBox="0 0 32 32"><path d="M4 10h6l2-3h8l2 3h6v16H4z"/><circle cx="16" cy="18" r="6"/></svg></span></button>
     <button id="powerButton" class="action" type="button" aria-label="Turn AQUI on" aria-pressed="false"><span class="action-circle"><svg viewBox="0 0 32 32"><path d="M16 3v12M9.2 7.2a11 11 0 1 0 13.6 0"/></svg></span></button>
@@ -126,7 +146,11 @@ let akiLanguage=localStorage.getItem('akiLanguage')||'auto';
 // AQUI 1.8 intentionally has no speaking/thinking visual state on the web build.
 // Keep these compatibility hooks inert so older recovery/voice code does not need to change.
 function setAquiOnAir(){}
-function setAquiConversationState(){}
+function setAquiConversationState(state='neutral'){
+  const eyes=document.querySelector('#aquiEyes');if(!eyes)return;
+  eyes.classList.remove('neutral','thinking','happy','curious');
+  eyes.classList.add(['thinking','happy','curious'].includes(state)?state:'neutral');
+}
 
 function powerLook(mode){
  app.classList.toggle('is-on',mode==='on');
@@ -374,9 +398,9 @@ async function startAki(recovery=false){
     absorbTranscript(m);absorbAssistantTranscript(m);
     
     if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
-    if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('response.output_item.added')||all.includes('delegation.created')){if(!greetingInFlight)flushSpokenTranscript();responseStarted();}
+    if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('response.output_item.added')||all.includes('delegation.created')){if(!greetingInFlight)flushSpokenTranscript();setAquiConversationState('thinking');responseStarted();}
     if(all.includes('audio')&&all.includes('delta')&&!all.includes('input_audio')){firstAudio();}
-    if(all.includes('response.done')||all.includes('response.completed')){if(greetingInFlight)finishLiveGreeting()}
+    if(all.includes('response.done')||all.includes('response.completed')){setAquiConversationState('neutral');if(greetingInFlight)finishLiveGreeting()}
     else if(all.includes('output_audio.done')||all.includes('audio.done')){if(greetingInFlight)finishLiveGreeting()}
     else if(greetingInFlight&&all.includes('response.output_item.done'))finishLiveGreeting();
     if(type==='error'){if(greetingInFlight)finishLiveGreeting();console.error('AKI Live event error:',m)}
