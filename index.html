@@ -46,22 +46,22 @@
 .handoff.show{display:flex}.handoff-text{min-width:0;flex:1;color:#eef7ff;font:500 14px/1.25 system-ui,-apple-system,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.handoff-actions{display:flex;gap:7px}.handoff-btn{border:1px solid rgba(145,215,255,.45);background:rgba(15,22,40,.88);color:#f7fbff;border-radius:999px;padding:7px 10px;font:600 12px system-ui,-apple-system,sans-serif;cursor:pointer}.handoff-close{padding:7px 9px}
 
 /* AQUI EYES EXPERIMENT — visual-only presence layer */
-.aqui-title{position:absolute;z-index:34;left:50%;top:calc(47% + min(45vw,360px));transform:translate(-50%,-50%);width:min(27vw,190px);height:auto;opacity:.62;pointer-events:none;transition:opacity .55s ease,filter .55s ease}
+.aqui-title{display:none!important}
 .aqui-title path{fill:none;stroke:rgba(238,247,255,.84);stroke-width:1.25;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
-.presence.is-on .aqui-title{opacity:.95;filter:drop-shadow(0 0 4px rgba(255,255,255,.72)) drop-shadow(0 0 9px rgba(55,190,255,.38))}
-.presence:not(.is-on) .aqui-title{opacity:.52;filter:none}
-.eyes{position:absolute;z-index:33;left:50%;top:47%;transform:translate(-50%,-50%);width:min(46vw,330px);height:min(22vw,160px);display:flex;align-items:center;justify-content:center;gap:min(10vw,76px);pointer-events:none;opacity:.16;transition:opacity .55s ease,filter .55s ease}
-.eye{position:relative;width:clamp(25px,7.2vw,52px);height:clamp(48px,14vw,102px);border-radius:50%;background:#f9fdff;box-shadow:0 0 7px #fff,0 0 15px rgba(80,205,255,.96),0 0 28px rgba(56,126,255,.64);transform-origin:center;transition:height .22s ease,border-radius .22s ease,transform .25s ease,clip-path .25s ease}
+.presence.is-on .aqui-title{display:none!important}
+.presence:not(.is-on) .aqui-title{display:none!important}
+.eyes{position:absolute;z-index:33;left:50%;top:47%;transform:translate(-50%,-50%);width:min(52vw,380px);height:min(26vw,188px);display:flex;align-items:center;justify-content:center;gap:min(11vw,84px);pointer-events:none;opacity:.16;transition:opacity .55s ease,filter .55s ease}
+.eye{position:relative;width:clamp(29px,8.3vw,60px);height:clamp(55px,16.1vw,117px);border-radius:50%;background:#f9fdff;box-shadow:0 0 7px #fff,0 0 15px rgba(80,205,255,.96),0 0 28px rgba(56,126,255,.64);transform-origin:center;transition:height .22s ease,border-radius .22s ease,transform .25s ease,clip-path .25s ease}
 .presence.is-on .eyes{opacity:1;filter:drop-shadow(0 0 6px rgba(80,205,255,.35))}
 .presence.is-on .eye{animation:aquiBlink 6.7s infinite}
 .presence.is-on .eye:nth-child(2){animation-delay:.035s}
 .presence:not(.is-on) .eye{height:3px;box-shadow:0 0 6px rgba(80,205,255,.35),0 0 12px rgba(56,126,255,.24);opacity:.4}
 .eyes.thinking .eye{height:4px;border-radius:999px;transform:translateY(7px);animation:none}
-.eyes.happy .eye{height:22px;background:transparent;box-shadow:none;border:4px solid #f9fdff;border-left-color:transparent;border-right-color:transparent;border-bottom-color:transparent;border-radius:50% 50% 0 0;transform:translateY(9px);filter:drop-shadow(0 0 6px rgba(80,205,255,.9));animation:none}
+.eyes.happy .eye{height:26px;background:transparent;box-shadow:none;border:4px solid #f9fdff;border-left-color:transparent;border-right-color:transparent;border-bottom-color:transparent;border-radius:50% 50% 0 0;transform:translateY(9px);filter:drop-shadow(0 0 6px rgba(80,205,255,.9));animation:none}
 .eyes.curious .eye:first-child{transform:translateY(-4px) scaleY(.82)}
 .eyes.curious .eye:last-child{transform:translateY(4px) scaleY(1.06)}
 @keyframes aquiBlink{0%,43%,47%,72%,76%,100%{transform:scaleY(1)}45%,74%{transform:scaleY(.06)}}
-@media(max-height:700px){.aqui-title{top:calc(47% + min(39vw,285px));width:min(25vw,170px)}}
+
 
 </style>
 
