@@ -65,12 +65,43 @@
 /* AHKI MINIMAL ONE-TAP — conversation only. */
 .top-compose,.action-row,#worldPicker,#filePicker,.eyes,.handoff{display:none!important}
 .presence{cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}
-.orb{top:50%;width:min(82vw,680px)}
-.mark{display:block!important;top:50%;width:auto;height:auto;opacity:.20;font:300 clamp(42px,11vw,78px)/1 system-ui,-apple-system,sans-serif;letter-spacing:.24em;color:rgba(215,224,238,.48);filter:none;transition:opacity .55s ease,color .55s ease,text-shadow .55s ease;transform:translate(-50%,-50%);white-space:nowrap}
-.presence.is-on .mark{opacity:1;color:#fff;text-shadow:0 0 5px #fff,0 0 13px rgba(55,190,255,.72)}
-.presence:not(.is-on) .mark{opacity:.18;color:rgba(195,205,220,.55);text-shadow:none}
-.presence.is-on .orb{box-shadow:0 0 24px rgba(35,205,255,.22),0 0 70px rgba(57,105,255,.18),0 0 120px rgba(188,49,255,.12)}
-@media(max-height:700px){.orb{width:min(74vw,540px)}}
+
+/* Keep AHKI the same visual size when rotating portrait ↔ landscape. */
+.orb{
+  top:50%;
+  width:min(82vmin,680px);
+}
+
+.mark{
+  display:block!important;
+  top:50%;
+  width:auto;
+  height:auto;
+  opacity:.20;
+  font:300 clamp(42px,11vmin,78px)/1 system-ui,-apple-system,sans-serif;
+  letter-spacing:.24em;
+  color:rgba(215,224,238,.48);
+  filter:none;
+  transition:opacity .55s ease,color .55s ease,text-shadow .55s ease;
+  transform:translate(-50%,-50%);
+  white-space:nowrap;
+}
+
+.presence.is-on .mark{
+  opacity:1;
+  color:#fff;
+  text-shadow:0 0 5px #fff,0 0 13px rgba(55,190,255,.72);
+}
+
+.presence:not(.is-on) .mark{
+  opacity:.18;
+  color:rgba(195,205,220,.55);
+  text-shadow:none;
+}
+
+.presence.is-on .orb{
+  box-shadow:0 0 24px rgba(35,205,255,.22),0 0 70px rgba(57,105,255,.18),0 0 120px rgba(188,49,255,.12);
+}
 
 
 /* AHKI MINIMAL ORB V2 — mockup-matched ON state; true-black OFF state. */
@@ -89,7 +120,7 @@
 
 
 /* AHKI MINIMAL ORB V3 — visible dormant rings, hidden wordmark until awake. */
-.ahki-wordmark{display:block!important;position:absolute!important;z-index:32!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;width:min(48vw,350px)!important;height:auto!important;pointer-events:none!important;opacity:0!important;visibility:hidden!important;filter:none!important;transition:opacity .42s ease,visibility 0s linear .42s,filter .42s ease!important}
+.ahki-wordmark{display:block!important;position:absolute!important;z-index:32!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;width:min(48vwin,350px)!important;height:auto!important;pointer-events:none!important;opacity:0!important;visibility:hidden!important;filter:none!important;transition:opacity .42s ease,visibility 0s linear .42s,filter .42s ease!important}
 .ahki-wordmark .ahki-strokes path{fill:none!important;stroke:#fff!important;stroke-width:2.15!important;stroke-linecap:round!important;stroke-linejoin:round!important;vector-effect:non-scaling-stroke!important}
 .presence.is-on .ahki-wordmark{opacity:1!important;visibility:visible!important;transition:opacity .42s ease,visibility 0s!important;filter:drop-shadow(0 0 4px rgba(255,255,255,.95)) drop-shadow(0 0 11px rgba(72,190,255,.72))!important}
 .presence:not(.is-on) .ahki-wordmark{opacity:0!important;visibility:hidden!important}
