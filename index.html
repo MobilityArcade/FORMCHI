@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=45">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=45">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=45">
-<title>AHKI Eyes — Character V3</title>
+<title>AHKI</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#eef7ff}.presence{position:relative;width:100%;height:100dvh;overflow:hidden;isolation:isolate;background:radial-gradient(circle at 50% 46%,#11162a 0,#080b13 40%,#030507 74%,#020304 100%);-webkit-tap-highlight-color:transparent}.ambient{position:absolute;inset:-18%;background:radial-gradient(circle at 50% 48%,rgba(20,82,145,.14),rgba(72,30,112,.08) 34%,transparent 70%);filter:blur(48px);animation:ambient 14s ease-in-out infinite}.orb{position:absolute;left:50%;top:47%;width:min(84vw,680px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:#010207;box-shadow:0 0 20px rgba(35,205,255,.18),0 0 58px rgba(57,105,255,.15),0 0 105px rgba(188,49,255,.10);animation:orbBreath 8.4s ease-in-out infinite}.halo,.rim,.oil,.oil2,.core{position:absolute;border-radius:50%;pointer-events:none}.halo{inset:-4.8%;background:conic-gradient(from 215deg,transparent 0 7%,rgba(0,210,255,.22) 14%,rgba(61,91,255,.18) 29%,rgba(211,38,255,.20) 45%,rgba(255,70,169,.16) 57%,rgba(255,115,70,.14) 68%,rgba(24,202,255,.18) 83%,transparent 96%);filter:blur(22px);opacity:.58;animation:oilTurn 34s linear infinite}.rim{inset:-1.0%;background:conic-gradient(from 220deg,#ff729e 0deg,#ff3dbb 38deg,#bb31ff 78deg,#514cff 120deg,#1b7cff 164deg,#13dfff 207deg,#c9fbff 230deg,#27c8ff 248deg,#395eff 282deg,#a42aff 318deg,#ff729e 360deg);filter:saturate(1.5) brightness(1.18);opacity:1;box-shadow:0 0 5px rgba(92,220,255,.58),0 0 13px rgba(118,75,255,.30);animation:oilTurn 31s linear infinite}.rim:after{content:"";position:absolute;inset:2.0%;border-radius:50%;background:#010207;box-shadow:inset 0 0 18px rgba(18,157,255,.16)}.oil{inset:2.4%;background:conic-gradient(from 12deg,#14d7ff 0 12%,#0b79ff 20%,#5239f4 31%,#bc29f0 42%,#f222bf 51%,#ff6d72 61%,#ff8b3d 68%,#55259e 77%,#061018 83%,#0bbfe9 94%,#14d7ff 100%);filter:saturate(1.55) brightness(1.05);opacity:.96;animation:oilTurn 28s linear infinite;box-shadow:inset 0 0 10px rgba(255,255,255,.08)}.oil:after{content:"";position:absolute;inset:12.2%;border-radius:50%;background:radial-gradient(circle at 50% 45%,#02040a 0%,#010207 72%,#02030a 88%,#02040b 100%);box-shadow:0 0 10px rgba(1,2,7,.9),inset 0 0 24px rgba(19,99,180,.08)}.oil2{inset:5.5%;background:conic-gradient(from 165deg,transparent 0 11%,rgba(13,207,255,.26) 20%,rgba(69,72,255,.20) 33%,rgba(215,36,255,.22) 46%,transparent 58% 72%,rgba(255,111,57,.16) 82%,rgba(119,44,255,.20) 92%,transparent);filter:blur(7px) saturate(1.3);opacity:.52;animation:oilTurn2 38s linear infinite}.oil2:after{content:"";position:absolute;inset:14%;border-radius:50%;background:#010207}.core{inset:14.5%;background:radial-gradient(circle at 46% 39%,rgba(5,17,31,.24),#010207 57%,#010207 100%);box-shadow:inset 0 0 38px rgba(34,123,210,.06)}
 .top-compose{position:absolute;z-index:30;top:max(calc(env(safe-area-inset-top) + 5.5vh),62px);left:6vw;right:6vw;height:clamp(54px,7.5vh,68px)}.write-trigger,.write-layer{position:absolute;inset:0;border-radius:999px;border:1.4px solid transparent;background:linear-gradient(#0a0d18,#0a0d18) padding-box,linear-gradient(90deg,#20ddff,#536bff,#df48ff) border-box;box-shadow:0 0 22px rgba(62,132,255,.13);color:rgba(211,221,238,.55)}.write-trigger{display:flex;align-items:center;gap:16px;padding:0 22px;font:300 clamp(18px,4.5vw,27px)/1 system-ui;border-width:1.4px;text-align:left;width:100%;cursor:text}.write-trigger svg{width:27px;height:27px;flex:none;stroke:#eaf8ff;filter:drop-shadow(0 0 5px rgba(100,220,255,.45))}.write-layer{display:none;align-items:center;padding:0 20px}.write-layer.open{display:flex}.write-layer.open~.write-trigger{visibility:hidden}#writeBox{width:100%;height:100%;resize:none;overflow:auto;border:0;outline:0;background:transparent;color:#eef7ff;font:300 clamp(20px,4.7vw,28px)/1.3 system-ui;padding:14px 4px;caret-color:#65e8ff}#writeBox::placeholder{color:rgba(204,214,232,.42)}.write-hint{position:absolute;top:calc(100% + 13px);left:0;right:0;text-align:center;color:rgba(194,205,226,.58);font:300 clamp(12px,3.1vw,17px)/1.2 system-ui;letter-spacing:.01em}
@@ -72,6 +72,34 @@
 .presence.is-on .orb{box-shadow:0 0 24px rgba(35,205,255,.22),0 0 70px rgba(57,105,255,.18),0 0 120px rgba(188,49,255,.12)}
 @media(max-height:700px){.orb{width:min(74vw,540px)}}
 
+
+/* AHKI MINIMAL ORB V2 — mockup-matched ON state; true-black OFF state. */
+.presence{background:#010206!important}
+.ambient{opacity:0!important;transition:opacity .55s ease!important}
+.orb{opacity:0!important;visibility:hidden!important;transition:opacity .55s ease,visibility 0s linear .55s!important;box-shadow:none!important}
+.mark{opacity:0!important;visibility:hidden!important;transition:opacity .42s ease,visibility 0s linear .42s,color .42s ease,text-shadow .42s ease!important}
+.presence.is-on .ambient{opacity:.72!important}
+.presence.is-on .orb{opacity:1!important;visibility:visible!important;transition:opacity .55s ease,visibility 0s!important;box-shadow:0 0 18px rgba(35,205,255,.34),0 0 58px rgba(46,119,255,.28),0 0 110px rgba(178,42,255,.20)!important}
+.presence.is-on .mark{opacity:1!important;visibility:visible!important;transition:opacity .42s ease,visibility 0s!important;color:#fff!important;text-shadow:0 0 5px #fff,0 0 14px rgba(79,194,255,.82)!important;font-weight:200!important;letter-spacing:.22em!important}
+.presence.is-on .halo{opacity:.72!important;filter:blur(20px) saturate(1.45) brightness(1.18)!important}
+.presence.is-on .rim{opacity:1!important;filter:saturate(1.72) brightness(1.34)!important;box-shadow:0 0 7px rgba(94,224,255,.78),0 0 20px rgba(99,82,255,.48),0 0 30px rgba(238,50,255,.24)!important}
+.presence.is-on .oil{opacity:1!important;filter:saturate(1.72) brightness(1.20)!important}
+.presence.is-on .oil2{opacity:.64!important;filter:blur(6px) saturate(1.55) brightness(1.12)!important}
+.presence:not(.is-on) .halo,.presence:not(.is-on) .rim,.presence:not(.is-on) .oil,.presence:not(.is-on) .oil2,.presence:not(.is-on) .core{opacity:0!important}
+
+
+/* AHKI MINIMAL ORB V3 — visible dormant rings, hidden wordmark until awake. */
+.ahki-wordmark{display:block!important;position:absolute!important;z-index:32!important;left:50%!important;top:47%!important;transform:translate(-50%,-50%)!important;width:min(48vw,350px)!important;height:auto!important;pointer-events:none!important;opacity:0!important;visibility:hidden!important;filter:none!important;transition:opacity .42s ease,visibility 0s linear .42s,filter .42s ease!important}
+.ahki-wordmark .ahki-strokes path{fill:none!important;stroke:#fff!important;stroke-width:2.15!important;stroke-linecap:round!important;stroke-linejoin:round!important;vector-effect:non-scaling-stroke!important}
+.presence.is-on .ahki-wordmark{opacity:1!important;visibility:visible!important;transition:opacity .42s ease,visibility 0s!important;filter:drop-shadow(0 0 4px rgba(255,255,255,.95)) drop-shadow(0 0 11px rgba(72,190,255,.72))!important}
+.presence:not(.is-on) .ahki-wordmark{opacity:0!important;visibility:hidden!important}
+/* OFF keeps the physical ring visible, dark and dormant, while AHKI lettering disappears completely. */
+.presence:not(.is-on) .orb{opacity:1!important;visibility:visible!important;box-shadow:0 0 18px rgba(46,83,180,.16),0 0 54px rgba(64,50,170,.10)!important}
+.presence:not(.is-on) .halo{opacity:.16!important;filter:blur(24px) saturate(.55) brightness(.48)!important}
+.presence:not(.is-on) .rim{opacity:.18!important;filter:saturate(.42) brightness(.48)!important;box-shadow:0 0 4px rgba(45,110,220,.14)!important}
+.presence:not(.is-on) .oil{opacity:.16!important;filter:saturate(.38) brightness(.38)!important;box-shadow:none!important}
+.presence:not(.is-on) .oil2{opacity:.08!important;filter:blur(8px) saturate(.35) brightness(.35)!important}
+.presence:not(.is-on) .core{opacity:1!important;background:radial-gradient(circle at 46% 39%,rgba(4,10,19,.20),#010207 60%,#010207 100%)!important}
 </style>
 
 
@@ -91,7 +119,14 @@
     </div>
   </div>
   <div class="orb"><div class="halo"></div><div class="rim"></div><div class="signal-band"></div><div class="oil"></div><div class="oil2"></div><div class="core"></div></div>
-  <div id="akiButton" class="mark" role="button" aria-label="Turn AHKI on" aria-pressed="false">AHKI</div>
+  <svg id="akiButton" class="mark ahki-wordmark" role="button" aria-label="Turn AHKI on" aria-pressed="false" viewBox="0 0 420 110" xmlns="http://www.w3.org/2000/svg">
+    <g class="ahki-strokes">
+      <path d="M22 88 L66 20 L110 88"/>
+      <path d="M142 20 L142 88 M142 54 L198 54 M198 20 L198 88"/>
+      <path d="M236 20 L236 88 M236 57 L302 20 M236 57 L304 88"/>
+      <path d="M350 20 L350 88"/>
+    </g>
+  </svg>
   <div id="aquiEyes" class="eyes neutral" aria-hidden="true"><span class="eye"></span><span class="eye"></span></div>
   <div class="action-row">
     <button id="cameraButton" class="action" type="button" aria-label="Camera"><span class="action-circle"><svg viewBox="0 0 32 32"><path d="M4 10h6l2-3h8l2 3h6v16H4z"/><circle cx="16" cy="18" r="6"/></svg></span></button>
@@ -101,7 +136,7 @@
 </main>
 <script>
 const app=document.querySelector('#app');
-console.info('[AHKI EYES] Character V3 loaded — working V2 engine preserved');
+console.info('[AHKI] Minimal Orb V2 loaded');
 const akiButton=document.querySelector('#akiButton');
 const worldPicker=document.querySelector('#worldPicker');
 const filePicker=document.querySelector('#filePicker');
