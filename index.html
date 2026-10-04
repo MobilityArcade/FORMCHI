@@ -272,11 +272,11 @@ function chime(){
       o.connect(g);g.connect(audioCtx.destination);o.start(t+i*.055);o.stop(t+.36+i*.055)})}catch{}
 }
 
-// AHKI HUMAN PERCUSSION — Build 1.
-// No UI is added. These helpers create short human-scale percussive gestures
-// locally in the browser and can hold/repeat a pattern without affecting Live voice.
-// This first pass is intentionally self-contained: no external audio files required.
+// AHKI ACOUSTIC PRESENCE — Build 2.
+// Human-scale percussion + sustained tone + local hum/pitch listening foundation.
+// No UI changes. No changes to the Live/WebRTC transport.
 let ahkiPercussionBusy=false,ahkiPercussionStopToken=0;
+let ahkiDrone={oscillators:[],master:null,token:0,frequency:0};
 
 async function ensurePercussionAudio(){
   audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();
@@ -284,100 +284,114 @@ async function ensurePercussionAudio(){
   return audioCtx;
 }
 
-function percussionNoiseBuffer(ctx,duration=.09){
+function percussionNoiseBuffer(ctx,duration=.12){
   const length=Math.max(1,Math.floor(ctx.sampleRate*duration));
-  const buffer=ctx.createBuffer(1,length,ctx.sampleRate);
-  const data=buffer.getChannelData(0);
+  const buffer=ctx.createBuffer(1,length,ctx.sampleRate),data=buffer.getChannelData(0);
   for(let i=0;i<length;i++)data[i]=(Math.random()*2-1);
   return buffer;
 }
 
-function playHumanPercussion(sound='tap',when=null,intensity=.72){
+function makePercussionBus(ctx,level=1){
+  const input=ctx.createGain(),compressor=ctx.createDynamicsCompressor(),out=ctx.createGain();
+  compressor.threshold.value=-22;compressor.knee.value=18;compressor.ratio.value=5;compressor.attack.value=.002;compressor.release.value=.12;
+  out.gain.value=Math.max(.2,Math.min(1.35,level));
+  input.connect(compressor);compressor.connect(out);out.connect(ctx.destination);
+  return input;
+}
+
+function noiseBurst(ctx,destination,t,{duration=.08,frequency=1800,q=.7,gain=.4,type='bandpass'}={}){
+  const src=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),g=ctx.createGain();
+  src.buffer=percussionNoiseBuffer(ctx,duration);filter.type=type;filter.frequency.value=frequency;filter.Q.value=q;
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.001,gain),t+.002);g.gain.exponentialRampToValueAtTime(.0001,t+duration);
+  src.connect(filter);filter.connect(g);g.connect(destination);src.start(t);src.stop(t+duration+.01);
+}
+
+function playHumanPercussion(sound='tap',when=null,intensity=.95){
   if(!audioCtx)return;
-  const ctx=audioCtx,t=when??ctx.currentTime;
-  const master=ctx.createGain();
-  master.gain.setValueAtTime(.0001,t);
+  const ctx=audioCtx,t=when??ctx.currentTime,amount=Math.max(.25,Math.min(1.25,intensity));
+  const bus=makePercussionBus(ctx,1.18);
 
   if(sound==='snap'){
-    const src=ctx.createBufferSource(),bp=ctx.createBiquadFilter();
-    src.buffer=percussionNoiseBuffer(ctx,.055);
-    bp.type='bandpass';bp.frequency.value=3400;bp.Q.value=.75;
-    master.gain.exponentialRampToValueAtTime(.22*intensity,t+.002);
-    master.gain.exponentialRampToValueAtTime(.0001,t+.055);
-    src.connect(bp);bp.connect(master);master.connect(ctx.destination);
-    src.start(t);src.stop(t+.06);
-    return;
+    // Bright crack + small lower skin/body component so the snap has weight.
+    noiseBurst(ctx,bus,t,{duration:.038,frequency:3900,q:1.05,gain:.78*amount});
+    noiseBurst(ctx,bus,t+.003,{duration:.055,frequency:1850,q:.8,gain:.34*amount});
+    const o=ctx.createOscillator(),g=ctx.createGain();o.type='triangle';o.frequency.setValueAtTime(310,t);o.frequency.exponentialRampToValueAtTime(180,t+.045);
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.18*amount,t+.002);g.gain.exponentialRampToValueAtTime(.0001,t+.05);o.connect(g);g.connect(bus);o.start(t);o.stop(t+.055);return;
   }
 
   if(sound==='clap'){
-    master.gain.setValueAtTime(.0001,t);
-    master.connect(ctx.destination);
-    [0,.012,.026].forEach((offset,i)=>{
-      const src=ctx.createBufferSource(),bp=ctx.createBiquadFilter(),g=ctx.createGain();
-      src.buffer=percussionNoiseBuffer(ctx,.075);
-      bp.type='bandpass';bp.frequency.value=1500+(i*260);bp.Q.value=.55;
-      g.gain.setValueAtTime(.0001,t+offset);
-      g.gain.exponentialRampToValueAtTime((.24-i*.035)*intensity,t+offset+.002);
-      g.gain.exponentialRampToValueAtTime(.0001,t+offset+.072);
-      src.connect(bp);bp.connect(g);g.connect(master);
-      src.start(t+offset);src.stop(t+offset+.08);
-    });
-    master.gain.exponentialRampToValueAtTime(.95,t+.002);
-    master.gain.exponentialRampToValueAtTime(.0001,t+.12);
-    return;
+    // Several hand-contact transients plus a short broad tail. Intentionally human, not a drum snare.
+    [0,.009,.021,.034].forEach((off,i)=>noiseBurst(ctx,bus,t+off,{duration:.075+(i*.008),frequency:1250+(i*240),q:.55,gain:(.58-i*.07)*amount}));
+    noiseBurst(ctx,bus,t+.018,{duration:.14,frequency:760,q:.5,gain:.24*amount,type:'lowpass'});return;
   }
 
-  // Soft hand/body tap: short low-mid thump plus a tiny skin/noise transient.
-  const osc=ctx.createOscillator(),og=ctx.createGain();
-  osc.type='sine';osc.frequency.setValueAtTime(155,t);osc.frequency.exponentialRampToValueAtTime(92,t+.07);
-  og.gain.setValueAtTime(.0001,t);og.gain.exponentialRampToValueAtTime(.15*intensity,t+.003);og.gain.exponentialRampToValueAtTime(.0001,t+.095);
-  osc.connect(og);og.connect(master);
-  const src=ctx.createBufferSource(),lp=ctx.createBiquadFilter(),ng=ctx.createGain();
-  src.buffer=percussionNoiseBuffer(ctx,.055);lp.type='lowpass';lp.frequency.value=1150;
-  ng.gain.setValueAtTime(.0001,t);ng.gain.exponentialRampToValueAtTime(.08*intensity,t+.002);ng.gain.exponentialRampToValueAtTime(.0001,t+.05);
-  src.connect(lp);lp.connect(ng);ng.connect(master);master.connect(ctx.destination);
-  master.gain.setValueAtTime(.9,t);master.gain.exponentialRampToValueAtTime(.0001,t+.12);
-  osc.start(t);osc.stop(t+.11);src.start(t);src.stop(t+.06);
+  // Body/hand tap: audible skin transient + warm palm/thigh resonance.
+  noiseBurst(ctx,bus,t,{duration:.048,frequency:2050,q:.85,gain:.46*amount});
+  noiseBurst(ctx,bus,t+.004,{duration:.09,frequency:820,q:.65,gain:.30*amount,type:'lowpass'});
+  const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.setValueAtTime(185,t);o.frequency.exponentialRampToValueAtTime(78,t+.105);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.34*amount,t+.003);g.gain.exponentialRampToValueAtTime(.0001,t+.115);o.connect(g);g.connect(bus);o.start(t);o.stop(t+.12);
 }
 
-async function playPercussionPattern(pattern,{bpm=82,repeats=4,intensity=.72}={}){
+async function playPercussionPattern(pattern,{bpm=82,repeats=4,intensity=.95}={}){
   if(ahkiPercussionBusy)return false;
   const ctx=await ensurePercussionAudio();
   const clean=(Array.isArray(pattern)?pattern:[]).filter(x=>x&&['snap','clap','tap'].includes(x.sound)&&Number.isFinite(Number(x.beat)));
   if(!clean.length)return false;
-  ahkiPercussionBusy=true;
-  const token=++ahkiPercussionStopToken;
-  const beatSeconds=60/Math.max(40,Math.min(180,Number(bpm)||82));
-  const lastBeat=Math.max(...clean.map(x=>Number(x.beat)));
-  const cycleBeats=Math.max(1,lastBeat+1);
-  const start=ctx.currentTime+.08;
+  ahkiPercussionBusy=true;const token=++ahkiPercussionStopToken;
+  const beatSeconds=60/Math.max(40,Math.min(180,Number(bpm)||82)),lastBeat=Math.max(...clean.map(x=>Number(x.beat))),cycleBeats=Math.max(1,lastBeat+1),start=ctx.currentTime+.07;
   try{
-    for(let r=0;r<Math.max(1,Math.min(12,Number(repeats)||1));r++){
-      if(token!==ahkiPercussionStopToken)break;
-      const cycleStart=start+r*cycleBeats*beatSeconds;
-      clean.forEach(step=>playHumanPercussion(step.sound,cycleStart+Number(step.beat)*beatSeconds,intensity));
-    }
-    const total=Math.max(1,Math.min(12,Number(repeats)||1))*cycleBeats*beatSeconds;
-    await new Promise(resolve=>setTimeout(resolve,total*1000+120));
-    return token===ahkiPercussionStopToken;
-  }finally{
-    if(token===ahkiPercussionStopToken)ahkiPercussionBusy=false;
-  }
+    const count=Math.max(1,Math.min(32,Number(repeats)||1));
+    for(let r=0;r<count;r++){if(token!==ahkiPercussionStopToken)break;const cycleStart=start+r*cycleBeats*beatSeconds;clean.forEach(step=>playHumanPercussion(step.sound,cycleStart+Number(step.beat)*beatSeconds,intensity))}
+    const total=count*cycleBeats*beatSeconds;await new Promise(resolve=>setTimeout(resolve,total*1000+100));return token===ahkiPercussionStopToken;
+  }finally{if(token===ahkiPercussionStopToken)ahkiPercussionBusy=false}
 }
 
-function stopPercussion(){
-  ahkiPercussionStopToken++;
-  ahkiPercussionBusy=false;
+function stopPercussion(){ahkiPercussionStopToken++;ahkiPercussionBusy=false}
+
+async function startSustainedTone(frequency=220,{level=.16,warmth=.55}={}){
+  const ctx=await ensurePercussionAudio();stopSustainedTone(.04);
+  const token=++ahkiDrone.token,t=ctx.currentTime,master=ctx.createGain(),compressor=ctx.createDynamicsCompressor();
+  compressor.threshold.value=-24;compressor.ratio.value=3;compressor.attack.value=.01;compressor.release.value=.2;
+  master.gain.setValueAtTime(.0001,t);master.gain.exponentialRampToValueAtTime(Math.max(.025,Math.min(.32,level)),t+.22);master.connect(compressor);compressor.connect(ctx.destination);
+  const partials=[[1,'sine',1],[2,'sine',.20*warmth],[3,'sine',.07*warmth]];const oscillators=[];
+  for(const [multiple,type,amp] of partials){const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.value=Math.max(55,Math.min(1200,frequency))*multiple;g.gain.value=amp;o.connect(g);g.connect(master);o.start(t);oscillators.push(o)}
+  ahkiDrone={oscillators,master,token,frequency};return token;
 }
 
-// Simple console/test hooks. They do not change the visible interface.
+function stopSustainedTone(fade=.28){
+  const d=ahkiDrone;if(!d?.master)return;const ctx=audioCtx,t=ctx?.currentTime||0;
+  try{d.master.gain.cancelScheduledValues(t);d.master.gain.setValueAtTime(Math.max(.0001,d.master.gain.value),t);d.master.gain.exponentialRampToValueAtTime(.0001,t+Math.max(.03,fade));d.oscillators.forEach(o=>{try{o.stop(t+Math.max(.04,fade)+.03)}catch{}})}catch{}
+  ahkiDrone={oscillators:[],master:null,token:(d.token||0)+1,frequency:0};
+}
+
+async function holdSustainedTone(frequency=220,seconds=10,options={}){
+  const token=await startSustainedTone(frequency,options),duration=Math.max(.25,Math.min(120,Number(seconds)||10));
+  await new Promise(r=>setTimeout(r,duration*1000));if(ahkiDrone.token===token)stopSustainedTone();
+}
+
+async function listenForHum(ms=1800){
+  if(!micStream)return null;
+  const measured=await measurePitch(Math.max(500,Math.min(5000,Number(ms)||1800))).catch(()=>null);
+  if(!measured)return null;const nearest=frequencyToNote(measured);return {frequency:measured,note:nearest?.note||null,cents:nearest?.cents??null};
+}
+
+async function joinCurrentHum({listenMs=1600,seconds=10,level=.14}={}){
+  const heard=await listenForHum(listenMs);if(!heard)return null;await holdSustainedTone(heard.frequency,seconds,{level});return heard;
+}
+
+// Test/control hooks only; no visible buttons are added.
 window.AHKIPercussion={
-  snap:async()=>{await ensurePercussionAudio();playHumanPercussion('snap',audioCtx.currentTime+.03)},
-  clap:async()=>{await ensurePercussionAudio();playHumanPercussion('clap',audioCtx.currentTime+.03)},
-  tap:async()=>{await ensurePercussionAudio();playHumanPercussion('tap',audioCtx.currentTime+.03)},
-  pattern:playPercussionPattern,
-  stop:stopPercussion
+  snap:async()=>{await ensurePercussionAudio();playHumanPercussion('snap',audioCtx.currentTime+.03,1)},
+  clap:async()=>{await ensurePercussionAudio();playHumanPercussion('clap',audioCtx.currentTime+.03,1)},
+  tap:async()=>{await ensurePercussionAudio();playHumanPercussion('tap',audioCtx.currentTime+.03,1)},
+  pattern:playPercussionPattern,stop:stopPercussion
 };
+window.AHKIAcoustic={
+  hold:holdSustainedTone,start:startSustainedTone,stop:stopSustainedTone,
+  listen:listenForHum,join:joinCurrentHum,
+  pattern:playPercussionPattern,percussion:playHumanPercussion
+};
+
 function latency(label,extra={}){console.log('[AKI 8.0 latency]',label,{at:new Date().toISOString(),...extra})}
 function turnEnded(){
   setAquiConversationState('idle');
