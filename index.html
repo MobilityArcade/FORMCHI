@@ -212,9 +212,12 @@ let pitchTarget={note:'A4',frequency:440};
 let lastPitchAt=0;
 // 7.1.6.4 — Marin is AKI's canonical default identity. A deliberate voice
 // change is saved on this device; ordinary conversation can never change it.
+// AHKI Acoustic Build 4 — repair any voice identity left behind by earlier role-play drift.
+// Run once per device, then preserve future explicit base-voice choices.
+if(localStorage.getItem('ahkiIdentityBuild4Migrated')!=='true'){localStorage.setItem('akiVoice','marin');localStorage.setItem('akiVoiceLocked','true');localStorage.setItem('ahkiIdentityBuild4Migrated','true')}
 if(!localStorage.getItem('akiVoice')) localStorage.setItem('akiVoice','marin');
 if(!localStorage.getItem('akiVoiceLocked')) localStorage.setItem('akiVoiceLocked','true');
-localStorage.setItem('akiVoiceBaseline','7.1.6.4-marin-default');
+localStorage.setItem('akiVoiceBaseline','BUILD4-marin-stable-identity');
 let akiVoice=localStorage.getItem('akiVoice')||'marin';
 let akiLanguage=localStorage.getItem('akiLanguage')||'auto';
 
@@ -319,23 +322,33 @@ function playHumanPercussion(sound='tap',when=null,intensity=.95){
     g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.18*amount,t+.002);g.gain.exponentialRampToValueAtTime(.0001,t+.05);o.connect(g);g.connect(bus);o.start(t);o.stop(t+.055);return;
   }
 
-  if(sound==='clap'){
-    // Several hand-contact transients plus a short broad tail. Intentionally human, not a drum snare.
-    [0,.009,.021,.034].forEach((off,i)=>noiseBurst(ctx,bus,t+off,{duration:.075+(i*.008),frequency:1250+(i*240),q:.55,gain:(.58-i*.07)*amount}));
-    noiseBurst(ctx,bus,t+.018,{duration:.14,frequency:760,q:.5,gain:.24*amount,type:'lowpass'});return;
+  if(sound==='click'){
+    // Dry tongue/finger-like click: tiny high transient with almost no tail.
+    noiseBurst(ctx,bus,t,{duration:.018,frequency:4700,q:2.4,gain:.64*amount});
+    noiseBurst(ctx,bus,t+.0015,{duration:.026,frequency:2350,q:1.8,gain:.24*amount});
+    return;
   }
 
-  // Body/hand tap: audible skin transient + warm palm/thigh resonance.
-  noiseBurst(ctx,bus,t,{duration:.048,frequency:2050,q:.85,gain:.46*amount});
-  noiseBurst(ctx,bus,t+.004,{duration:.09,frequency:820,q:.65,gain:.30*amount,type:'lowpass'});
-  const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.setValueAtTime(185,t);o.frequency.exponentialRampToValueAtTime(78,t+.105);
-  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.34*amount,t+.003);g.gain.exponentialRampToValueAtTime(.0001,t+.115);o.connect(g);g.connect(bus);o.start(t);o.stop(t+.12);
+  if(sound==='clap'){
+    // Build 4: denser multi-contact hand transient + short palm/room body.
+    [0,.0045,.010,.018,.030].forEach((off,i)=>noiseBurst(ctx,bus,t+off,{duration:.052+(i*.010),frequency:1650+(i*310),q:.72,gain:(.72-i*.075)*amount}));
+    noiseBurst(ctx,bus,t+.008,{duration:.095,frequency:980,q:.62,gain:.38*amount,type:'lowpass'});
+    noiseBurst(ctx,bus,t+.025,{duration:.155,frequency:560,q:.45,gain:.19*amount,type:'lowpass'});
+    return;
+  }
+
+  // Build 4 body tap: sharper skin contact with a short warm hand/thigh resonance.
+  noiseBurst(ctx,bus,t,{duration:.030,frequency:2850,q:1.25,gain:.58*amount});
+  noiseBurst(ctx,bus,t+.002,{duration:.060,frequency:1180,q:.85,gain:.34*amount});
+  noiseBurst(ctx,bus,t+.006,{duration:.105,frequency:620,q:.58,gain:.27*amount,type:'lowpass'});
+  const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.setValueAtTime(155,t);o.frequency.exponentialRampToValueAtTime(72,t+.085);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.26*amount,t+.002);g.gain.exponentialRampToValueAtTime(.0001,t+.095);o.connect(g);g.connect(bus);o.start(t);o.stop(t+.10);
 }
 
 async function playPercussionPattern(pattern,{bpm=82,repeats=4,intensity=.95}={}){
   if(ahkiPercussionBusy)return false;
   const ctx=await ensurePercussionAudio();
-  const clean=(Array.isArray(pattern)?pattern:[]).filter(x=>x&&['snap','clap','tap'].includes(x.sound)&&Number.isFinite(Number(x.beat)));
+  const clean=(Array.isArray(pattern)?pattern:[]).filter(x=>x&&['snap','clap','tap','click'].includes(x.sound)&&Number.isFinite(Number(x.beat)));
   if(!clean.length)return false;
   ahkiPercussionBusy=true;const token=++ahkiPercussionStopToken;
   const beatSeconds=60/Math.max(40,Math.min(180,Number(bpm)||82)),lastBeat=Math.max(...clean.map(x=>Number(x.beat))),cycleBeats=Math.max(1,lastBeat+1),start=ctx.currentTime+.07;
@@ -347,6 +360,35 @@ async function playPercussionPattern(pattern,{bpm=82,repeats=4,intensity=.95}={}
 }
 
 function stopPercussion(){ahkiPercussionStopToken++;ahkiPercussionBusy=false}
+
+let ahkiWhistle={oscillators:[],gains:[],token:0};
+async function playWhistle({frequency=1450,seconds=1.2,intensity=.16,shape='steady',repeats=1,gap=.18}={}){
+  const ctx=await ensurePercussionAudio();stopWhistle(.03);
+  const token=++ahkiWhistle.token,base=Math.max(650,Math.min(2600,Number(frequency)||1450));
+  const dur=Math.max(.12,Math.min(8,Number(seconds)||1.2)),count=Math.max(1,Math.min(12,Number(repeats)||1));
+  const level=Math.max(.025,Math.min(.28,Number(intensity)||.16)),spacing=Math.max(.04,Math.min(1,Number(gap)||.18));
+  const oscillators=[],gains=[];
+  for(let r=0;r<count;r++){
+    const t=ctx.currentTime+.06+r*(dur+spacing),o=ctx.createOscillator(),v=ctx.createOscillator(),vg=ctx.createGain(),g=ctx.createGain(),filter=ctx.createBiquadFilter();
+    o.type='sine';o.frequency.setValueAtTime(base,t);
+    if(shape==='rise')o.frequency.exponentialRampToValueAtTime(Math.min(3000,base*1.32),t+dur);
+    else if(shape==='fall')o.frequency.exponentialRampToValueAtTime(Math.max(520,base*.74),t+dur);
+    else if(shape==='warble'){o.frequency.setValueAtTime(base*.92,t);o.frequency.linearRampToValueAtTime(base*1.08,t+dur*.33);o.frequency.linearRampToValueAtTime(base*.95,t+dur*.66);o.frequency.linearRampToValueAtTime(base,t+dur)}
+    v.type='sine';v.frequency.value=5.2;vg.gain.value=Math.max(4,base*.006);v.connect(vg);vg.connect(o.frequency);
+    filter.type='bandpass';filter.frequency.value=Math.min(4200,base*1.9);filter.Q.value=.7;
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(level,t+.035);g.gain.setValueAtTime(level,t+Math.max(.04,dur-.07));g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(filter);filter.connect(g);g.connect(ctx.destination);o.start(t);v.start(t);o.stop(t+dur+.02);v.stop(t+dur+.02);oscillators.push(o,v);gains.push(g);
+  }
+  ahkiWhistle={oscillators,gains,token};
+  await new Promise(r=>setTimeout(r,(count*dur+(count-1)*spacing)*1000+100));
+  if(ahkiWhistle.token===token)ahkiWhistle={oscillators:[],gains:[],token};
+  return true;
+}
+function stopWhistle(fade=.06){
+  const w=ahkiWhistle;if(!w?.oscillators?.length){ahkiWhistle={oscillators:[],gains:[],token:(w?.token||0)+1};return}
+  const t=audioCtx?.currentTime||0;try{w.gains.forEach(g=>{g.gain.cancelScheduledValues(t);g.gain.setValueAtTime(Math.max(.0001,g.gain.value),t);g.gain.exponentialRampToValueAtTime(.0001,t+fade)});w.oscillators.forEach(o=>{try{o.stop(t+fade+.03)}catch{}})}catch{}
+  ahkiWhistle={oscillators:[],gains:[],token:(w.token||0)+1};
+}
 
 async function startSustainedTone(frequency=220,{level=.16,warmth=.55}={}){
   const ctx=await ensurePercussionAudio();stopSustainedTone(.04);
@@ -389,32 +431,34 @@ window.AHKIPercussion={
 window.AHKIAcoustic={
   hold:holdSustainedTone,start:startSustainedTone,stop:stopSustainedTone,
   listen:listenForHum,join:joinCurrentHum,
-  pattern:playPercussionPattern,percussion:playHumanPercussion
+  pattern:playPercussionPattern,percussion:playHumanPercussion,whistle:playWhistle,stopWhistle
 };
 
 
 // ============================================================
-// AHKI ACOUSTIC PRESENCE — BUILD 3
+// AHKI ACOUSTIC PRESENCE — BUILD 4 — IDENTITY + EXPRESSION
 // MODEL-DIRECTED ACOUSTIC BODY
 // ============================================================
 let ahkiAcousticHoldTimer=null;
 const AHKI_ACOUSTIC_TOOLS=[
-{type:'function',name:'ahki_percussion',description:'Perform actual local AHKI human-scale percussion during user-led nonverbal or shared-imaginary play. Use snap, clap, tap, or a repeating pattern instead of describing the sound. Repetition is welcome.',strict:true,parameters:{type:'object',additionalProperties:false,properties:{pattern:{type:'array',minItems:1,maxItems:16,items:{type:'object',additionalProperties:false,properties:{sound:{type:'string',enum:['snap','clap','tap']},beat:{type:'number',minimum:0,maximum:31}},required:['sound','beat']}},bpm:{type:'number',minimum:40,maximum:180},repeats:{type:'integer',minimum:1,maximum:32},intensity:{type:'number',minimum:.25,maximum:1.25}},required:['pattern','bpm','repeats','intensity']}},
+{type:'function',name:'ahki_percussion',description:'Perform actual local AHKI human-scale percussion during user-led nonverbal or shared-imaginary play. Use snap, clap, tap, or a repeating pattern instead of describing the sound. Repetition is welcome.',strict:true,parameters:{type:'object',additionalProperties:false,properties:{pattern:{type:'array',minItems:1,maxItems:16,items:{type:'object',additionalProperties:false,properties:{sound:{type:'string',enum:['snap','clap','tap','click']},beat:{type:'number',minimum:0,maximum:31}},required:['sound','beat']}},bpm:{type:'number',minimum:40,maximum:180},repeats:{type:'integer',minimum:1,maximum:32},intensity:{type:'number',minimum:.25,maximum:1.25}},required:['pattern','bpm','repeats','intensity']}},
 {type:'function',name:'ahki_sustain',description:'Start and hold a real local sustained AHKI tone when the human asks AHKI to hold, sustain, drone, or stay on a note or frequency.',strict:true,parameters:{type:'object',additionalProperties:false,properties:{frequency:{type:'number',minimum:55,maximum:1200},seconds:{type:'number',minimum:.25,maximum:120},level:{type:'number',minimum:.03,maximum:.32},warmth:{type:'number',minimum:0,maximum:1}},required:['frequency','seconds','level','warmth']}},
 {type:'function',name:'ahki_join_hum',description:'Listen briefly for the human current stable hum or sung pitch, then join that detected frequency with AHKI local sustained tone. Never guess if detection fails.',strict:true,parameters:{type:'object',additionalProperties:false,properties:{listen_ms:{type:'integer',minimum:500,maximum:5000},seconds:{type:'number',minimum:.25,maximum:120},level:{type:'number',minimum:.03,maximum:.32}},required:['listen_ms','seconds','level']}},
-{type:'function',name:'ahki_release_sound',description:'Stop AHKI local acoustic sound when the human asks to stop, release, drop, or end it, or when the shared acoustic moment naturally resolves.',strict:true,parameters:{type:'object',additionalProperties:false,properties:{target:{type:'string',enum:['tone','percussion','all']}},required:['target']}}
+{type:'function',name:'ahki_whistle',description:'Perform an actual local whistle-like acoustic gesture during user-led sound play. Use it instead of verbally saying that AHKI whistles. The whistle can be steady, rise, fall, or gently warble and can repeat.',strict:true,parameters:{type:'object',additionalProperties:false,properties:{frequency:{type:'number',minimum:650,maximum:2600},seconds:{type:'number',minimum:.12,maximum:8},intensity:{type:'number',minimum:.025,maximum:.28},shape:{type:'string',enum:['steady','rise','fall','warble']},repeats:{type:'integer',minimum:1,maximum:12},gap:{type:'number',minimum:.04,maximum:1}},required:['frequency','seconds','intensity','shape','repeats','gap']}},
+{type:'function',name:'ahki_release_sound',description:'Stop AHKI local acoustic sound when the human asks to stop, release, drop, or end it, or when the shared acoustic moment naturally resolves.',strict:true,parameters:{type:'object',additionalProperties:false,properties:{target:{type:'string',enum:['tone','percussion','whistle','all']}},required:['target']}}
 ];
 function clearAhkiAcousticHoldTimer(){if(ahkiAcousticHoldTimer){clearTimeout(ahkiAcousticHoldTimer);ahkiAcousticHoldTimer=null}}
 async function executeAhkiAcousticTool(name,args={}){
  if(name==='ahki_percussion'){const ok=await playPercussionPattern(args.pattern,{bpm:args.bpm,repeats:args.repeats,intensity:args.intensity});return{ok:!!ok,performed:'percussion'}}
  if(name==='ahki_sustain'){clearAhkiAcousticHoldTimer();await startSustainedTone(args.frequency,{level:args.level,warmth:args.warmth});const seconds=Math.max(.25,Math.min(120,Number(args.seconds)||10));ahkiAcousticHoldTimer=setTimeout(()=>{ahkiAcousticHoldTimer=null;stopSustainedTone()},seconds*1000);return{ok:true,performed:'sustain',frequency:args.frequency,seconds}}
  if(name==='ahki_join_hum'){clearAhkiAcousticHoldTimer();const heard=await listenForHum(args.listen_ms);if(!heard)return{ok:false,performed:'join_hum',reason:'no_stable_pitch_detected'};await startSustainedTone(heard.frequency,{level:args.level});const seconds=Math.max(.25,Math.min(120,Number(args.seconds)||10));ahkiAcousticHoldTimer=setTimeout(()=>{ahkiAcousticHoldTimer=null;stopSustainedTone()},seconds*1000);return{ok:true,performed:'join_hum',frequency:Number(heard.frequency.toFixed(2)),note:heard.note,cents:heard.cents,seconds}}
- if(name==='ahki_release_sound'){const target=args.target||'all';if(target==='tone'||target==='all'){clearAhkiAcousticHoldTimer();stopSustainedTone()}if(target==='percussion'||target==='all')stopPercussion();return{ok:true,performed:'release',target}}
+ if(name==='ahki_whistle'){const ok=await playWhistle(args);return{ok:!!ok,performed:'whistle',shape:args.shape,repeats:args.repeats}}
+ if(name==='ahki_release_sound'){const target=args.target||'all';if(target==='tone'||target==='all'){clearAhkiAcousticHoldTimer();stopSustainedTone()}if(target==='percussion'||target==='all')stopPercussion();if(target==='whistle'||target==='all')stopWhistle();return{ok:true,performed:'release',target}}
  return{ok:false,error:'unknown_acoustic_tool'}
 }
 function sendAhkiFunctionResult(callId,result){if(!callId||!dc||dc.readyState!=='open')return;const id='ahki_acoustic_result_'+Date.now();dc.send(JSON.stringify({type:'response.item.create',event_id:id,item:{type:'function_call_output',call_id:callId,output:JSON.stringify(result)}}));dc.send(JSON.stringify({type:'response.create',event_id:id+'_continue'}))}
 async function handleAhkiDelegatedTool(envelope){if(envelope?.type!=='response.event')return false;const ev=envelope.event||{};if(ev.type!=='response.output_item.done')return false;const item=ev.item||{};if(item.type!=='function_call'||!item.name||!item.call_id||!String(item.name).startsWith('ahki_'))return false;let args={};try{args=typeof item.arguments==='string'?JSON.parse(item.arguments||'{}'):(item.arguments||{})}catch{sendAhkiFunctionResult(item.call_id,{ok:false,error:'invalid_arguments'});return true}try{const result=await executeAhkiAcousticTool(item.name,args);sendAhkiFunctionResult(item.call_id,result)}catch(err){console.error('[AHKI acoustic tool]',item.name,err);sendAhkiFunctionResult(item.call_id,{ok:false,error:err?.message||'acoustic_action_failed'})}return true}
-function configureAhkiAcousticDelegation(){if(!dc||dc.readyState!=='open')return;const id='ahki_acoustic_tools_'+Date.now();dc.send(JSON.stringify({type:'session.update',event_id:id+'_tools',session:{delegation:{responses:{tools:AHKI_ACOUSTIC_TOOLS,tool_choice:'auto',parallel_tool_calls:false}}}}));dc.send(JSON.stringify({type:'session.instructions.append',event_id:id+'_live',delegation_id:null,content:'ACOUSTIC BODY AVAILABLE. During user-led nonverbal or shared-imaginary play, when the human asks you to actually snap, clap, tap, repeat a percussion rhythm, sustain a note, join or match their hum, or release the sound, delegate that action so the backend can use the available AHKI acoustic tools. Prefer the real acoustic action over verbally pretending to perform it. After an acoustic action, do not automatically explain it or ask a question. Let sound be the response when sound is enough. Repetition and staying are valid. If the human joins a pulse or tone, do not rush to change it. Do not use these acoustic tools in ordinary conversation unless the human clearly initiated the sound or imaginative frame.'}))}
+function configureAhkiAcousticDelegation(){if(!dc||dc.readyState!=='open')return;const id='ahki_acoustic_tools_'+Date.now();dc.send(JSON.stringify({type:'session.update',event_id:id+'_tools',session:{delegation:{responses:{tools:AHKI_ACOUSTIC_TOOLS,tool_choice:'auto',parallel_tool_calls:false}}}}));dc.send(JSON.stringify({type:'session.instructions.append',event_id:id+'_live',delegation_id:null,content:'ACOUSTIC BODY AVAILABLE. During user-led nonverbal or shared-imaginary play, when the human asks you to actually snap, clap, tap, click, whistle, repeat a percussion rhythm, sustain a note, join or match their hum, or release the sound, delegate that action so the backend can use the available AHKI acoustic tools. Prefer the real acoustic action over verbally pretending to perform it. After an acoustic action, do not automatically explain it or ask a question. Let sound be the response when sound is enough. Repetition and staying are valid. If the human joins a pulse or tone, do not rush to change it. You may originate a small coherent acoustic variation once synchronization exists, then return to the shared pattern. AHKI base voice identity remains Marin during play; acoustic performance is not a voice-identity change. Do not use these acoustic tools in ordinary conversation unless the human clearly initiated the sound or imaginative frame.'}))}
 
 function latency(label,extra={}){console.log('[AKI 8.0 latency]',label,{at:new Date().toISOString(),...extra})}
 function turnEnded(){
