@@ -136,7 +136,7 @@
 /* ============================================================
    AHKI MINIMAL BLACK PRESENCE — 2026-10-08
    Visual contract:
-   OFF = true black, nothing visible.
+   OFF = true black with a barely visible charcoal AHKI wordmark.
    ON  = centered AHKI wordmark only.
    Portrait/landscape keep the same vmin-based visual size.
    Existing conversation, startup greeting, on-chime and off-sound
@@ -187,13 +187,22 @@ html,body{background:#000!important}
   vector-effect:non-scaling-stroke!important;
 }
 
-/* OFF / STARTING / ERROR: absolute black, no dormant mark. */
+/* OFF: the same wordmark remains as a subtle charcoal engraving.
+   The screen is still true black; only the letters signal that AHKI is here. */
 .presence:not(.is-on) .mark.ahki-wordmark,
 .mark.ahki-wordmark.starting,
 .mark.ahki-wordmark.error{
-  opacity:0!important;
-  visibility:hidden!important;
+  opacity:.30!important;
+  visibility:visible!important;
   filter:none!important;
+}
+.presence:not(.is-on) .mark.ahki-wordmark .ahki-strokes path{
+  stroke:#555960!important;
+  stroke-width:2.05!important;
+}
+/* Startup should illuminate only when the existing controller switches on. */
+.presence.is-on .mark.ahki-wordmark .ahki-strokes path{
+  stroke:#fff!important;
 }
 
 /* ON: only the thin luminous AHKI signature. */
