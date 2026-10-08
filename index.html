@@ -131,6 +131,88 @@
 .presence:not(.is-on) .oil{opacity:.16!important;filter:saturate(.38) brightness(.38)!important;box-shadow:none!important}
 .presence:not(.is-on) .oil2{opacity:.08!important;filter:blur(8px) saturate(.35) brightness(.35)!important}
 .presence:not(.is-on) .core{opacity:1!important;background:radial-gradient(circle at 46% 39%,rgba(4,10,19,.20),#010207 60%,#010207 100%)!important}
+
+
+/* ============================================================
+   AHKI MINIMAL BLACK PRESENCE — 2026-10-08
+   Visual contract:
+   OFF = true black, nothing visible.
+   ON  = centered AHKI wordmark only.
+   Portrait/landscape keep the same vmin-based visual size.
+   Existing conversation, startup greeting, on-chime and off-sound
+   behavior remain intact.
+   ============================================================ */
+html,body{background:#000!important}
+.presence{
+  background:#000!important;
+  cursor:pointer!important;
+  touch-action:manipulation!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+
+/* Remove every legacy visual surface. Keep the elements in the DOM so
+   the existing conversation/controller JavaScript remains untouched. */
+.ambient,.orb,.halo,.rim,.oil,.oil2,.core,.signal-band,
+.top-compose,.action-row,.eyes,.aqui-title,.handoff,
+#worldPicker,#filePicker,.talk-control{
+  display:none!important;
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+
+/* The AHKI mark is the entire visible interface. */
+.mark.ahki-wordmark{
+  display:block!important;
+  position:absolute!important;
+  z-index:10!important;
+  left:50%!important;
+  top:50%!important;
+  width:min(46vmin,350px)!important;
+  height:auto!important;
+  transform:translate(-50%,-50%)!important;
+  margin:0!important;
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+  filter:none!important;
+  transition:opacity .38s ease,filter .38s ease,visibility 0s linear .38s!important;
+}
+.mark.ahki-wordmark .ahki-strokes path{
+  fill:none!important;
+  stroke:#fff!important;
+  stroke-width:2.05!important;
+  stroke-linecap:round!important;
+  stroke-linejoin:round!important;
+  vector-effect:non-scaling-stroke!important;
+}
+
+/* OFF / STARTING / ERROR: absolute black, no dormant mark. */
+.presence:not(.is-on) .mark.ahki-wordmark,
+.mark.ahki-wordmark.starting,
+.mark.ahki-wordmark.error{
+  opacity:0!important;
+  visibility:hidden!important;
+  filter:none!important;
+}
+
+/* ON: only the thin luminous AHKI signature. */
+.presence.is-on .mark.ahki-wordmark{
+  opacity:1!important;
+  visibility:visible!important;
+  transition:opacity .38s ease,filter .38s ease,visibility 0s!important;
+  filter:drop-shadow(0 0 3px rgba(255,255,255,.95))
+         drop-shadow(0 0 9px rgba(184,220,255,.50))
+         drop-shadow(0 0 18px rgba(102,171,255,.22))!important;
+}
+
+/* No visual state changes for speaking, thinking, rotation, or recovery. */
+@media (orientation:portrait),(orientation:landscape){
+  .mark.ahki-wordmark{width:min(46vmin,350px)!important;top:50%!important;left:50%!important}
+}
+@media (prefers-reduced-motion:reduce){
+  .mark.ahki-wordmark{transition:none!important}
+}
 </style>
 
 
@@ -167,7 +249,7 @@
 </main>
 <script>
 const app=document.querySelector('#app');
-console.info('[AHKI] Minimal Orb V2 loaded');
+console.info('[AHKI] Minimal Black Wordmark loaded');
 const akiButton=document.querySelector('#akiButton');
 const worldPicker=document.querySelector('#worldPicker');
 const filePicker=document.querySelector('#filePicker');
