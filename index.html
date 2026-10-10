@@ -765,7 +765,7 @@ async function playPowerOffSound(){
 }
 
 async function stopAki(keepLook=false,preserveIntent=false){
- if(stopping)return;stopping=true;clearTimeout(blinkTimer);clearEyeTimers();stopVoiceLightMeter();if(!preserveIntent){wantsPower=false;markActiveConversation(false);recentConversation=[];saveActiveConversation();finishUsageSession();}powered=false;powerGreetingSent=false;clearTimeout(latencyTimer);clearTimeout(hardWatchdog);clearTimeout(preferenceTimer);clearTimeout(recoveryTimer);
+ if(stopping)return;stopping=true;greetingInFlight=false;clearTimeout(blinkTimer);clearEyeTimers();stopVoiceLightMeter();if(!preserveIntent){wantsPower=false;markActiveConversation(false);recentConversation=[];saveActiveConversation();finishUsageSession();}powered=false;powerGreetingSent=false;clearTimeout(latencyTimer);clearTimeout(hardWatchdog);clearTimeout(preferenceTimer);clearTimeout(recoveryTimer);
  try{dc?.close()}catch{} try{pc?.getSenders?.().forEach(x=>x.track?.stop())}catch{} try{pc?.close()}catch{}
  try{micStream?.getTracks().forEach(t=>{t.enabled=false;t.stop()})}catch{}
  if(audioEl){try{audioEl.pause()}catch{}audioEl.srcObject=null;audioEl.remove();audioEl=null}
@@ -784,8 +784,8 @@ async function startAki(recovery=false){
   pc.ontrack=e=>{const remote=e.streams[0];audioEl.srcObject=remote;audioEl.play().catch(()=>{})};micStream.getTracks().forEach(t=>pc.addTrack(t,micStream));
   dc=pc.createDataChannel('oai-events');dc.addEventListener('open',()=>{
     latency('data-channel-open',{voice:akiVoice});
-    // Core AHKI instructions remain server-side. Build 3 adds the acoustic body.
-    configureAhkiAcousticDelegation();
+    // Greeting has priority. Acoustic tools are enabled only after startup.
+    if(recovery)configureAhkiAcousticDelegation();
   });
   dc.addEventListener('message',e=>{try{const m=JSON.parse(e.data),type=m.type||'',nested=m.event?.type||'',all=(type+' '+nested).toLowerCase();
     if(type==='session.started'){powered=true;markActiveConversation(true);beginUsageSession();powerLook('on');latency('session-started',{voice:m.session?.audio?.output?.voice||m.session?.voice||akiVoice});if(recovery){restoreConversationContext();recoveryAttempts=0}else startPowerGreetingOnce()}
@@ -1021,6 +1021,8 @@ let greetingInFlight=false;
 function startPowerGreetingOnce(){
   if(powerGreetingSent||greetingInFlight||!powered||!dc||dc.readyState!=='open')return;
   powerGreetingSent=true;greetingInFlight=true;
+  // Prevent a previous play session's local sounds from leaking into startup.
+  clearAhkiAcousticHoldTimer();stopSustainedTone();stopWhistle();stopPercussion();
   const tracks=micStream?.getAudioTracks?.()||[];
   tracks.forEach(t=>t.enabled=false);
   playAkiOnChime();
@@ -1055,7 +1057,11 @@ function startPowerGreetingOnce(){
 function finishLiveGreeting(){
   if(!greetingInFlight)return;
   greetingInFlight=false;
-  if(powered)(micStream?.getAudioTracks?.()||[]).forEach(t=>t.enabled=true);
+  if(powered){
+    (micStream?.getAudioTracks?.()||[]).forEach(t=>t.enabled=true);
+    // Install expressive acoustic tools only after the signature greeting.
+    configureAhkiAcousticDelegation();
+  }
 }
 function playAkiOnChime(){try{primeAkiAudio();if(!akiAudioCtx)return;const now=akiAudioCtx.currentTime;[523.25,659.25].forEach((freq,i)=>{const o=akiAudioCtx.createOscillator(),g=akiAudioCtx.createGain();o.type='sine';o.frequency.value=freq;g.gain.setValueAtTime(0,now+i*.07);g.gain.linearRampToValueAtTime(.055,now+i*.07+.018);g.gain.exponentialRampToValueAtTime(.001,now+i*.07+.18);o.connect(g).connect(akiAudioCtx.destination);o.start(now+i*.07);o.stop(now+i*.07+.2)})}catch{}}
 writeTrigger.addEventListener('click',e=>{e.preventDefault();if(!powered)return;openWrite()});
