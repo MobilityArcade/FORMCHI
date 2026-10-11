@@ -800,6 +800,16 @@ async function startAki(recovery=false){
   });
   dc.addEventListener('message',e=>{try{const m=JSON.parse(e.data),type=m.type||'',nested=m.event?.type||'',all=(type+' '+nested).toLowerCase();
     if(type==='session.started'){powered=true;markActiveConversation(true);beginUsageSession();powerLook('on');latency('session-started',{voice:m.session?.audio?.output?.voice||m.session?.voice||akiVoice});if(recovery){restoreConversationContext();recoveryAttempts=0}else startPowerGreetingOnce()}
+    // Startup-only diagnostic: distinguish unsolicited response from greeting response.
+    if(!recovery && (greetingInFlight || !powerGreetingSent)) {
+      const interesting=/response\.|output_audio|audio_transcript|transcript|session\.|error/.test(type);
+      if(interesting) console.info('[AHKI STARTUP DIAGNOSTIC]', {
+        event:type, event_id:m.event_id||null, response_id:m.response_id||m.response?.id||null,
+        item_id:m.item_id||m.item?.id||null, role:m.item?.role||null,
+        text:m.delta && typeof m.delta==='string'?m.delta:(m.transcript||m.item?.content?.map?.(x=>x.transcript||x.text||'').join(' ')||null),
+        greetingInFlight, powerGreetingSent
+      });
+    }
     absorbTranscript(m);absorbAssistantTranscript(m);
     handleAhkiDelegatedTool(m).catch(err=>console.error('[AHKI acoustic delegation]',err));
     
