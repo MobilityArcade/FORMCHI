@@ -783,6 +783,10 @@ async function startAki(recovery=false){
  try{
   audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')await audioCtx.resume();
   micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+  // AHKI greeting isolation: prevent startup microphone noise from triggering
+  // an unsolicited response before the fixed greeting is requested.
+  // finishLiveGreeting() re-enables the same track after response.done.
+  if(!recovery) micStream.getAudioTracks().forEach(track=>{track.enabled=false});
   pc=new RTCPeerConnection();audioEl=document.createElement('audio');audioEl.autoplay=true;audioEl.playsInline=true;document.body.appendChild(audioEl);
   // Browser media events are the most reliable source of truth for “AQUI is speaking”.
   audioEl.addEventListener('playing',()=>{if(powered)firstAudio()});
