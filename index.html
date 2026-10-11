@@ -802,9 +802,9 @@ async function startAki(recovery=false){
     if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
     if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('response.output_item.added')||all.includes('delegation.created')){if(!greetingInFlight)flushSpokenTranscript();setAquiConversationState('thinking');responseStarted();}
     if(all.includes('audio')&&all.includes('delta')&&!all.includes('input_audio')){firstAudio();}
+    // Keep the microphone muted until the entire greeting response finishes.
+    // Item/audio completion events may precede the end of the full response.
     if(all.includes('response.done')||all.includes('response.completed')){setAquiConversationState('neutral');if(greetingInFlight)finishLiveGreeting()}
-    else if(all.includes('output_audio.done')||all.includes('audio.done')){if(greetingInFlight)finishLiveGreeting()}
-    else if(greetingInFlight&&all.includes('response.output_item.done'))finishLiveGreeting();
     if(type==='error'){if(greetingInFlight)finishLiveGreeting();console.error('AKI Live event error:',m)}
   }catch{}});
   pc.addEventListener('connectionstatechange',()=>{const cs=pc?.connectionState;latency('connection-state',{state:cs});if(['failed','closed','disconnected'].includes(cs)&&wantsPower&&!restarting)scheduleInterruptionRecovery('connection-'+cs)});
