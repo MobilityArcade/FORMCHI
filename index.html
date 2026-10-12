@@ -689,9 +689,54 @@ function absorbAssistantTranscript(m){
  const d=(typeof m.delta==='string'?m.delta:'')||(typeof m.transcript==='string'?m.transcript:'')||(typeof m.event?.delta==='string'?m.event.delta:'')||(typeof m.event?.transcript==='string'?m.event.transcript:'');
  if(!d)return;assistantTranscript+=d;clearTimeout(assistantTranscriptTimer);assistantTranscriptTimer=setTimeout(()=>{const t=assistantTranscript.trim();assistantTranscript='';if(t&&!/^hello,? how can i help you\??$/i.test(t)){rememberConversation('assistant',t);showAssistantExpression(t)}},650);
 }
+
+// AHKI Shared Spaces — voice-only soundscape experiment. No visible controls.
+const ahkiSpace={ctx:null,master:null,duck:null,wind:null,fire:null,crickets:null,timer:null,active:false,
+ levels:{wind:0,fire:0},enabled:{wind:false,fire:false,crickets:false},volume:{wind:.16,fire:.08,crickets:.12},phase:0};
+function ahkiSpaceNoise(seconds=2){const c=ahkiSpace.ctx,b=c.createBuffer(1,Math.round(c.sampleRate*seconds),c.sampleRate),a=b.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=Math.random()*2-1;return b}
+function ahkiSpaceLayer(filterType,freq){const c=ahkiSpace.ctx,src=c.createBufferSource(),filter=c.createBiquadFilter(),gain=c.createGain();src.buffer=ahkiSpaceNoise();src.loop=true;filter.type=filterType;filter.frequency.value=freq;if(filterType==='bandpass')filter.Q.value=.4;gain.gain.value=0;src.connect(filter).connect(gain).connect(ahkiSpace.duck);src.start();return {src,filter,gain}}
+function ahkiSpaceInit(){if(ahkiSpace.ctx)return;const c=ahkiSpace.ctx=new (window.AudioContext||window.webkitAudioContext)();ahkiSpace.master=c.createGain();ahkiSpace.master.gain.value=.62;ahkiSpace.duck=c.createGain();ahkiSpace.duck.gain.value=1;ahkiSpace.duck.connect(ahkiSpace.master).connect(c.destination);ahkiSpace.wind=ahkiSpaceLayer('lowpass',270);ahkiSpace.fire=ahkiSpaceLayer('bandpass',260);ahkiSpace.crickets={gain:c.createGain(),osc:c.createOscillator(),lfo:c.createOscillator(),lfoGain:c.createGain()};const k=ahkiSpace.crickets;k.osc.type='sine';k.osc.frequency.value=4200;k.lfo.type='square';k.lfo.frequency.value=5;k.lfoGain.gain.value=.5;k.gain.gain.value=0;k.osc.connect(k.gain).connect(ahkiSpace.duck);k.lfo.connect(k.lfoGain); // Chirps are gated in the periodic tick, not continuously audible.
+k.osc.start();k.lfo.start();ahkiSpace.timer=setInterval(ahkiSpaceTick,170)}
+function ahkiSpaceUpdate(){if(!ahkiSpace.ctx)return;const c=ahkiSpace.ctx,t=c.currentTime,w=ahkiSpace.levels.wind,f=ahkiSpace.levels.fire;ahkiSpace.wind.filter.frequency.setTargetAtTime([270,370,510,680][w],t,.5);ahkiSpace.fire.filter.frequency.setTargetAtTime([260,420,570,710][f],t,.5);ahkiSpace.wind.gain.gain.setTargetAtTime(ahkiSpace.active&&ahkiSpace.enabled.wind?ahkiSpace.volume.wind**2*.55:0,t,.5);ahkiSpace.fire.gain.gain.setTargetAtTime(ahkiSpace.active&&ahkiSpace.enabled.fire?ahkiSpace.volume.fire**2*[.012,.025,.045,.065][f]:0,t,.5);if(!ahkiSpace.active||!ahkiSpace.enabled.crickets)ahkiSpace.crickets.gain.gain.setTargetAtTime(0,t,.05)}
+function ahkiSpacePop(){const a=ahkiSpace,c=a.ctx;if(!a.active||!a.enabled.fire||!c)return;const f=a.levels.fire,t=c.currentTime,src=c.createBufferSource(),filter=c.createBiquadFilter(),gain=c.createGain();src.buffer=ahkiSpaceNoise(.11);filter.type='bandpass';filter.frequency.value=600+Math.random()*2600;filter.Q.value=.7;const amp=a.volume.fire**2*[.22,.24,.27,.29][f]*(.35+Math.random()*.65);gain.gain.setValueAtTime(.0001,t);gain.gain.exponentialRampToValueAtTime(Math.max(.0002,amp),t+.004);gain.gain.exponentialRampToValueAtTime(.0001,t+.025+Math.random()*.075);src.connect(filter).connect(gain).connect(a.duck);src.start(t);src.stop(t+.12);src.onended=()=>{src.disconnect();filter.disconnect();gain.disconnect()}}
+function ahkiSpaceTick(){const a=ahkiSpace,c=a.ctx;if(!a.active||!c)return;const t=c.currentTime,w=a.levels.wind,f=a.levels.fire;a.phase+=.17;if(a.enabled.wind){const movement=(.65+.35*Math.sin(a.phase*[.36,.75,1.4,2.3][w]))*(.85+.15*Math.random());a.wind.gain.gain.setTargetAtTime(a.volume.wind**2*.55*movement,t,.14)}if(a.enabled.fire){if(Math.random()<[.045,.16,.34,.57][f])ahkiSpacePop();if(f>=2&&Math.random()<.2)ahkiSpacePop()}if(a.enabled.crickets){const chirp=(Math.sin(a.phase*2.9)> .6 && Math.random()>.3)?a.volume.crickets**2*.085:0;a.crickets.gain.gain.setTargetAtTime(chirp,t,.018)}}
+async function ahkiSpaceStart(){ahkiSpaceInit();await ahkiSpace.ctx.resume();ahkiSpace.active=true;ahkiSpaceUpdate()}
+function ahkiSpaceStop(){const a=ahkiSpace;a.active=false;a.enabled.wind=a.enabled.fire=a.enabled.crickets=false;ahkiSpaceUpdate()}
+function ahkiSpaceDuck(speaking){const a=ahkiSpace;if(!a.ctx)return;const t=a.ctx.currentTime;a.duck.gain.setTargetAtTime(speaking?.23:1,t,speaking?.12:.55)}
+function ahkiSpaceCommand(text){const t=normalizedSpeech(text);if(!t)return;const a=ahkiSpace;
+ const stopAll=/(stop|end|turn off|switch off|remove|clear|silence|quiet|no more).{0,28}(soundscape|atmosphere|background|all sounds|everything|environment)/.test(t)||/(stop all sounds|make it silent|no more sounds)/.test(t);
+ if(stopAll){ahkiSpaceStop();return}
+ const start=/(let's|lets|can we|take me|imagine|create|make|start|play|add|bring|hear|put|give me|i want|i'd like|how about|set|turn on)/.test(t);
+ const remove=/(stop|remove|turn off|no more|without|lose|take away|mute)/.test(t);
+ const named={fire:/\b(fire|campfire|bonfire|embers|flames|crackling)\b/,wind:/\b(wind|breeze|gusts|hurricane|storm)\b/,crickets:/\b(crickets|chirping insects)\b/};
+ const intensity=/(more intense|stronger|more powerful|raging|bigger|build (it|the)|increase (the )?intensity|turn (it|the .*?) up|more active)/.test(t);
+ const softer=/(less intense|gentler|weaker|calmer|smaller|ease (it|the .*?) down|reduce (the )?intensity|settle (it|the .*?) down)/.test(t);
+ const quiet=/(quieter|softer|lower (the )?volume|less loud|turn (the )?volume down)/.test(t);
+ const loud=/(louder|raise (the )?volume|turn (the )?volume up)/.test(t);
+ const mentioned=Object.keys(named).filter(k=>named[k].test(t));
+ if(!mentioned.length && !(intensity||softer||quiet||loud))return;
+ const targets=mentioned.length?mentioned:Object.keys(a.enabled).filter(k=>a.enabled[k]);
+ if(!targets.length)return;
+ let changed=false;
+ for(const k of targets){if(mentioned.includes(k)&&remove&&!intensity&&!softer&&!quiet&&!loud){a.enabled[k]=false;changed=true;continue}
+ if(mentioned.includes(k)&&start){a.enabled[k]=true;changed=true}
+ if(k!=='crickets'){
+ if(/\b(embers|gentle breeze)\b/.test(t)){a.levels[k]=0;changed=true}
+ else if(/\b(small fire|occasional gusts)\b/.test(t)){a.levels[k]=1;changed=true}
+ else if(/\b(bonfire|strong wind)\b/.test(t)){a.levels[k]=2;changed=true}
+ else if(/\b(raging fire|hurricane|storm-force)\b/.test(t)){a.levels[k]=3;changed=true}
+ else if(intensity){a.levels[k]=Math.min(3,a.levels[k]+1);changed=true}
+ else if(softer){a.levels[k]=Math.max(0,a.levels[k]-1);changed=true}}
+ if(quiet){a.volume[k]=Math.max(.025,a.volume[k]*.7);changed=true}
+ if(loud){a.volume[k]=Math.min(.28,a.volume[k]*1.2);changed=true}
+ }
+ if(changed){if(Object.values(a.enabled).some(Boolean))ahkiSpaceStart().catch(console.error);else ahkiSpaceStop();console.log('[AHKI soundscape] voice command applied',targets)}
+}
+
 async function handleSpokenIntent(text){
  const clean=String(text||'').trim();if(!clean)return;
  rememberConversation('user',clean);
+ ahkiSpaceCommand(clean);
  // Clean Handoff only reacts to an EXPLICIT request. It never captures ordinary thoughts.
  if(isExplicitHandoffRequest(clean))createCleanHandoff(clean).catch(e=>console.error('[AKI 10.5.1 handoff]',e));
  await handleVoiceIntent(clean);
@@ -772,7 +817,7 @@ async function playPowerOffSound(){
 }
 
 async function stopAki(keepLook=false,preserveIntent=false){
- if(stopping)return;stopping=true;fixedGreetingToken++;try{fixedGreetingAudio?.pause()}catch{}fixedGreetingAudio=null;if(audioEl)audioEl.muted=false;greetingInFlight=false;clearTimeout(blinkTimer);clearEyeTimers();stopVoiceLightMeter();if(!preserveIntent){wantsPower=false;markActiveConversation(false);recentConversation=[];saveActiveConversation();finishUsageSession();}powered=false;powerGreetingSent=false;clearTimeout(latencyTimer);clearTimeout(hardWatchdog);clearTimeout(preferenceTimer);clearTimeout(recoveryTimer);
+ if(stopping)return;stopping=true;ahkiSpaceStop();fixedGreetingToken++;try{fixedGreetingAudio?.pause()}catch{}fixedGreetingAudio=null;if(audioEl)audioEl.muted=false;greetingInFlight=false;clearTimeout(blinkTimer);clearEyeTimers();stopVoiceLightMeter();if(!preserveIntent){wantsPower=false;markActiveConversation(false);recentConversation=[];saveActiveConversation();finishUsageSession();}powered=false;powerGreetingSent=false;clearTimeout(latencyTimer);clearTimeout(hardWatchdog);clearTimeout(preferenceTimer);clearTimeout(recoveryTimer);
  try{dc?.close()}catch{} try{pc?.getSenders?.().forEach(x=>x.track?.stop())}catch{} try{pc?.close()}catch{}
  try{micStream?.getTracks().forEach(t=>{t.enabled=false;t.stop()})}catch{}
  if(audioEl){try{audioEl.pause()}catch{}audioEl.srcObject=null;audioEl.remove();audioEl=null}
@@ -805,10 +850,10 @@ async function startAki(recovery=false){
     
     if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
     if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('response.output_item.added')||all.includes('delegation.created')){if(!greetingInFlight)flushSpokenTranscript();setAquiConversationState('thinking');responseStarted();}
-    if(all.includes('audio')&&all.includes('delta')&&!all.includes('input_audio')){firstAudio();}
+    if(all.includes('audio')&&all.includes('delta')&&!all.includes('input_audio')){firstAudio();ahkiSpaceDuck(true);}
     // Keep the microphone muted until the entire greeting response finishes.
     // Item/audio completion events may precede the end of the full response.
-    if(all.includes('response.done')||all.includes('response.completed')){setAquiConversationState('neutral');if(greetingInFlight)finishLiveGreeting()}
+    if(all.includes('response.done')||all.includes('response.completed')){ahkiSpaceDuck(false);setAquiConversationState('neutral');if(greetingInFlight)finishLiveGreeting()}
     if(type==='error'){if(greetingInFlight)finishLiveGreeting();console.error('AKI Live event error:',m)}
   }catch{}});
   pc.addEventListener('connectionstatechange',()=>{const cs=pc?.connectionState;latency('connection-state',{state:cs});if(['failed','closed','disconnected'].includes(cs)&&wantsPower&&!restarting)scheduleInterruptionRecovery('connection-'+cs)});
