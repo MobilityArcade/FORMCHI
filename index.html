@@ -734,128 +734,6 @@ function ahkiSpaceCommand(text){const t=normalizedSpeech(text);if(!t)return;cons
 }
 
 
-
-// EXPERIMENT 4 — Human-Made Worlds. All sound material comes from the human's microphone.
-// Recordings live in memory only. No network upload or automatic permanent storage.
-const ahkiHuman={ctx:null,output:null,recorder:null,recording:false,recordTimer:null,recordStream:null,
- layers:new Map(),last:null,next:1,duck:1,limit:5,generation:0,arming:false,captureToken:0,voiceOutputBusy:false};
-function ahkiHumanContext(){if(!ahkiHuman.ctx){ahkiHuman.ctx=new (window.AudioContext||window.webkitAudioContext)();ahkiHuman.output=ahkiHuman.ctx.createGain();ahkiHuman.output.gain.value=.72;ahkiHuman.output.connect(ahkiHuman.ctx.destination)}return ahkiHuman.ctx}
-function ahkiHumanBeep(freq=620){try{const c=ahkiHumanContext(),t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.frequency.value=freq;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.035,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+.14);o.connect(g).connect(ahkiHuman.output);o.start(t);o.stop(t+.15)}catch(e){console.warn(e)}}
-// 4.2: fail-closed capture gate. Wait for remote speech to finish and for actual
-// output audio energy to settle; mute the conversation input during capture.
-async function ahkiWaitForQuiet(token){
- const a=ahkiHuman, deadline=Date.now()+12000;
- let analyser=null,ac=null,source=null;
- try{
-  const remote=audioEl?.srcObject;
-  if(remote?.getAudioTracks?.().length){
-   ac=new (window.AudioContext||window.webkitAudioContext)();
-   source=ac.createMediaStreamSource(remote);analyser=ac.createAnalyser();analyser.fftSize=1024;source.connect(analyser);
-   await ac.resume();
-  }
-  let quietSince=0;
-  while(Date.now()<deadline){
-   if(token!==a.captureToken||!powered)return false;
-   let audible=false;
-   if(analyser){const data=new Float32Array(analyser.fftSize);analyser.getFloatTimeDomainData(data);let sum=0;for(const v of data)sum+=v*v;audible=Math.sqrt(sum/data.length)>.008;}
-   const busy=a.voiceOutputBusy||greetingInFlight||!!fixedGreetingAudio&& !fixedGreetingAudio.paused;
-   if(!busy&&!audible){if(!quietSince)quietSince=Date.now();if(Date.now()-quietSince>=750)return true;}
-   else quietSince=0;
-   await new Promise(r=>setTimeout(r,90));
-  }
-  console.warn('[AHKI 4.2] capture cancelled: voice never became quiet');return false;
- }finally{try{source?.disconnect()}catch{}try{await ac?.close()}catch{}}
-}
-async function ahkiHumanCapture(){
- const a=ahkiHuman;
- if(a.recording||a.arming||!powered)return;
- if(!window.MediaRecorder){console.warn('[AHKI sound play] MediaRecorder unavailable');return}
- const token=++a.captureToken;a.arming=true;
- let stream=null,mutedTracks=[];
- try{
-  // Never capture AHKI's spoken acknowledgement or greeting.
-  if(!await ahkiWaitForQuiet(token))return;
-  if(token!==a.captureToken||!powered)return;
-  const c=ahkiHumanContext();await c.resume();
-  // Temporarily disable the conversation microphone to prevent vocalizations
-  // being treated as speech while the user makes their sound.
-  mutedTracks=micStream?.getAudioTracks?.()||[];
-  for(const track of mutedTracks)track.enabled=false;
-  a.mutedConversationTracks=mutedTracks;
-  // Preserve the same microphone device when available.
-  const current=micStream?.getAudioTracks?.()[0];const deviceId=current?.getSettings?.().deviceId;
-  stream=await navigator.mediaDevices.getUserMedia({audio:{deviceId:deviceId?{ideal:deviceId}:undefined,echoCancellation:true,noiseSuppression:false,autoGainControl:false}});
-  if(token!==a.captureToken||!powered){stream.getTracks().forEach(t=>t.stop());return}
-  a.recordStream=stream;
-  const types=['audio/webm;codecs=opus','audio/mp4','audio/webm'];const mime=types.find(t=>MediaRecorder.isTypeSupported(t));
-  const recorder=a.recorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined),parts=[];
-  recorder.ondataavailable=e=>{if(e.data?.size)parts.push(e.data)};
-  const captureGeneration=a.generation;
-  recorder.onstop=async()=>{
-   a.recording=false;clearTimeout(a.recordTimer);
-   stream.getTracks().forEach(t=>t.stop());if(a.recordStream===stream)a.recordStream=null;
-   for(const track of a.mutedConversationTracks||[])if(track.readyState==='live')track.enabled=true;
-   a.mutedConversationTracks=[];
-   if(!parts.length)return;
-   try{const blob=new Blob(parts,{type:recorder.mimeType||'audio/webm'}),buf=await c.decodeAudioData(await blob.arrayBuffer());
-    if(buf.duration<.15||captureGeneration!==a.generation)return;
-    const id='sound '+a.next++;
-    a.layers.set(id,{buffer:buf,source:null,gain:null,filter:null,rate:1,volume:.7,loop:false,playing:false});
-    a.last=id;console.info('[AHKI 4.2] clean capture',id,buf.duration.toFixed(2),'seconds');ahkiHumanBeep(790);
-   }catch(err){console.error('[AHKI sound play] decode failed',err)}
-  };
-  // Beep BEFORE capture begins, so the cue is never part of the recording.
-  ahkiHumanBeep(510);await new Promise(r=>setTimeout(r,350));
-  if(token!==a.captureToken||!powered){stream.getTracks().forEach(t=>t.stop());return}
-  recorder.start();a.recording=true;
-  a.recordTimer=setTimeout(()=>ahkiHumanFinishRecording(),4500);
- }catch(e){console.error('[AHKI 4.2] clean capture unavailable',e);ahkiHumanFinishRecording()}
- finally{a.arming=false;if(!a.recording){for(const track of mutedTracks)if(track.readyState==='live')track.enabled=true;a.mutedConversationTracks=[];}}
-}
-function ahkiHumanFinishRecording(){ahkiHuman.captureToken++;ahkiHuman.arming=false;clearTimeout(ahkiHuman.recordTimer);const r=ahkiHuman.recorder;if(r&&r.state!=='inactive')try{r.stop()}catch{};ahkiHuman.recording=false;ahkiHuman.recordStream?.getTracks().forEach(t=>t.stop());ahkiHuman.recordStream=null;for(const track of ahkiHuman.mutedConversationTracks||[])if(track.readyState==='live')track.enabled=true;ahkiHuman.mutedConversationTracks=[]}
-function ahkiHumanStop(id){const l=ahkiHuman.layers.get(id);if(!l)return;try{l.source?.stop()}catch{}try{l.source?.disconnect()}catch{}try{l.filter?.disconnect()}catch{}try{l.gain?.disconnect()}catch{}l.source=l.filter=l.gain=null;l.playing=false}
-function ahkiHumanStopAll(clear=false){if(clear)ahkiHuman.generation++;ahkiHumanFinishRecording();for(const id of ahkiHuman.layers.keys())ahkiHumanStop(id);if(clear){ahkiHuman.layers.clear();ahkiHuman.last=null}}
-async function ahkiHumanPlay(id,loop){const a=ahkiHuman,l=a.layers.get(id);if(!l)return;const c=ahkiHumanContext();await c.resume();ahkiHumanStop(id);
- const active=[...a.layers.values()].filter(x=>x.playing).length;if(active>=a.limit)return;
- const src=c.createBufferSource(),filter=c.createBiquadFilter(),gain=c.createGain();src.buffer=l.buffer;src.loop=loop??l.loop;src.playbackRate.value=l.rate;filter.type='lowpass';filter.frequency.value=17000;gain.gain.value=l.volume*a.duck;
- src.connect(filter).connect(gain).connect(a.output);l.source=src;l.filter=filter;l.gain=gain;l.loop=src.loop;l.playing=true;
- src.onended=()=>{if(l.source===src){l.playing=false;l.source=null;try{src.disconnect();filter.disconnect();gain.disconnect()}catch{}}};src.start()}
-function ahkiHumanDuck(speaking){const a=ahkiHuman;a.duck=speaking?.28:1;if(!a.ctx)return;for(const l of a.layers.values())if(l.gain)l.gain.gain.setTargetAtTime(l.volume*a.duck,a.ctx.currentTime,.18)}
-// Experiment 4.1: A single authoritative stop/delete path for every local audio engine.
-function ahkiStopEverySound(remove=false){
- ahkiHumanStopAll(remove);ahkiWorldStopAll();ahkiSpaceStop();
- clearAhkiAcousticHoldTimer();stopSustainedTone();stopPercussion();stopWhistle();
- console.info('[AHKI 4.1] all audio stopped; recordings deleted:',remove);
- return {ok:true,action:remove?'deleted_all':'stopped_all'};
-}
-function ahkiHumanCommand(spoken){
- const t=normalizedSpeech(spoken);if(!t)return false;
- // Handle destructive and safety commands BEFORE selecting any particular recording.
- const deleting=/\b(delete|erase|remove|discard|clear|forget|get rid of|wipe)\b/.test(t);
- const audioNoun=/\b(sound|sounds|soundscape|soundscapes|recording|recordings|sample|samples|loop|loops|audio|background|noise|noises|it|that|everything|all)\b/.test(t);
- const all=/\b(all|everything|entire|whole|every)\b/.test(t);
- const stop=/\b(stop|silence|mute|end|turn off|shut off|kill|cancel)\b/.test(t);
- if(deleting&&audioNoun&&(all||/\b(soundscape|background|everything|all sounds|all recordings)\b/.test(t))){ahkiStopEverySound(true);return true}
- if(stop&&audioNoun&&(all||/\b(soundscape|background|everything|all sounds|all audio)\b/.test(t))){ahkiStopEverySound(false);return true}
- if(/\b(record|capture|sample)\b.{0,25}\b(sound|noise|voice|this|me|my|one)\b|\b(record this|listen to this sound|let me make a sound)\b/.test(t)){ahkiHumanCapture();return true}
- if(/\b(stop recording|finish recording|end recording)\b/.test(t)){ahkiHumanFinishRecording();return true}
- const a=ahkiHuman;let id=a.last;const n=t.match(/\b(?:sound|recording|sample)\s+(\d+)\b/);if(n&&a.layers.has('sound '+n[1]))id='sound '+n[1];
- // Even with no captured sound, a request to stop audio must silence the other engines.
- if((deleting||stop)&&audioNoun&&!id){ahkiStopEverySound(deleting);return true}
- if(!id)return false;
- const l=a.layers.get(id);
- if(deleting&&audioNoun){ahkiHumanStop(id);a.layers.delete(id);a.last=[...a.layers.keys()].at(-1)||null; // Also clear legacy atmospheres that may be the audible source.
- ahkiWorldStopAll();ahkiSpaceStop();console.info('[AHKI 4.1] deleted',id);return true}
- if(stop&&audioNoun){ahkiHumanStop(id);ahkiWorldStopAll();ahkiSpaceStop();return true}
- if(/\b(loop|repeat|keep playing)\b/.test(t)){ahkiHumanPlay(id,true).catch(console.error);return true}
- if(/\b(play it|play that|play my sound|play the sound|play (?:back )?(?:sound|recording|sample)|hear it|hear that)\b/.test(t)){ahkiHumanPlay(id,false).catch(console.error);return true}
- if(/\b(deeper|lower pitch|pitch down|slow it down)\b/.test(t)){l.rate=Math.max(.45,l.rate*.8);if(l.source)l.source.playbackRate.setTargetAtTime(l.rate,a.ctx.currentTime,.12);return true}
- if(/\b(higher pitch|pitch up|faster|speed it up)\b/.test(t)){l.rate=Math.min(2,l.rate*1.25);if(l.source)l.source.playbackRate.setTargetAtTime(l.rate,a.ctx.currentTime,.12);return true}
- if(/\b(louder|closer|bring it closer)\b/.test(t)){l.volume=Math.min(1.5,l.volume*1.3);if(l.gain)l.gain.gain.setTargetAtTime(l.volume*a.duck,a.ctx.currentTime,.12);return true}
- if(/\b(quieter|softer|farther|further|in the distance)\b/.test(t)){l.volume=Math.max(.02,l.volume*.7);if(l.gain)l.gain.gain.setTargetAtTime(l.volume*a.duck,a.ctx.currentTime,.12);if(l.filter)l.filter.frequency.setTargetAtTime(2200,a.ctx.currentTime,.2);return true}
- return false;
-}
-
 // LIVING WORLDS EXPERIMENT 2 — sample-backed sound events, with explicitly labeled procedural fallback.
 // Add licensed MP3/OGG files under /sounds/ using the names in SOUNDS.csv.
 const ahkiWorldCatalog={
@@ -898,17 +776,44 @@ function ahkiWorldClearSceneTimers(){for(const timer of ahkiWorldSceneTimers)cle
 const proc={ctx:null,master:null,duck:null};
 function procInit(){if(proc.ctx)return;proc.ctx=new (window.AudioContext||window.webkitAudioContext)();proc.master=proc.ctx.createGain();proc.master.gain.value=.75;proc.duck=proc.ctx.createGain();proc.duck.connect(proc.master).connect(proc.ctx.destination)}
 function procNoise(seconds=2){const c=proc.ctx,b=c.createBuffer(1,Math.ceil(c.sampleRate*seconds),c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b}
-function procLayer(id,volume){procInit();proc.ctx.resume();const gain=proc.ctx.createGain();gain.gain.value=0;gain.connect(proc.duck);const layer={id,volume:volume??.55,gain,nodes:[],timer:null,oscillators:[],intensity:.5};ahkiWorld.layers.set(id,layer);ahkiWorld.last=id;gain.gain.setTargetAtTime(layer.volume*.45,proc.ctx.currentTime,.3);return layer}
-function procBed(layer,kind){const c=proc.ctx,src=c.createBufferSource();src.buffer=procNoise(3);src.loop=true;const filter=c.createBiquadFilter();filter.type=kind==='fire'?'bandpass':'lowpass';filter.frequency.value=kind==='fire'?650:kind==='rain'?4200:kind==='water'?900:kind==='ocean'?500:250;filter.Q.value=kind==='fire'?.45:.55;const g=c.createGain();g.gain.value=kind==='fire'?.09:kind==='wind'?.27:kind==='rain'?.26:.19;src.connect(filter).connect(g).connect(layer.gain);src.start();layer.nodes.push(src,filter,g);layer.filter=filter;layer.bedGain=g;layer.kind=kind}
+function procLayer(id,volume){procInit();proc.ctx.resume();const gain=proc.ctx.createGain();gain.gain.value=0;gain.connect(proc.duck);const layer={id,volume:volume??.55,gain,nodes:[],timer:null,pending:new Set(),oscillators:[],intensity:.5,alive:true,token:Symbol(id)};ahkiWorld.layers.set(id,layer);ahkiWorld.last=id;gain.gain.setTargetAtTime(Math.min(.9,layer.volume*.45),proc.ctx.currentTime,.3);return layer}
+function procBed(layer,kind){
+ const c=proc.ctx,src=c.createBufferSource();src.buffer=procNoise(4);src.loop=true;
+ const filter=c.createBiquadFilter();filter.type=kind==='fire'?'bandpass':kind==='rain'?'highpass':'lowpass';
+ filter.frequency.value=kind==='fire'?650:kind==='rain'?1100:kind==='water'?1100:kind==='ocean'?430:260;
+ filter.Q.value=kind==='fire'?.5:.65;
+ const g=c.createGain();g.gain.value=kind==='fire'?.16:kind==='wind'?.35:kind==='rain'?.32:.25;
+ src.connect(filter).connect(g).connect(layer.gain);src.start();layer.nodes.push(src,filter,g);layer.filter=filter;layer.bedGain=g;layer.kind=kind;
+ // A second low, slowly moving layer gives water/wind/rain less static character.
+ if(kind!=='fire'){
+  const src2=c.createBufferSource();src2.buffer=procNoise(5);src2.loop=true;
+  const f2=c.createBiquadFilter();f2.type='lowpass';f2.frequency.value=kind==='rain'?650:kind==='water'?330:170;
+  const g2=c.createGain();g2.gain.value=kind==='rain'?.08:.13;
+  src2.connect(f2).connect(g2).connect(layer.gain);src2.start();layer.nodes.push(src2,f2,g2);
+ }
+}
+function procLater(layer,fn,delay){const token=layer.token;const timer=setTimeout(()=>{layer.pending.delete(timer);if(layer.alive&&ahkiWorld.layers.get(layer.id)===layer&&layer.token===token)fn()},delay);layer.pending.add(timer);return timer}
 function procTone(layer,freq,duration=.3,amp=.15,type='sine',sweep=0){const c=proc.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);if(sweep)o.frequency.exponentialRampToValueAtTime(Math.max(25,freq+sweep),t+duration);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.001,amp),t+.018);g.gain.exponentialRampToValueAtTime(.0001,t+duration);o.connect(g).connect(layer.gain);o.start(t);o.stop(t+duration+.02);o.onended=()=>{o.disconnect();g.disconnect()}}
 function procBurst(layer,duration=.15,amp=.15,low=500){const c=proc.ctx,t=c.currentTime,s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();s.buffer=procNoise(duration+.03);f.type='bandpass';f.frequency.value=low;f.Q.value=.7;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(amp,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+duration);s.connect(f).connect(g).connect(layer.gain);s.start(t);s.stop(t+duration+.02);s.onended=()=>{s.disconnect();f.disconnect();g.disconnect()}}
-function procEvent(layer){if(!ahkiWorld.layers.has(layer.id))return;const id=layer.id;const r=Math.random();if(/fire|ember|bonfire|logs|wood-pop/.test(id)){procBurst(layer,.04+r*.12,.12+r*.13,500+r*2100)}else if(/thunder|lightning/.test(id)){procBurst(layer,1.5+r*2,.45,70+r*90);procTone(layer,42+r*45,1.2,.28,'sawtooth',-18)}else if(/cricket|cicada/.test(id)){for(let i=0;i<3+Math.floor(r*4);i++)setTimeout(()=>{if(ahkiWorld.layers.has(id))procTone(layer,3300+r*1500,.04,.045,'sine',400)},i*105)}else if(/frog/.test(id)){procTone(layer,145+r*85,.19,.22,'sawtooth',-65);setTimeout(()=>{if(ahkiWorld.layers.has(id))procTone(layer,130+r*70,.17,.15,'sawtooth',-40)},250)}else if(/owl|bird|rooster|chicken|cow|horse|sheep|goat|dog|cat|wolf|coyote|duck|geese|whale|parrot|monkey|lion|elephant|pig|deer|bear|dolphin/.test(id)){// Stylized animal approximations; not claimed to be realistic.
- const base=/cow|whale|lion|bear|elephant/.test(id)?95:/rooster|bird|owl|parrot/.test(id)?550:/frog/.test(id)?160:250;for(let i=0;i<3;i++)setTimeout(()=>{if(ahkiWorld.layers.has(id))procTone(layer,base*(.8+Math.random()*.6),.2+Math.random()*.4,.16,'triangle',(Math.random()-.5)*base)},i*340)}else if(/plane|airplane|helicopter|train|car|tractor|motorcycle|boat-engine/.test(id)){procTone(layer,70+r*65,2+r*2,.28,'sawtooth',-25)}else if(/bell|chime|clock|bicycle/.test(id)){procTone(layer,500+r*450,1,.15,'sine',-50)}else if(/twig|foot|steps|door|floor|splash|drips/.test(id)){procBurst(layer,.1,.16,500+r*1400)}else{procBurst(layer,.25,.07,500+r*600)}}
-function procSchedule(layer){if(!ahkiWorld.layers.has(layer.id))return;procEvent(layer);const id=layer.id;let delay=/fire|cricket|cicada/.test(id)?250+Math.random()*950:/frog|bird|owl/.test(id)?1700+Math.random()*5500:/thunder/.test(id)?6500+Math.random()*12000:3500+Math.random()*9000;layer.timer=setTimeout(()=>procSchedule(layer),delay)}
-function ahkiWorldStop(id){const l=ahkiWorld.layers.get(id);if(!l)return;ahkiWorld.layers.delete(id);clearTimeout(l.timer);if(l.gain){l.gain.gain.setTargetAtTime(0,proc.ctx.currentTime,.08);setTimeout(()=>{for(const n of l.nodes||[]){try{n.stop?.()}catch{}try{n.disconnect()}catch{}}try{l.gain.disconnect()}catch{}},500)}else if(l.audio){l.audio.pause();l.audio.removeAttribute('src');l.audio.load()}}
-function ahkiWorldStopAll(){ahkiWorldClearSceneTimers();for(const id of [...ahkiWorld.layers.keys()])ahkiWorldStop(id);ahkiWorld.guess=null}
-function ahkiWorldPlay(id,opts={}){if(!ahkiWorld.known.has(id))return;if(ahkiWorld.layers.has(id)){if(opts.volume!=null){const l=ahkiWorld.layers.get(id);l.volume=opts.volume;if(l.gain)l.gain.gain.setTargetAtTime(l.volume*.45,proc.ctx.currentTime,.1)}return}const l=procLayer(id,opts.volume);let kind=null;if(/fire|ember|bonfire/.test(id))kind='fire';else if(/rain|hail/.test(id))kind='rain';else if(/wind|breeze|hurricane|snow/.test(id))kind='wind';else if(/lake|stream|river|waterfall|ocean|pond|water|boat-rocking/.test(id))kind=/ocean/.test(id)?'ocean':'water';else if(/forest|barn|campground|leaves|city|cafe|market/.test(id))kind='wind';if(kind)procBed(l,kind);procSchedule(l)}
-function ahkiWorldVolume(id,factor){const l=ahkiWorld.layers.get(id);if(!l)return;l.volume=Math.max(.02,Math.min(2,l.volume*factor));if(l.gain)l.gain.gain.setTargetAtTime(l.volume*.45,proc.ctx.currentTime,.15)}
+function procEvent(layer){if(!layer.alive||ahkiWorld.layers.get(layer.id)!==layer)return;const id=layer.id;const r=Math.random();if(/fire|ember|bonfire|logs|wood-pop/.test(id)){procBurst(layer,.04+r*.12,.12+r*.13,500+r*2100)}else if(/thunder|lightning/.test(id)){procBurst(layer,1.5+r*2,.45,70+r*90);procTone(layer,42+r*45,1.2,.28,'sawtooth',-18)}else if(/cricket|cicada/.test(id)){for(let i=0;i<3+Math.floor(r*4);i++)procLater(layer,()=>procTone(layer,3300+r*1500,.04,.045,'sine',400),i*105)}else if(/frog/.test(id)){procTone(layer,145+r*85,.19,.22,'sawtooth',-65);procLater(layer,()=>procTone(layer,130+r*70,.17,.15,'sawtooth',-40),250)}else if(/owl|bird|rooster|chicken|cow|horse|sheep|goat|dog|cat|wolf|coyote|duck|geese|whale|parrot|monkey|lion|elephant|pig|deer|bear|dolphin/.test(id)){// Stylized animal approximations; not claimed to be realistic.
+ const base=/cow|whale|lion|bear|elephant/.test(id)?95:/rooster|bird|owl|parrot/.test(id)?550:/frog/.test(id)?160:250;for(let i=0;i<3;i++)procLater(layer,()=>procTone(layer,base*(.8+Math.random()*.6),.2+Math.random()*.4,.10,'triangle',(Math.random()-.5)*base),i*340)}else if(/plane|airplane|helicopter|train|car|tractor|motorcycle|boat-engine/.test(id)){procTone(layer,70+r*65,2+r*2,.28,'sawtooth',-25)}else if(/bell|chime|clock|bicycle/.test(id)){procTone(layer,500+r*450,1,.15,'sine',-50)}else if(/twig|foot|steps|door|floor|splash|drips/.test(id)){procBurst(layer,.1,.16,500+r*1400)}else{procBurst(layer,.25,.07,500+r*600)}}
+function procSchedule(layer){if(!layer.alive||ahkiWorld.layers.get(layer.id)!==layer)return;procEvent(layer);const id=layer.id;let delay=/fire|cricket|cicada/.test(id)?250+Math.random()*950:/frog|bird|owl/.test(id)?1700+Math.random()*5500:/thunder/.test(id)?6500+Math.random()*12000:3500+Math.random()*9000;layer.timer=procLater(layer,()=>procSchedule(layer),delay)}
+function ahkiWorldStop(id){
+ const l=ahkiWorld.layers.get(id);if(!l)return false;
+ l.alive=false;ahkiWorld.layers.delete(id);clearTimeout(l.timer);
+ for(const timer of l.pending||[])clearTimeout(timer);l.pending?.clear();
+ if(l.gain&&proc.ctx){
+  const now=proc.ctx.currentTime;l.gain.gain.cancelScheduledValues(now);l.gain.gain.setTargetAtTime(0,now,.015);
+  setTimeout(()=>{for(const n of l.nodes||[]){try{n.stop?.()}catch{}try{n.disconnect()}catch{}}try{l.gain.disconnect()}catch{}},180);
+ }else if(l.audio){l.audio.pause();l.audio.removeAttribute('src');l.audio.load()}
+ return true;
+}
+function ahkiWorldStopAll(){
+ ahkiWorldClearSceneTimers();for(const id of [...ahkiWorld.layers.keys()])ahkiWorldStop(id);
+ ahkiWorld.guess=null;ahkiWorld.last=null;ahkiSpaceStop();
+}
+function ahkiWorldPlay(id,opts={}){if(!ahkiWorld.known.has(id))return;if(ahkiWorld.layers.has(id)){if(opts.volume!=null){const l=ahkiWorld.layers.get(id);l.volume=opts.volume;if(l.gain)l.gain.gain.setTargetAtTime(Math.min(.9,l.volume*.45),proc.ctx.currentTime,.1)}return}const l=procLayer(id,opts.volume);let kind=null;if(/fire|ember|bonfire/.test(id))kind='fire';else if(/rain|hail/.test(id))kind='rain';else if(/wind|breeze|hurricane|snow/.test(id))kind='wind';else if(/lake|stream|river|waterfall|ocean|pond|water|boat-rocking/.test(id))kind=/ocean/.test(id)?'ocean':'water';else if(/forest|barn|campground|leaves|city|cafe|market/.test(id))kind='wind';if(kind)procBed(l,kind);procSchedule(l)}
+function ahkiWorldVolume(id,factor){const l=ahkiWorld.layers.get(id);if(!l)return;l.volume=Math.max(.02,Math.min(2,l.volume*factor));if(l.gain)l.gain.gain.setTargetAtTime(Math.min(.9,l.volume*.45),proc.ctx.currentTime,.15)}
 function ahkiWorldStartScene(name,secret=false){
  const scene=ahkiWorldScenes[name];if(!scene)return;
  ahkiWorldStopAll();ahkiSpaceStop();
@@ -917,7 +822,7 @@ function ahkiWorldStartScene(name,secret=false){
  console.info('[AHKI Experiment 3] Scene started',secret?'(hidden answer)':'',name);
 }
 function ahkiWorldCommand(s){const t=normalizedSpeech(s);if(!t)return;
- if(/(stop all sounds|silence the environment|clear the soundscape|stop the soundscape|end the soundscape)/.test(t)){ahkiWorldStopAll();ahkiSpaceStop();return}
+ if(/\b(stop|delete|remove|clear|end|silence|mute|turn off|shut off|kill)\b.{0,38}\b(all|everything|sounds|soundscape|environment|atmosphere|background|audio)\b/.test(t)||/\b(silence|quiet)\b.{0,12}\b(everything|please|now)\b/.test(t)||/\b(no more sounds|make it silent|stop everything)\b/.test(t)){ahkiWorldStopAll();return}
  if(/(guessing game|guess where|surprise me|where are we|take me somewhere mysterious)/.test(t)){
   const keys=Object.keys(ahkiWorldScenes);ahkiWorldStartScene(keys[Math.floor(Math.random()*keys.length)],true);return;
  }
@@ -933,17 +838,16 @@ function ahkiWorldCommand(s){const t=normalizedSpeech(s);if(!t)return;
  if(/(rainy cabin|cabin in the rain)/.test(t)){ahkiWorldStartScene('rainy-cabin');return}
  const id=ahkiWorldId(t);const targeted=id||ahkiWorld.last;
  if(!targeted)return;
- if(/\b(stop|remove|take away|turn off|no more|mute)\b/.test(t)){ahkiWorldStop(targeted);return}
+ if(/\b(stop|delete|remove|take away|turn off|no more|mute|silence)\b/.test(t)){ahkiWorldStop(targeted);return}
  if(/\b(louder|raise the volume|turn up the volume|closer|bring it closer)\b/.test(t)){ahkiWorldVolume(targeted,1.6);return}
  if(/\b(quieter|lower the volume|turn down the volume|farther|further away|move it away)\b/.test(t)){ahkiWorldVolume(targeted,.65);return}
- if(/\b(stronger|more intense|raging|more powerful)\b/.test(t)){const l=ahkiWorld.layers.get(targeted);if(l){l.intensity=Math.min(1,(l.intensity||.5)+.25);if(l.filter)l.filter.frequency.setTargetAtTime(l.filter.frequency.value*1.3,proc.ctx.currentTime,.3)}return}if(/\b(add|play|hear|bring|start|create|make|put|give me|imagine|let's|lets|take me)\b/.test(t))ahkiWorldPlay(targeted);
+ if(/\b(stronger|more intense|raging|more powerful|bigger)\b/.test(t)){const l=ahkiWorld.layers.get(targeted);if(l){l.intensity=Math.min(1,(l.intensity||.5)+.25);if(l.filter)l.filter.frequency.setTargetAtTime(Math.min(5000,l.filter.frequency.value*1.3),proc.ctx.currentTime,.3);if(l.bedGain)l.bedGain.gain.setTargetAtTime(Math.min(.5,l.bedGain.gain.value*1.2),proc.ctx.currentTime,.3)}return}if(/\b(add|play|hear|bring|start|create|make|put|give me|imagine|let's|lets|take me)\b/.test(t))ahkiWorldPlay(targeted);
 }
 
 async function handleSpokenIntent(text){
  const clean=String(text||'').trim();if(!clean)return;
  rememberConversation('user',clean);
- const handledHuman=ahkiHumanCommand(clean);
- if(!handledHuman){ahkiSpaceCommand(clean);ahkiWorldCommand(clean);}
+ ahkiWorldCommand(clean);
  // Clean Handoff only reacts to an EXPLICIT request. It never captures ordinary thoughts.
  if(isExplicitHandoffRequest(clean))createCleanHandoff(clean).catch(e=>console.error('[AKI 10.5.1 handoff]',e));
  await handleVoiceIntent(clean);
@@ -1024,7 +928,7 @@ async function playPowerOffSound(){
 }
 
 async function stopAki(keepLook=false,preserveIntent=false){
- if(stopping)return;stopping=true;ahkiStopEverySound(true);fixedGreetingToken++;try{fixedGreetingAudio?.pause()}catch{}fixedGreetingAudio=null;if(audioEl)audioEl.muted=false;greetingInFlight=false;clearTimeout(blinkTimer);clearEyeTimers();stopVoiceLightMeter();if(!preserveIntent){wantsPower=false;markActiveConversation(false);recentConversation=[];saveActiveConversation();finishUsageSession();}powered=false;powerGreetingSent=false;clearTimeout(latencyTimer);clearTimeout(hardWatchdog);clearTimeout(preferenceTimer);clearTimeout(recoveryTimer);
+ if(stopping)return;stopping=true;ahkiWorldStopAll();ahkiSpaceStop();fixedGreetingToken++;try{fixedGreetingAudio?.pause()}catch{}fixedGreetingAudio=null;if(audioEl)audioEl.muted=false;greetingInFlight=false;clearTimeout(blinkTimer);clearEyeTimers();stopVoiceLightMeter();if(!preserveIntent){wantsPower=false;markActiveConversation(false);recentConversation=[];saveActiveConversation();finishUsageSession();}powered=false;powerGreetingSent=false;clearTimeout(latencyTimer);clearTimeout(hardWatchdog);clearTimeout(preferenceTimer);clearTimeout(recoveryTimer);
  try{dc?.close()}catch{} try{pc?.getSenders?.().forEach(x=>x.track?.stop())}catch{} try{pc?.close()}catch{}
  try{micStream?.getTracks().forEach(t=>{t.enabled=false;t.stop()})}catch{}
  if(audioEl){try{audioEl.pause()}catch{}audioEl.srcObject=null;audioEl.remove();audioEl=null}
@@ -1057,12 +961,11 @@ async function startAki(recovery=false){
     
     if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
     if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('response.output_item.added')||all.includes('delegation.created')){if(!greetingInFlight)flushSpokenTranscript();setAquiConversationState('thinking');responseStarted();}
-    if(all.includes('response.created')||all.includes('response.in_progress'))ahkiHuman.voiceOutputBusy=true;
-    if(all.includes('audio')&&all.includes('delta')&&!all.includes('input_audio')){ahkiHuman.voiceOutputBusy=true;firstAudio();ahkiSpaceDuck(true);ahkiHumanDuck(true);}
+    if(all.includes('audio')&&all.includes('delta')&&!all.includes('input_audio')){firstAudio();ahkiSpaceDuck(true);}
     // Keep the microphone muted until the entire greeting response finishes.
     // Item/audio completion events may precede the end of the full response.
-    if(all.includes('response.done')||all.includes('response.completed')){ahkiHuman.voiceOutputBusy=false;ahkiSpaceDuck(false);ahkiHumanDuck(false);setAquiConversationState('neutral');if(greetingInFlight)finishLiveGreeting()}
-    if(type==='error'){ahkiHuman.voiceOutputBusy=false;if(greetingInFlight)finishLiveGreeting();console.error('AKI Live event error:',m)}
+    if(all.includes('response.done')||all.includes('response.completed')){ahkiSpaceDuck(false);setAquiConversationState('neutral');if(greetingInFlight)finishLiveGreeting()}
+    if(type==='error'){if(greetingInFlight)finishLiveGreeting();console.error('AKI Live event error:',m)}
   }catch{}});
   pc.addEventListener('connectionstatechange',()=>{const cs=pc?.connectionState;latency('connection-state',{state:cs});if(['failed','closed','disconnected'].includes(cs)&&wantsPower&&!restarting)scheduleInterruptionRecovery('connection-'+cs)});
   pc.addEventListener('iceconnectionstatechange',()=>{const cs=pc?.iceConnectionState;if(['failed','closed','disconnected'].includes(cs)&&wantsPower)scheduleInterruptionRecovery('ice-'+cs)});
