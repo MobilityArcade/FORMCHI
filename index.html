@@ -756,9 +756,9 @@ const ahkiWorldAliases={
  'train':'train','dog':'dog','cat':'cat','whale':'whale'
 };
 const ahkiWorldLoopIds=new Set(['forest-day','forest-night','leaves','pine-wind','morning-birds','crickets','cicadas','lake','stream','river','waterfall','ocean-gentle','ocean-heavy','rain-lake','pond','boat-rocking','underwater','breeze','wind-gust','howling-wind','hurricane','light-rain','heavy-rain','roof-rain','hail','snow-wind','embers','small-fire','campfire','bonfire','raging-fire','barn','cafe','restaurant','market','city','campground','distant-music']);
-const ahkiWorld={layers:new Map(),known:new Set(Object.values(ahkiWorldCatalog).flat()),last:null,guess:null,master:1};
+const ahkiWorld={layers:new Map(),known:new Set(Object.values(ahkiWorldCatalog).flat()),last:null,guess:null,master:1,commandLog:[]};
 function ahkiWorldName(id){return id.replace(/-/g,' ')}
-function ahkiWorldId(s){const t=normalizedSpeech(s);for(const [word,id] of Object.entries(ahkiWorldAliases)){if(new RegExp('\\b'+word+'\\b').test(t))return id}for(const id of ahkiWorld.known){if(t.includes(ahkiWorldName(id)))return id}return null}
+function ahkiWorldId(s){const t=normalizedSpeech(s);for(const [word,id] of Object.entries(ahkiWorldAliases)){if(new RegExp('\\b'+word+'\\b').test(t))return id}for(const id of ahkiWorld.known){if(new RegExp('\\b'+ahkiWorldName(id).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b').test(t))return id}return null}
 function ahkiWorldUrl(id){return '/sounds/'+id+'.mp3'}
 // EXPERIMENT 3: Genuine recorded files only; multiple variations are optional.
 // The app does not pretend that a missing sample is a realistic animal recording.
@@ -780,22 +780,37 @@ function procLayer(id,volume){procInit();proc.ctx.resume();const gain=proc.ctx.c
 function procBed(layer,kind){
  const c=proc.ctx,src=c.createBufferSource();src.buffer=procNoise(4);src.loop=true;
  const filter=c.createBiquadFilter();filter.type=kind==='fire'?'bandpass':kind==='rain'?'highpass':'lowpass';
- filter.frequency.value=kind==='fire'?650:kind==='rain'?1100:kind==='water'?1100:kind==='ocean'?430:260;
+ filter.frequency.value=kind==='fire'?650:kind==='rain'?1100:kind==='water'?1100:kind==='ocean'?430:kind==='wind'?175:260;
  filter.Q.value=kind==='fire'?.5:.65;
- const g=c.createGain();g.gain.value=kind==='fire'?.16:kind==='wind'?.35:kind==='rain'?.32:.25;
+ const g=c.createGain();g.gain.value=kind==='fire'?.16:kind==='wind'?.13:kind==='rain'?.32:.25;
  src.connect(filter).connect(g).connect(layer.gain);src.start();layer.nodes.push(src,filter,g);layer.filter=filter;layer.bedGain=g;layer.kind=kind;
  // A second low, slowly moving layer gives water/wind/rain less static character.
  if(kind!=='fire'){
   const src2=c.createBufferSource();src2.buffer=procNoise(5);src2.loop=true;
-  const f2=c.createBiquadFilter();f2.type='lowpass';f2.frequency.value=kind==='rain'?650:kind==='water'?330:170;
-  const g2=c.createGain();g2.gain.value=kind==='rain'?.08:.13;
+  const f2=c.createBiquadFilter();f2.type='lowpass';f2.frequency.value=kind==='rain'?650:kind==='water'?330:kind==='wind'?95:170;
+  const g2=c.createGain();g2.gain.value=kind==='rain'?.08:kind==='wind'?.045:.13;
   src2.connect(f2).connect(g2).connect(layer.gain);src2.start();layer.nodes.push(src2,f2,g2);
  }
 }
 function procLater(layer,fn,delay){const token=layer.token;const timer=setTimeout(()=>{layer.pending.delete(timer);if(layer.alive&&ahkiWorld.layers.get(layer.id)===layer&&layer.token===token)fn()},delay);layer.pending.add(timer);return timer}
 function procTone(layer,freq,duration=.3,amp=.15,type='sine',sweep=0){const c=proc.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);if(sweep)o.frequency.exponentialRampToValueAtTime(Math.max(25,freq+sweep),t+duration);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.001,amp),t+.018);g.gain.exponentialRampToValueAtTime(.0001,t+duration);o.connect(g).connect(layer.gain);o.start(t);o.stop(t+duration+.02);o.onended=()=>{o.disconnect();g.disconnect()}}
 function procBurst(layer,duration=.15,amp=.15,low=500){const c=proc.ctx,t=c.currentTime,s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();s.buffer=procNoise(duration+.03);f.type='bandpass';f.frequency.value=low;f.Q.value=.7;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(amp,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+duration);s.connect(f).connect(g).connect(layer.gain);s.start(t);s.stop(t+duration+.02);s.onended=()=>{s.disconnect();f.disconnect();g.disconnect()}}
-function procEvent(layer){if(!layer.alive||ahkiWorld.layers.get(layer.id)!==layer)return;const id=layer.id;const r=Math.random();if(/fire|ember|bonfire|logs|wood-pop/.test(id)){procBurst(layer,.04+r*.12,.12+r*.13,500+r*2100)}else if(/thunder|lightning/.test(id)){procBurst(layer,1.5+r*2,.45,70+r*90);procTone(layer,42+r*45,1.2,.28,'sawtooth',-18)}else if(/cricket|cicada/.test(id)){for(let i=0;i<3+Math.floor(r*4);i++)procLater(layer,()=>procTone(layer,3300+r*1500,.04,.045,'sine',400),i*105)}else if(/frog/.test(id)){procTone(layer,145+r*85,.19,.22,'sawtooth',-65);procLater(layer,()=>procTone(layer,130+r*70,.17,.15,'sawtooth',-40),250)}else if(/owl|bird|rooster|chicken|cow|horse|sheep|goat|dog|cat|wolf|coyote|duck|geese|whale|parrot|monkey|lion|elephant|pig|deer|bear|dolphin/.test(id)){// Stylized animal approximations; not claimed to be realistic.
+function procThunder(layer){
+ // Broadband, low-passed thunder: no oscillator, so no spring/arcade pitch.
+ const c=proc.ctx,t=c.currentTime,duration=2.8+Math.random()*2.6;
+ const src=c.createBufferSource();src.buffer=procNoise(duration+.1);
+ const low=c.createBiquadFilter();low.type='lowpass';low.frequency.value=95+Math.random()*65;
+ const body=c.createBiquadFilter();body.type='highpass';body.frequency.value=27;
+ const g=c.createGain();g.gain.setValueAtTime(.0001,t);
+ g.gain.exponentialRampToValueAtTime(.24,t+.12);
+ g.gain.exponentialRampToValueAtTime(.12,t+.6);
+ g.gain.exponentialRampToValueAtTime(.0001,t+duration);
+ src.connect(low).connect(body).connect(g).connect(layer.gain);
+ src.start(t);src.stop(t+duration+.02);
+ layer.nodes.push(src,low,body,g);
+ src.onended=()=>{try{src.disconnect();low.disconnect();body.disconnect();g.disconnect()}catch{}};
+}
+function procEvent(layer){if(!layer.alive||ahkiWorld.layers.get(layer.id)!==layer)return;const id=layer.id;const r=Math.random();if(/fire|ember|bonfire|logs|wood-pop/.test(id)){procBurst(layer,.04+r*.12,.12+r*.13,500+r*2100)}else if(/thunder|lightning/.test(id)){procThunder(layer)}else if(/cricket|cicada/.test(id)){for(let i=0;i<3+Math.floor(r*4);i++)procLater(layer,()=>procTone(layer,3300+r*1500,.04,.045,'sine',400),i*105)}else if(/frog/.test(id)){procTone(layer,145+r*85,.19,.22,'sawtooth',-65);procLater(layer,()=>procTone(layer,130+r*70,.17,.15,'sawtooth',-40),250)}else if(/owl|bird|rooster|chicken|cow|horse|sheep|goat|dog|cat|wolf|coyote|duck|geese|whale|parrot|monkey|lion|elephant|pig|deer|bear|dolphin/.test(id)){// Stylized animal approximations; not claimed to be realistic.
  const base=/cow|whale|lion|bear|elephant/.test(id)?95:/rooster|bird|owl|parrot/.test(id)?550:/frog/.test(id)?160:250;for(let i=0;i<3;i++)procLater(layer,()=>procTone(layer,base*(.8+Math.random()*.6),.2+Math.random()*.4,.10,'triangle',(Math.random()-.5)*base),i*340)}else if(/plane|airplane|helicopter|train|car|tractor|motorcycle|boat-engine/.test(id)){procTone(layer,70+r*65,2+r*2,.28,'sawtooth',-25)}else if(/bell|chime|clock|bicycle/.test(id)){procTone(layer,500+r*450,1,.15,'sine',-50)}else if(/twig|foot|steps|door|floor|splash|drips/.test(id)){procBurst(layer,.1,.16,500+r*1400)}else{procBurst(layer,.25,.07,500+r*600)}}
 function procSchedule(layer){if(!layer.alive||ahkiWorld.layers.get(layer.id)!==layer)return;procEvent(layer);const id=layer.id;let delay=/fire|cricket|cicada/.test(id)?250+Math.random()*950:/frog|bird|owl/.test(id)?1700+Math.random()*5500:/thunder/.test(id)?6500+Math.random()*12000:3500+Math.random()*9000;layer.timer=procLater(layer,()=>procSchedule(layer),delay)}
 function ahkiWorldStop(id){
@@ -803,7 +818,7 @@ function ahkiWorldStop(id){
  l.alive=false;ahkiWorld.layers.delete(id);clearTimeout(l.timer);
  for(const timer of l.pending||[])clearTimeout(timer);l.pending?.clear();
  if(l.gain&&proc.ctx){
-  const now=proc.ctx.currentTime;l.gain.gain.cancelScheduledValues(now);l.gain.gain.setTargetAtTime(0,now,.015);
+  const now=proc.ctx.currentTime;l.gain.gain.cancelScheduledValues(now);l.gain.gain.setValueAtTime(0,now);
   setTimeout(()=>{for(const n of l.nodes||[]){try{n.stop?.()}catch{}try{n.disconnect()}catch{}}try{l.gain.disconnect()}catch{}},180);
  }else if(l.audio){l.audio.pause();l.audio.removeAttribute('src');l.audio.load()}
  return true;
@@ -821,27 +836,39 @@ function ahkiWorldStartScene(name,secret=false){
  scene.sounds.forEach((id,i)=>{const timer=setTimeout(()=>ahkiWorldPlay(id),i*3200);ahkiWorldSceneTimers.push(timer)});
  console.info('[AHKI Experiment 3] Scene started',secret?'(hidden answer)':'',name);
 }
-function ahkiWorldCommand(s){const t=normalizedSpeech(s);if(!t)return;
- if(/\b(stop|delete|remove|clear|end|silence|mute|turn off|shut off|kill)\b.{0,38}\b(all|everything|sounds|soundscape|environment|atmosphere|background|audio)\b/.test(t)||/\b(silence|quiet)\b.{0,12}\b(everything|please|now)\b/.test(t)||/\b(no more sounds|make it silent|stop everything)\b/.test(t)){ahkiWorldStopAll();return}
- if(/(guessing game|guess where|surprise me|where are we|take me somewhere mysterious)/.test(t)){
-  const keys=Object.keys(ahkiWorldScenes);ahkiWorldStartScene(keys[Math.floor(Math.random()*keys.length)],true);return;
+function ahkiWorldCommand(s){
+ const t=normalizedSpeech(s);if(!t)return {ok:false,reason:'empty'};
+ const log=(action,id,ok=true)=>{const result={action,id:id||null,ok,active:[...ahkiWorld.layers.keys()]};ahkiWorld.commandLog.push(result);if(ahkiWorld.commandLog.length>30)ahkiWorld.commandLog.shift();console.info('[AHKI 3.2 sound action]',result);return result};
+ const stopVerb=/\b(stop|delete|remove|clear|end|silence|mute|turn off|shut off|kill|take away|no more|cut out)\b/;
+ const stopAll=/\b(stop|delete|remove|clear|end|silence|mute|turn off|shut off|kill)\b.{0,50}\b(all|everything|sounds|soundscape|environment|atmosphere|background|audio|noise)\b|\b(stop everything|no more sounds|make it silent|silence everything|quiet everything|everything off)\b/;
+ if(stopAll.test(t)){ahkiWorldStopAll();return log('stop-all')}
+ // Explicitly named stop always wins, even in 'stop the rain and leave the fire'.
+ if(stopVerb.test(t)){
+  const ids=[...ahkiWorld.layers.keys()].filter(id=>{const words=[id,ahkiWorldName(id),...Object.entries(ahkiWorldAliases).filter(([,v])=>v===id).map(([k])=>k)];return words.some(word=>new RegExp('\\b'+word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b').test(t))});
+  if(ids.length){ids.forEach(ahkiWorldStop);return log('stop-layer',ids.join(','))}
+  if(/\b(it|that|this|sound|noise|layer)\b/.test(t)&&ahkiWorld.last){const id=ahkiWorld.last;ahkiWorldStop(id);return log('stop-layer',id)}
+  return log('stop-not-found',null,false);
  }
- if(/(tell me where|reveal the place|what was the place|give me the answer)/.test(t)&&ahkiWorld.guess){
-  console.info('[AHKI Experiment 3] Mystery answer:',ahkiWorld.guess.answer);
-  // Do not fabricate spoken answers: the model does not yet receive this state.
-  return;
+ if(/\b(guessing game|guess where|surprise me|where are we|take me somewhere mysterious)\b/.test(t)){
+  const keys=Object.keys(ahkiWorldScenes);const name=keys[Math.floor(Math.random()*keys.length)];ahkiWorldStartScene(name,true);return log('scene',name);
  }
- if(/(lakeside|lake at night|starry night)/.test(t)&&/\b(take|go|create|imagine|put|bring)\b/.test(t)){ahkiWorldStartScene('lakeside-night');return}
- if(/(farm|countryside)/.test(t)&&/\b(take|go|create|imagine|put|bring)\b/.test(t)){ahkiWorldStartScene('farm-morning');return}
- if(/(forest campsite|camping in the forest)/.test(t)){ahkiWorldStartScene('forest-camp');return}
- if(/(beach|ocean morning)/.test(t)&&/\b(take|go|create|imagine|put|bring)\b/.test(t)){ahkiWorldStartScene('ocean-morning');return}
- if(/(rainy cabin|cabin in the rain)/.test(t)){ahkiWorldStartScene('rainy-cabin');return}
- const id=ahkiWorldId(t);const targeted=id||ahkiWorld.last;
- if(!targeted)return;
- if(/\b(stop|delete|remove|take away|turn off|no more|mute|silence)\b/.test(t)){ahkiWorldStop(targeted);return}
- if(/\b(louder|raise the volume|turn up the volume|closer|bring it closer)\b/.test(t)){ahkiWorldVolume(targeted,1.6);return}
- if(/\b(quieter|lower the volume|turn down the volume|farther|further away|move it away)\b/.test(t)){ahkiWorldVolume(targeted,.65);return}
- if(/\b(stronger|more intense|raging|more powerful|bigger)\b/.test(t)){const l=ahkiWorld.layers.get(targeted);if(l){l.intensity=Math.min(1,(l.intensity||.5)+.25);if(l.filter)l.filter.frequency.setTargetAtTime(Math.min(5000,l.filter.frequency.value*1.3),proc.ctx.currentTime,.3);if(l.bedGain)l.bedGain.gain.setTargetAtTime(Math.min(.5,l.bedGain.gain.value*1.2),proc.ctx.currentTime,.3)}return}if(/\b(add|play|hear|bring|start|create|make|put|give me|imagine|let's|lets|take me)\b/.test(t))ahkiWorldPlay(targeted);
+ if(/(tell me where|reveal the place|what was the place|give me the answer)/.test(t)&&ahkiWorld.guess){console.info('[AHKI 3.2 mystery answer]',ahkiWorld.guess.answer);return log('reveal',ahkiWorld.guess.name)}
+ const travel=/\b(take|go|create|imagine|put|bring|transport|visit)\b/;
+ const scenes=[[/\b(lakeside|lake at night|starry night)\b/,'lakeside-night'],[/\b(farm|countryside)\b/,'farm-morning'],[/\b(forest campsite|camping in the forest)\b/,'forest-camp'],[/\b(beach|ocean morning)\b/,'ocean-morning'],[/\b(rainy cabin|cabin in the rain)\b/,'rainy-cabin']];
+ for(const [re,name] of scenes)if(re.test(t)&&travel.test(t)){ahkiWorldStartScene(name);return log('scene',name)}
+ const id=ahkiWorldId(t);
+ const volumeUp=/\b(louder|raise the volume|turn up the volume|closer|bring it closer)\b/;
+ const volumeDown=/\b(quieter|lower the volume|turn down the volume|farther|further away|move it away|softer)\b/;
+ const stronger=/\b(stronger|more intense|raging|more powerful|bigger)\b/;
+ const target=id||(volumeUp.test(t)||volumeDown.test(t)||stronger.test(t)?ahkiWorld.last:null);
+ if(target&&volumeUp.test(t)){ahkiWorldVolume(target,1.6);return log('volume-up',target)}
+ if(target&&volumeDown.test(t)){ahkiWorldVolume(target,.65);return log('volume-down',target)}
+ if(target&&stronger.test(t)){const l=ahkiWorld.layers.get(target);if(l){l.intensity=Math.min(1,(l.intensity||.5)+.25);if(l.filter)l.filter.frequency.setTargetAtTime(Math.min(5000,l.filter.frequency.value*1.3),proc.ctx.currentTime,.3);if(l.bedGain)l.bedGain.gain.setTargetAtTime(Math.min(.5,l.bedGain.gain.value*1.2),proc.ctx.currentTime,.3);return log('intensity-up',target)}}
+ // Never add rain/wind merely because the word was mentioned.
+ if(id&&/\b(add|play|hear|bring|start|create|make|put|give me|let's|lets|turn on)\b/.test(t)){
+  ahkiWorldPlay(id);return log('play',id)
+ }
+ return {ok:false,reason:'no sound action'};
 }
 
 async function handleSpokenIntent(text){
