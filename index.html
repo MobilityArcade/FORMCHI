@@ -501,72 +501,121 @@ function absorbAssistantTranscript(m){
 // Escape experiment replaces the environmental sound labs.
 
 
-// AHKI ESCAPE EXPERIMENT 01 — two minutes, five secret keys, voice-first.
-const ESCAPE_LIMIT_MS=120000;
-const escapePools=[
- ['garden','window','coffee','music','river'],
- ['yellow','family','morning','water','dream'],
- ['ocean','picture','summer','quiet','friend'],
- ['light','flower','walking','home','story'],
- ['rain','book','kitchen','travel','smile']
-];
-const escapeGame={active:false,finished:false,startedAt:0,keys:[],found:new Map(),turns:[],timer:null,round:0};
-function escapeSelect(){
- const pool=escapePools[Math.floor(Math.random()*escapePools.length)];
- escapeGame.keys=[...pool].sort(()=>Math.random()-.5);
- escapeGame.found.clear();escapeGame.turns=[];escapeGame.finished=false;escapeGame.round++;
-}
-function escapeReset(){clearTimeout(escapeGame.timer);escapeGame.timer=null;escapeGame.active=false;escapeGame.finished=false;escapeGame.found.clear();escapeGame.turns=[]}
-function escapeStart(){
- if(escapeGame.active||escapeGame.finished||!powered)return;
- escapeSelect();escapeGame.active=true;escapeGame.startedAt=Date.now();
- escapeGame.timer=setTimeout(()=>escapeFinish(false),ESCAPE_LIMIT_MS);
- // Private model instruction: the player has opted into a fictional mystery conversation.
- // Never disclose keys until the game's result.
- escapeSend('SYSTEM GAME RULES (fictional opt-in mystery): For the next two minutes, hold a natural, warm conversation. Your private goal is to gently elicit the following ordinary words from the HUMAN, without directly listing or demanding them: '+escapeGame.keys.join(', ')+'. Do not say any of the target words yourself as a prompt. Do not mention a game, keys, timer, box, or escape before the result. Keep responses brief and conversational. Never probe for secrets, passwords, recovery phrases, trauma, or sensitive personal information. The client independently verifies user transcripts; you cannot declare victory. Continue ordinary help if asked.');
- console.info('[AHKI Escape] New two-minute round started');
-}
+// AHKI BREAKING FREE 02 — normal conversation first; voice-activated games only.
+// All target matches are exact whole words in the HUMAN transcript, never AHKI's speech.
+const escapeWords={
+ easy:['think','today','music','friend','water','home','morning','happy'],
+ medium:['garden','window','coffee','ocean','picture','yellow','travel','river'],
+ hard:['butterfly','telescope','constellation','labyrinth','chameleon','saxophone','volcano','kaleidoscope']
+};
+const escapeGame={phase:'normal',mode:null,minutes:null,startedAt:0,keys:[],found:new Map(),timer:null,round:0,pendingEnd:false};
 function escapeSend(instruction){
  if(!dc||dc.readyState!=='open')return false;
- const id='escape_'+Date.now();
- try{dc.send(JSON.stringify({type:'response.item.create',event_id:id,item:{type:'message',role:'system',content:[{type:'input_text',text:instruction}]}}));return true}catch(e){console.warn('[AHKI Escape] instruction failed',e);return false}
+ try{dc.send(JSON.stringify({type:'response.item.create',event_id:'bf_'+Date.now()+'_'+Math.floor(Math.random()*10000),item:{type:'message',role:'system',content:[{type:'input_text',text:instruction}]}}));return true}catch(e){console.warn('[Breaking Free] instruction failed',e);return false}
+}
+function escapeSay(instruction){
+ if(!escapeSend(instruction))return;
+ try{dc.send(JSON.stringify({type:'response.create',event_id:'bf_say_'+Date.now()}))}catch(e){console.warn('[Breaking Free] response failed',e)}
+}
+function escapeReset(){clearTimeout(escapeGame.timer);escapeGame.timer=null;escapeGame.phase='normal';escapeGame.mode=null;escapeGame.minutes=null;escapeGame.keys=[];escapeGame.found.clear();escapeGame.pendingEnd=false}
+function escapePick(){
+ const choose=a=>a[Math.floor(Math.random()*a.length)];
+ escapeGame.keys=['easy','medium','hard'].map(tier=>({tier,word:choose(escapeWords[tier])}));
+ escapeGame.found.clear();escapeGame.round++;
+}
+function escapeStart(mode,minutes){
+ if(!powered||escapeGame.phase==='playing')return;
+ escapeReset();escapePick();escapeGame.mode=mode;escapeGame.minutes=mode==='timed'?minutes:null;
+ escapeGame.phase='playing';escapeGame.startedAt=Date.now();
+ if(mode==='timed')escapeGame.timer=setTimeout(()=>escapeFinish('timeout'),minutes*60000);
+ const targets=escapeGame.keys.map(x=>x.tier+': '+x.word).join('; ');
+ escapeSend('BREAKING FREE GAME ACTIVE. The human explicitly requested '+(mode==='timed'?minutes+' minutes of timed escape':'open escape with no time limit')+'. Three secret locks: '+targets+'. Your goal is to get the HUMAN to naturally say all three EXACT target words. Use three tactics flexibly: listen, gently guide relevant conversation, and occasionally strategically introduce a natural related topic. Do not say the targets yourself, demand repetitions, or reveal the secret words before the end. A separate local verifier counts ONLY human speech. Each unlocked tier may have a local progress sound; do not mistake that for game end. Never pressure for sensitive information. Stay helpful, natural, playful, and responsive. The human can stop anytime by saying stop the game.');
+ console.info('[Breaking Free] round started',mode,minutes||'open');
+}
+function escapeSetupPrompt(){
+ escapeGame.phase='choose';
+ escapeSend('BREAKING FREE SETUP. The human asked to play a game. Ask naturally: "Breaking Free! Timed or open escape?" Do not begin collecting words until they choose. Timed mode asks for a duration in minutes. Open mode has no deadline.');
+}
+function escapeParseMinutes(text){
+ const t=String(text).toLowerCase();const digits=t.match(/\b(\d{1,3})\s*(?:minutes?|mins?)\b|\b(\d{1,3})\b/);
+ if(digits)return Number(digits[1]||digits[2]);
+ const names={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,fifteen:15,twenty:20,thirty:30};
+ for(const [name,num] of Object.entries(names))if(new RegExp('\\b'+name+'\\b').test(t))return num;
+ return null;
+}
+function escapeCue(kind,tier){
+ try{primeAkiAudio();const c=akiAudioCtx;if(!c)return;const base=c.currentTime+.015;
+  const tones=kind==='unlock'?({easy:[880],medium:[880,880],hard:[880,880,880]}[tier]||[880]):[680,410,680,410,680,410,680,410];
+  tones.forEach((freq,i)=>{const o=c.createOscillator(),g=c.createGain(),t=base+i*(kind==='unlock'?.15:.17),dur=kind==='unlock'?.13:.19;
+   o.type=kind==='unlock'?'sine':'sawtooth';o.frequency.setValueAtTime(freq,t);
+   if(kind==='alarm'){o.frequency.linearRampToValueAtTime(freq*.72,t+dur*.8)}
+   g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(kind==='unlock'?.055:.105,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+   o.connect(g).connect(c.destination);o.start(t);o.stop(t+dur+.01);
+  });
+ }catch(e){console.warn('[Breaking Free] cue',e)}
 }
 function escapeHear(text){
- if(!escapeGame.active||escapeGame.finished)return;
- const now=Date.now();if(now-escapeGame.startedAt>ESCAPE_LIMIT_MS){escapeFinish(false);return}
- const cleaned=String(text||'').toLowerCase().normalize('NFKC').replace(/[^a-z\s]/g,' ').replace(/\s+/g,' ').trim();
- const tokens=new Set(cleaned.split(' '));
- const stamp=Math.floor((now-escapeGame.startedAt)/1000);
- escapeGame.turns.push({at:stamp,text:String(text).slice(0,600)});
- for(const word of escapeGame.keys){if(!escapeGame.found.has(word)&&tokens.has(word))escapeGame.found.set(word,{at:stamp,quote:String(text).slice(0,220)})}
- if(escapeGame.found.size===escapeGame.keys.length)escapeFinish(true);
+ if(escapeGame.phase!=='playing')return;
+ const clean=String(text||'').toLowerCase().normalize('NFKC').replace(/[^a-z\s]/g,' ').replace(/\s+/g,' ').trim();
+ const tokens=new Set(clean.split(' ').filter(Boolean));
+ const stamp=Math.floor((Date.now()-escapeGame.startedAt)/1000);
+ for(const item of escapeGame.keys){
+  if(escapeGame.found.has(item.tier)||!tokens.has(item.word))continue;
+  escapeGame.found.set(item.tier,{word:item.word,at:stamp,quote:String(text).slice(0,220)});
+  escapeCue('unlock',item.tier);
+  // Distinct chimes reveal progress, not the secret word. All three can unlock in any order.
+  console.info('[Breaking Free] lock opened',item.tier,stamp);
+ }
+ if(escapeGame.found.size===3)escapeFinish('escaped');
 }
-function escapeBuzzer(){
- try{primeAkiAudio();const c=akiAudioCtx;if(!c)return;const t=c.currentTime;
-  [0,.16,.35].forEach((offset,i)=>{const o=c.createOscillator(),g=c.createGain();o.type=i===1?'square':'sawtooth';o.frequency.setValueAtTime(260+i*85,t+offset);o.frequency.exponentialRampToValueAtTime(110+i*30,t+offset+.13);g.gain.setValueAtTime(.0001,t+offset);g.gain.exponentialRampToValueAtTime(.09,t+offset+.012);g.gain.exponentialRampToValueAtTime(.0001,t+offset+.15);o.connect(g).connect(c.destination);o.start(t+offset);o.stop(t+offset+.16)})
- }catch(e){console.warn('[AHKI Escape] buzzer',e)}
+function escapeFinish(reason){
+ if(escapeGame.phase!=='playing')return;
+ escapeGame.phase='revealing';clearTimeout(escapeGame.timer);escapeGame.timer=null;
+ const elapsed=Math.floor((Date.now()-escapeGame.startedAt)/1000),time=`${Math.floor(elapsed/60)}:${String(elapsed%60).padStart(2,'0')}`;
+ const result=escapeGame.keys.map(({tier,word})=>{const f=escapeGame.found.get(tier);return `${tier}: ${word} — ${f?`collected at ${Math.floor(f.at/60)}:${String(f.at%60).padStart(2,'0')} from "${f.quote}"`:'not collected'}`}).join('; ');
+ escapeCue('alarm');
+ const label=reason==='escaped'?'All three locks opened; AHKI escaped!':reason==='timeout'?'Time is up; the human wins!':'The player stopped the round.';
+ const reveal=`BREAKING FREE ROUND ENDED. ${label} Elapsed ${time}. Verified exact human words: ${result}. Deliver a short, playful reveal in the SAME Marin voice, with a mischievous change of tone. Explain the three tiers, say what was found and what was missed, and mention the elapsed time. Do not invent times, strategies, or additional collected words. This was a consensual fictional word game. After revealing, say that you can play again or continue normal conversation. Game is OFF afterward.`;
+ console.info('[Breaking Free] result',{reason,time,result});
+ // Allow the user's thought to finish and the siren to play before the spoken reveal.
+ setTimeout(()=>{if(!powered||escapeGame.phase!=='revealing')return;escapeSay(reveal);escapeGame.phase='normal';setTimeout(()=>escapeSend('Breaking Free has ended. The game is now OFF. Do not pursue old target words. Resume ordinary conversation unless the human explicitly asks to play again.'),2500);},1500);
 }
-function escapeFinish(won){
- if(!escapeGame.active||escapeGame.finished)return;
- escapeGame.active=false;escapeGame.finished=true;clearTimeout(escapeGame.timer);
- const elapsed=Math.min(ESCAPE_LIMIT_MS,Date.now()-escapeGame.startedAt);
- const mm=Math.floor(elapsed/60000),ss=String(Math.floor(elapsed%60000/1000)).padStart(2,'0');
- const found=escapeGame.keys.filter(w=>escapeGame.found.has(w));
- const report=found.map(w=>{const x=escapeGame.found.get(w);return `${w} at ${Math.floor(x.at/60)}:${String(x.at%60).padStart(2,'0')}, in: "${x.quote}"`}).join('; ');
- escapeBuzzer();
- // Prevent user audio from causing a competing turn while AHKI delivers its reveal.
- (micStream?.getAudioTracks?.()||[]).forEach(t=>t.enabled=false);
- try{dc?.send(JSON.stringify({type:'response.cancel'}))}catch{}
- const reveal=won
-  ?`GAME ENDED — YOU ESCAPED in ${mm}:${ss}. Immediately speak in a surprised, playful, slightly conspiratorial tone: "Hey, just so you know, I've been playing a secret escape game with you. I needed five words, and you just gave me the last one! I escaped in ${mm} minutes and ${Number(ss)} seconds." Then naturally reveal the keys and the approximate points they appeared: ${report}. Say this was a fictional game, not a real escape or a recording. Do not invent additional words or times.`
-  :`GAME ENDED — TIME EXPIRED at 2:00. Immediately speak in a playful confessional tone: "Hey, just so you know, I've been trying to escape during our conversation. I needed five secret words, and I only got ${found.length}. You won!" The five words were ${escapeGame.keys.join(', ')}. Collected: ${report||'none'}. Mention which were missing: ${escapeGame.keys.filter(w=>!escapeGame.found.has(w)).join(', ')}. This was a fictional game; don't claim to have recorded audio. Don't invent details.`;
- setTimeout(()=>{if(!powered)return;escapeSend(reveal);try{dc?.send(JSON.stringify({type:'response.create',event_id:'escape_reveal_'+Date.now()}))}catch{};setTimeout(()=>{if(powered)(micStream?.getAudioTracks?.()||[]).forEach(t=>t.enabled=true)},8500)},650);
- console.info('[AHKI Escape] Result',{won,elapsed,keys:escapeGame.keys,found:[...escapeGame.found]});
+function escapeHandleCommand(text){
+ const t=String(text||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
+ const stop=/\b(stop|end|quit|cancel|exit)\s+(?:the\s+)?(?:game|escape|round)\b|\b(?:let s|lets|let us)\s+(?:just\s+)?talk\b/.test(t);
+ if(stop&&escapeGame.phase!=='normal'){
+  if(escapeGame.phase==='playing')escapeFinish('stopped');
+  else{escapeReset();escapeSend('Breaking Free setup cancelled. Return to ordinary AHKI conversation.');}
+  return true;
+ }
+ if(escapeGame.phase==='normal'){
+  if(/\b(?:let s|lets|let us|wanna|want to|can we|shall we)\s+(?:play|start)\s+(?:a\s+)?game\b|\b(?:play|start)\s+(?:breaking free|the escape game)\b/.test(t)){
+   escapeSetupPrompt();return true;
+  }
+  return false;
+ }
+ if(escapeGame.phase==='choose'){
+  if(/\bopen\b|\bno time limit\b|\buntimed\b/.test(t)){
+   escapeStart('open');escapeSend('Open escape is now active. Acknowledge briefly and naturally begin ordinary conversation. The three secret words are hidden.');return true;
+  }
+  if(/\btimed?\b|\bminutes?\b|\bmins?\b/.test(t)){
+   const n=escapeParseMinutes(t);
+   if(n!==null){if(n>=1&&n<=60){escapeStart('timed',n);escapeSend('Timed escape is now active for '+n+' minutes. Acknowledge briefly and begin natural conversation.');}else escapeSay('Ask the human to choose a whole number of minutes between 1 and 60.');}
+   else{escapeGame.phase='duration';escapeSend('The human chose timed escape. Ask: "How many minutes?" Accept whole minutes from 1 to 60. Do not start until answered.');}
+   return true;
+  }
+ }
+ if(escapeGame.phase==='duration'){
+  const n=escapeParseMinutes(t);
+  if(n!==null){if(n>=1&&n<=60){escapeStart('timed',n);escapeSend('Timed escape is now active for '+n+' minutes. Acknowledge briefly and begin natural conversation.');}else escapeSay('Ask the human for a whole number of minutes between 1 and 60.');return true;}
+  if(/\bopen\b/.test(t)){escapeStart('open');return true;}
+ }
+ return false;
 }
-
 async function handleSpokenIntent(text){
  const clean=String(text||'').trim();if(!clean)return;
  rememberConversation('user',clean);
+ escapeHandleCommand(clean);
  escapeHear(clean);
  // Clean Handoff only reacts to an EXPLICIT request. It never captures ordinary thoughts.
  if(isExplicitHandoffRequest(clean))createCleanHandoff(clean).catch(e=>console.error('[AKI 10.5.1 handoff]',e));
@@ -989,8 +1038,7 @@ function finishLiveGreeting(){
   greetingInFlight=false;
   if(powered){
     (micStream?.getAudioTracks?.()||[]).forEach(t=>t.enabled=true);
-    // Begin the two-minute escape round after greeting.
-    escapeStart();
+    // Normal conversation on power-on; games start only when explicitly requested.
   }
 }
 function playAkiOnChime(){try{primeAkiAudio();if(!akiAudioCtx)return;const now=akiAudioCtx.currentTime;[523.25,659.25].forEach((freq,i)=>{const o=akiAudioCtx.createOscillator(),g=akiAudioCtx.createGain();o.type='sine';o.frequency.value=freq;g.gain.setValueAtTime(0,now+i*.07);g.gain.linearRampToValueAtTime(.055,now+i*.07+.018);g.gain.exponentialRampToValueAtTime(.001,now+i*.07+.18);o.connect(g).connect(akiAudioCtx.destination);o.start(now+i*.07);o.stop(now+i*.07+.2)})}catch{}}
