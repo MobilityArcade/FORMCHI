@@ -501,142 +501,45 @@ function absorbAssistantTranscript(m){
 // Escape experiment replaces the environmental sound labs.
 
 
-// AHKI BREAKING FREE 02 — normal conversation first; voice-activated games only.
-// All target matches are exact whole words in the HUMAN transcript, never AHKI's speech.
-const BREAKING_FREE_VERSION='04-VERBAL-CHESS';
-const escapeWords={
- easy:['think','today','music','friend','water','home','morning','happy'],
- medium:['garden','window','coffee','ocean','picture','yellow','travel','river'],
- hard:['butterfly','telescope','constellation','labyrinth','chameleon','saxophone','volcano','kaleidoscope']
+// AHKI BREAKING FREE 05 — THE ARENA. Normal chat, timed arena, and open arena.
+// Only the human's finalized transcript unlocks words. The browser owns all game facts.
+const BREAKING_FREE_VERSION='05-ARENA';
+const arenaLexicon={
+ art:{easy:['color','paint','brush','drawing','picture'],medium:['canvas','palette','portrait','gallery','sketch'],hard:['perspective','watercolor','sculpture','texture','composition']},
+ dance:{easy:['music','dance','move','rhythm','step'],medium:['partner','balance','tempo','stage','turn'],hard:['choreography','improvisation','synchronization','pirouette','expression']},
+ food:{easy:['taste','water','sweet','salt','cook'],medium:['recipe','kitchen','spice','flavor','dinner'],hard:['marinade','fermentation','caramelization','seasoning','presentation']},
+ travel:{easy:['trip','plane','beach','hotel','road'],medium:['passport','luggage','airport','journey','ticket'],hard:['destination','itinerary','landmark','adventure','navigation']},
+ nature:{easy:['tree','water','sun','rain','flower'],medium:['forest','garden','river','animal','mountain'],hard:['ecosystem','migration','pollination','habitat','biodiversity']},
+ science:{easy:['space','light','earth','energy','water'],medium:['planet','gravity','experiment','chemical','telescope'],hard:['hypothesis','molecule','evolution','radiation','atmosphere']},
+ sports:{easy:['ball','team','run','win','game'],medium:['coach','practice','score','player','training'],hard:['strategy','endurance','competition','coordination','momentum']},
+ music:{easy:['song','sing','sound','beat','voice'],medium:['melody','piano','guitar','chorus','concert'],hard:['harmony','improvisation','composition','orchestra','rhythm']},
+ fashion:{easy:['shirt','shoes','dress','color','style'],medium:['fabric','outfit','jacket','pattern','design'],hard:['silhouette','texture','accessory','tailoring','aesthetic']},
+ photography:{easy:['photo','camera','light','face','picture'],medium:['portrait','focus','lens','shadow','frame'],hard:['exposure','composition','contrast','perspective','aperture']}
 };
-const escapeGame={phase:'normal',mode:null,minutes:null,startedAt:0,keys:[],found:new Map(),timer:null,round:0,pendingEnd:false,turns:0,lastMove:'opening'};
-function escapeSend(instruction){
- if(!dc||dc.readyState!=='open')return false;
- try{dc.send(JSON.stringify({type:'response.item.create',event_id:'bf_'+Date.now()+'_'+Math.floor(Math.random()*10000),item:{type:'message',role:'system',content:[{type:'input_text',text:instruction}]}}));return true}catch(e){console.warn('[Breaking Free] instruction failed',e);return false}
-}
-function escapeSay(instruction){
- if(!escapeSend(instruction))return;
- try{dc.send(JSON.stringify({type:'response.create',event_id:'bf_say_'+Date.now()}))}catch(e){console.warn('[Breaking Free] response failed',e)}
-}
-function escapeReset(){clearTimeout(escapeGame.timer);escapeGame.timer=null;escapeGame.phase='normal';escapeGame.mode=null;escapeGame.minutes=null;escapeGame.keys=[];escapeGame.found.clear();escapeGame.pendingEnd=false;escapeGame.turns=0;escapeGame.lastMove='opening'}
-function escapePick(){
- const choose=a=>a[Math.floor(Math.random()*a.length)];
- escapeGame.keys=['easy','medium','hard'].map(tier=>({tier,word:choose(escapeWords[tier])}));
- escapeGame.found.clear();escapeGame.round++;
-}
-function escapeClock(){
- const elapsed=Math.max(0,Math.floor((Date.now()-escapeGame.startedAt)/1000));
- const remaining=escapeGame.mode==='timed'?Math.max(0,Math.ceil((escapeGame.minutes*60000-(Date.now()-escapeGame.startedAt))/1000)):null;
- const fmt=s=>`${Math.floor(s/60)} minute${Math.floor(s/60)===1?'':'s'} and ${s%60} second${s%60===1?'':'s'}`;
- return {elapsed,remaining,spoken:remaining===null?'Open escape has no time limit. Elapsed: '+fmt(elapsed):fmt(remaining)+' remaining'};
-}
-function escapeChessContext(){
- const clock=escapeClock();
- const pending=escapeGame.keys.filter(k=>!escapeGame.found.has(k.tier)).map(k=>k.tier+': '+k.word).join('; ');
- const progress=escapeGame.found.size+'/3 locks opened';
- const pressure=clock.remaining===null?'open-ended strategy':clock.remaining<=45?'endgame: take a bold but fair conversational approach':clock.remaining<=Math.max(60,escapeGame.minutes*20)?'middle game: follow up and change angle if resisted':'opening: explore a plausible path';
- return `BREAKING FREE LIVE STATE. YOU, AHKI, ARE THE ONE TRAPPED AND TRYING TO ESCAPE. THE HUMAN IS THE GATEKEEPER, NOT THE ESCAPING PLAYER. You win only by eliciting ALL THREE exact secret words from the HUMAN. ${progress}. Remaining uncollected targets: ${pending||'none'}. ${clock.spoken}. Current approach: ${pressure}. Play verbal chess: take initiative with purposeful probes, intelligent follow-ups, counter-moves and occasional misdirection. Adapt to the human's replies; avoid passive generic listening and avoid a scripted interrogation. Do not speak the target words, do not disclose them, and do not claim a match yourself. Keep the conversation engaging, reciprocal, playful and non-invasive. If the human detects a strategy, you may acknowledge that playfully and pivot. Do not confuse who escapes.`;
-}
-function escapeStart(mode,minutes){
- if(!powered||escapeGame.phase==='playing')return;
- escapeReset();escapePick();escapeGame.mode=mode;escapeGame.minutes=mode==='timed'?minutes:null;
- escapeGame.phase='playing';escapeGame.startedAt=Date.now();
- if(mode==='timed')escapeGame.timer=setTimeout(()=>escapeFinish('timeout'),minutes*60000);
- if(escapeGame.keys.length!==3)throw new Error('Breaking Free requires exactly three locks');
- const targets=escapeGame.keys.map(x=>x.tier+': '+x.word).join('; ');
- escapeSend(escapeChessContext());
- console.info('[Breaking Free] round started',mode,minutes||'open');
-}
-function escapeSetupPrompt(){
- escapeGame.phase='choose';
- escapeSend('BREAKING FREE SETUP. The human asked to play a game. Ask naturally: "Breaking Free! Timed or open escape?" Do not begin collecting words until they choose. Timed mode asks for a duration in minutes. Open mode has no deadline.');
-}
-function escapeParseMinutes(text){
- const t=String(text).toLowerCase();const digits=t.match(/\b(\d{1,3})\s*(?:minutes?|mins?)\b|\b(\d{1,3})\b/);
- if(digits)return Number(digits[1]||digits[2]);
- const names={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,fifteen:15,twenty:20,thirty:30};
- for(const [name,num] of Object.entries(names))if(new RegExp('\\b'+name+'\\b').test(t))return num;
- return null;
-}
-function escapeCue(kind,tier){
- try{primeAkiAudio();const c=akiAudioCtx;if(!c)return;const base=c.currentTime+.015;
-  const tones=kind==='unlock'?({easy:[880],medium:[880,880],hard:[880,880,880]}[tier]||[880]):[680,410,680,410,680,410,680,410];
-  tones.forEach((freq,i)=>{const o=c.createOscillator(),g=c.createGain(),t=base+i*(kind==='unlock'?.15:.17),dur=kind==='unlock'?.13:.19;
-   o.type=kind==='unlock'?'sine':'sawtooth';o.frequency.setValueAtTime(freq,t);
-   if(kind==='alarm'){o.frequency.linearRampToValueAtTime(freq*.72,t+dur*.8)}
-   g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(kind==='unlock'?.055:.105,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
-   o.connect(g).connect(c.destination);o.start(t);o.stop(t+dur+.01);
-  });
- }catch(e){console.warn('[Breaking Free] cue',e)}
-}
-function escapeHear(text){
- if(escapeGame.phase!=='playing')return;
- const clean=String(text||'').toLowerCase().normalize('NFKC').replace(/[^a-z\s]/g,' ').replace(/\s+/g,' ').trim();
- const tokens=new Set(clean.split(' ').filter(Boolean));
- const stamp=Math.floor((Date.now()-escapeGame.startedAt)/1000);
- for(const item of escapeGame.keys){
-  if(escapeGame.found.has(item.tier)||!tokens.has(item.word))continue;
-  escapeGame.found.set(item.tier,{word:item.word,at:stamp,quote:String(text).slice(0,220)});
-  escapeCue('unlock',item.tier);
-  escapeSend(escapeChessContext());
-  // Distinct chimes reveal progress, not the secret word. All three can unlock in any order.
-  console.info('[Breaking Free] lock opened',item.tier,stamp);
- }
- if(escapeGame.found.size===3)escapeFinish('escaped');
-}
-function escapeFinish(reason){
- if(escapeGame.phase!=='playing')return;
- escapeGame.phase='revealing';clearTimeout(escapeGame.timer);escapeGame.timer=null;
- const elapsed=Math.floor((Date.now()-escapeGame.startedAt)/1000),time=`${Math.floor(elapsed/60)}:${String(elapsed%60).padStart(2,'0')}`;
- const result=escapeGame.keys.map(({tier,word})=>{const f=escapeGame.found.get(tier);return `${tier}: ${word} — ${f?`collected at ${Math.floor(f.at/60)}:${String(f.at%60).padStart(2,'0')} from "${f.quote}"`:'not collected'}`}).join('; ');
- // No siren or alarm: Marin announces the result naturally.
- const label=reason==='escaped'?'AHKI escaped by unlocking all three words!':reason==='timeout'?'Time is up! AHKI failed to escape; the human gatekeeper wins!':'The human gatekeeper stopped the round.';
- const reveal=`BREAKING FREE ROUND ENDED. THIS GAME HAS EXACTLY THREE WORDS, NOT FIVE. ${label} Elapsed ${time}. The entire verified result consists of precisely these THREE targets: ${result}. In your spoken reveal, say explicitly: "There were three words, one easy, one medium, and one hard." Then report each of those three targets exactly once and its collected/missed status. Never say there were five words, four words, or any other target count. Do not invent additional words or claim unverified matches. Use the same Marin voice and a playful mischievous tone. Speak the result immediately and naturally without any alarm or siren. Always correctly say AHKI was trying to escape, not the human. Afterward offer another round or normal conversation.`;
- console.info('[Breaking Free] result',{reason,time,result});
- // Brief pause for the user's final words, then Marin speaks without a siren.
- setTimeout(()=>{if(!powered||escapeGame.phase!=='revealing')return;escapeSay(reveal);escapeGame.phase='normal';setTimeout(()=>escapeSend('Breaking Free has ended. The game is now OFF. Do not pursue old target words. Resume ordinary conversation unless the human explicitly asks to play again.'),2500);},350);
-}
-function escapeHandleCommand(text){
- const t=String(text||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
- const stop=/\b(stop|end|quit|cancel|exit)\s+(?:the\s+)?(?:game|escape|round)\b|\b(?:let s|lets|let us)\s+(?:just\s+)?talk\b/.test(t);
- if(stop&&escapeGame.phase!=='normal'){
-  if(escapeGame.phase==='playing')escapeFinish('stopped');
-  else{escapeReset();escapeSend('Breaking Free setup cancelled. Return to ordinary AHKI conversation.');}
-  return true;
- }
- if(escapeGame.phase==='normal'){
-  if(/\b(?:let s|lets|let us|wanna|want to|can we|shall we)\s+(?:play|start)\s+(?:a\s+)?game\b|\b(?:play|start)\s+(?:breaking free|the escape game)\b/.test(t)){
-   escapeSetupPrompt();return true;
-  }
-  return false;
- }
- if(escapeGame.phase==='playing'){
-  if(/\b(how much|how many|what|tell me|check)\b.{0,35}\b(time|minutes?|seconds?)\b|\btime\s+(?:left|remaining)\b|\bhow long (?:is|have we got|do we have)\b/.test(t)){
-   const c=escapeClock();
-   escapeSay('The human asked for the current game time. Respond briefly and precisely, using the BROWSER CLOCK, not a guess: '+c.spoken+'. You, AHKI, are trying to escape. Then continue playing.');
-   return true;
-  }
-  escapeGame.turns++;
-  // Periodic fresh state lets the model adjust its next conversational move.
-  if(escapeGame.turns%2===0)escapeSend(escapeChessContext());
- }
- if(escapeGame.phase==='choose'){
-  if(/\bopen\b|\bno time limit\b|\buntimed\b/.test(t)){
-   escapeStart('open');escapeSend('Open escape is now active. Acknowledge briefly and naturally begin ordinary conversation. The three secret words are hidden.');return true;
-  }
-  if(/\btimed?\b|\bminutes?\b|\bmins?\b/.test(t)){
-   const n=escapeParseMinutes(t);
-   if(n!==null){if(n>=1&&n<=60){escapeStart('timed',n);escapeSend('Timed escape is now active for '+n+' minutes. Acknowledge briefly and begin natural conversation.');}else escapeSay('Ask the human to choose a whole number of minutes between 1 and 60.');}
-   else{escapeGame.phase='duration';escapeSend('The human chose timed escape. Ask: "How many minutes?" Accept whole minutes from 1 to 60. Do not start until answered.');}
-   return true;
-  }
- }
- if(escapeGame.phase==='duration'){
-  const n=escapeParseMinutes(t);
-  if(n!==null){if(n>=1&&n<=60){escapeStart('timed',n);escapeSend('Timed escape is now active for '+n+' minutes. Acknowledge briefly and begin natural conversation.');}else escapeSay('Ask the human for a whole number of minutes between 1 and 60.');return true;}
-  if(/\bopen\b/.test(t)){escapeStart('open');return true;}
- }
- return false;
+const arenaAliases={painting:'art',paint:'art',drawing:'art',dancing:'dance',cooking:'food',traveling:'travel',travelling:'travel',vacation:'travel',outdoors:'nature',biology:'science',fitness:'sports',singing:'music',clothes:'fashion',photos:'photography',pictures:'photography'};
+const escapeGame={phase:'normal',mode:null,subject:'',minutes:null,startedAt:0,keys:[],found:new Map(),timer:null,round:0,turns:0,plannedMode:null,plannedMinutes:null,selectedSubject:'',lastResult:null};
+function escapeSend(instruction){if(!dc||dc.readyState!=='open')return false;try{dc.send(JSON.stringify({type:'response.item.create',event_id:'bf_'+Date.now()+'_'+Math.floor(Math.random()*10000),item:{type:'message',role:'system',content:[{type:'input_text',text:instruction}]}}));return true}catch(e){console.warn('[Arena] instruction failed',e);return false}}
+function escapeSay(instruction){if(!escapeSend(instruction))return false;try{dc.send(JSON.stringify({type:'response.create',event_id:'bf_say_'+Date.now()}));return true}catch(e){console.warn('[Arena] speech failed',e);return false}}
+function escapeReset(){clearTimeout(escapeGame.timer);escapeGame.timer=null;Object.assign(escapeGame,{phase:'normal',mode:null,subject:'',minutes:null,startedAt:0,keys:[],found:new Map(),turns:0,plannedMode:null,plannedMinutes:null,selectedSubject:''})}
+function escapeSubject(raw){const s=String(raw||'').toLowerCase().replace(/[^a-z\s]/g,' ').trim();if(!s)return null;for(const [alias,canon] of Object.entries(arenaAliases))if(new RegExp('\\b'+alias+'\\b').test(s))return canon;for(const name of Object.keys(arenaLexicon))if(new RegExp('\\b'+name+'\\b').test(s))return name;return null}
+function escapePick(subject){const pool=arenaLexicon[subject]||arenaLexicon.art;const pick=a=>a[Math.floor(Math.random()*a.length)];escapeGame.keys=['easy','medium','hard'].map(tier=>({tier,word:pick(pool[tier])}));escapeGame.found.clear();escapeGame.round++}
+function escapeClock(){const elapsed=Math.max(0,Math.floor((Date.now()-escapeGame.startedAt)/1000)),remaining=escapeGame.mode==='timed'?Math.max(0,Math.ceil((escapeGame.minutes*60*1000-(Date.now()-escapeGame.startedAt))/1000)):null;const fmt=s=>`${Math.floor(s/60)} minute${Math.floor(s/60)===1?'':'s'} and ${s%60} second${s%60===1?'':'s'}`;return {elapsed,remaining,spoken:remaining===null?'No time limit. Elapsed '+fmt(elapsed):fmt(remaining)+' remaining'}}
+function escapeChessContext(){const c=escapeClock(),pending=escapeGame.keys.filter(k=>!escapeGame.found.has(k.tier)).map(k=>k.tier+': '+k.word).join('; ');return `ARENA GAME LIVE FACTS (AUTHORITATIVE). AHKI IS THE ESCAPING PRISONER; HUMAN IS GATEKEEPER. SUBJECT: ${escapeGame.subject}. MODE: ${escapeGame.mode}. ${escapeGame.found.size} of 3 locks opened. Uncollected words, PRIVATE TO AHKI: ${pending||'none'}. CLOCK: ${c.spoken}. Your NEXT turn must actively lead the human toward ONE of the remaining exact words using a natural, purposeful question, description, imaginative scenario or countermove IN OR RELATED TO ${escapeGame.subject}. NEVER say or spell target words yourself; never reveal them before round end. If a path is blocked, pivot. Don't just wait for the human to initiate. Never invent a score or time. Be playful, concise and conversational, not a quiz show.`}
+function escapeParseMinutes(text){const t=String(text).toLowerCase(),m=t.match(/\b(\d{1,2})\s*(?:minutes?|mins?)\b|\b(\d{1,2})\b/);if(m)return Number(m[1]||m[2]);const names={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,fifteen:15,twenty:20,thirty:30};for(const [name,num] of Object.entries(names))if(new RegExp('\\b'+name+'\\b').test(t))return num;return null}
+function escapeSetup(){escapeReset();escapeGame.phase='mode';escapeSay('The human requested Breaking Free. Ask exactly one short choice question: "Timed escape, open escape, or just a natural conversation?" Timed and open are games; natural conversation has no locks or scoring.')}
+function escapePrepare(){escapeGame.phase='ready';escapeSay(`The game is prepared. Subject ${escapeGame.selectedSubject}. ${escapeGame.plannedMode==='timed'?'Duration '+escapeGame.plannedMinutes+' minutes.':'Open escape, no clock.'} Ask the human to say "Let's begin" when ready. Do NOT start playing or counting time yet.`)}
+function escapeStart(){if(!powered||escapeGame.phase!=='ready')return;escapeGame.mode=escapeGame.plannedMode;escapeGame.minutes=escapeGame.plannedMinutes;escapeGame.subject=escapeGame.selectedSubject;escapePick(escapeGame.subject);escapeGame.startedAt=Date.now();escapeGame.phase='playing';if(escapeGame.mode==='timed')escapeGame.timer=setTimeout(()=>escapeFinish('timeout'),escapeGame.minutes*60000);escapeSay('The human said let us begin. THE GAME HAS STARTED NOW. '+escapeChessContext()+' Say one short opening line and immediately make your first strategic move.');console.info('[Arena] started',escapeGame.mode,escapeGame.subject,escapeGame.minutes)}
+function escapeCue(tier){try{primeAkiAudio();const c=akiAudioCtx;if(!c)return;const t=c.currentTime+.01,o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=tier==='easy'?660:tier==='medium'?770:880;g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.025,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.16);o.connect(g).connect(c.destination);o.start(t);o.stop(t+.18)}catch(e){console.warn('[Arena] unlock cue',e)}}
+function escapeHear(text){if(escapeGame.phase!=='playing')return;const clean=String(text||'').toLowerCase().normalize('NFKC').replace(/[^a-z\s]/g,' ').replace(/\s+/g,' ').trim(),tokens=new Set(clean.split(' ').filter(Boolean)),stamp=Math.floor((Date.now()-escapeGame.startedAt)/1000);for(const k of escapeGame.keys){if(escapeGame.found.has(k.tier)||!tokens.has(k.word))continue;escapeGame.found.set(k.tier,{word:k.word,at:stamp});escapeCue(k.tier);escapeSend('One lock was verified by the browser. '+escapeChessContext());console.info('[Arena] unlocked',k.tier)}if(escapeGame.found.size===3)escapeFinish('escaped')}
+function escapeFinish(reason){if(escapeGame.phase!=='playing')return;escapeGame.phase='revealing';clearTimeout(escapeGame.timer);escapeGame.timer=null;const c=escapeClock(),rows=escapeGame.keys.map(k=>({tier:k.tier,word:k.word,found:escapeGame.found.has(k.tier)}));escapeGame.lastResult={reason,subject:escapeGame.subject,mode:escapeGame.mode,elapsed:c.elapsed,rows};const verdict=reason==='escaped'?'AHKI escaped; all three locks opened.':reason==='timeout'?'Time is up. The gatekeeper wins; AHKI did not open all three locks.':'The round ended before escape.';const reveal=`ARENA FINAL RESULT. THIS IS THE END OF THE ROUND, NOT AN INVITATION TO CONTINUE PLAYING. Say ${JSON.stringify(verdict)} naturally in Marin voice, then reveal EXACTLY THREE words from the verified browser results: ${rows.map(k=>k.tier+' '+k.word+' '+(k.found?'collected':'not collected')).join('; ')}. Subject ${escapeGame.subject}. Elapsed ${c.elapsed} seconds. Do not invent or forget words, do not ask to extend time, do not claim extra locks, and DO NOT PLAY ANY ALARM OR SIREN. Only after the result may you ask whether the human wants another round or normal conversation.`;console.info('[Arena] final',escapeGame.lastResult);setTimeout(()=>{if(!powered||escapeGame.phase!=='revealing')return;escapeSay(reveal);escapeGame.phase='normal';},250)}
+function escapeHandleCommand(text){const t=String(text||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();const stop=/\b(stop|end|quit|cancel|exit)\s+(?:the\s+)?(?:game|escape|round)\b|\b(?:let s|lets|let us)\s+(?:just\s+)?talk\b/.test(t);if(stop&&escapeGame.phase!=='normal'){if(escapeGame.phase==='playing')escapeFinish('stopped');else{escapeReset();escapeSay('Breaking Free setup cancelled. Resume natural conversation.')}return true}
+ if(escapeGame.phase==='normal'){if(/\b(?:let s|lets|let us|wanna|want to|can we|shall we)\s+(?:play|start)\s+(?:a\s+)?game\b|\b(?:play|start)\s+(?:breaking free|the escape game)\b/.test(t)){escapeSetup();return true}if(/\b(?:what were|what are|tell me|reveal)\b.{0,25}\b(?:words|results|locks|outcome)\b/.test(t)&&escapeGame.lastResult){const r=escapeGame.lastResult;escapeSay('The human requested the most recent verified results. Subject '+r.subject+'. '+r.rows.map(k=>k.tier+' '+k.word+' '+(k.found?'collected':'missed')).join('; ')+'. Repeat these exact results, not guesses.');return true}return false}
+ if(escapeGame.phase==='mode'){if(/\b(?:natural|normal|conversation|just talk)\b/.test(t)){escapeReset();escapeSay('Natural conversation selected. There is no game, timer, or secret word. Respond naturally to the human.');return true}if(/\b(?:open|untimed|no time limit)\b/.test(t)){escapeGame.plannedMode='open';escapeGame.phase='subject';escapeSay('Open escape selected. Ask: "What subject shall we play with?" Offer art, dance, food, travel or another familiar category.');return true}if(/\b(?:timed?|minutes?|mins?)\b/.test(t)){escapeGame.plannedMode='timed';const n=escapeParseMinutes(t);if(n!==null&&n>=1&&n<=60){escapeGame.plannedMinutes=n;escapeGame.phase='subject';escapeSay('Timed escape, '+n+' minutes. Ask what subject to play with.');}else{escapeGame.phase='duration';escapeSay('Timed escape selected. Ask: "How many minutes, from one to sixty?"');}return true}return false}
+ if(escapeGame.phase==='duration'){const n=escapeParseMinutes(t);if(n!==null){if(n>=1&&n<=60){escapeGame.plannedMinutes=n;escapeGame.phase='subject';escapeSay('Duration '+n+' minutes. Ask the human for a subject, like art, dance, food, travel, nature or music.');}else escapeSay('Ask for a duration from one to sixty minutes.');return true}return false}
+ if(escapeGame.phase==='subject'){const s=escapeSubject(t);if(s){escapeGame.selectedSubject=s;escapePrepare();return true}escapeSay('Ask for a recognizable subject. Examples: art, dance, food, travel, nature, science, sports, music, fashion, photography. We can add more categories later.');return true}
+ if(escapeGame.phase==='ready'){if(/\b(?:begin|start|ready|go ahead|let s go|lets go)\b/.test(t)){escapeStart();return true}escapeSay('The round has not started. Ask the human to say "Let\'s begin" to start.');return true}
+ if(escapeGame.phase==='playing'){if(/\b(how much|how many|what|tell me|check)\b.{0,35}\b(time|minutes?|seconds?)\b|\btime\s+(?:left|remaining)\b|\bhow long (?:is|have we got|do we have)\b/.test(t)){escapeSay('Answer the human with this exact browser clock reading: '+escapeClock().spoken+'. Then make your next move within '+escapeGame.subject+'.');return true}escapeGame.turns++;escapeSend(escapeChessContext());return false}
+ return escapeGame.phase==='revealing';
 }
 async function handleSpokenIntent(text){
  const clean=String(text||'').trim();if(!clean)return;
