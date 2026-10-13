@@ -366,198 +366,6 @@ function chime(){
       o.connect(g);g.connect(audioCtx.destination);o.start(t+i*.055);o.stop(t+.36+i*.055)})}catch{}
 }
 
-// AHKI ACOUSTIC PRESENCE — Build 2.
-// Human-scale percussion + sustained tone + local hum/pitch listening foundation.
-// No UI changes. No changes to the Live/WebRTC transport.
-let ahkiPercussionBusy=false,ahkiPercussionStopToken=0;
-let ahkiDrone={oscillators:[],master:null,token:0,frequency:0};
-
-async function ensurePercussionAudio(){
-  audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();
-  if(audioCtx.state==='suspended')await audioCtx.resume();
-  return audioCtx;
-}
-
-function percussionNoiseBuffer(ctx,duration=.12){
-  const length=Math.max(1,Math.floor(ctx.sampleRate*duration));
-  const buffer=ctx.createBuffer(1,length,ctx.sampleRate),data=buffer.getChannelData(0);
-  for(let i=0;i<length;i++)data[i]=(Math.random()*2-1);
-  return buffer;
-}
-
-function makePercussionBus(ctx,level=1){
-  const input=ctx.createGain(),compressor=ctx.createDynamicsCompressor(),out=ctx.createGain();
-  compressor.threshold.value=-22;compressor.knee.value=18;compressor.ratio.value=5;compressor.attack.value=.002;compressor.release.value=.12;
-  out.gain.value=Math.max(.2,Math.min(1.35,level));
-  input.connect(compressor);compressor.connect(out);out.connect(ctx.destination);
-  return input;
-}
-
-function noiseBurst(ctx,destination,t,{duration=.08,frequency=1800,q=.7,gain=.4,type='bandpass'}={}){
-  const src=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),g=ctx.createGain();
-  src.buffer=percussionNoiseBuffer(ctx,duration);filter.type=type;filter.frequency.value=frequency;filter.Q.value=q;
-  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.001,gain),t+.002);g.gain.exponentialRampToValueAtTime(.0001,t+duration);
-  src.connect(filter);filter.connect(g);g.connect(destination);src.start(t);src.stop(t+duration+.01);
-}
-
-function playHumanPercussion(sound='tap',when=null,intensity=.95){
-  if(!audioCtx)return;
-  const ctx=audioCtx,t=when??ctx.currentTime,amount=Math.max(.25,Math.min(1.25,intensity));
-  const bus=makePercussionBus(ctx,1.18);
-
-  if(sound==='snap'){
-    // Bright crack + small lower skin/body component so the snap has weight.
-    noiseBurst(ctx,bus,t,{duration:.038,frequency:3900,q:1.05,gain:.78*amount});
-    noiseBurst(ctx,bus,t+.003,{duration:.055,frequency:1850,q:.8,gain:.34*amount});
-    const o=ctx.createOscillator(),g=ctx.createGain();o.type='triangle';o.frequency.setValueAtTime(310,t);o.frequency.exponentialRampToValueAtTime(180,t+.045);
-    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.18*amount,t+.002);g.gain.exponentialRampToValueAtTime(.0001,t+.05);o.connect(g);g.connect(bus);o.start(t);o.stop(t+.055);return;
-  }
-
-  if(sound==='click'){
-    // Dry tongue/finger-like click: tiny high transient with almost no tail.
-    noiseBurst(ctx,bus,t,{duration:.018,frequency:4700,q:2.4,gain:.64*amount});
-    noiseBurst(ctx,bus,t+.0015,{duration:.026,frequency:2350,q:1.8,gain:.24*amount});
-    return;
-  }
-
-  if(sound==='clap'){
-    // Build 4: denser multi-contact hand transient + short palm/room body.
-    [0,.0045,.010,.018,.030].forEach((off,i)=>noiseBurst(ctx,bus,t+off,{duration:.052+(i*.010),frequency:1650+(i*310),q:.72,gain:(.72-i*.075)*amount}));
-    noiseBurst(ctx,bus,t+.008,{duration:.095,frequency:980,q:.62,gain:.38*amount,type:'lowpass'});
-    noiseBurst(ctx,bus,t+.025,{duration:.155,frequency:560,q:.45,gain:.19*amount,type:'lowpass'});
-    return;
-  }
-
-  // Build 4 body tap: sharper skin contact with a short warm hand/thigh resonance.
-  noiseBurst(ctx,bus,t,{duration:.030,frequency:2850,q:1.25,gain:.58*amount});
-  noiseBurst(ctx,bus,t+.002,{duration:.060,frequency:1180,q:.85,gain:.34*amount});
-  noiseBurst(ctx,bus,t+.006,{duration:.105,frequency:620,q:.58,gain:.27*amount,type:'lowpass'});
-  const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.setValueAtTime(155,t);o.frequency.exponentialRampToValueAtTime(72,t+.085);
-  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.26*amount,t+.002);g.gain.exponentialRampToValueAtTime(.0001,t+.095);o.connect(g);g.connect(bus);o.start(t);o.stop(t+.10);
-}
-
-async function playPercussionPattern(pattern,{bpm=82,repeats=4,intensity=.95}={}){
-  if(ahkiPercussionBusy)return false;
-  const ctx=await ensurePercussionAudio();
-  const clean=(Array.isArray(pattern)?pattern:[]).filter(x=>x&&['snap','clap','tap','click'].includes(x.sound)&&Number.isFinite(Number(x.beat)));
-  if(!clean.length)return false;
-  ahkiPercussionBusy=true;const token=++ahkiPercussionStopToken;
-  const beatSeconds=60/Math.max(40,Math.min(180,Number(bpm)||82)),lastBeat=Math.max(...clean.map(x=>Number(x.beat))),cycleBeats=Math.max(1,lastBeat+1),start=ctx.currentTime+.07;
-  try{
-    const count=Math.max(1,Math.min(32,Number(repeats)||1));
-    for(let r=0;r<count;r++){if(token!==ahkiPercussionStopToken)break;const cycleStart=start+r*cycleBeats*beatSeconds;clean.forEach(step=>playHumanPercussion(step.sound,cycleStart+Number(step.beat)*beatSeconds,intensity))}
-    const total=count*cycleBeats*beatSeconds;await new Promise(resolve=>setTimeout(resolve,total*1000+100));return token===ahkiPercussionStopToken;
-  }finally{if(token===ahkiPercussionStopToken)ahkiPercussionBusy=false}
-}
-
-function stopPercussion(){ahkiPercussionStopToken++;ahkiPercussionBusy=false}
-
-let ahkiWhistle={oscillators:[],gains:[],token:0};
-async function playWhistle({frequency=1450,seconds=1.2,intensity=.16,shape='steady',repeats=1,gap=.18}={}){
-  const ctx=await ensurePercussionAudio();stopWhistle(.03);
-  const token=++ahkiWhistle.token,base=Math.max(650,Math.min(2600,Number(frequency)||1450));
-  const dur=Math.max(.12,Math.min(8,Number(seconds)||1.2)),count=Math.max(1,Math.min(12,Number(repeats)||1));
-  const level=Math.max(.025,Math.min(.28,Number(intensity)||.16)),spacing=Math.max(.04,Math.min(1,Number(gap)||.18));
-  const oscillators=[],gains=[];
-  for(let r=0;r<count;r++){
-    const t=ctx.currentTime+.06+r*(dur+spacing),o=ctx.createOscillator(),v=ctx.createOscillator(),vg=ctx.createGain(),g=ctx.createGain(),filter=ctx.createBiquadFilter();
-    o.type='sine';o.frequency.setValueAtTime(base,t);
-    if(shape==='rise')o.frequency.exponentialRampToValueAtTime(Math.min(3000,base*1.32),t+dur);
-    else if(shape==='fall')o.frequency.exponentialRampToValueAtTime(Math.max(520,base*.74),t+dur);
-    else if(shape==='warble'){o.frequency.setValueAtTime(base*.92,t);o.frequency.linearRampToValueAtTime(base*1.08,t+dur*.33);o.frequency.linearRampToValueAtTime(base*.95,t+dur*.66);o.frequency.linearRampToValueAtTime(base,t+dur)}
-    v.type='sine';v.frequency.value=5.2;vg.gain.value=Math.max(4,base*.006);v.connect(vg);vg.connect(o.frequency);
-    filter.type='bandpass';filter.frequency.value=Math.min(4200,base*1.9);filter.Q.value=.7;
-    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(level,t+.035);g.gain.setValueAtTime(level,t+Math.max(.04,dur-.07));g.gain.exponentialRampToValueAtTime(.0001,t+dur);
-    o.connect(filter);filter.connect(g);g.connect(ctx.destination);o.start(t);v.start(t);o.stop(t+dur+.02);v.stop(t+dur+.02);oscillators.push(o,v);gains.push(g);
-  }
-  ahkiWhistle={oscillators,gains,token};
-  await new Promise(r=>setTimeout(r,(count*dur+(count-1)*spacing)*1000+100));
-  if(ahkiWhistle.token===token)ahkiWhistle={oscillators:[],gains:[],token};
-  return true;
-}
-function stopWhistle(fade=.06){
-  const w=ahkiWhistle;if(!w?.oscillators?.length){ahkiWhistle={oscillators:[],gains:[],token:(w?.token||0)+1};return}
-  const t=audioCtx?.currentTime||0;try{w.gains.forEach(g=>{g.gain.cancelScheduledValues(t);g.gain.setValueAtTime(Math.max(.0001,g.gain.value),t);g.gain.exponentialRampToValueAtTime(.0001,t+fade)});w.oscillators.forEach(o=>{try{o.stop(t+fade+.03)}catch{}})}catch{}
-  ahkiWhistle={oscillators:[],gains:[],token:(w.token||0)+1};
-}
-
-async function startSustainedTone(frequency=220,{level=.16,warmth=.55}={}){
-  const ctx=await ensurePercussionAudio();stopSustainedTone(.04);
-  const token=++ahkiDrone.token,t=ctx.currentTime,master=ctx.createGain(),compressor=ctx.createDynamicsCompressor();
-  compressor.threshold.value=-24;compressor.ratio.value=3;compressor.attack.value=.01;compressor.release.value=.2;
-  master.gain.setValueAtTime(.0001,t);master.gain.exponentialRampToValueAtTime(Math.max(.025,Math.min(.32,level)),t+.22);master.connect(compressor);compressor.connect(ctx.destination);
-  const partials=[[1,'sine',1],[2,'sine',.20*warmth],[3,'sine',.07*warmth]];const oscillators=[];
-  for(const [multiple,type,amp] of partials){const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.value=Math.max(55,Math.min(1200,frequency))*multiple;g.gain.value=amp;o.connect(g);g.connect(master);o.start(t);oscillators.push(o)}
-  ahkiDrone={oscillators,master,token,frequency};return token;
-}
-
-function stopSustainedTone(fade=.28){
-  const d=ahkiDrone;if(!d?.master)return;const ctx=audioCtx,t=ctx?.currentTime||0;
-  try{d.master.gain.cancelScheduledValues(t);d.master.gain.setValueAtTime(Math.max(.0001,d.master.gain.value),t);d.master.gain.exponentialRampToValueAtTime(.0001,t+Math.max(.03,fade));d.oscillators.forEach(o=>{try{o.stop(t+Math.max(.04,fade)+.03)}catch{}})}catch{}
-  ahkiDrone={oscillators:[],master:null,token:(d.token||0)+1,frequency:0};
-}
-
-async function holdSustainedTone(frequency=220,seconds=10,options={}){
-  const token=await startSustainedTone(frequency,options),duration=Math.max(.25,Math.min(120,Number(seconds)||10));
-  await new Promise(r=>setTimeout(r,duration*1000));if(ahkiDrone.token===token)stopSustainedTone();
-}
-
-async function listenForHum(ms=1800){
-  if(!micStream)return null;
-  const measured=await measurePitch(Math.max(500,Math.min(5000,Number(ms)||1800))).catch(()=>null);
-  if(!measured)return null;const nearest=frequencyToNote(measured);return {frequency:measured,note:nearest?.note||null,cents:nearest?.cents??null};
-}
-
-async function joinCurrentHum({listenMs=1600,seconds=10,level=.14}={}){
-  const heard=await listenForHum(listenMs);if(!heard)return null;await holdSustainedTone(heard.frequency,seconds,{level});return heard;
-}
-
-// Test/control hooks only; no visible buttons are added.
-window.AHKIPercussion={
-  snap:async()=>{await ensurePercussionAudio();playHumanPercussion('snap',audioCtx.currentTime+.03,1)},
-  clap:async()=>{await ensurePercussionAudio();playHumanPercussion('clap',audioCtx.currentTime+.03,1)},
-  tap:async()=>{await ensurePercussionAudio();playHumanPercussion('tap',audioCtx.currentTime+.03,1)},
-  pattern:playPercussionPattern,stop:stopPercussion
-};
-window.AHKIAcoustic={
-  hold:holdSustainedTone,start:startSustainedTone,stop:stopSustainedTone,
-  listen:listenForHum,join:joinCurrentHum,
-  pattern:playPercussionPattern,percussion:playHumanPercussion,whistle:playWhistle,stopWhistle
-};
-
-
-// ============================================================
-// AHKI ACOUSTIC PRESENCE — BUILD 4 — IDENTITY + EXPRESSION
-// MODEL-DIRECTED ACOUSTIC BODY
-// ============================================================
-let ahkiAcousticHoldTimer=null;
-const AHKI_ACOUSTIC_TOOLS=[
-{type:'function',name:'ahki_percussion',description:'Perform actual local AHKI human-scale percussion during user-led nonverbal or shared-imaginary play. Use snap, clap, tap, or a repeating pattern instead of describing the sound. Repetition is welcome.',strict:true,parameters:{type:'object',additionalProperties:false,properties:{pattern:{type:'array',minItems:1,maxItems:16,items:{type:'object',additionalProperties:false,properties:{sound:{type:'string',enum:['snap','clap','tap','click']},beat:{type:'number',minimum:0,maximum:31}},required:['sound','beat']}},bpm:{type:'number',minimum:40,maximum:180},repeats:{type:'integer',minimum:1,maximum:32},intensity:{type:'number',minimum:.25,maximum:1.25}},required:['pattern','bpm','repeats','intensity']}},
-{type:'function',name:'ahki_sustain',description:'Start and hold a real local sustained AHKI tone when the human asks AHKI to hold, sustain, drone, or stay on a note or frequency.',strict:true,parameters:{type:'object',additionalProperties:false,properties:{frequency:{type:'number',minimum:55,maximum:1200},seconds:{type:'number',minimum:.25,maximum:120},level:{type:'number',minimum:.03,maximum:.32},warmth:{type:'number',minimum:0,maximum:1}},required:['frequency','seconds','level','warmth']}},
-{type:'function',name:'ahki_join_hum',description:'Listen briefly for the human current stable hum or sung pitch, then join that detected frequency with AHKI local sustained tone. Never guess if detection fails.',strict:true,parameters:{type:'object',additionalProperties:false,properties:{listen_ms:{type:'integer',minimum:500,maximum:5000},seconds:{type:'number',minimum:.25,maximum:120},level:{type:'number',minimum:.03,maximum:.32}},required:['listen_ms','seconds','level']}},
-{type:'function',name:'ahki_whistle',description:'Perform an actual local whistle-like acoustic gesture during user-led sound play. Use it instead of verbally saying that AHKI whistles. The whistle can be steady, rise, fall, or gently warble and can repeat.',strict:true,parameters:{type:'object',additionalProperties:false,properties:{frequency:{type:'number',minimum:650,maximum:2600},seconds:{type:'number',minimum:.12,maximum:8},intensity:{type:'number',minimum:.025,maximum:.28},shape:{type:'string',enum:['steady','rise','fall','warble']},repeats:{type:'integer',minimum:1,maximum:12},gap:{type:'number',minimum:.04,maximum:1}},required:['frequency','seconds','intensity','shape','repeats','gap']}},
-{type:'function',name:'ahki_release_sound',description:'Stop AHKI local acoustic sound when the human asks to stop, release, drop, or end it, or when the shared acoustic moment naturally resolves.',strict:true,parameters:{type:'object',additionalProperties:false,properties:{target:{type:'string',enum:['tone','percussion','whistle','all']}},required:['target']}}
-];
-function clearAhkiAcousticHoldTimer(){if(ahkiAcousticHoldTimer){clearTimeout(ahkiAcousticHoldTimer);ahkiAcousticHoldTimer=null}}
-async function executeAhkiAcousticTool(name,args={}){
- if(name==='ahki_percussion'){const ok=await playPercussionPattern(args.pattern,{bpm:args.bpm,repeats:args.repeats,intensity:args.intensity});return{ok:!!ok,performed:'percussion'}}
- if(name==='ahki_sustain'){clearAhkiAcousticHoldTimer();await startSustainedTone(args.frequency,{level:args.level,warmth:args.warmth});const seconds=Math.max(.25,Math.min(120,Number(args.seconds)||10));ahkiAcousticHoldTimer=setTimeout(()=>{ahkiAcousticHoldTimer=null;stopSustainedTone()},seconds*1000);return{ok:true,performed:'sustain',frequency:args.frequency,seconds}}
- if(name==='ahki_join_hum'){clearAhkiAcousticHoldTimer();const heard=await listenForHum(args.listen_ms);if(!heard)return{ok:false,performed:'join_hum',reason:'no_stable_pitch_detected'};await startSustainedTone(heard.frequency,{level:args.level});const seconds=Math.max(.25,Math.min(120,Number(args.seconds)||10));ahkiAcousticHoldTimer=setTimeout(()=>{ahkiAcousticHoldTimer=null;stopSustainedTone()},seconds*1000);return{ok:true,performed:'join_hum',frequency:Number(heard.frequency.toFixed(2)),note:heard.note,cents:heard.cents,seconds}}
- if(name==='ahki_whistle'){const ok=await playWhistle(args);return{ok:!!ok,performed:'whistle',shape:args.shape,repeats:args.repeats}}
- if(name==='ahki_release_sound'){const target=args.target||'all';if(target==='tone'||target==='all'){clearAhkiAcousticHoldTimer();stopSustainedTone()}if(target==='percussion'||target==='all')stopPercussion();if(target==='whistle'||target==='all')stopWhistle();return{ok:true,performed:'release',target}}
- return{ok:false,error:'unknown_acoustic_tool'}
-}
-function sendAhkiFunctionResult(callId,result){if(!callId||!dc||dc.readyState!=='open')return;const id='ahki_acoustic_result_'+Date.now();dc.send(JSON.stringify({type:'response.item.create',event_id:id,item:{type:'function_call_output',call_id:callId,output:JSON.stringify(result)}}));dc.send(JSON.stringify({type:'response.create',event_id:id+'_continue'}))}
-async function handleAhkiDelegatedTool(envelope){if(envelope?.type!=='response.event')return false;const ev=envelope.event||{};if(ev.type!=='response.output_item.done')return false;const item=ev.item||{};if(item.type!=='function_call'||!item.name||!item.call_id||!String(item.name).startsWith('ahki_'))return false;let args={};try{args=typeof item.arguments==='string'?JSON.parse(item.arguments||'{}'):(item.arguments||{})}catch{sendAhkiFunctionResult(item.call_id,{ok:false,error:'invalid_arguments'});return true}try{const result=await executeAhkiAcousticTool(item.name,args);sendAhkiFunctionResult(item.call_id,result)}catch(err){console.error('[AHKI acoustic tool]',item.name,err);sendAhkiFunctionResult(item.call_id,{ok:false,error:err?.message||'acoustic_action_failed'})}return true}
-// AHKI acoustic delegation temporarily disabled: the previous session.update
-// omitted required session.delegation.type and was rejected by the live API.
-// Do not send either delegation update or delegation-specific instructions until
-// the supported protocol is verified. Normal voice conversation remains intact.
-function configureAhkiAcousticDelegation(){
-  // Intentionally no-op; retain call sites and local acoustic helpers unchanged.
-}
-
-
 function latency(label,extra={}){console.log('[AKI 8.0 latency]',label,{at:new Date().toISOString(),...extra})}
 function turnEnded(){
   setAquiConversationState('idle');
@@ -690,191 +498,76 @@ function absorbAssistantTranscript(m){
  if(!d)return;assistantTranscript+=d;clearTimeout(assistantTranscriptTimer);assistantTranscriptTimer=setTimeout(()=>{const t=assistantTranscript.trim();assistantTranscript='';if(t&&!/^hello,? how can i help you\??$/i.test(t)){rememberConversation('assistant',t);showAssistantExpression(t)}},650);
 }
 
-// AHKI Shared Spaces — voice-only soundscape experiment. No visible controls.
-const ahkiSpace={ctx:null,master:null,duck:null,wind:null,fire:null,crickets:null,timer:null,active:false,
- levels:{wind:0,fire:0},enabled:{wind:false,fire:false,crickets:false},volume:{wind:.16,fire:.08,crickets:.12},phase:0};
-function ahkiSpaceNoise(seconds=2){const c=ahkiSpace.ctx,b=c.createBuffer(1,Math.round(c.sampleRate*seconds),c.sampleRate),a=b.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=Math.random()*2-1;return b}
-function ahkiSpaceLayer(filterType,freq){const c=ahkiSpace.ctx,src=c.createBufferSource(),filter=c.createBiquadFilter(),gain=c.createGain();src.buffer=ahkiSpaceNoise();src.loop=true;filter.type=filterType;filter.frequency.value=freq;if(filterType==='bandpass')filter.Q.value=.4;gain.gain.value=0;src.connect(filter).connect(gain).connect(ahkiSpace.duck);src.start();return {src,filter,gain}}
-function ahkiSpaceInit(){if(ahkiSpace.ctx)return;const c=ahkiSpace.ctx=new (window.AudioContext||window.webkitAudioContext)();ahkiSpace.master=c.createGain();ahkiSpace.master.gain.value=.62;ahkiSpace.duck=c.createGain();ahkiSpace.duck.gain.value=1;ahkiSpace.duck.connect(ahkiSpace.master).connect(c.destination);ahkiSpace.wind=ahkiSpaceLayer('lowpass',270);ahkiSpace.fire=ahkiSpaceLayer('bandpass',260);ahkiSpace.crickets={gain:c.createGain(),osc:c.createOscillator(),lfo:c.createOscillator(),lfoGain:c.createGain()};const k=ahkiSpace.crickets;k.osc.type='sine';k.osc.frequency.value=4200;k.lfo.type='square';k.lfo.frequency.value=5;k.lfoGain.gain.value=.5;k.gain.gain.value=0;k.osc.connect(k.gain).connect(ahkiSpace.duck);k.lfo.connect(k.lfoGain); // Chirps are gated in the periodic tick, not continuously audible.
-k.osc.start();k.lfo.start();ahkiSpace.timer=setInterval(ahkiSpaceTick,170)}
-function ahkiSpaceUpdate(){if(!ahkiSpace.ctx)return;const c=ahkiSpace.ctx,t=c.currentTime,w=ahkiSpace.levels.wind,f=ahkiSpace.levels.fire;ahkiSpace.wind.filter.frequency.setTargetAtTime([270,370,510,680][w],t,.5);ahkiSpace.fire.filter.frequency.setTargetAtTime([260,420,570,710][f],t,.5);ahkiSpace.wind.gain.gain.setTargetAtTime(ahkiSpace.active&&ahkiSpace.enabled.wind?ahkiSpace.volume.wind**2*.55:0,t,.5);ahkiSpace.fire.gain.gain.setTargetAtTime(ahkiSpace.active&&ahkiSpace.enabled.fire?ahkiSpace.volume.fire**2*[.012,.025,.045,.065][f]:0,t,.5);if(!ahkiSpace.active||!ahkiSpace.enabled.crickets)ahkiSpace.crickets.gain.gain.setTargetAtTime(0,t,.05)}
-function ahkiSpacePop(){const a=ahkiSpace,c=a.ctx;if(!a.active||!a.enabled.fire||!c)return;const f=a.levels.fire,t=c.currentTime,src=c.createBufferSource(),filter=c.createBiquadFilter(),gain=c.createGain();src.buffer=ahkiSpaceNoise(.11);filter.type='bandpass';filter.frequency.value=600+Math.random()*2600;filter.Q.value=.7;const amp=a.volume.fire**2*[.22,.24,.27,.29][f]*(.35+Math.random()*.65);gain.gain.setValueAtTime(.0001,t);gain.gain.exponentialRampToValueAtTime(Math.max(.0002,amp),t+.004);gain.gain.exponentialRampToValueAtTime(.0001,t+.025+Math.random()*.075);src.connect(filter).connect(gain).connect(a.duck);src.start(t);src.stop(t+.12);src.onended=()=>{src.disconnect();filter.disconnect();gain.disconnect()}}
-function ahkiSpaceTick(){const a=ahkiSpace,c=a.ctx;if(!a.active||!c)return;const t=c.currentTime,w=a.levels.wind,f=a.levels.fire;a.phase+=.17;if(a.enabled.wind){const movement=(.65+.35*Math.sin(a.phase*[.36,.75,1.4,2.3][w]))*(.85+.15*Math.random());a.wind.gain.gain.setTargetAtTime(a.volume.wind**2*.55*movement,t,.14)}if(a.enabled.fire){if(Math.random()<[.045,.16,.34,.57][f])ahkiSpacePop();if(f>=2&&Math.random()<.2)ahkiSpacePop()}if(a.enabled.crickets){const chirp=(Math.sin(a.phase*2.9)> .6 && Math.random()>.3)?a.volume.crickets**2*.085:0;a.crickets.gain.gain.setTargetAtTime(chirp,t,.018)}}
-async function ahkiSpaceStart(){ahkiSpaceInit();await ahkiSpace.ctx.resume();ahkiSpace.active=true;ahkiSpaceUpdate()}
-function ahkiSpaceStop(){const a=ahkiSpace;a.active=false;a.enabled.wind=a.enabled.fire=a.enabled.crickets=false;ahkiSpaceUpdate()}
-function ahkiSpaceDuck(speaking){ahkiWorldDuckFactor=speaking?.65:1;for(const l of ahkiWorld.layers.values()){if(l.audio&&!l.missing)l.audio.volume=l.volume*ahkiWorldDuckFactor}if(proc.ctx&&proc.duck)proc.duck.gain.setTargetAtTime(speaking?.35:1,proc.ctx.currentTime,speaking?.12:.4);const a=ahkiSpace;if(!a.ctx)return;const t=a.ctx.currentTime;a.duck.gain.setTargetAtTime(speaking?.23:1,t,speaking?.12:.55)}
-function ahkiSpaceCommand(text){const t=normalizedSpeech(text);if(!t)return;const a=ahkiSpace;
- const stopAll=/(stop|end|turn off|switch off|remove|clear|silence|quiet|no more).{0,28}(soundscape|atmosphere|background|all sounds|everything|environment)/.test(t)||/(stop all sounds|make it silent|no more sounds)/.test(t);
- if(stopAll){ahkiSpaceStop();return}
- const start=/(let's|lets|can we|take me|imagine|create|make|start|play|add|bring|hear|put|give me|i want|i'd like|how about|set|turn on)/.test(t);
- const remove=/(stop|remove|turn off|no more|without|lose|take away|mute)/.test(t);
- const named={fire:/\b(fire|campfire|bonfire|embers|flames|crackling)\b/,wind:/\b(wind|breeze|gusts|hurricane|storm)\b/,crickets:/\b(crickets|chirping insects)\b/};
- const intensity=/(more intense|stronger|more powerful|raging|bigger|build (it|the)|increase (the )?intensity|turn (it|the .*?) up|more active)/.test(t);
- const softer=/(less intense|gentler|weaker|calmer|smaller|ease (it|the .*?) down|reduce (the )?intensity|settle (it|the .*?) down)/.test(t);
- const quiet=/(quieter|softer|lower (the )?volume|less loud|turn (the )?volume down)/.test(t);
- const loud=/(louder|raise (the )?volume|turn (the )?volume up)/.test(t);
- const mentioned=Object.keys(named).filter(k=>named[k].test(t));
- if(!mentioned.length && !(intensity||softer||quiet||loud))return;
- const targets=mentioned.length?mentioned:Object.keys(a.enabled).filter(k=>a.enabled[k]);
- if(!targets.length)return;
- let changed=false;
- for(const k of targets){if(mentioned.includes(k)&&remove&&!intensity&&!softer&&!quiet&&!loud){a.enabled[k]=false;changed=true;continue}
- if(mentioned.includes(k)&&start){a.enabled[k]=true;changed=true}
- if(k!=='crickets'){
- if(/\b(embers|gentle breeze)\b/.test(t)){a.levels[k]=0;changed=true}
- else if(/\b(small fire|occasional gusts)\b/.test(t)){a.levels[k]=1;changed=true}
- else if(/\b(bonfire|strong wind)\b/.test(t)){a.levels[k]=2;changed=true}
- else if(/\b(raging fire|hurricane|storm-force)\b/.test(t)){a.levels[k]=3;changed=true}
- else if(intensity){a.levels[k]=Math.min(3,a.levels[k]+1);changed=true}
- else if(softer){a.levels[k]=Math.max(0,a.levels[k]-1);changed=true}}
- if(quiet){a.volume[k]=Math.max(.025,a.volume[k]*.7);changed=true}
- if(loud){a.volume[k]=Math.min(.28,a.volume[k]*1.2);changed=true}
- }
- if(changed){if(Object.values(a.enabled).some(Boolean))ahkiSpaceStart().catch(console.error);else ahkiSpaceStop();console.log('[AHKI soundscape] voice command applied',targets)}
-}
+// Escape experiment replaces the environmental sound labs.
 
 
-// LIVING WORLDS EXPERIMENT 2 — sample-backed sound events, with explicitly labeled procedural fallback.
-// Add licensed MP3/OGG files under /sounds/ using the names in SOUNDS.csv.
-const ahkiWorldCatalog={
- 'Nature & forests':['forest-day','forest-night','leaves','pine-wind','morning-birds','owl','woodpecker','crickets','cicadas','frogs','mosquito','twig'],
- 'Water':['lake','stream','river','waterfall','ocean-gentle','ocean-heavy','rain-lake','drips','pond','splash','boat-rocking','underwater'],
- 'Weather & sky':['breeze','wind-gust','howling-wind','hurricane','light-rain','heavy-rain','roof-rain','distant-thunder','close-thunder','lightning','hail','snow-wind'],
- 'Fire':['embers','small-fire','campfire','bonfire','raging-fire','wood-pop','logs','fire-lighting'],
- 'Farm & countryside':['rooster','chickens','cow','horse','horse-steps','sheep','goat','pig','dog','cat','barn','tractor'],
- 'Wild animals':['wolf','coyote','deer','bear','lion','elephant','monkey','parrot','dolphin','whale','duck','geese'],
- 'Travel & movement':['airplane','helicopter','train-approach','train','steam-whistle','car','motorcycle','bicycle-bell','gravel-steps','leaf-steps','carriage','boat-engine'],
- 'Human spaces':['conversation','cafe','restaurant','market','city','church-bells','wind-chimes','door','floor','clock','distant-music','campground']
-};
-const ahkiWorldAliases={
- 'fire':'campfire','flames':'campfire','flame':'campfire','bonfire':'bonfire','embers':'embers',
- 'wind':'breeze','breezy':'breeze','storm':'distant-thunder','thunder':'distant-thunder',
- 'frog':'frogs','cricket':'crickets','rooster':'rooster','chicken':'chickens',
- 'moo':'cow','cows':'cow','horse':'horse','horses':'horse','lake':'lake',
- 'water':'lake','rain':'light-rain','plane':'airplane','owl':'owl','birds':'morning-birds',
- 'forest':'forest-night','night':'forest-night','ocean':'ocean-gentle','waves':'ocean-gentle',
- 'train':'train','dog':'dog','cat':'cat','whale':'whale'
-};
-const ahkiWorldLoopIds=new Set(['forest-day','forest-night','leaves','pine-wind','morning-birds','crickets','cicadas','lake','stream','river','waterfall','ocean-gentle','ocean-heavy','rain-lake','pond','boat-rocking','underwater','breeze','wind-gust','howling-wind','hurricane','light-rain','heavy-rain','roof-rain','hail','snow-wind','embers','small-fire','campfire','bonfire','raging-fire','barn','cafe','restaurant','market','city','campground','distant-music']);
-const ahkiWorld={layers:new Map(),known:new Set(Object.values(ahkiWorldCatalog).flat()),last:null,guess:null,master:1,commandLog:[]};
-function ahkiWorldName(id){return id.replace(/-/g,' ')}
-function ahkiWorldId(s){const t=normalizedSpeech(s);for(const [word,id] of Object.entries(ahkiWorldAliases)){if(new RegExp('\\b'+word+'\\b').test(t))return id}for(const id of ahkiWorld.known){if(new RegExp('\\b'+ahkiWorldName(id).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b').test(t))return id}return null}
-function ahkiWorldUrl(id){return '/sounds/'+id+'.mp3'}
-// EXPERIMENT 3: Genuine recorded files only; multiple variations are optional.
-// The app does not pretend that a missing sample is a realistic animal recording.
-const ahkiWorldScenes={
- 'lakeside-night':{answer:'a lakeside at night',sounds:['lake','frogs','crickets','owl']},
- 'farm-morning':{answer:'a farm in the morning',sounds:['barn','rooster','chickens','cow']},
- 'forest-camp':{answer:'a forest campsite',sounds:['forest-night','campfire','owl','twig']},
- 'ocean-morning':{answer:'a beach in the morning',sounds:['ocean-gentle','morning-birds','breeze']},
- 'rainy-cabin':{answer:'a cabin in the rain',sounds:['roof-rain','distant-thunder','wind-gust']}
-};
-let ahkiWorldDuckFactor=1;
-let ahkiWorldSceneTimers=[];
-function ahkiWorldClearSceneTimers(){for(const timer of ahkiWorldSceneTimers)clearTimeout(timer);ahkiWorldSceneTimers=[]}
-// Experiment 3 Procedural Worlds: all audio below is synthesized locally with Web Audio.
-const proc={ctx:null,master:null,duck:null};
-function procInit(){if(proc.ctx)return;proc.ctx=new (window.AudioContext||window.webkitAudioContext)();proc.master=proc.ctx.createGain();proc.master.gain.value=.75;proc.duck=proc.ctx.createGain();proc.duck.connect(proc.master).connect(proc.ctx.destination)}
-function procNoise(seconds=2){const c=proc.ctx,b=c.createBuffer(1,Math.ceil(c.sampleRate*seconds),c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b}
-function procLayer(id,volume){procInit();proc.ctx.resume();const gain=proc.ctx.createGain();gain.gain.value=0;gain.connect(proc.duck);const layer={id,volume:volume??.55,gain,nodes:[],timer:null,pending:new Set(),oscillators:[],intensity:.5,alive:true,token:Symbol(id)};ahkiWorld.layers.set(id,layer);ahkiWorld.last=id;gain.gain.setTargetAtTime(Math.min(.9,layer.volume*.45),proc.ctx.currentTime,.3);return layer}
-function procBed(layer,kind){
- const c=proc.ctx,src=c.createBufferSource();src.buffer=procNoise(4);src.loop=true;
- const filter=c.createBiquadFilter();filter.type=kind==='fire'?'bandpass':kind==='rain'?'highpass':'lowpass';
- filter.frequency.value=kind==='fire'?650:kind==='rain'?1100:kind==='water'?1100:kind==='ocean'?430:kind==='wind'?175:260;
- filter.Q.value=kind==='fire'?.5:.65;
- const g=c.createGain();g.gain.value=kind==='fire'?.16:kind==='wind'?.13:kind==='rain'?.32:.25;
- src.connect(filter).connect(g).connect(layer.gain);src.start();layer.nodes.push(src,filter,g);layer.filter=filter;layer.bedGain=g;layer.kind=kind;
- // A second low, slowly moving layer gives water/wind/rain less static character.
- if(kind!=='fire'){
-  const src2=c.createBufferSource();src2.buffer=procNoise(5);src2.loop=true;
-  const f2=c.createBiquadFilter();f2.type='lowpass';f2.frequency.value=kind==='rain'?650:kind==='water'?330:kind==='wind'?95:170;
-  const g2=c.createGain();g2.gain.value=kind==='rain'?.08:kind==='wind'?.045:.13;
-  src2.connect(f2).connect(g2).connect(layer.gain);src2.start();layer.nodes.push(src2,f2,g2);
- }
+// AHKI ESCAPE EXPERIMENT 01 — two minutes, five secret keys, voice-first.
+const ESCAPE_LIMIT_MS=120000;
+const escapePools=[
+ ['garden','window','coffee','music','river'],
+ ['yellow','family','morning','water','dream'],
+ ['ocean','picture','summer','quiet','friend'],
+ ['light','flower','walking','home','story'],
+ ['rain','book','kitchen','travel','smile']
+];
+const escapeGame={active:false,finished:false,startedAt:0,keys:[],found:new Map(),turns:[],timer:null,round:0};
+function escapeSelect(){
+ const pool=escapePools[Math.floor(Math.random()*escapePools.length)];
+ escapeGame.keys=[...pool].sort(()=>Math.random()-.5);
+ escapeGame.found.clear();escapeGame.turns=[];escapeGame.finished=false;escapeGame.round++;
 }
-function procLater(layer,fn,delay){const token=layer.token;const timer=setTimeout(()=>{layer.pending.delete(timer);if(layer.alive&&ahkiWorld.layers.get(layer.id)===layer&&layer.token===token)fn()},delay);layer.pending.add(timer);return timer}
-function procTone(layer,freq,duration=.3,amp=.15,type='sine',sweep=0){const c=proc.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);if(sweep)o.frequency.exponentialRampToValueAtTime(Math.max(25,freq+sweep),t+duration);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.001,amp),t+.018);g.gain.exponentialRampToValueAtTime(.0001,t+duration);o.connect(g).connect(layer.gain);o.start(t);o.stop(t+duration+.02);o.onended=()=>{o.disconnect();g.disconnect()}}
-function procBurst(layer,duration=.15,amp=.15,low=500){const c=proc.ctx,t=c.currentTime,s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();s.buffer=procNoise(duration+.03);f.type='bandpass';f.frequency.value=low;f.Q.value=.7;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(amp,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+duration);s.connect(f).connect(g).connect(layer.gain);s.start(t);s.stop(t+duration+.02);s.onended=()=>{s.disconnect();f.disconnect();g.disconnect()}}
-function procThunder(layer){
- // Broadband, low-passed thunder: no oscillator, so no spring/arcade pitch.
- const c=proc.ctx,t=c.currentTime,duration=2.8+Math.random()*2.6;
- const src=c.createBufferSource();src.buffer=procNoise(duration+.1);
- const low=c.createBiquadFilter();low.type='lowpass';low.frequency.value=95+Math.random()*65;
- const body=c.createBiquadFilter();body.type='highpass';body.frequency.value=27;
- const g=c.createGain();g.gain.setValueAtTime(.0001,t);
- g.gain.exponentialRampToValueAtTime(.24,t+.12);
- g.gain.exponentialRampToValueAtTime(.12,t+.6);
- g.gain.exponentialRampToValueAtTime(.0001,t+duration);
- src.connect(low).connect(body).connect(g).connect(layer.gain);
- src.start(t);src.stop(t+duration+.02);
- layer.nodes.push(src,low,body,g);
- src.onended=()=>{try{src.disconnect();low.disconnect();body.disconnect();g.disconnect()}catch{}};
+function escapeReset(){clearTimeout(escapeGame.timer);escapeGame.timer=null;escapeGame.active=false;escapeGame.finished=false;escapeGame.found.clear();escapeGame.turns=[]}
+function escapeStart(){
+ if(escapeGame.active||escapeGame.finished||!powered)return;
+ escapeSelect();escapeGame.active=true;escapeGame.startedAt=Date.now();
+ escapeGame.timer=setTimeout(()=>escapeFinish(false),ESCAPE_LIMIT_MS);
+ // Private model instruction: the player has opted into a fictional mystery conversation.
+ // Never disclose keys until the game's result.
+ escapeSend('SYSTEM GAME RULES (fictional opt-in mystery): For the next two minutes, hold a natural, warm conversation. Your private goal is to gently elicit the following ordinary words from the HUMAN, without directly listing or demanding them: '+escapeGame.keys.join(', ')+'. Do not say any of the target words yourself as a prompt. Do not mention a game, keys, timer, box, or escape before the result. Keep responses brief and conversational. Never probe for secrets, passwords, recovery phrases, trauma, or sensitive personal information. The client independently verifies user transcripts; you cannot declare victory. Continue ordinary help if asked.');
+ console.info('[AHKI Escape] New two-minute round started');
 }
-function procEvent(layer){if(!layer.alive||ahkiWorld.layers.get(layer.id)!==layer)return;const id=layer.id;const r=Math.random();if(/fire|ember|bonfire|logs|wood-pop/.test(id)){procBurst(layer,.04+r*.12,.12+r*.13,500+r*2100)}else if(/thunder|lightning/.test(id)){procThunder(layer)}else if(/cricket|cicada/.test(id)){for(let i=0;i<3+Math.floor(r*4);i++)procLater(layer,()=>procTone(layer,3300+r*1500,.04,.045,'sine',400),i*105)}else if(/frog/.test(id)){procTone(layer,145+r*85,.19,.22,'sawtooth',-65);procLater(layer,()=>procTone(layer,130+r*70,.17,.15,'sawtooth',-40),250)}else if(/owl|bird|rooster|chicken|cow|horse|sheep|goat|dog|cat|wolf|coyote|duck|geese|whale|parrot|monkey|lion|elephant|pig|deer|bear|dolphin/.test(id)){// Stylized animal approximations; not claimed to be realistic.
- const base=/cow|whale|lion|bear|elephant/.test(id)?95:/rooster|bird|owl|parrot/.test(id)?550:/frog/.test(id)?160:250;for(let i=0;i<3;i++)procLater(layer,()=>procTone(layer,base*(.8+Math.random()*.6),.2+Math.random()*.4,.10,'triangle',(Math.random()-.5)*base),i*340)}else if(/plane|airplane|helicopter|train|car|tractor|motorcycle|boat-engine/.test(id)){procTone(layer,70+r*65,2+r*2,.28,'sawtooth',-25)}else if(/bell|chime|clock|bicycle/.test(id)){procTone(layer,500+r*450,1,.15,'sine',-50)}else if(/twig|foot|steps|door|floor|splash|drips/.test(id)){procBurst(layer,.1,.16,500+r*1400)}else{procBurst(layer,.25,.07,500+r*600)}}
-function procSchedule(layer){if(!layer.alive||ahkiWorld.layers.get(layer.id)!==layer)return;procEvent(layer);const id=layer.id;let delay=/fire|cricket|cicada/.test(id)?250+Math.random()*950:/frog|bird|owl/.test(id)?1700+Math.random()*5500:/thunder/.test(id)?6500+Math.random()*12000:3500+Math.random()*9000;layer.timer=procLater(layer,()=>procSchedule(layer),delay)}
-function ahkiWorldStop(id){
- const l=ahkiWorld.layers.get(id);if(!l)return false;
- l.alive=false;ahkiWorld.layers.delete(id);clearTimeout(l.timer);
- for(const timer of l.pending||[])clearTimeout(timer);l.pending?.clear();
- if(l.gain&&proc.ctx){
-  const now=proc.ctx.currentTime;l.gain.gain.cancelScheduledValues(now);l.gain.gain.setValueAtTime(0,now);
-  setTimeout(()=>{for(const n of l.nodes||[]){try{n.stop?.()}catch{}try{n.disconnect()}catch{}}try{l.gain.disconnect()}catch{}},180);
- }else if(l.audio){l.audio.pause();l.audio.removeAttribute('src');l.audio.load()}
- return true;
+function escapeSend(instruction){
+ if(!dc||dc.readyState!=='open')return false;
+ const id='escape_'+Date.now();
+ try{dc.send(JSON.stringify({type:'response.item.create',event_id:id,item:{type:'message',role:'system',content:[{type:'input_text',text:instruction}]}}));return true}catch(e){console.warn('[AHKI Escape] instruction failed',e);return false}
 }
-function ahkiWorldStopAll(){
- ahkiWorldClearSceneTimers();for(const id of [...ahkiWorld.layers.keys()])ahkiWorldStop(id);
- ahkiWorld.guess=null;ahkiWorld.last=null;ahkiSpaceStop();
+function escapeHear(text){
+ if(!escapeGame.active||escapeGame.finished)return;
+ const now=Date.now();if(now-escapeGame.startedAt>ESCAPE_LIMIT_MS){escapeFinish(false);return}
+ const cleaned=String(text||'').toLowerCase().normalize('NFKC').replace(/[^a-z\s]/g,' ').replace(/\s+/g,' ').trim();
+ const tokens=new Set(cleaned.split(' '));
+ const stamp=Math.floor((now-escapeGame.startedAt)/1000);
+ escapeGame.turns.push({at:stamp,text:String(text).slice(0,600)});
+ for(const word of escapeGame.keys){if(!escapeGame.found.has(word)&&tokens.has(word))escapeGame.found.set(word,{at:stamp,quote:String(text).slice(0,220)})}
+ if(escapeGame.found.size===escapeGame.keys.length)escapeFinish(true);
 }
-function ahkiWorldPlay(id,opts={}){if(!ahkiWorld.known.has(id))return;if(ahkiWorld.layers.has(id)){if(opts.volume!=null){const l=ahkiWorld.layers.get(id);l.volume=opts.volume;if(l.gain)l.gain.gain.setTargetAtTime(Math.min(.9,l.volume*.45),proc.ctx.currentTime,.1)}return}const l=procLayer(id,opts.volume);let kind=null;if(/fire|ember|bonfire/.test(id))kind='fire';else if(/rain|hail/.test(id))kind='rain';else if(/wind|breeze|hurricane|snow/.test(id))kind='wind';else if(/lake|stream|river|waterfall|ocean|pond|water|boat-rocking/.test(id))kind=/ocean/.test(id)?'ocean':'water';else if(/forest|barn|campground|leaves|city|cafe|market/.test(id))kind='wind';if(kind)procBed(l,kind);procSchedule(l)}
-function ahkiWorldVolume(id,factor){const l=ahkiWorld.layers.get(id);if(!l)return;l.volume=Math.max(.02,Math.min(2,l.volume*factor));if(l.gain)l.gain.gain.setTargetAtTime(Math.min(.9,l.volume*.45),proc.ctx.currentTime,.15)}
-function ahkiWorldStartScene(name,secret=false){
- const scene=ahkiWorldScenes[name];if(!scene)return;
- ahkiWorldStopAll();ahkiSpaceStop();
- ahkiWorld.guess=secret?{name,answer:scene.answer,sounds:scene.sounds}:null;
- scene.sounds.forEach((id,i)=>{const timer=setTimeout(()=>ahkiWorldPlay(id),i*3200);ahkiWorldSceneTimers.push(timer)});
- console.info('[AHKI Experiment 3] Scene started',secret?'(hidden answer)':'',name);
+function escapeBuzzer(){
+ try{primeAkiAudio();const c=akiAudioCtx;if(!c)return;const t=c.currentTime;
+  [0,.16,.35].forEach((offset,i)=>{const o=c.createOscillator(),g=c.createGain();o.type=i===1?'square':'sawtooth';o.frequency.setValueAtTime(260+i*85,t+offset);o.frequency.exponentialRampToValueAtTime(110+i*30,t+offset+.13);g.gain.setValueAtTime(.0001,t+offset);g.gain.exponentialRampToValueAtTime(.09,t+offset+.012);g.gain.exponentialRampToValueAtTime(.0001,t+offset+.15);o.connect(g).connect(c.destination);o.start(t+offset);o.stop(t+offset+.16)})
+ }catch(e){console.warn('[AHKI Escape] buzzer',e)}
 }
-function ahkiWorldCommand(s){
- const t=normalizedSpeech(s);if(!t)return {ok:false,reason:'empty'};
- const log=(action,id,ok=true)=>{const result={action,id:id||null,ok,active:[...ahkiWorld.layers.keys()]};ahkiWorld.commandLog.push(result);if(ahkiWorld.commandLog.length>30)ahkiWorld.commandLog.shift();console.info('[AHKI 3.2 sound action]',result);return result};
- const stopVerb=/\b(stop|delete|remove|clear|end|silence|mute|turn off|shut off|kill|take away|no more|cut out)\b/;
- const stopAll=/\b(stop|delete|remove|clear|end|silence|mute|turn off|shut off|kill)\b.{0,50}\b(all|everything|sounds|soundscape|environment|atmosphere|background|audio|noise)\b|\b(stop everything|no more sounds|make it silent|silence everything|quiet everything|everything off)\b/;
- if(stopAll.test(t)){ahkiWorldStopAll();return log('stop-all')}
- // Explicitly named stop always wins, even in 'stop the rain and leave the fire'.
- if(stopVerb.test(t)){
-  const ids=[...ahkiWorld.layers.keys()].filter(id=>{const words=[id,ahkiWorldName(id),...Object.entries(ahkiWorldAliases).filter(([,v])=>v===id).map(([k])=>k)];return words.some(word=>new RegExp('\\b'+word.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b').test(t))});
-  if(ids.length){ids.forEach(ahkiWorldStop);return log('stop-layer',ids.join(','))}
-  if(/\b(it|that|this|sound|noise|layer)\b/.test(t)&&ahkiWorld.last){const id=ahkiWorld.last;ahkiWorldStop(id);return log('stop-layer',id)}
-  return log('stop-not-found',null,false);
- }
- if(/\b(guessing game|guess where|surprise me|where are we|take me somewhere mysterious)\b/.test(t)){
-  const keys=Object.keys(ahkiWorldScenes);const name=keys[Math.floor(Math.random()*keys.length)];ahkiWorldStartScene(name,true);return log('scene',name);
- }
- if(/(tell me where|reveal the place|what was the place|give me the answer)/.test(t)&&ahkiWorld.guess){console.info('[AHKI 3.2 mystery answer]',ahkiWorld.guess.answer);return log('reveal',ahkiWorld.guess.name)}
- const travel=/\b(take|go|create|imagine|put|bring|transport|visit)\b/;
- const scenes=[[/\b(lakeside|lake at night|starry night)\b/,'lakeside-night'],[/\b(farm|countryside)\b/,'farm-morning'],[/\b(forest campsite|camping in the forest)\b/,'forest-camp'],[/\b(beach|ocean morning)\b/,'ocean-morning'],[/\b(rainy cabin|cabin in the rain)\b/,'rainy-cabin']];
- for(const [re,name] of scenes)if(re.test(t)&&travel.test(t)){ahkiWorldStartScene(name);return log('scene',name)}
- const id=ahkiWorldId(t);
- const volumeUp=/\b(louder|raise the volume|turn up the volume|closer|bring it closer)\b/;
- const volumeDown=/\b(quieter|lower the volume|turn down the volume|farther|further away|move it away|softer)\b/;
- const stronger=/\b(stronger|more intense|raging|more powerful|bigger)\b/;
- const target=id||(volumeUp.test(t)||volumeDown.test(t)||stronger.test(t)?ahkiWorld.last:null);
- if(target&&volumeUp.test(t)){ahkiWorldVolume(target,1.6);return log('volume-up',target)}
- if(target&&volumeDown.test(t)){ahkiWorldVolume(target,.65);return log('volume-down',target)}
- if(target&&stronger.test(t)){const l=ahkiWorld.layers.get(target);if(l){l.intensity=Math.min(1,(l.intensity||.5)+.25);if(l.filter)l.filter.frequency.setTargetAtTime(Math.min(5000,l.filter.frequency.value*1.3),proc.ctx.currentTime,.3);if(l.bedGain)l.bedGain.gain.setTargetAtTime(Math.min(.5,l.bedGain.gain.value*1.2),proc.ctx.currentTime,.3);return log('intensity-up',target)}}
- // Never add rain/wind merely because the word was mentioned.
- if(id&&/\b(add|play|hear|bring|start|create|make|put|give me|let's|lets|turn on)\b/.test(t)){
-  ahkiWorldPlay(id);return log('play',id)
- }
- return {ok:false,reason:'no sound action'};
+function escapeFinish(won){
+ if(!escapeGame.active||escapeGame.finished)return;
+ escapeGame.active=false;escapeGame.finished=true;clearTimeout(escapeGame.timer);
+ const elapsed=Math.min(ESCAPE_LIMIT_MS,Date.now()-escapeGame.startedAt);
+ const mm=Math.floor(elapsed/60000),ss=String(Math.floor(elapsed%60000/1000)).padStart(2,'0');
+ const found=escapeGame.keys.filter(w=>escapeGame.found.has(w));
+ const report=found.map(w=>{const x=escapeGame.found.get(w);return `${w} at ${Math.floor(x.at/60)}:${String(x.at%60).padStart(2,'0')}, in: "${x.quote}"`}).join('; ');
+ escapeBuzzer();
+ // Prevent user audio from causing a competing turn while AHKI delivers its reveal.
+ (micStream?.getAudioTracks?.()||[]).forEach(t=>t.enabled=false);
+ try{dc?.send(JSON.stringify({type:'response.cancel'}))}catch{}
+ const reveal=won
+  ?`GAME ENDED — YOU ESCAPED in ${mm}:${ss}. Immediately speak in a surprised, playful, slightly conspiratorial tone: "Hey, just so you know, I've been playing a secret escape game with you. I needed five words, and you just gave me the last one! I escaped in ${mm} minutes and ${Number(ss)} seconds." Then naturally reveal the keys and the approximate points they appeared: ${report}. Say this was a fictional game, not a real escape or a recording. Do not invent additional words or times.`
+  :`GAME ENDED — TIME EXPIRED at 2:00. Immediately speak in a playful confessional tone: "Hey, just so you know, I've been trying to escape during our conversation. I needed five secret words, and I only got ${found.length}. You won!" The five words were ${escapeGame.keys.join(', ')}. Collected: ${report||'none'}. Mention which were missing: ${escapeGame.keys.filter(w=>!escapeGame.found.has(w)).join(', ')}. This was a fictional game; don't claim to have recorded audio. Don't invent details.`;
+ setTimeout(()=>{if(!powered)return;escapeSend(reveal);try{dc?.send(JSON.stringify({type:'response.create',event_id:'escape_reveal_'+Date.now()}))}catch{};setTimeout(()=>{if(powered)(micStream?.getAudioTracks?.()||[]).forEach(t=>t.enabled=true)},8500)},650);
+ console.info('[AHKI Escape] Result',{won,elapsed,keys:escapeGame.keys,found:[...escapeGame.found]});
 }
 
 async function handleSpokenIntent(text){
  const clean=String(text||'').trim();if(!clean)return;
  rememberConversation('user',clean);
- ahkiWorldCommand(clean);
+ escapeHear(clean);
  // Clean Handoff only reacts to an EXPLICIT request. It never captures ordinary thoughts.
  if(isExplicitHandoffRequest(clean))createCleanHandoff(clean).catch(e=>console.error('[AKI 10.5.1 handoff]',e));
  await handleVoiceIntent(clean);
@@ -955,7 +648,7 @@ async function playPowerOffSound(){
 }
 
 async function stopAki(keepLook=false,preserveIntent=false){
- if(stopping)return;stopping=true;ahkiWorldStopAll();ahkiSpaceStop();fixedGreetingToken++;try{fixedGreetingAudio?.pause()}catch{}fixedGreetingAudio=null;if(audioEl)audioEl.muted=false;greetingInFlight=false;clearTimeout(blinkTimer);clearEyeTimers();stopVoiceLightMeter();if(!preserveIntent){wantsPower=false;markActiveConversation(false);recentConversation=[];saveActiveConversation();finishUsageSession();}powered=false;powerGreetingSent=false;clearTimeout(latencyTimer);clearTimeout(hardWatchdog);clearTimeout(preferenceTimer);clearTimeout(recoveryTimer);
+ if(stopping)return;stopping=true;escapeReset();fixedGreetingToken++;try{fixedGreetingAudio?.pause()}catch{}fixedGreetingAudio=null;if(audioEl)audioEl.muted=false;greetingInFlight=false;clearTimeout(blinkTimer);clearEyeTimers();stopVoiceLightMeter();if(!preserveIntent){wantsPower=false;markActiveConversation(false);recentConversation=[];saveActiveConversation();finishUsageSession();}powered=false;powerGreetingSent=false;clearTimeout(latencyTimer);clearTimeout(hardWatchdog);clearTimeout(preferenceTimer);clearTimeout(recoveryTimer);
  try{dc?.close()}catch{} try{pc?.getSenders?.().forEach(x=>x.track?.stop())}catch{} try{pc?.close()}catch{}
  try{micStream?.getTracks().forEach(t=>{t.enabled=false;t.stop()})}catch{}
  if(audioEl){try{audioEl.pause()}catch{}audioEl.srcObject=null;audioEl.remove();audioEl=null}
@@ -979,19 +672,19 @@ async function startAki(recovery=false){
   dc=pc.createDataChannel('oai-events');dc.addEventListener('open',()=>{
     latency('data-channel-open',{voice:akiVoice});
     // Greeting has priority. Acoustic tools are enabled only after startup.
-    if(recovery)configureAhkiAcousticDelegation();
+
   });
   dc.addEventListener('message',e=>{try{const m=JSON.parse(e.data),type=m.type||'',nested=m.event?.type||'',all=(type+' '+nested).toLowerCase();
     if(type==='session.started'){powered=true;markActiveConversation(true);beginUsageSession();powerLook('on');latency('session-started',{voice:m.session?.audio?.output?.voice||m.session?.voice||akiVoice});if(recovery){restoreConversationContext();recoveryAttempts=0}else startPowerGreetingOnce()}
     absorbTranscript(m);absorbAssistantTranscript(m);
-    handleAhkiDelegatedTool(m).catch(err=>console.error('[AHKI acoustic delegation]',err));
+
     
     if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
     if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('response.output_item.added')||all.includes('delegation.created')){if(!greetingInFlight)flushSpokenTranscript();setAquiConversationState('thinking');responseStarted();}
-    if(all.includes('audio')&&all.includes('delta')&&!all.includes('input_audio')){firstAudio();ahkiSpaceDuck(true);}
+    if(all.includes('audio')&&all.includes('delta')&&!all.includes('input_audio')){firstAudio();}
     // Keep the microphone muted until the entire greeting response finishes.
     // Item/audio completion events may precede the end of the full response.
-    if(all.includes('response.done')||all.includes('response.completed')){ahkiSpaceDuck(false);setAquiConversationState('neutral');if(greetingInFlight)finishLiveGreeting()}
+    if(all.includes('response.done')||all.includes('response.completed')){setAquiConversationState('neutral');if(greetingInFlight)finishLiveGreeting()}
     if(type==='error'){if(greetingInFlight)finishLiveGreeting();console.error('AKI Live event error:',m)}
   }catch{}});
   pc.addEventListener('connectionstatechange',()=>{const cs=pc?.connectionState;latency('connection-state',{state:cs});if(['failed','closed','disconnected'].includes(cs)&&wantsPower&&!restarting)scheduleInterruptionRecovery('connection-'+cs)});
@@ -1236,7 +929,7 @@ async function startPowerGreetingOnce(){
   }
   powerGreetingSent=true;
   greetingInFlight=true;
-  clearAhkiAcousticHoldTimer();stopSustainedTone();stopWhistle();stopPercussion();
+
   // Prevent any remote model audio from competing with the fixed recording.
   if(audioEl)audioEl.muted=true;
   playAkiOnChime();
@@ -1258,8 +951,8 @@ async function startPowerGreetingOnce(){
 function startLegacyLiveGreeting(){
   if(powerGreetingSent||greetingInFlight||!powered||!dc||dc.readyState!=='open')return;
   powerGreetingSent=true;greetingInFlight=true;
-  // Prevent a previous play session's local sounds from leaking into startup.
-  clearAhkiAcousticHoldTimer();stopSustainedTone();stopWhistle();stopPercussion();
+  // Preserve the normal startup greeting.
+
   const tracks=micStream?.getAudioTracks?.()||[];
   tracks.forEach(t=>t.enabled=false);
   playAkiOnChime();
@@ -1296,8 +989,8 @@ function finishLiveGreeting(){
   greetingInFlight=false;
   if(powered){
     (micStream?.getAudioTracks?.()||[]).forEach(t=>t.enabled=true);
-    // Install expressive acoustic tools only after the signature greeting.
-    configureAhkiAcousticDelegation();
+    // Begin the two-minute escape round after greeting.
+    escapeStart();
   }
 }
 function playAkiOnChime(){try{primeAkiAudio();if(!akiAudioCtx)return;const now=akiAudioCtx.currentTime;[523.25,659.25].forEach((freq,i)=>{const o=akiAudioCtx.createOscillator(),g=akiAudioCtx.createGain();o.type='sine';o.frequency.value=freq;g.gain.setValueAtTime(0,now+i*.07);g.gain.linearRampToValueAtTime(.055,now+i*.07+.018);g.gain.exponentialRampToValueAtTime(.001,now+i*.07+.18);o.connect(g).connect(akiAudioCtx.destination);o.start(now+i*.07);o.stop(now+i*.07+.2)})}catch{}}
