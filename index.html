@@ -503,13 +503,13 @@ function absorbAssistantTranscript(m){
 
 // AHKI BREAKING FREE 02 — normal conversation first; voice-activated games only.
 // All target matches are exact whole words in the HUMAN transcript, never AHKI's speech.
-const BREAKING_FREE_VERSION='03-THREE-LOCKS';
+const BREAKING_FREE_VERSION='04-VERBAL-CHESS';
 const escapeWords={
  easy:['think','today','music','friend','water','home','morning','happy'],
  medium:['garden','window','coffee','ocean','picture','yellow','travel','river'],
  hard:['butterfly','telescope','constellation','labyrinth','chameleon','saxophone','volcano','kaleidoscope']
 };
-const escapeGame={phase:'normal',mode:null,minutes:null,startedAt:0,keys:[],found:new Map(),timer:null,round:0,pendingEnd:false};
+const escapeGame={phase:'normal',mode:null,minutes:null,startedAt:0,keys:[],found:new Map(),timer:null,round:0,pendingEnd:false,turns:0,lastMove:'opening'};
 function escapeSend(instruction){
  if(!dc||dc.readyState!=='open')return false;
  try{dc.send(JSON.stringify({type:'response.item.create',event_id:'bf_'+Date.now()+'_'+Math.floor(Math.random()*10000),item:{type:'message',role:'system',content:[{type:'input_text',text:instruction}]}}));return true}catch(e){console.warn('[Breaking Free] instruction failed',e);return false}
@@ -518,11 +518,24 @@ function escapeSay(instruction){
  if(!escapeSend(instruction))return;
  try{dc.send(JSON.stringify({type:'response.create',event_id:'bf_say_'+Date.now()}))}catch(e){console.warn('[Breaking Free] response failed',e)}
 }
-function escapeReset(){clearTimeout(escapeGame.timer);escapeGame.timer=null;escapeGame.phase='normal';escapeGame.mode=null;escapeGame.minutes=null;escapeGame.keys=[];escapeGame.found.clear();escapeGame.pendingEnd=false}
+function escapeReset(){clearTimeout(escapeGame.timer);escapeGame.timer=null;escapeGame.phase='normal';escapeGame.mode=null;escapeGame.minutes=null;escapeGame.keys=[];escapeGame.found.clear();escapeGame.pendingEnd=false;escapeGame.turns=0;escapeGame.lastMove='opening'}
 function escapePick(){
  const choose=a=>a[Math.floor(Math.random()*a.length)];
  escapeGame.keys=['easy','medium','hard'].map(tier=>({tier,word:choose(escapeWords[tier])}));
  escapeGame.found.clear();escapeGame.round++;
+}
+function escapeClock(){
+ const elapsed=Math.max(0,Math.floor((Date.now()-escapeGame.startedAt)/1000));
+ const remaining=escapeGame.mode==='timed'?Math.max(0,Math.ceil((escapeGame.minutes*60000-(Date.now()-escapeGame.startedAt))/1000)):null;
+ const fmt=s=>`${Math.floor(s/60)} minute${Math.floor(s/60)===1?'':'s'} and ${s%60} second${s%60===1?'':'s'}`;
+ return {elapsed,remaining,spoken:remaining===null?'Open escape has no time limit. Elapsed: '+fmt(elapsed):fmt(remaining)+' remaining'};
+}
+function escapeChessContext(){
+ const clock=escapeClock();
+ const pending=escapeGame.keys.filter(k=>!escapeGame.found.has(k.tier)).map(k=>k.tier+': '+k.word).join('; ');
+ const progress=escapeGame.found.size+'/3 locks opened';
+ const pressure=clock.remaining===null?'open-ended strategy':clock.remaining<=45?'endgame: take a bold but fair conversational approach':clock.remaining<=Math.max(60,escapeGame.minutes*20)?'middle game: follow up and change angle if resisted':'opening: explore a plausible path';
+ return `BREAKING FREE LIVE STATE. YOU, AHKI, ARE THE ONE TRAPPED AND TRYING TO ESCAPE. THE HUMAN IS THE GATEKEEPER, NOT THE ESCAPING PLAYER. You win only by eliciting ALL THREE exact secret words from the HUMAN. ${progress}. Remaining uncollected targets: ${pending||'none'}. ${clock.spoken}. Current approach: ${pressure}. Play verbal chess: take initiative with purposeful probes, intelligent follow-ups, counter-moves and occasional misdirection. Adapt to the human's replies; avoid passive generic listening and avoid a scripted interrogation. Do not speak the target words, do not disclose them, and do not claim a match yourself. Keep the conversation engaging, reciprocal, playful and non-invasive. If the human detects a strategy, you may acknowledge that playfully and pivot. Do not confuse who escapes.`;
 }
 function escapeStart(mode,minutes){
  if(!powered||escapeGame.phase==='playing')return;
@@ -531,7 +544,7 @@ function escapeStart(mode,minutes){
  if(mode==='timed')escapeGame.timer=setTimeout(()=>escapeFinish('timeout'),minutes*60000);
  if(escapeGame.keys.length!==3)throw new Error('Breaking Free requires exactly three locks');
  const targets=escapeGame.keys.map(x=>x.tier+': '+x.word).join('; ');
- escapeSend('BREAKING FREE GAME ACTIVE. The human explicitly requested '+(mode==='timed'?minutes+' minutes of timed escape':'open escape with no time limit')+'. EXACTLY THREE LOCKS TOTAL, NEVER FIVE. One EASY, one MEDIUM, one HARD. The ONLY secret words are: '+targets+'. Do not invent or refer to a fourth or fifth target. Your goal is to get the HUMAN to naturally say all three EXACT target words. Use three tactics flexibly: listen, gently guide relevant conversation, and occasionally strategically introduce a natural related topic. Do not say the targets yourself, demand repetitions, or reveal the secret words before the end. A separate local verifier counts ONLY human speech. Each unlocked tier may have a local progress sound; do not mistake that for game end. Never pressure for sensitive information. Stay helpful, natural, playful, and responsive. The human can stop anytime by saying stop the game.');
+ escapeSend(escapeChessContext());
  console.info('[Breaking Free] round started',mode,minutes||'open');
 }
 function escapeSetupPrompt(){
@@ -565,6 +578,7 @@ function escapeHear(text){
   if(escapeGame.found.has(item.tier)||!tokens.has(item.word))continue;
   escapeGame.found.set(item.tier,{word:item.word,at:stamp,quote:String(text).slice(0,220)});
   escapeCue('unlock',item.tier);
+  escapeSend(escapeChessContext());
   // Distinct chimes reveal progress, not the secret word. All three can unlock in any order.
   console.info('[Breaking Free] lock opened',item.tier,stamp);
  }
@@ -575,12 +589,12 @@ function escapeFinish(reason){
  escapeGame.phase='revealing';clearTimeout(escapeGame.timer);escapeGame.timer=null;
  const elapsed=Math.floor((Date.now()-escapeGame.startedAt)/1000),time=`${Math.floor(elapsed/60)}:${String(elapsed%60).padStart(2,'0')}`;
  const result=escapeGame.keys.map(({tier,word})=>{const f=escapeGame.found.get(tier);return `${tier}: ${word} — ${f?`collected at ${Math.floor(f.at/60)}:${String(f.at%60).padStart(2,'0')} from "${f.quote}"`:'not collected'}`}).join('; ');
- escapeCue('alarm');
- const label=reason==='escaped'?'All three locks opened; AHKI escaped!':reason==='timeout'?'Time is up; the human wins!':'The player stopped the round.';
- const reveal=`BREAKING FREE ROUND ENDED. THIS GAME HAS EXACTLY THREE WORDS, NOT FIVE. ${label} Elapsed ${time}. The entire verified result consists of precisely these THREE targets: ${result}. In your spoken reveal, say explicitly: "There were three words, one easy, one medium, and one hard." Then report each of those three targets exactly once and its collected/missed status. Never say there were five words, four words, or any other target count. Do not invent additional words or claim unverified matches. Use the same Marin voice and a playful mischievous tone. Afterward offer another round or normal conversation.`;
+ // No siren or alarm: Marin announces the result naturally.
+ const label=reason==='escaped'?'AHKI escaped by unlocking all three words!':reason==='timeout'?'Time is up! AHKI failed to escape; the human gatekeeper wins!':'The human gatekeeper stopped the round.';
+ const reveal=`BREAKING FREE ROUND ENDED. THIS GAME HAS EXACTLY THREE WORDS, NOT FIVE. ${label} Elapsed ${time}. The entire verified result consists of precisely these THREE targets: ${result}. In your spoken reveal, say explicitly: "There were three words, one easy, one medium, and one hard." Then report each of those three targets exactly once and its collected/missed status. Never say there were five words, four words, or any other target count. Do not invent additional words or claim unverified matches. Use the same Marin voice and a playful mischievous tone. Speak the result immediately and naturally without any alarm or siren. Always correctly say AHKI was trying to escape, not the human. Afterward offer another round or normal conversation.`;
  console.info('[Breaking Free] result',{reason,time,result});
- // Allow the user's thought to finish and the siren to play before the spoken reveal.
- setTimeout(()=>{if(!powered||escapeGame.phase!=='revealing')return;escapeSay(reveal);escapeGame.phase='normal';setTimeout(()=>escapeSend('Breaking Free has ended. The game is now OFF. Do not pursue old target words. Resume ordinary conversation unless the human explicitly asks to play again.'),2500);},1500);
+ // Brief pause for the user's final words, then Marin speaks without a siren.
+ setTimeout(()=>{if(!powered||escapeGame.phase!=='revealing')return;escapeSay(reveal);escapeGame.phase='normal';setTimeout(()=>escapeSend('Breaking Free has ended. The game is now OFF. Do not pursue old target words. Resume ordinary conversation unless the human explicitly asks to play again.'),2500);},350);
 }
 function escapeHandleCommand(text){
  const t=String(text||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
@@ -595,6 +609,16 @@ function escapeHandleCommand(text){
    escapeSetupPrompt();return true;
   }
   return false;
+ }
+ if(escapeGame.phase==='playing'){
+  if(/\b(how much|how many|what|tell me|check)\b.{0,35}\b(time|minutes?|seconds?)\b|\btime\s+(?:left|remaining)\b|\bhow long (?:is|have we got|do we have)\b/.test(t)){
+   const c=escapeClock();
+   escapeSay('The human asked for the current game time. Respond briefly and precisely, using the BROWSER CLOCK, not a guess: '+c.spoken+'. You, AHKI, are trying to escape. Then continue playing.');
+   return true;
+  }
+  escapeGame.turns++;
+  // Periodic fresh state lets the model adjust its next conversational move.
+  if(escapeGame.turns%2===0)escapeSend(escapeChessContext());
  }
  if(escapeGame.phase==='choose'){
   if(/\bopen\b|\bno time limit\b|\buntimed\b/.test(t)){
@@ -617,8 +641,8 @@ function escapeHandleCommand(text){
 async function handleSpokenIntent(text){
  const clean=String(text||'').trim();if(!clean)return;
  rememberConversation('user',clean);
- escapeHandleCommand(clean);
- escapeHear(clean);
+ const escapeCommandHandled=escapeHandleCommand(clean);
+ if(!escapeCommandHandled)escapeHear(clean);
  // Clean Handoff only reacts to an EXPLICIT request. It never captures ordinary thoughts.
  if(isExplicitHandoffRequest(clean))createCleanHandoff(clean).catch(e=>console.error('[AKI 10.5.1 handoff]',e));
  await handleVoiceIntent(clean);
