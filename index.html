@@ -311,6 +311,24 @@ if(!localStorage.getItem('akiVoiceLocked')) localStorage.setItem('akiVoiceLocked
 localStorage.setItem('akiVoiceBaseline','BUILD4-marin-stable-identity');
 let akiVoice=localStorage.getItem('akiVoice')||'marin';
 let akiLanguage=localStorage.getItem('akiLanguage')||'auto';
+// AHKI personal identity — the product remains AHKI, while each person may
+// explicitly choose a persistent conversational name for their own presence.
+const AHKI_PERSONAL_NAME_KEY='ahkiPersonalNameV1';
+function cleanPersonalName(value){
+ const raw=String(value||'').trim().replace(/^["'“”‘’]+|["'“”‘’]+$/g,'').replace(/\s+/g,' ');
+ if(!raw)return '';
+ // Names are intentionally short/plain so spoken transcript cannot become prompt text.
+ const safe=raw.replace(/[^\p{L}\p{M}0-9 ._-]/gu,'').trim().replace(/\s+/g,' ');
+ return safe.slice(0,40);
+}
+let akiPersonalName=cleanPersonalName(localStorage.getItem(AHKI_PERSONAL_NAME_KEY)||'');
+function savePersonalName(name){
+ const safe=cleanPersonalName(name);if(!safe)return false;
+ akiPersonalName=safe;localStorage.setItem(AHKI_PERSONAL_NAME_KEY,safe);
+ latency('personal-name-saved',{name:safe});return true;
+}
+function clearPersonalName(){akiPersonalName='';localStorage.removeItem(AHKI_PERSONAL_NAME_KEY);latency('personal-name-cleared')}
+window.AHKIPersonalName=()=>akiPersonalName||'AHKI';
 
 // AQUI 1.8 intentionally has no speaking/thinking visual state on the web build.
 // Keep these compatibility hooks inert so older recovery/voice code does not need to change.
@@ -689,9 +707,31 @@ function absorbAssistantTranscript(m){
  const d=(typeof m.delta==='string'?m.delta:'')||(typeof m.transcript==='string'?m.transcript:'')||(typeof m.event?.delta==='string'?m.event.delta:'')||(typeof m.event?.transcript==='string'?m.event.transcript:'');
  if(!d)return;assistantTranscript+=d;clearTimeout(assistantTranscriptTimer);assistantTranscriptTimer=setTimeout(()=>{const t=assistantTranscript.trim();assistantTranscript='';if(t&&!/^hello,? how can i help you\??$/i.test(t)){rememberConversation('assistant',t);showAssistantExpression(t)}},650);
 }
+function personalNameIntent(text){
+ const raw=String(text||'').trim();if(!raw)return null;
+ const t=normalizedSpeech(raw);
+ // Explicit-only: role-play ("pretend you're...") must never rename the persistent presence.
+ if(/\b(pretend|role[- ]?play|act like|play the part|character)\b/.test(t))return null;
+ if(/\b(forget|remove|clear|reset)\b.{0,24}\b(your )?(name|what i call you)\b/.test(t) ||
+    /\b(go back to|call you)\s+(ahki|aki|aqui)\b/.test(t))return {kind:'clear'};
+ const patterns=[
+   /(?:i(?:'m| am)? going to|i(?:'ll| will)|i want to|let me|can i|i(?:'d| would) like to)\s+call you\s+([\p{L}\p{M}0-9 ._-]{1,40})(?:[.!?]|$)/iu,
+   /(?:from now on[, ]*)?(?:your name is|i(?:'m| am) naming you|i name you)\s+([\p{L}\p{M}0-9 ._-]{1,40})(?:[.!?]|$)/iu,
+   /(?:change|switch|rename)\s+(?:your name|you)\s+(?:to|as)\s+([\p{L}\p{M}0-9 ._-]{1,40})(?:[.!?]|$)/iu
+ ];
+ for(const re of patterns){const m=raw.match(re);if(m){const name=cleanPersonalName(m[1]);if(name)return {kind:'set',name}}}
+ return null;
+}
+function handlePersonalNameIntent(text){
+ const intent=personalNameIntent(text);if(!intent)return;
+ if(intent.kind==='clear')clearPersonalName();else if(intent.kind==='set')savePersonalName(intent.name);
+ // The current Live model hears the same naming utterance and can acknowledge it naturally.
+ // The saved identity is injected into every subsequent/recovered Live session.
+}
 async function handleSpokenIntent(text){
  const clean=String(text||'').trim();if(!clean)return;
  rememberConversation('user',clean);
+ handlePersonalNameIntent(clean);
  // Clean Handoff only reacts to an EXPLICIT request. It never captures ordinary thoughts.
  if(isExplicitHandoffRequest(clean))createCleanHandoff(clean).catch(e=>console.error('[AKI 10.5.1 handoff]',e));
  await handleVoiceIntent(clean);
@@ -811,7 +851,7 @@ async function startAki(recovery=false){
   pc.addEventListener('iceconnectionstatechange',()=>{const cs=pc?.iceConnectionState;if(['failed','closed','disconnected'].includes(cs)&&wantsPower)scheduleInterruptionRecovery('ice-'+cs)});
   const offer=await pc.createOffer();await pc.setLocalDescription(offer);const localSdp=pc.localDescription?.sdp||offer.sdp;
   if(!localSdp||!localSdp.trim().startsWith('v=0'))throw new Error('Browser did not create a valid SDP offer');
-  const r=await fetch('/api/aki',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sdp:localSdp,voice:akiVoice,language:akiLanguage})});
+  const r=await fetch('/api/aki',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sdp:localSdp,voice:akiVoice,language:akiLanguage,personalName:akiPersonalName})});
   const answer=await r.text();if(!r.ok)throw new Error(answer);await pc.setRemoteDescription({type:'answer',sdp:answer});
   powered=true;markActiveConversation(true);beginUsageSession();powerLook('on');if(recovery){setTimeout(()=>restoreConversationContext(),180);recoveryAttempts=0}else setTimeout(()=>startPowerGreetingOnce(),180);
  }catch(err){console.error('[AKI 10.6.1 start/recovery error]',err);await stopAki(true,true);if(wantsPower&&recovery&&recoveryAttempts<3)scheduleInterruptionRecovery('retry');else if(!recovery){wantsPower=false;powerLook('error')}}finally{starting=false}
