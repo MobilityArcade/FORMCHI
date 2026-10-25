@@ -1563,5 +1563,78 @@ html,body{background:#c5d2dc!important}
     -webkit-animation:ahkiContinuousWaterV9 84s linear infinite!important;
   }
 }</style>
+
+<style id="ahki-ocean-presence-v12">
+/* V12 — ringless atmospheric presence. Interaction/session logic is unchanged. */
+html,body{background:#c7d6e1!important}
+.presence{
+  background:
+    radial-gradient(ellipse at 50% 46%,rgba(242,248,251,.92) 0%,rgba(218,231,239,.86) 30%,rgba(190,209,222,.92) 67%,rgba(174,196,212,.98) 100%)!important;
+  transition:background 1.8s ease!important;
+}
+/* Existing water/ripple geometry remains structurally present but has no visible or animated role. */
+.water-ring,.touch-ripple,.milk-ring,.milk-center{display:none!important;opacity:0!important;animation:none!important;-webkit-animation:none!important}
+.liquid-presence{
+  inset:0!important;
+  background:
+    radial-gradient(ellipse at 50% 48%,rgba(248,252,253,.72) 0%,rgba(225,236,242,.46) 27%,rgba(190,210,222,.22) 58%,rgba(154,181,200,.12) 100%)!important;
+  transition:background 1.8s ease,filter 1.8s ease!important;
+}
+.water-sheen{
+  inset:-16%!important;
+  background:
+    radial-gradient(ellipse at 34% 26%,rgba(255,255,255,.42),transparent 36%),
+    radial-gradient(ellipse at 72% 66%,rgba(178,204,219,.25),transparent 42%),
+    radial-gradient(ellipse at 28% 80%,rgba(126,159,180,.14),transparent 42%)!important;
+  filter:blur(38px)!important;opacity:.68!important;animation:none!important;
+  transition:background 1.8s ease,opacity 1.8s ease!important;
+}
+/* ON: the whole field deepens into ocean blue. The center is only a diffuse presence — never a drawn orb. */
+.presence.is-on{
+  background:
+    radial-gradient(ellipse at 50% 48%,#75c6eb 0%,#429bd0 30%,#247ab6 62%,#155e98 100%)!important;
+}
+.presence.is-on .liquid-presence{
+  background:
+    radial-gradient(ellipse at 50% 49%,rgba(190,239,250,.90) 0%,rgba(102,202,235,.68) 16%,rgba(39,145,199,.35) 38%,rgba(15,93,153,.12) 66%,transparent 84%)!important;
+}
+.presence.is-on .water-sheen{
+  background:
+    radial-gradient(ellipse at 34% 25%,rgba(219,249,255,.28),transparent 38%),
+    radial-gradient(ellipse at 70% 67%,rgba(55,180,222,.24),transparent 42%),
+    radial-gradient(ellipse at 28% 80%,rgba(5,67,124,.22),transparent 43%)!important;
+  opacity:.72!important;
+}
+/* Soft atmospheric core: broad, blurred and intentionally without a visible boundary. */
+.presence:after{
+  content:"";position:absolute;z-index:2;left:50%;top:49%;width:min(70vmin,720px);aspect-ratio:1;
+  transform:translate(-50%,-50%) scale(.92);border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(250,253,255,.30) 0%,rgba(231,247,251,.18) 24%,rgba(167,211,230,.08) 48%,transparent 72%);
+  filter:blur(30px);opacity:.38;transition:opacity 1.8s ease,transform 2.4s ease,filter 1.8s ease;
+}
+.presence.is-on:after{
+  background:radial-gradient(circle,rgba(225,252,255,.58) 0%,rgba(135,224,244,.32) 24%,rgba(45,161,210,.13) 49%,transparent 73%);
+  filter:blur(34px);opacity:.82;transform:translate(-50%,-50%) scale(1.05);
+}
+/* Keep all former identity/control artwork invisible. The surface itself remains the control. */
+.mark,.ahki-wordmark,.aqui-title,.eyes,.talk-control,.top-compose,.action-row{display:none!important;visibility:hidden!important;pointer-events:none!important}
+
+/* Settings/subpages use the same ocean-mist family, with readable dark ink and translucent glass. */
+#settingsShell,.settings-page{color:#18384d!important;background:
+  radial-gradient(circle at 18% 9%,rgba(239,249,252,.70),transparent 31%),
+  radial-gradient(circle at 87% 28%,rgba(102,183,218,.32),transparent 38%),
+  radial-gradient(circle at 45% 84%,rgba(188,220,233,.44),transparent 42%),
+  linear-gradient(145deg,#dceaf1,#a9cbdc 48%,#c9dfe9)!important}
+.set-head{background:linear-gradient(rgba(215,232,240,.95) 72%,rgba(215,232,240,0))!important}
+.set-title,.set-brand,.set-main,.set-icon{color:#18384d!important}.set-kicker,.set-sub,.set-card p,.set-note,.muted{color:#557488!important}
+.set-group,.set-card{background:rgba(241,249,252,.44)!important;border-color:rgba(44,105,139,.20)!important;box-shadow:0 14px 38px rgba(34,83,111,.11),inset 0 1px 0 rgba(255,255,255,.66)!important;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+.set-row{color:#18384d!important;border-bottom-color:rgba(44,105,139,.15)!important}.set-chevron{color:#557b91!important}.set-icon svg{stroke:#284f65!important}
+.set-back,.set-close{color:#284f65!important;border-color:rgba(44,105,139,.20)!important;background:rgba(239,248,251,.42)!important}
+.set-input{background:rgba(244,250,252,.52)!important;color:#18384d!important;border-color:rgba(44,105,139,.22)!important}
+.set-button{color:#17384d!important;border-color:rgba(44,105,139,.25)!important;background:linear-gradient(100deg,rgba(224,241,248,.76),rgba(155,205,226,.56),rgba(218,238,247,.72))!important}
+.radio{border-color:#688ca1!important}.radio.on:after{background:#277fae!important}.switch{background:rgba(74,128,157,.24)!important;border-color:rgba(44,105,139,.18)!important}.switch:after{background:#edf7fa!important}.switch.on{background:#378fba!important}.switch.on:after{background:#f6fbfd!important}
+.usage-bar{background:rgba(44,105,139,.14)!important}.usage-fill{background:linear-gradient(90deg,#9dcbdf,#398db7,#c6e1eb)!important}.mini-line{border-bottom-color:rgba(44,105,139,.14)!important}.toast{background:rgba(228,242,248,.95)!important;color:#18384d!important}
+</style>
+
 </body>
 </html>
