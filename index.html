@@ -1369,5 +1369,65 @@ if(bootRecovery){wantsPower=true;interruptionHidden=true;powerLook('resume')}els
 }
 @media(prefers-reduced-motion:reduce){.presence.is-on .water-ring{animation:none!important}}
 </style>
+
+<style id="ahki-mist-blue-continuous-v5">
+/* V5 — mist blue-gray, low contrast, continuous outward water propagation. */
+html,body{background:#c5d2dc!important}
+.presence{
+  background:
+    radial-gradient(ellipse at 48% 44%,rgba(238,245,248,.72) 0%,rgba(205,219,229,.72) 34%,rgba(171,190,205,.78) 72%,rgba(151,173,190,.88) 100%)!important;
+}
+.liquid-presence{
+  background:
+    radial-gradient(circle at 50% 50%,rgba(242,248,250,.78) 0%,rgba(216,228,236,.58) 24%,rgba(184,202,215,.38) 55%,rgba(157,180,197,.28) 100%)!important;
+  filter:none!important;
+}
+.water-sheen{
+  background:
+    radial-gradient(ellipse at 33% 25%,rgba(255,255,255,.44),transparent 34%),
+    radial-gradient(ellipse at 72% 67%,rgba(205,222,232,.28),transparent 40%),
+    radial-gradient(ellipse at 28% 78%,rgba(135,160,180,.16),transparent 39%)!important;
+  filter:blur(24px)!important;opacity:.78!important;
+}
+.water-ring{
+  border-color:rgba(223,234,240,.30)!important;
+  box-shadow:0 -1px 2px rgba(248,252,253,.28),0 2px 5px rgba(94,123,145,.10),inset 0 1px 2px rgba(245,250,252,.20),inset 0 -2px 4px rgba(92,121,143,.06),0 0 9px rgba(218,232,240,.09)!important;
+  opacity:.24!important;
+}
+.presence:not(.is-on) .water-ring{opacity:.19!important;animation:none!important}
+/* ON is directional propagation: each ridge repeatedly travels outward and fades,
+   with staggered phases creating an endless stream of new waves from the center. */
+.presence.is-on .water-ring{opacity:0!important;animation:ahkiOutwardRipple 8.4s cubic-bezier(.18,.45,.30,1) infinite!important}
+.presence.is-on .wr1{animation-delay:-0.00s!important}.presence.is-on .wr2{animation-delay:-0.70s!important}.presence.is-on .wr3{animation-delay:-1.40s!important}.presence.is-on .wr4{animation-delay:-2.10s!important}
+.presence.is-on .wr5{animation-delay:-2.80s!important}.presence.is-on .wr6{animation-delay:-3.50s!important}.presence.is-on .wr7{animation-delay:-4.20s!important}.presence.is-on .wr8{animation-delay:-4.90s!important}
+.presence.is-on .wr9{animation-delay:-5.60s!important}.presence.is-on .wr10{animation-delay:-6.30s!important}.presence.is-on .wr11{animation-delay:-7.00s!important}.presence.is-on .wr12{animation-delay:-7.70s!important}
+/* Initial touch uses the same water language; no separate tap-location circle. */
+.presence.wave-pulse .water-ring{animation:ahkiOutwardRipple 2.9s cubic-bezier(.14,.52,.24,1) 1 both!important}
+.presence.wave-pulse .wr1{animation-delay:0s!important}.presence.wave-pulse .wr2{animation-delay:.07s!important}.presence.wave-pulse .wr3{animation-delay:.14s!important}.presence.wave-pulse .wr4{animation-delay:.21s!important}.presence.wave-pulse .wr5{animation-delay:.28s!important}.presence.wave-pulse .wr6{animation-delay:.35s!important}.presence.wave-pulse .wr7{animation-delay:.42s!important}.presence.wave-pulse .wr8{animation-delay:.49s!important}.presence.wave-pulse .wr9{animation-delay:.56s!important}.presence.wave-pulse .wr10{animation-delay:.63s!important}.presence.wave-pulse .wr11{animation-delay:.70s!important}.presence.wave-pulse .wr12{animation-delay:.77s!important}
+@keyframes ahkiOutwardRipple{
+  0%{transform:translate(-50%,-50%) scale(.70);opacity:0}
+  10%{opacity:.18}
+  34%{opacity:.38}
+  72%{opacity:.20}
+  100%{transform:translate(-50%,-50%) scale(1.38);opacity:0}
+}
+/* Match every settings surface to the same quiet mist-water family. */
+#settingsShell,.settings-page{color:#24343f!important;background:
+ radial-gradient(circle at 18% 10%,rgba(238,246,249,.70),transparent 31%),
+ radial-gradient(circle at 86% 29%,rgba(180,201,215,.42),transparent 36%),
+ radial-gradient(circle at 44% 83%,rgba(216,228,235,.52),transparent 40%),
+ linear-gradient(145deg,#dbe5eb,#b9cad6 49%,#d2dee6)!important}
+.set-head{background:linear-gradient(rgba(218,229,235,.96) 72%,rgba(218,229,235,0))!important}
+.set-title,.set-brand,.set-main,.set-icon{color:#24343f!important}.set-kicker,.set-sub,.set-card p,.set-note,.muted{color:#5f7482!important}
+.set-group,.set-card{background:rgba(239,246,249,.42)!important;border-color:rgba(84,113,132,.20)!important;box-shadow:0 14px 38px rgba(61,88,106,.10),inset 0 1px 0 rgba(255,255,255,.56)!important;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+.set-row{color:#24343f!important;border-bottom-color:rgba(84,113,132,.15)!important}.set-chevron{color:#617b8b!important}.set-icon svg{stroke:#344b59!important}
+.set-back,.set-close{color:#344b59!important;border-color:rgba(79,109,128,.20)!important;background:rgba(239,246,249,.40)!important}
+.set-input{background:rgba(239,246,249,.46)!important;color:#24343f!important;border-color:rgba(79,109,128,.22)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.55)!important}
+.set-button{color:#24343f!important;border-color:rgba(79,109,128,.27)!important;background:linear-gradient(100deg,rgba(220,234,241,.70),rgba(181,203,217,.56),rgba(229,239,244,.68))!important}
+.radio{border-color:#78909e!important}.radio.on:after{background:#668ca4!important}.switch{background:rgba(112,140,158,.25)!important;border-color:rgba(79,109,128,.18)!important}.switch:after{background:#edf4f7!important}.switch.on{background:#789fb6!important}.switch.on:after{background:#f4f8fa!important}
+.usage-bar{background:rgba(79,109,128,.14)!important}.usage-fill{background:linear-gradient(90deg,#b8d0dd,#789db3,#d5e2e9)!important}.mini-line{border-bottom-color:rgba(79,109,128,.14)!important}.toast{background:rgba(232,241,246,.94)!important;color:#24343f!important;box-shadow:0 10px 30px rgba(55,82,99,.16)!important}
+@media(prefers-reduced-motion:reduce){.presence.is-on .water-ring{animation:none!important;opacity:.22!important}}
+</style>
+
 </body>
 </html>
