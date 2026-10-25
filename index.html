@@ -6,9 +6,9 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#020304">
+<meta name="theme-color" content="#f7f4ee">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="AHKI">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=45">
@@ -222,6 +222,38 @@ html,body{background:#000!important}
 @media (prefers-reduced-motion:reduce){
   .mark.ahki-wordmark{transition:none!important}
 }
+
+/* ============================================================
+   AHKI RIPPLE RESET — 2026-10-24
+   No visible words. A warm-white, milk-water presence is the interface.
+   OFF = quiet suspended ripple. ON = subtly living liquid field.
+   ============================================================ */
+html,body{background:#f7f4ee!important;color:#252525!important}
+.presence{
+  --tap-x:50%;--tap-y:50%;
+  background:radial-gradient(circle at 50% 46%,#fff 0%,#fbf9f4 46%,#f4f0e8 100%)!important;
+  cursor:pointer!important;touch-action:manipulation!important;
+}
+/* Keep all legacy/controller surfaces available to JS but invisible to the human. */
+.ambient,.orb,.mark,.ahki-wordmark,.top-compose,.action-row,.eyes,.aqui-title,.handoff,.talk-control,#worldPicker,#filePicker{
+  display:none!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important
+}
+.liquid-presence{position:absolute;inset:0;overflow:hidden;pointer-events:none;filter:saturate(.78);}
+.milk-glow,.milk-ring,.milk-center,.touch-ripple{position:absolute;left:50%;top:50%;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none}
+.milk-glow{width:min(76vmin,620px);aspect-ratio:1;background:radial-gradient(circle,rgba(255,255,255,.98) 0 18%,rgba(255,255,255,.58) 35%,rgba(224,216,203,.18) 55%,transparent 72%);filter:blur(11px);opacity:.94;animation:milkBreathe 8s ease-in-out infinite}
+.milk-ring{aspect-ratio:1;border:clamp(2px,.48vmin,5px) solid rgba(255,255,255,.78);box-shadow:0 0 13px rgba(255,255,255,.95),inset 0 0 13px rgba(255,255,255,.82),0 5px 18px rgba(180,166,145,.13),0 -3px 13px rgba(205,229,238,.20);filter:blur(.25px);opacity:.72}
+.r1{width:min(31vmin,250px);animation:waterDrift1 7.4s ease-in-out infinite}.r2{width:min(43vmin,350px);opacity:.58;animation:waterDrift2 8.6s ease-in-out infinite}.r3{width:min(56vmin,455px);opacity:.38;animation:waterDrift1 10.2s ease-in-out infinite reverse}.r4{width:min(68vmin,555px);opacity:.20;animation:waterDrift2 11.8s ease-in-out infinite reverse}
+.milk-center{width:min(19vmin,150px);aspect-ratio:1;background:radial-gradient(circle at 45% 38%,#fff 0 18%,rgba(255,255,255,.92) 34%,rgba(233,226,215,.42) 64%,rgba(255,255,255,.08) 75%,transparent 78%);box-shadow:0 0 28px rgba(255,255,255,.98),0 8px 30px rgba(181,166,144,.13);opacity:.72;animation:centerFloat 7.8s ease-in-out infinite}
+.touch-ripple{left:var(--tap-x);top:var(--tap-y);width:24px;height:24px;border:2px solid rgba(255,255,255,.96);box-shadow:0 0 12px rgba(255,255,255,.95),0 0 24px rgba(188,211,219,.25);opacity:0}
+.presence.ripple-tap .touch-ripple{animation:touchRipple .95s cubic-bezier(.12,.58,.22,1)}
+.presence.is-on .milk-glow{opacity:1;animation-duration:5.8s}.presence.is-on .milk-ring{opacity:.78}.presence.is-on .r2{opacity:.68}.presence.is-on .r3{opacity:.50}.presence.is-on .r4{opacity:.28}.presence.is-on .milk-center{opacity:.96;animation-duration:5.4s}
+@keyframes milkBreathe{0%,100%{transform:translate(-50%,-50%) scale(.96)}50%{transform:translate(-50%,-50%) scale(1.035)}}
+@keyframes waterDrift1{0%,100%{transform:translate(-50%,-50%) scale(.96,.99);border-radius:48% 52% 49% 51%/52% 47% 53% 48%}50%{transform:translate(-50%,-50%) scale(1.045,.985);border-radius:53% 47% 52% 48%/47% 54% 46% 53%}}
+@keyframes waterDrift2{0%,100%{transform:translate(-50%,-50%) scale(1,.95);border-radius:51% 49% 46% 54%/48% 52% 49% 51%}50%{transform:translate(-50%,-50%) scale(.97,1.04);border-radius:46% 54% 53% 47%/54% 46% 52% 48%}}
+@keyframes centerFloat{0%,100%{transform:translate(-50%,-50%) scale(.92)}50%{transform:translate(-50%,-50%) scale(1.06)}}
+@keyframes touchRipple{0%{opacity:.92;transform:translate(-50%,-50%) scale(.25)}70%{opacity:.34}100%{opacity:0;transform:translate(-50%,-50%) scale(22)}}
+@media(prefers-reduced-motion:reduce){.milk-glow,.milk-ring,.milk-center{animation:none!important}.presence.ripple-tap .touch-ripple{animation:touchRipple .55s ease-out!important}}
+
 </style>
 
 
@@ -231,6 +263,12 @@ html,body{background:#000!important}
   <input id="worldPicker" type="file" accept="image/*" capture="environment" hidden aria-hidden="true">
   <input id="filePicker" type="file" accept="image/*,application/pdf,text/plain,text/markdown,text/csv,application/json,.pdf,.txt,.md,.csv,.json,.doc,.docx,.xls,.xlsx,.ppt,.pptx" hidden aria-hidden="true">
   <div class="ambient"></div>
+  <div class="liquid-presence" aria-hidden="true">
+    <span class="milk-glow"></span>
+    <span class="milk-ring r1"></span><span class="milk-ring r2"></span><span class="milk-ring r3"></span><span class="milk-ring r4"></span>
+    <span class="milk-center"></span>
+    <span class="touch-ripple"></span>
+  </div>
   <div class="top-compose">
     <form id="writeLayer" class="write-layer" autocomplete="off"><textarea id="writeBox" rows="1" aria-label="Type or paste for AHKI" placeholder="Type or paste for AHKI…"></textarea></form>
     <button id="writeTrigger" class="write-trigger" type="button" aria-label="Type or paste for AHKI"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="7" width="26" height="18" rx="3"/><path d="M7 12h2m3 0h2m3 0h2m3 0h2M7 16h2m3 0h2m3 0h2m3 0h2M8 20h16"/></svg><span>Type or paste for AHKI…</span></button>
@@ -1089,7 +1127,7 @@ function startPowerGreetingOnce(){
           role:'system',
           content:[{
             type:'input_text',
-            text:'STARTUP OUTPUT CONTRACT — NEXT RESPONSE ONLY. Speak exactly this sentence and nothing else: Hello, how can I help you? Do not think aloud. Do not say hmm, hey, okay, sure, or any preamble. Do not paraphrase. Immediately speak the exact sentence.'
+            text:'STARTUP OUTPUT CONTRACT — NEXT RESPONSE ONLY. Speak exactly this sentence and nothing else: I’m here. Do not think aloud. Do not add hello, a question, a preamble, or any other words. Do not paraphrase. Immediately speak the exact sentence.'
           }]
         }
       }));
@@ -1163,6 +1201,20 @@ window.addEventListener('pagehide',()=>{
   if(wantsPower){interruptionHidden=true;stopAki(true,true)}else stopAki();
 });
 window.addEventListener('focus',()=>{if(wantsPower&&document.visibilityState==='visible'){const track=micStream?.getAudioTracks?.()[0];if(!pc||!dc||dc.readyState!=='open'||!track||track.readyState==='ended')scheduleInterruptionRecovery('focus')}});
+
+// AHKI ripple surface: every deliberate touch leaves a quiet liquid response.
+let ahkiRippleTimer=null;
+app.addEventListener('pointerdown',e=>{
+  if(e.target.closest('#settingsShell,button,input,textarea,a'))return;
+  app.style.setProperty('--tap-x',`${e.clientX}px`);
+  app.style.setProperty('--tap-y',`${e.clientY}px`);
+  app.classList.remove('ripple-tap');
+  void app.offsetWidth;
+  app.classList.add('ripple-tap');
+  clearTimeout(ahkiRippleTimer);
+  ahkiRippleTimer=setTimeout(()=>app.classList.remove('ripple-tap'),1000);
+},{passive:true});
+
 // If iOS fully reloads the PWA after an interruption, preserve the active context.
 // We attempt recovery once; if iOS requires a fresh user gesture, the next Power tap
 // starts a recovery session (no greeting) instead of discarding the conversation.
