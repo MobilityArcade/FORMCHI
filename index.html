@@ -1339,5 +1339,35 @@ if(bootRecovery){wantsPower=true;interruptionHidden=true;powerLook('resume')}els
 .radio{border-color:#9d7a3e!important}.radio.on:after{background:#b98225!important}.switch{background:rgba(175,139,76,.30)!important;border-color:rgba(137,95,31,.25)!important}.switch:after{background:#fff9e8!important}.switch.on{background:#c89436!important}.switch.on:after{background:#fff9e8!important}
 .usage-bar{background:rgba(137,95,31,.16)!important}.usage-fill{background:linear-gradient(90deg,#f5d78b,#c8902e,#f3dfaa)!important}.mini-line{border-bottom-color:rgba(137,95,31,.16)!important}.toast{background:rgba(255,247,220,.94)!important;color:#342719!important;box-shadow:0 10px 30px rgba(98,65,18,.18)!important}
 </style>
+
+<style id="ahki-gold-living-ripple-v4">
+/* V4 — continuous living ripple + gold-on-gold ridges. */
+.water-ring{
+  border-color:rgba(222,187,112,.34)!important;
+  box-shadow:
+    0 -1px 2px rgba(255,241,194,.40),
+    0 2px 5px rgba(153,108,36,.13),
+    inset 0 1px 2px rgba(255,236,181,.30),
+    inset 0 -2px 4px rgba(156,111,39,.09),
+    0 0 8px rgba(212,169,82,.10)!important;
+  opacity:.42!important;
+}
+.presence:not(.is-on) .water-ring{opacity:.34!important}
+.presence.is-on .water-ring{
+  opacity:.48!important;
+  animation:ahkiLivingRipple 7.2s ease-in-out infinite;
+}
+.presence.is-on .wr1{animation-delay:-.15s}.presence.is-on .wr2{animation-delay:-.45s}.presence.is-on .wr3{animation-delay:-.75s}.presence.is-on .wr4{animation-delay:-1.05s}
+.presence.is-on .wr5{animation-delay:-1.35s}.presence.is-on .wr6{animation-delay:-1.65s}.presence.is-on .wr7{animation-delay:-1.95s}.presence.is-on .wr8{animation-delay:-2.25s}
+.presence.is-on .wr9{animation-delay:-2.55s}.presence.is-on .wr10{animation-delay:-2.85s}.presence.is-on .wr11{animation-delay:-3.15s}.presence.is-on .wr12{animation-delay:-3.45s}
+/* The deliberate ON/OFF pulse temporarily takes precedence, then the living ripple resumes. */
+.presence.wave-pulse .water-ring{animation:waterWave 1.65s cubic-bezier(.16,.62,.22,1) both!important}
+@keyframes ahkiLivingRipple{
+  0%,100%{transform:translate(-50%,-50%) scale(.992);opacity:.38}
+  38%{transform:translate(-50%,-50%) scale(1.008);opacity:.49}
+  68%{transform:translate(-50%,-50%) scale(1.020);opacity:.43}
+}
+@media(prefers-reduced-motion:reduce){.presence.is-on .water-ring{animation:none!important}}
+</style>
 </body>
 </html>
