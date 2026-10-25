@@ -1966,3 +1966,149 @@ html,body{background:#155e98!important}
 </body>
 </html>
 \n<style id="ahki-v18-grounded-settings">\n/* V18 — settings/swipe world matches the OFF-state ocean blue instead of pale white glass. */\n#settingsShell,.settings-page{\n color:#f2fbff!important;\n background:\n  radial-gradient(ellipse at 50% 42%,rgba(91,190,224,.24) 0%,rgba(57,155,203,.13) 31%,transparent 58%),\n  radial-gradient(ellipse at 18% 18%,rgba(121,207,234,.12),transparent 36%),\n  linear-gradient(180deg,#2b96c8 0%,#258fc2 46%,#2388ba 100%)!important;\n}\n#settingsShell:before,.settings-page:before{opacity:.34!important;filter:blur(58px)!important}\n.set-head{background:linear-gradient(rgba(39,143,192,.92) 64%,rgba(39,143,192,0))!important}\n.set-group,.set-card{background:rgba(24,112,164,.28)!important;border:1px solid rgba(226,248,255,.25)!important;box-shadow:0 18px 48px rgba(10,74,119,.15),inset 0 1px 0 rgba(255,255,255,.20)!important;backdrop-filter:blur(22px) saturate(112%)!important;-webkit-backdrop-filter:blur(22px) saturate(112%)!important}\n.set-row{background:rgba(255,255,255,.018)!important;border-bottom-color:rgba(230,249,255,.18)!important}\n.set-title,.set-brand,.set-main,.set-icon,.set-chevron{color:#f4fcff!important}\n.set-kicker,.set-sub,.set-card p,.set-note,.muted{color:rgba(235,249,255,.78)!important}\n.set-back,.set-close{background:rgba(20,105,158,.28)!important;color:#f6fdff!important;border-color:rgba(235,250,255,.28)!important}\n.set-input{background:rgba(15,99,153,.28)!important;color:#fff!important;border-color:rgba(235,250,255,.28)!important}\n.set-button{background:rgba(21,112,169,.34)!important;color:#fff!important;border-color:rgba(235,250,255,.28)!important}\n</style>\n
+
+<style id="ahki-v20-dark-blue-everywhere">
+/* V20 — EXACTLY ONE BLUE CANVAS ACROSS ALL SETTINGS PAGES.
+   Match the main/off presence background; eliminate pale cyan page surfaces. */
+
+#settingsShell,
+.settings-page,
+.settings-page.root,
+.settings-page.active {
+  color:#ffffff !important;
+  background:
+    radial-gradient(ellipse at 50% 48%,
+      #75c6eb 0%,
+      #429bd0 30%,
+      #247ab6 62%,
+      #155e98 100%) !important;
+  background-color:#155e98 !important;
+}
+
+/* Kill the pale mist/veil that was washing the page canvas toward white. */
+#settingsShell::before,
+#settingsShell::after,
+.settings-page::before,
+.settings-page::after {
+  opacity:0 !important;
+  content:none !important;
+  background:none !important;
+  filter:none !important;
+  animation:none !important;
+}
+
+/* Header is the SAME blue world, not a separate light strip. */
+.set-head {
+  background:linear-gradient(
+    180deg,
+    rgba(21,94,152,.97) 0%,
+    rgba(21,94,152,.88) 68%,
+    rgba(21,94,152,0) 100%
+  ) !important;
+}
+.set-title,
+.set-brand,
+.set-main,
+.set-icon,
+.set-chevron,
+.set-hero,
+.settings-page h1,
+.settings-page h2,
+.settings-page h3 {
+  color:#ffffff !important;
+}
+.set-kicker,
+.set-sub,
+.set-card p,
+.set-note,
+.muted,
+.settings-page label,
+.settings-page p {
+  color:rgba(255,255,255,.76) !important;
+}
+
+/* Cards remain blue-on-blue: enough separation to read, never a second color. */
+.set-group,
+.set-card {
+  background:rgba(12,91,151,.34) !important;
+  background-color:rgba(12,91,151,.34) !important;
+  border:1px solid rgba(223,247,255,.22) !important;
+  box-shadow:
+    0 16px 42px rgba(5,56,104,.12),
+    inset 0 1px 0 rgba(255,255,255,.13) !important;
+  backdrop-filter:blur(12px) saturate(108%) !important;
+  -webkit-backdrop-filter:blur(12px) saturate(108%) !important;
+}
+
+.set-row {
+  color:#ffffff !important;
+  background:rgba(9,83,143,.14) !important;
+  border-bottom-color:rgba(231,249,255,.17) !important;
+}
+.set-row:active {
+  background:rgba(43,139,196,.26) !important;
+}
+.set-icon svg {
+  stroke:#ffffff !important;
+}
+.set-chevron {
+  color:rgba(255,255,255,.90) !important;
+}
+
+/* Navigation controls */
+.set-back,
+.set-close {
+  color:#ffffff !important;
+  background:rgba(10,84,145,.38) !important;
+  border-color:rgba(232,250,255,.27) !important;
+  box-shadow:none !important;
+}
+
+/* Name/voice/etc. controls stay in the same dark-blue family. */
+.set-input,
+.settings-page input,
+.settings-page select,
+.settings-page textarea {
+  background:rgba(7,77,136,.42) !important;
+  background-color:rgba(7,77,136,.42) !important;
+  color:#ffffff !important;
+  border-color:rgba(232,250,255,.24) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06) !important;
+}
+.set-input::placeholder,
+.settings-page input::placeholder,
+.settings-page textarea::placeholder {
+  color:rgba(255,255,255,.48) !important;
+}
+.set-button,
+.settings-page button:not(.set-row):not(.set-back):not(.set-close) {
+  background:rgba(18,104,163,.48) !important;
+  color:#ffffff !important;
+  border-color:rgba(235,251,255,.25) !important;
+}
+
+/* Secondary widgets */
+.radio { border-color:rgba(255,255,255,.86) !important; }
+.radio.on::after { background:#ffffff !important; }
+.switch {
+  background:rgba(4,70,128,.42) !important;
+  border-color:rgba(255,255,255,.22) !important;
+}
+.switch::after { background:#f7fdff !important; }
+.switch.on { background:#43add8 !important; }
+.usage-bar { background:rgba(5,70,127,.38) !important; }
+.usage-fill { background:rgba(222,249,255,.88) !important; }
+.mini-line { border-bottom-color:rgba(235,250,255,.15) !important; }
+.toast { background:rgba(7,72,130,.94) !important; color:#ffffff !important; }
+
+/* Prevent legacy light inline/utility backgrounds inside settings from resurfacing. */
+#settingsShell [style*="background: white"],
+#settingsShell [style*="background:#fff"],
+#settingsShell [style*="background: #fff"],
+.settings-page [style*="background: white"],
+.settings-page [style*="background:#fff"],
+.settings-page [style*="background: #fff"] {
+  background:rgba(10,86,146,.34) !important;
+}
+</style>
+
