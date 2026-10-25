@@ -2162,3 +2162,25 @@ html,body{background:#155e98!important}
 }
 </style>
 
+
+
+<style id="ahki-orb-uniform-breath-30-percent">
+/* AHKI ORB — uniform 30% breathing upgrade.
+   Visual-only override: keep the nucleus perfectly circular and centered.
+   No directional stretching, drifting, squashing, or asymmetric scale. */
+.presence.is-on .liquid-presence:before{
+  animation:ahkiUniformOrbBreath30 13s cubic-bezier(.45,.04,.35,1) infinite!important;
+  transform-origin:50% 50%!important;
+  will-change:transform;
+}
+@keyframes ahkiUniformOrbBreath30{
+  0%,100%{transform:translate(-50%,-50%) scale(1);}
+  52%{transform:translate(-50%,-50%) scale(1.30);}
+}
+@media(prefers-reduced-motion:reduce){
+  .presence.is-on .liquid-presence:before{
+    animation:none!important;
+    transform:translate(-50%,-50%) scale(1)!important;
+  }
+}
+</style>
