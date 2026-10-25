@@ -800,11 +800,25 @@ function personalNameIntent(text){
  for(const re of patterns){const m=raw.match(re);if(m){const name=cleanPersonalName(m[1]);if(name)return {kind:'set',name}}}
  return null;
 }
+function personalNameQuestionIntent(text){
+ const t=normalizedSpeech(String(text||''));
+ return /\b(can|could|may|would) i\b.{0,28}\b(change|choose|give|pick|rename|call)\b.{0,22}\b(your )?(name|you)\b/.test(t)||
+        /\b(can|could|may) (your )?name (be|become)\b/.test(t)||
+        /\b(do you mind if i (call|name|rename) you)\b/.test(t)||
+        /\b(i want|i(?:'d| would) like) to (change|choose|give|pick) (your )?name\b/.test(t);
+}
+function sendPersonalNameContract(extra=''){
+ if(!powered||!dc||dc.readyState!=='open')return;
+ const current=akiPersonalName?`The human currently calls you ${akiPersonalName}.`:'The human has not chosen a personal name for you yet.';
+ const id='ahki_name_contract_'+Date.now();
+ dc.send(JSON.stringify({type:'response.item.create',event_id:id,item:{type:'message',role:'system',content:[{type:'input_text',text:`AHKI PERSONAL NAME CONTRACT. AHKI is the product/app name, not a mandatory conversational name for the presence. The human is always welcome to give you a personal name, change it later, or clear it. Never resist, refuse, act possessive about, or say you would rather keep the name AHKI. If asked whether your name can be changed, warmly say yes and ask what they would like to call you. If the human supplies a new name, accept it naturally and use it going forward. ${current} ${extra}`}]}}));
+}
 function handlePersonalNameIntent(text){
- const intent=personalNameIntent(text);if(!intent)return;
- if(intent.kind==='clear')clearPersonalName();else if(intent.kind==='set')savePersonalName(intent.name);
- // The current Live model hears the same naming utterance and can acknowledge it naturally.
- // The saved identity is injected into every subsequent/recovered Live session.
+ const intent=personalNameIntent(text);
+ if(intent?.kind==='clear'){clearPersonalName();sendPersonalNameContract('The human just cleared the personal name.');return intent}
+ if(intent?.kind==='set'){savePersonalName(intent.name);sendPersonalNameContract(`The human just chose the personal name ${intent.name}. Acknowledge it warmly and briefly.`);return intent}
+ if(personalNameQuestionIntent(text)){sendPersonalNameContract('The human is asking about choosing or changing your personal name. Say yes without resistance and invite them to choose the name.');return {kind:'offer'}}
+ return null;
 }
 async function handleSpokenIntent(text){
  const clean=String(text||'').trim();if(!clean)return;
@@ -1301,7 +1315,7 @@ if(bootRecovery){wantsPower=true;interruptionHidden=true;powerLook('resume')}els
     </div>
     <p class="set-note" style="padding:0 8px 30px">Settings float above the live AHKI session. Opening or browsing them does not intentionally stop the microphone or conversation.</p>
   </section>
-  <section class="settings-page" data-page="name"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Name</div><div></div></div><div class="set-hero" id="nameHero">AHKI</div><div class="set-card"><h3>Your AHKI Name</h3><p>This is the personal name AHKI will respond to. You can also change it naturally in conversation.</p><input id="nameInput" class="set-input" maxlength="32" placeholder="AHKI"><button id="saveName" class="set-button">Save</button></div><p class="set-note">Role-play names do not need to become the permanent personal name.</p></section>
+  <section class="settings-page" data-page="name"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Name</div><div></div></div><div class="set-hero" id="nameHero">AHKI</div><div class="set-card"><h3>Personal Name</h3><p>AHKI is the app. Give the presence inside it any name you want, and change it naturally at any time.</p><input id="nameInput" class="set-input" maxlength="32" placeholder="AHKI"><button id="saveName" class="set-button">Save</button></div><p class="set-note">Example: “Can I call you Ava?” → “Of course.” The chosen name stays on this device until you change or clear it.</p></section>
   <section class="settings-page" data-page="voice"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Voice</div><div></div></div><div class="set-group" id="voiceChoices"></div><div class="set-card"><h3>Voice preview</h3><p>Choose a voice here. To keep your current conversation uninterrupted, a changed voice is saved for the next fresh live session.</p><button id="previewVoice" class="set-button">Play simple preview tone</button></div></section>
   <section class="settings-page" data-page="memory"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Memory</div><div></div></div><div class="set-group"><button class="set-row" id="memoryToggle"><span class="set-icon">◇</span><span><div class="set-main">Personal Memory</div><div class="set-sub">Prototype control</div></span><span id="memorySwitch" class="switch"></span></button></div><div class="set-group"><button class="set-row" id="viewMemories"><span class="set-icon">□</span><span><div class="set-main">View Memories</div><div class="set-sub">Shows what this prototype has stored</div></span><span class="set-chevron">›</span></button><button class="set-row" id="clearPrototypeMemory"><span class="set-icon">×</span><span><div class="set-main">Clear Prototype Memory</div><div class="set-sub">Does not alter conversation recovery</div></span><span class="set-chevron">›</span></button></div><p class="set-note">This screen is a UI prototype. It does not invent a long-term memory system that the current web build does not already have.</p></section>
   <section class="settings-page" data-page="usage"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Usage</div><div></div></div><div class="set-card"><div class="muted">Recorded conversation time on this device</div><div class="usage-big" id="usageBig">0m</div><div class="usage-bar"><div class="usage-fill" id="usageFill"></div></div></div><div class="set-group"><button class="set-row" id="usageDetails"><span class="set-icon">◷</span><span><div class="set-main">View Details</div><div class="set-sub">Local session meter</div></span><span class="set-chevron">›</span></button></div><p class="set-note">The current build already records anonymous session duration locally. This prototype displays that existing local total.</p></section>
