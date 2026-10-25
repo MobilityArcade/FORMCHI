@@ -1636,5 +1636,65 @@ html,body{background:#c7d6e1!important}
 .usage-bar{background:rgba(44,105,139,.14)!important}.usage-fill{background:linear-gradient(90deg,#9dcbdf,#398db7,#c6e1eb)!important}.mini-line{border-bottom-color:rgba(44,105,139,.14)!important}.toast{background:rgba(228,242,248,.95)!important;color:#18384d!important}
 </style>
 
+<style id="ahki-ocean-living-presence-v13">
+/* V13 — one calm ocean field. OFF has no focal source; ON wakes a subtly living light. */
+html,body{background:#155e98!important}
+.presence,
+.presence.is-on{
+  background:
+    radial-gradient(ellipse at 50% 48%,#75c6eb 0%,#429bd0 30%,#247ab6 62%,#155e98 100%)!important;
+  transition:background 1.8s ease!important;
+}
+.liquid-presence,
+.presence.is-on .liquid-presence{
+  background:none!important;
+  opacity:0!important;
+  animation:none!important;
+  -webkit-animation:none!important;
+}
+.water-sheen,
+.presence.is-on .water-sheen{
+  background:
+    radial-gradient(ellipse at 34% 25%,rgba(219,249,255,.20),transparent 38%),
+    radial-gradient(ellipse at 70% 67%,rgba(55,180,222,.18),transparent 42%),
+    radial-gradient(ellipse at 28% 80%,rgba(5,67,124,.18),transparent 43%)!important;
+  opacity:.58!important;
+  animation:none!important;
+  -webkit-animation:none!important;
+}
+/* No visible center while dormant. */
+.presence:after{
+  width:min(54vmin,560px)!important;
+  background:radial-gradient(circle,rgba(225,252,255,.54) 0%,rgba(135,224,244,.29) 25%,rgba(45,161,210,.11) 50%,transparent 73%)!important;
+  filter:blur(36px)!important;
+  opacity:0!important;
+  transform:translate(-50%,-50%) scale(.94)!important;
+  animation:none!important;
+  -webkit-animation:none!important;
+  transition:opacity 1.7s ease,filter 1.7s ease,transform 1.7s ease!important;
+}
+/* Awake: a source rather than an orb — extremely slow, low-amplitude organic motion. */
+.presence.is-on:after{
+  opacity:.78!important;
+  animation:ahkiLivingSourceV13 14s ease-in-out infinite alternate!important;
+  -webkit-animation:ahkiLivingSourceV13 14s ease-in-out infinite alternate!important;
+}
+@keyframes ahkiLivingSourceV13{
+  0%{transform:translate(-50%,-50%) translate3d(-3px,2px,0) scale(.985);filter:blur(38px);opacity:.72}
+  35%{transform:translate(-50%,-50%) translate3d(2px,-3px,0) scale(1.015);filter:blur(34px);opacity:.80}
+  68%{transform:translate(-50%,-50%) translate3d(4px,2px,0) scale(1.035);filter:blur(37px);opacity:.76}
+  100%{transform:translate(-50%,-50%) translate3d(-2px,-2px,0) scale(1.005);filter:blur(35px);opacity:.82}
+}
+@-webkit-keyframes ahkiLivingSourceV13{
+  0%{transform:translate(-50%,-50%) translate3d(-3px,2px,0) scale(.985);filter:blur(38px);opacity:.72}
+  35%{transform:translate(-50%,-50%) translate3d(2px,-3px,0) scale(1.015);filter:blur(34px);opacity:.80}
+  68%{transform:translate(-50%,-50%) translate3d(4px,2px,0) scale(1.035);filter:blur(37px);opacity:.76}
+  100%{transform:translate(-50%,-50%) translate3d(-2px,-2px,0) scale(1.005);filter:blur(35px);opacity:.82}
+}
+@media(prefers-reduced-motion:reduce){
+  .presence.is-on:after{animation:none!important;-webkit-animation:none!important;transform:translate(-50%,-50%) scale(1.01)!important;opacity:.76!important}
+}
+</style>
+
 </body>
 </html>
