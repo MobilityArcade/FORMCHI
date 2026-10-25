@@ -2112,3 +2112,53 @@ html,body{background:#155e98!important}
 }
 </style>
 
+<style id="ahki-v21-seamless-blue">
+/* V21 — seamless settings canvas.
+   Remove the darker header band/gradation from root + every subpage. */
+
+#settingsShell .set-head,
+#settingsShell .settings-header,
+#settingsShell .settings-top,
+.settings-page .set-head,
+.settings-page .settings-header,
+.settings-page .settings-top {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+}
+
+/* No pseudo-element or shadow may recreate a band behind the header. */
+#settingsShell .set-head::before,
+#settingsShell .set-head::after,
+.settings-page .set-head::before,
+.settings-page .set-head::after,
+#settingsShell .settings-header::before,
+#settingsShell .settings-header::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  opacity: 0 !important;
+}
+
+/* Header controls float directly on the continuous blue canvas. */
+#settingsShell .set-back,
+#settingsShell .set-close,
+.settings-page .set-back,
+.settings-page .set-close {
+  box-shadow: none !important;
+}
+
+/* Keep page canvas continuous underneath the header area. */
+#settingsShell,
+#settingsShell .settings-page,
+#settingsShell .settings-page.active {
+  background-attachment: fixed !important;
+}
+</style>
+
