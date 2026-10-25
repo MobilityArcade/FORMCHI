@@ -1,194 +1,1813 @@
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f7f4ee">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="AHKI">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=45">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=45">
+<link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=45">
+<title>AHKI</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020304}body{overflow:hidden;font-family:system-ui,-apple-system,sans-serif;color:#eef7ff}.presence{position:relative;width:100%;height:100dvh;overflow:hidden;isolation:isolate;background:radial-gradient(circle at 50% 46%,#11162a 0,#080b13 40%,#030507 74%,#020304 100%);-webkit-tap-highlight-color:transparent}.ambient{position:absolute;inset:-18%;background:radial-gradient(circle at 50% 48%,rgba(20,82,145,.14),rgba(72,30,112,.08) 34%,transparent 70%);filter:blur(48px);animation:ambient 14s ease-in-out infinite}.orb{position:absolute;left:50%;top:47%;width:min(84vw,680px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:#010207;box-shadow:0 0 20px rgba(35,205,255,.18),0 0 58px rgba(57,105,255,.15),0 0 105px rgba(188,49,255,.10);animation:orbBreath 8.4s ease-in-out infinite}.halo,.rim,.oil,.oil2,.core{position:absolute;border-radius:50%;pointer-events:none}.halo{inset:-4.8%;background:conic-gradient(from 215deg,transparent 0 7%,rgba(0,210,255,.22) 14%,rgba(61,91,255,.18) 29%,rgba(211,38,255,.20) 45%,rgba(255,70,169,.16) 57%,rgba(255,115,70,.14) 68%,rgba(24,202,255,.18) 83%,transparent 96%);filter:blur(22px);opacity:.58;animation:oilTurn 34s linear infinite}.rim{inset:-1.0%;background:conic-gradient(from 220deg,#ff729e 0deg,#ff3dbb 38deg,#bb31ff 78deg,#514cff 120deg,#1b7cff 164deg,#13dfff 207deg,#c9fbff 230deg,#27c8ff 248deg,#395eff 282deg,#a42aff 318deg,#ff729e 360deg);filter:saturate(1.5) brightness(1.18);opacity:1;box-shadow:0 0 5px rgba(92,220,255,.58),0 0 13px rgba(118,75,255,.30);animation:oilTurn 31s linear infinite}.rim:after{content:"";position:absolute;inset:2.0%;border-radius:50%;background:#010207;box-shadow:inset 0 0 18px rgba(18,157,255,.16)}.oil{inset:2.4%;background:conic-gradient(from 12deg,#14d7ff 0 12%,#0b79ff 20%,#5239f4 31%,#bc29f0 42%,#f222bf 51%,#ff6d72 61%,#ff8b3d 68%,#55259e 77%,#061018 83%,#0bbfe9 94%,#14d7ff 100%);filter:saturate(1.55) brightness(1.05);opacity:.96;animation:oilTurn 28s linear infinite;box-shadow:inset 0 0 10px rgba(255,255,255,.08)}.oil:after{content:"";position:absolute;inset:12.2%;border-radius:50%;background:radial-gradient(circle at 50% 45%,#02040a 0%,#010207 72%,#02030a 88%,#02040b 100%);box-shadow:0 0 10px rgba(1,2,7,.9),inset 0 0 24px rgba(19,99,180,.08)}.oil2{inset:5.5%;background:conic-gradient(from 165deg,transparent 0 11%,rgba(13,207,255,.26) 20%,rgba(69,72,255,.20) 33%,rgba(215,36,255,.22) 46%,transparent 58% 72%,rgba(255,111,57,.16) 82%,rgba(119,44,255,.20) 92%,transparent);filter:blur(7px) saturate(1.3);opacity:.52;animation:oilTurn2 38s linear infinite}.oil2:after{content:"";position:absolute;inset:14%;border-radius:50%;background:#010207}.core{inset:14.5%;background:radial-gradient(circle at 46% 39%,rgba(5,17,31,.24),#010207 57%,#010207 100%);box-shadow:inset 0 0 38px rgba(34,123,210,.06)}
+.top-compose{position:absolute;z-index:30;top:max(calc(env(safe-area-inset-top) + 5.5vh),62px);left:6vw;right:6vw;height:clamp(54px,7.5vh,68px)}.write-trigger,.write-layer{position:absolute;inset:0;border-radius:999px;border:1.4px solid transparent;background:linear-gradient(#0a0d18,#0a0d18) padding-box,linear-gradient(90deg,#20ddff,#536bff,#df48ff) border-box;box-shadow:0 0 22px rgba(62,132,255,.13);color:rgba(211,221,238,.55)}.write-trigger{display:flex;align-items:center;gap:16px;padding:0 22px;font:300 clamp(18px,4.5vw,27px)/1 system-ui;border-width:1.4px;text-align:left;width:100%;cursor:text}.write-trigger svg{width:27px;height:27px;flex:none;stroke:#eaf8ff;filter:drop-shadow(0 0 5px rgba(100,220,255,.45))}.write-layer{display:none;align-items:center;padding:0 20px}.write-layer.open{display:flex}.write-layer.open~.write-trigger{visibility:hidden}#writeBox{width:100%;height:100%;resize:none;overflow:auto;border:0;outline:0;background:transparent;color:#eef7ff;font:300 clamp(20px,4.7vw,28px)/1.3 system-ui;padding:14px 4px;caret-color:#65e8ff}#writeBox::placeholder{color:rgba(204,214,232,.42)}.write-hint{position:absolute;top:calc(100% + 13px);left:0;right:0;text-align:center;color:rgba(194,205,226,.58);font:300 clamp(12px,3.1vw,17px)/1.2 system-ui;letter-spacing:.01em}
+.mark{position:absolute;z-index:32;left:50%;top:47%;transform:translate(-50%,-50%);width:min(48vw,350px);height:auto;opacity:.32;pointer-events:none;touch-action:none;transition:opacity .45s ease,filter .45s ease}.mark path{fill:none;stroke:rgba(238,247,255,.84);stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}.mark.on{opacity:1;filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 10px rgba(55,190,255,.78))}.mark.on path{stroke:#fff;stroke-width:2.2}.mark.starting{opacity:.58}.mark.error{opacity:.18}.talk-control{position:absolute;z-index:33;left:50%;top:calc(47% + min(16vw,128px));transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:auto;border:0;background:transparent;color:inherit;padding:10px 18px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}.power-icon{width:clamp(35px,9vw,58px);height:clamp(35px,9vw,58px);stroke:#dff8ff;fill:none;stroke-width:2;filter:drop-shadow(0 0 6px rgba(74,196,255,.7))}.talk-control:active{transform:translate(-50%,-50%) scale(.96)}.talk-label{font:400 clamp(11px,2.8vw,16px)/1 system-ui;letter-spacing:.28em;color:rgba(246,250,255,.88);white-space:nowrap}
+.action-row{position:absolute;z-index:35;left:8vw;right:8vw;bottom:max(calc(env(safe-area-inset-bottom) + 8vh),70px);display:grid;grid-template-columns:repeat(3,1fr);align-items:start;gap:3vw}.action{border:0;background:transparent;color:#f4f8ff;padding:0;display:flex;flex-direction:column;align-items:center;gap:0;cursor:pointer;-webkit-tap-highlight-color:transparent}.action-circle{width:clamp(58px,14vw,88px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;border:1.4px solid transparent;background:linear-gradient(#080b14,#080b14) padding-box,linear-gradient(135deg,#28e7ff,#596cff,#dc43ff) border-box;box-shadow:0 0 18px rgba(82,111,255,.16)}.action svg{width:46%;height:46%;stroke:#f2fbff;fill:none;stroke-width:1.8;filter:drop-shadow(0 0 5px rgba(125,221,255,.55))}.action span{font:400 clamp(10px,2.6vw,14px)/1 system-ui;letter-spacing:.25em;white-space:nowrap}.action:active .action-circle{transform:scale(.96)}.action.resume-ready .action-circle{box-shadow:0 0 24px rgba(82,111,255,.34),0 0 10px rgba(40,231,255,.2)}
+/* AQUI 1.8 — ORIGINAL LIGHT. One simple visual rule:
+   POWER OFF = the interface is quiet/dark. POWER ON = the original AQUI iridescence is fully alive. */
+.presence .halo,.presence .rim,.presence .oil,.presence .oil2{transition:opacity .55s ease,filter .55s ease,box-shadow .55s ease}
+.presence:not(.is-on) .halo{opacity:0}
+.presence:not(.is-on) .rim{opacity:.055;filter:saturate(.05) brightness(.34);box-shadow:none}
+.presence:not(.is-on) .oil{opacity:.055;filter:saturate(.05) brightness(.28);box-shadow:none}
+.presence:not(.is-on) .oil2{opacity:0}
+.presence:not(.is-on) .mark{opacity:.12;filter:none}
+.presence:not(.is-on) .mark path{stroke:rgba(210,220,232,.42);stroke-width:1.2}
+.presence.is-on .mark{opacity:1;filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 10px rgba(55,190,255,.62))}
+.presence.is-on .mark path{stroke:#fff;stroke-width:2.2}
+.presence:not(.is-on) .write-trigger{border-color:rgba(130,140,155,.30);box-shadow:none}
+.presence:not(.is-on) .write-trigger svg,.presence:not(.is-on) .write-trigger span,.presence:not(.is-on) .write-hint{opacity:.38;filter:none}
+.presence:not(.is-on) .action-circle{background:linear-gradient(#080b14,#080b14) padding-box,linear-gradient(135deg,#3b414a,#5a6069) border-box;box-shadow:none}
+.presence:not(.is-on) .action svg{opacity:.42;filter:none}
+.presence.is-on .halo{opacity:.58}
+.presence.is-on .rim{opacity:1}
+.presence.is-on .oil{opacity:.96}
+.presence.is-on .oil2{opacity:.52}
+@keyframes ambient{0%,100%{transform:scale(.98);opacity:.58}50%{transform:scale(1.025);opacity:.78}}@keyframes orbBreath{0%,100%{transform:translate(-50%,-50%) scale(.982)}50%{transform:translate(-50%,-50%) scale(1.012)}}@keyframes oilTurn{to{transform:rotate(360deg)}}@keyframes oilTurn2{to{transform:rotate(-360deg)}}@media(max-height:700px){.orb{width:min(72vw,540px)}.action-row{bottom:max(calc(env(safe-area-inset-bottom) + 4vh),34px)}.top-compose{top:max(calc(env(safe-area-inset-top) + 3vh),38px)}}@media(prefers-reduced-motion:reduce){.ambient,.orb,.halo,.rim,.oil,.oil2{animation:none!important}}
 
-  if (!process.env.OPENAI_API_KEY) {
-    return res.status(500).json({
-      error: 'OPENAI_API_KEY is not configured'
-    });
-  }
+/* AKI 10.5.1 — temporary handoff lives OUTSIDE the compose field. */
+.handoff{display:none;position:absolute;top:calc(100% + 10px);left:0;right:0;z-index:40;padding:10px 12px;border:1px solid rgba(115,205,255,.45);border-radius:16px;background:rgba(5,8,18,.94);box-shadow:0 10px 32px rgba(0,0,0,.35);backdrop-filter:blur(14px);align-items:center;gap:10px}
+.handoff.show{display:flex}.handoff-text{min-width:0;flex:1;color:#eef7ff;font:500 14px/1.25 system-ui,-apple-system,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.handoff-actions{display:flex;gap:7px}.handoff-btn{border:1px solid rgba(145,215,255,.45);background:rgba(15,22,40,.88);color:#f7fbff;border-radius:999px;padding:7px 10px;font:600 12px system-ui,-apple-system,sans-serif;cursor:pointer}.handoff-close{padding:7px 9px}
 
-  try {
-    const {
-      sdp,
-      voice = 'marin',
-      language = 'auto',
-      personalName = ''
-    } = req.body || {};
+/* AQUI EYES EXPERIMENT — visual-only presence layer */
+.aqui-title{display:none!important}
+.aqui-title path{fill:none;stroke:rgba(238,247,255,.84);stroke-width:1.25;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.presence.is-on .aqui-title{opacity:.95;filter:drop-shadow(0 0 4px rgba(255,255,255,.72)) drop-shadow(0 0 9px rgba(55,190,255,.38))}
+.presence:not(.is-on) .aqui-title{opacity:.52;filter:none}
+.eyes{position:absolute;z-index:33;left:50%;top:47%;transform:translate(-50%,-50%);width:min(46vw,330px);height:min(22vw,160px);display:flex;align-items:center;justify-content:center;gap:min(10vw,76px);pointer-events:none;opacity:.16;transition:opacity .55s ease,filter .55s ease}
+.eye{position:relative;width:clamp(29px,8.4vw,60px);height:clamp(55px,16.1vw,117px);border-radius:50%;background:#f9fdff;box-shadow:0 0 7px #fff,0 0 15px rgba(80,205,255,.96),0 0 28px rgba(56,126,255,.64);transform-origin:center;transition:height .22s ease,border-radius .22s ease,transform .25s ease,clip-path .25s ease}
+.presence.is-on .eyes{opacity:1;filter:drop-shadow(0 0 6px rgba(80,205,255,.35))}
+.presence:not(.is-on) .eye{height:3px;box-shadow:0 0 6px rgba(80,205,255,.35),0 0 12px rgba(56,126,255,.24);opacity:.4}
+/* AHKI character eyes: expressions are conversational; blinking is scheduled in JS. */
+.eyes.blinking .eye{transform:scaleY(.055)!important;transition:transform .045s ease-in!important}
+.eyes.thinking .eye{height:25px;background:transparent;box-shadow:none;border:4px solid #f9fdff;border-left-color:transparent;border-right-color:transparent;border-top-color:transparent;border-radius:0 0 50% 50%;transform:translateY(4px);filter:drop-shadow(0 0 6px rgba(80,205,255,.9));animation:none}
+.eyes.happy .eye{height:24px;background:transparent;box-shadow:none;border:4px solid #f9fdff;border-left-color:transparent;border-right-color:transparent;border-bottom-color:transparent;border-radius:50% 50% 0 0;transform:translateY(8px);filter:drop-shadow(0 0 6px rgba(80,205,255,.9));animation:none}
+.eyes.curious .eye{transform:translateY(-1px) scaleY(.86)}
+@media(max-height:700px){.aqui-title{top:calc(47% + min(39vw,285px));width:min(25vw,170px)}}
 
-    if (
-      !sdp ||
-      typeof sdp !== 'string' ||
-      !sdp.trim().startsWith('v=0')
-    ) {
-      return res.status(400).json({
-        error: 'Valid SDP offer required'
-      });
+
+/* AHKI MINIMAL ONE-TAP — conversation only. */
+.top-compose,.action-row,#worldPicker,#filePicker,.eyes,.handoff{display:none!important}
+.presence{cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+
+/* Keep AHKI the same visual size when rotating portrait ↔ landscape. */
+.orb{
+  top:50%;
+  width:min(82vmin,680px);
+}
+
+.mark{
+  display:block!important;
+  top:50%;
+  width:auto;
+  height:auto;
+  opacity:.20;
+  font:300 clamp(42px,11vmin,78px)/1 system-ui,-apple-system,sans-serif;
+  letter-spacing:.24em;
+  color:rgba(215,224,238,.48);
+  filter:none;
+  transition:opacity .55s ease,color .55s ease,text-shadow .55s ease;
+  transform:translate(-50%,-50%);
+  white-space:nowrap;
+}
+
+.presence.is-on .mark{
+  opacity:1;
+  color:#fff;
+  text-shadow:0 0 5px #fff,0 0 13px rgba(55,190,255,.72);
+}
+
+.presence:not(.is-on) .mark{
+  opacity:.18;
+  color:rgba(195,205,220,.55);
+  text-shadow:none;
+}
+
+.presence.is-on .orb{
+  box-shadow:0 0 24px rgba(35,205,255,.22),0 0 70px rgba(57,105,255,.18),0 0 120px rgba(188,49,255,.12);
+}
+
+
+/* AHKI MINIMAL ORB V2 — mockup-matched ON state; true-black OFF state. */
+.presence{background:#010206!important}
+.ambient{opacity:0!important;transition:opacity .55s ease!important}
+.orb{opacity:0!important;visibility:hidden!important;transition:opacity .55s ease,visibility 0s linear .55s!important;box-shadow:none!important}
+.mark{opacity:0!important;visibility:hidden!important;transition:opacity .42s ease,visibility 0s linear .42s,color .42s ease,text-shadow .42s ease!important}
+.presence.is-on .ambient{opacity:.72!important}
+.presence.is-on .orb{opacity:1!important;visibility:visible!important;transition:opacity .55s ease,visibility 0s!important;box-shadow:0 0 18px rgba(35,205,255,.34),0 0 58px rgba(46,119,255,.28),0 0 110px rgba(178,42,255,.20)!important}
+.presence.is-on .mark{opacity:1!important;visibility:visible!important;transition:opacity .42s ease,visibility 0s!important;color:#fff!important;text-shadow:0 0 5px #fff,0 0 14px rgba(79,194,255,.82)!important;font-weight:200!important;letter-spacing:.22em!important}
+.presence.is-on .halo{opacity:.72!important;filter:blur(20px) saturate(1.45) brightness(1.18)!important}
+.presence.is-on .rim{opacity:1!important;filter:saturate(1.72) brightness(1.34)!important;box-shadow:0 0 7px rgba(94,224,255,.78),0 0 20px rgba(99,82,255,.48),0 0 30px rgba(238,50,255,.24)!important}
+.presence.is-on .oil{opacity:1!important;filter:saturate(1.72) brightness(1.20)!important}
+.presence.is-on .oil2{opacity:.64!important;filter:blur(6px) saturate(1.55) brightness(1.12)!important}
+.presence:not(.is-on) .halo,.presence:not(.is-on) .rim,.presence:not(.is-on) .oil,.presence:not(.is-on) .oil2,.presence:not(.is-on) .core{opacity:0!important}
+
+
+/* AHKI MINIMAL ORB V3 — visible dormant rings, hidden wordmark until awake. */
+.ahki-wordmark{display:block!important;position:absolute!important;z-index:32!important;left:50%!important;top:50%!important;transform:translate(calc(-50% + 7px),-50%)!important;width:min(82vmin,680px)!important;height:auto!important;pointer-events:none!important;opacity:0!important;visibility:hidden!important;filter:none!important;transition:opacity .42s ease,visibility 0s linear .42s,filter .42s ease!important}
+.ahki-wordmark .ahki-strokes path{fill:none!important;stroke:#fff!important;stroke-width:2.15!important;stroke-linecap:round!important;stroke-linejoin:round!important;vector-effect:non-scaling-stroke!important}
+.presence.is-on .ahki-wordmark{opacity:1!important;visibility:visible!important;transition:opacity .42s ease,visibility 0s!important;filter:drop-shadow(0 0 4px rgba(255,255,255,.95)) drop-shadow(0 0 11px rgba(72,190,255,.72))!important}
+.presence:not(.is-on) .ahki-wordmark{opacity:0!important;visibility:hidden!important}
+/* OFF keeps the physical ring visible, dark and dormant, while AHKI lettering disappears completely. */
+.presence:not(.is-on) .orb{opacity:1!important;visibility:visible!important;box-shadow:0 0 18px rgba(46,83,180,.16),0 0 54px rgba(64,50,170,.10)!important}
+.presence:not(.is-on) .halo{opacity:.16!important;filter:blur(24px) saturate(.55) brightness(.48)!important}
+.presence:not(.is-on) .rim{opacity:.18!important;filter:saturate(.42) brightness(.48)!important;box-shadow:0 0 4px rgba(45,110,220,.14)!important}
+.presence:not(.is-on) .oil{opacity:.16!important;filter:saturate(.38) brightness(.38)!important;box-shadow:none!important}
+.presence:not(.is-on) .oil2{opacity:.08!important;filter:blur(8px) saturate(.35) brightness(.35)!important}
+.presence:not(.is-on) .core{opacity:1!important;background:radial-gradient(circle at 46% 39%,rgba(4,10,19,.20),#010207 60%,#010207 100%)!important}
+
+
+/* ============================================================
+   AHKI MINIMAL BLACK PRESENCE — 2026-10-08
+   Visual contract:
+   OFF = true black with a barely visible charcoal AHKI wordmark.
+   ON  = centered AHKI wordmark only.
+   Portrait/landscape keep the same vmin-based visual size.
+   Existing conversation, startup greeting, on-chime and off-sound
+   behavior remain intact.
+   ============================================================ */
+html,body{background:#000!important}
+.presence{
+  background:#000!important;
+  cursor:pointer!important;
+  touch-action:manipulation!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+
+/* Remove every legacy visual surface. Keep the elements in the DOM so
+   the existing conversation/controller JavaScript remains untouched. */
+.ambient,.orb,.halo,.rim,.oil,.oil2,.core,.signal-band,
+.top-compose,.action-row,.eyes,.aqui-title,.handoff,
+#worldPicker,#filePicker,.talk-control{
+  display:none!important;
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+
+/* The AHKI mark is the entire visible interface. */
+.mark.ahki-wordmark{
+  display:block!important;
+  position:absolute!important;
+  z-index:10!important;
+  left:50%!important;
+  top:50%!important;
+  width:min(82vmin,680px)!important;
+  height:auto!important;
+  transform:translate(-50%,-50%)!important;
+  margin:0!important;
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+  filter:none!important;
+  transition:opacity .38s ease,filter .38s ease,visibility 0s linear .38s!important;
+}
+.mark.ahki-wordmark .ahki-strokes path{
+  fill:none!important;
+  stroke:#fff!important;
+  stroke-width:2.05!important;
+  stroke-linecap:round!important;
+  stroke-linejoin:round!important;
+  vector-effect:non-scaling-stroke!important;
+}
+
+/* OFF: the same wordmark remains as a subtle charcoal engraving.
+   The screen is still true black; only the letters signal that AHKI is here. */
+.presence:not(.is-on) .mark.ahki-wordmark,
+.mark.ahki-wordmark.starting,
+.mark.ahki-wordmark.error{
+  opacity:.30!important;
+  visibility:visible!important;
+  filter:none!important;
+}
+.presence:not(.is-on) .mark.ahki-wordmark .ahki-strokes path{
+  stroke:#555960!important;
+  stroke-width:2.05!important;
+}
+/* Startup should illuminate only when the existing controller switches on. */
+.presence.is-on .mark.ahki-wordmark .ahki-strokes path{
+  stroke:#fff!important;
+}
+
+/* ON: only the thin luminous AHKI signature. */
+.presence.is-on .mark.ahki-wordmark{
+  opacity:1!important;
+  visibility:visible!important;
+  transition:opacity .38s ease,filter .38s ease,visibility 0s!important;
+  filter:drop-shadow(0 0 3px rgba(255,255,255,.95))
+         drop-shadow(0 0 9px rgba(184,220,255,.50))
+         drop-shadow(0 0 18px rgba(102,171,255,.22))!important;
+}
+
+/* No visual state changes for speaking, thinking, rotation, or recovery. */
+@media (orientation:portrait),(orientation:landscape){
+  .mark.ahki-wordmark{width:min(82vmin,680px)!important;top:50%!important;left:50%!important}
+}
+@media (prefers-reduced-motion:reduce){
+  .mark.ahki-wordmark{transition:none!important}
+}
+
+/* ============================================================
+   AHKI RIPPLE RESET — 2026-10-24
+   No visible words. A warm-white, milk-water presence is the interface.
+   OFF = quiet suspended ripple. ON = subtly living liquid field.
+   ============================================================ */
+html,body{background:#f7f4ee!important;color:#252525!important}
+.presence{
+  --tap-x:50%;--tap-y:50%;
+  background:radial-gradient(circle at 50% 46%,#fff 0%,#fbf9f4 46%,#f4f0e8 100%)!important;
+  cursor:pointer!important;touch-action:manipulation!important;
+}
+/* Keep all legacy/controller surfaces available to JS but invisible to the human. */
+.ambient,.orb,.mark,.ahki-wordmark,.top-compose,.action-row,.eyes,.aqui-title,.handoff,.talk-control,#worldPicker,#filePicker{
+  display:none!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important
+}
+.liquid-presence{position:absolute;inset:0;overflow:hidden;pointer-events:none;filter:saturate(.78);}
+.milk-glow,.milk-ring,.milk-center,.touch-ripple{position:absolute;left:50%;top:50%;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none}
+.milk-glow{width:min(76vmin,620px);aspect-ratio:1;background:radial-gradient(circle,rgba(255,255,255,.98) 0 18%,rgba(255,255,255,.58) 35%,rgba(224,216,203,.18) 55%,transparent 72%);filter:blur(11px);opacity:.94;animation:milkBreathe 8s ease-in-out infinite}
+.milk-ring{aspect-ratio:1;border:clamp(2px,.48vmin,5px) solid rgba(255,255,255,.78);box-shadow:0 0 13px rgba(255,255,255,.95),inset 0 0 13px rgba(255,255,255,.82),0 5px 18px rgba(180,166,145,.13),0 -3px 13px rgba(205,229,238,.20);filter:blur(.25px);opacity:.72}
+.r1{width:min(31vmin,250px);animation:waterDrift1 7.4s ease-in-out infinite}.r2{width:min(43vmin,350px);opacity:.58;animation:waterDrift2 8.6s ease-in-out infinite}.r3{width:min(56vmin,455px);opacity:.38;animation:waterDrift1 10.2s ease-in-out infinite reverse}.r4{width:min(68vmin,555px);opacity:.20;animation:waterDrift2 11.8s ease-in-out infinite reverse}
+.milk-center{width:min(19vmin,150px);aspect-ratio:1;background:radial-gradient(circle at 45% 38%,#fff 0 18%,rgba(255,255,255,.92) 34%,rgba(233,226,215,.42) 64%,rgba(255,255,255,.08) 75%,transparent 78%);box-shadow:0 0 28px rgba(255,255,255,.98),0 8px 30px rgba(181,166,144,.13);opacity:.72;animation:centerFloat 7.8s ease-in-out infinite}
+.touch-ripple{left:var(--tap-x);top:var(--tap-y);width:24px;height:24px;border:2px solid rgba(255,255,255,.96);box-shadow:0 0 12px rgba(255,255,255,.95),0 0 24px rgba(188,211,219,.25);opacity:0}
+.presence.ripple-tap .touch-ripple{animation:touchRipple .95s cubic-bezier(.12,.58,.22,1)}
+.presence.is-on .milk-glow{opacity:1;animation-duration:5.8s}.presence.is-on .milk-ring{opacity:.78}.presence.is-on .r2{opacity:.68}.presence.is-on .r3{opacity:.50}.presence.is-on .r4{opacity:.28}.presence.is-on .milk-center{opacity:.96;animation-duration:5.4s}
+@keyframes milkBreathe{0%,100%{transform:translate(-50%,-50%) scale(.96)}50%{transform:translate(-50%,-50%) scale(1.035)}}
+@keyframes waterDrift1{0%,100%{transform:translate(-50%,-50%) scale(.96,.99);border-radius:48% 52% 49% 51%/52% 47% 53% 48%}50%{transform:translate(-50%,-50%) scale(1.045,.985);border-radius:53% 47% 52% 48%/47% 54% 46% 53%}}
+@keyframes waterDrift2{0%,100%{transform:translate(-50%,-50%) scale(1,.95);border-radius:51% 49% 46% 54%/48% 52% 49% 51%}50%{transform:translate(-50%,-50%) scale(.97,1.04);border-radius:46% 54% 53% 47%/54% 46% 52% 48%}}
+@keyframes centerFloat{0%,100%{transform:translate(-50%,-50%) scale(.92)}50%{transform:translate(-50%,-50%) scale(1.06)}}
+@keyframes touchRipple{0%{opacity:.92;transform:translate(-50%,-50%) scale(.25)}70%{opacity:.34}100%{opacity:0;transform:translate(-50%,-50%) scale(22)}}
+@media(prefers-reduced-motion:reduce){.water-ring,.water-sheen{animation:none!important}}
+
+/* Final water surface: no visible AHKI wordmark in any power state. */
+.mark,.ahki-wordmark,.presence.is-on .mark,.presence.is-on .ahki-wordmark,.mark.starting,.mark.error{display:none!important;opacity:0!important;visibility:hidden!important}
+.presence{background:linear-gradient(145deg,#fbfcfa 0%,#f0f7f7 48%,#f8f3ed 100%)!important}
+.liquid-presence{filter:none!important;background:radial-gradient(circle at 50% 48%,rgba(255,255,255,.94) 0%,rgba(228,241,244,.56) 38%,rgba(237,232,244,.34) 67%,rgba(248,241,232,.44) 100%)}
+.water-sheen{position:absolute;inset:-12%;background:radial-gradient(ellipse at 38% 31%,rgba(255,255,255,.82),transparent 35%),radial-gradient(ellipse at 70% 65%,rgba(184,225,234,.22),transparent 38%),radial-gradient(ellipse at 30% 72%,rgba(233,213,237,.18),transparent 34%);filter:blur(18px);opacity:.9;animation:sheenFloat 10s ease-in-out infinite alternate}
+.water-ring{--d:20vmin;position:absolute;left:50%;top:50%;width:var(--d);height:var(--d);border-radius:50%;transform:translate(-50%,-50%) scale(.985);border:clamp(1px,.18vmin,2.2px) solid rgba(255,255,255,.76);box-shadow:0 -1px 2px rgba(255,255,255,.96),0 2px 5px rgba(109,157,174,.16),inset 0 1px 3px rgba(255,255,255,.70),inset 0 -2px 5px rgba(160,185,194,.10);opacity:.58;will-change:transform,opacity}
+.wr1{--d:14vmin}.wr2{--d:22vmin}.wr3{--d:30vmin}.wr4{--d:38vmin}.wr5{--d:46vmin}.wr6{--d:54vmin}.wr7{--d:62vmin}.wr8{--d:70vmin}.wr9{--d:82vmin}.wr10{--d:96vmin}.wr11{--d:114vmin}.wr12{--d:136vmin}
+.presence.is-on .water-ring{opacity:.68}.presence:not(.is-on) .water-ring{opacity:.40}
+.presence.wave-pulse .water-ring{animation:waterWave 1.65s cubic-bezier(.16,.62,.22,1) both}
+.presence.wave-pulse .wr1{animation-delay:0s}.presence.wave-pulse .wr2{animation-delay:.035s}.presence.wave-pulse .wr3{animation-delay:.07s}.presence.wave-pulse .wr4{animation-delay:.105s}.presence.wave-pulse .wr5{animation-delay:.14s}.presence.wave-pulse .wr6{animation-delay:.175s}.presence.wave-pulse .wr7{animation-delay:.21s}.presence.wave-pulse .wr8{animation-delay:.245s}.presence.wave-pulse .wr9{animation-delay:.28s}.presence.wave-pulse .wr10{animation-delay:.315s}.presence.wave-pulse .wr11{animation-delay:.35s}.presence.wave-pulse .wr12{animation-delay:.385s}
+@keyframes waterWave{0%{transform:translate(-50%,-50%) scale(.965);opacity:.28}24%{transform:translate(-50%,-50%) scale(1.018);opacity:.86}58%{transform:translate(-50%,-50%) scale(1.055);opacity:.56}100%{transform:translate(-50%,-50%) scale(1.085);opacity:.34}}
+@keyframes sheenFloat{from{transform:translate3d(-1%,-1%,0) scale(1)}to{transform:translate3d(1%,1%,0) scale(1.025)}}
+
+</style>
+
+
+
+<style id="ahki-ocean-awake-source-v15-large">
+/* V15 — larger conversational source, matched to the approved zoomed reference.
+   Scale the source geometry itself (not the page) so the pearl edge and glow stay crisp. */
+.presence.is-on .liquid-presence:before{
+  width:min(38vmin,390px)!important;
+  background:radial-gradient(circle at 47% 43%,
+    rgba(255,255,255,1) 0 13%,
+    rgba(248,255,255,1) 21%,
+    rgba(213,249,255,.98) 34%,
+    rgba(126,227,249,.76) 50%,
+    rgba(43,178,226,.32) 67%,
+    rgba(25,139,198,.08) 79%,transparent 84%)!important;
+  box-shadow:0 0 20px rgba(255,255,255,.98),0 0 50px rgba(207,249,255,.92),0 0 100px rgba(87,220,250,.64),0 0 170px rgba(24,161,219,.32)!important;
+  filter:blur(1.05px)!important;
+}
+.presence.is-on .liquid-presence:after{
+  width:min(67vmin,690px)!important;
+  filter:blur(23px)!important;
+}
+.presence.is-on:after{
+  width:min(80vmin,820px)!important;
+  filter:blur(31px)!important;
+}
+@media(max-height:620px){
+  .presence.is-on .liquid-presence:before{width:min(34vmin,350px)!important}
+}
+</style>
+
+</head>
+<body>
+<main id="app" class="presence" aria-label="AHKI">
+  <input id="worldPicker" type="file" accept="image/*" capture="environment" hidden aria-hidden="true">
+  <input id="filePicker" type="file" accept="image/*,application/pdf,text/plain,text/markdown,text/csv,application/json,.pdf,.txt,.md,.csv,.json,.doc,.docx,.xls,.xlsx,.ppt,.pptx" hidden aria-hidden="true">
+  <div class="ambient"></div>
+  <div class="liquid-presence" aria-hidden="true">
+    <span class="water-sheen"></span>
+    <span class="water-ring wr1"></span><span class="water-ring wr2"></span><span class="water-ring wr3"></span><span class="water-ring wr4"></span><span class="water-ring wr5"></span><span class="water-ring wr6"></span><span class="water-ring wr7"></span><span class="water-ring wr8"></span><span class="water-ring wr9"></span><span class="water-ring wr10"></span><span class="water-ring wr11"></span><span class="water-ring wr12"></span>
+  </div>
+  <div class="top-compose">
+    <form id="writeLayer" class="write-layer" autocomplete="off"><textarea id="writeBox" rows="1" aria-label="Type or paste for AHKI" placeholder="Type or paste for AHKI…"></textarea></form>
+    <button id="writeTrigger" class="write-trigger" type="button" aria-label="Type or paste for AHKI"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="7" width="26" height="18" rx="3"/><path d="M7 12h2m3 0h2m3 0h2m3 0h2M7 16h2m3 0h2m3 0h2m3 0h2M8 20h16"/></svg><span>Type or paste for AHKI…</span></button>
+    <div class="write-hint">Ask a question, share a thought, or paste a link…</div>
+    <div id="handoff" class="handoff" aria-live="polite">
+      <div id="handoffText" class="handoff-text"></div>
+      <div class="handoff-actions"><button id="handoffCopy" class="handoff-btn" type="button">Copy</button><button id="handoffOpen" class="handoff-btn" type="button">Search</button><button id="handoffClose" class="handoff-btn handoff-close" type="button" aria-label="Close">×</button></div>
+    </div>
+  </div>
+  <div class="orb"><div class="halo"></div><div class="rim"></div><div class="signal-band"></div><div class="oil"></div><div class="oil2"></div><div class="core"></div></div>
+  <svg id="akiButton" class="mark ahki-wordmark" role="button" aria-label="Turn AHKI on" aria-pressed="false" viewBox="0 0 420 110" xmlns="http://www.w3.org/2000/svg">
+    <g class="ahki-strokes">
+      <path d="M22 88 L66 20 L110 88"/>
+      <path d="M142 20 L142 88 M142 54 L198 54 M198 20 L198 88"/>
+      <path d="M236 20 L236 88 M236 57 L302 20 M236 57 L304 88"/>
+      <path d="M350 20 L350 88"/>
+    </g>
+  </svg>
+  <div id="aquiEyes" class="eyes neutral" aria-hidden="true"><span class="eye"></span><span class="eye"></span></div>
+  <div class="action-row">
+    <button id="cameraButton" class="action" type="button" aria-label="Camera"><span class="action-circle"><svg viewBox="0 0 32 32"><path d="M4 10h6l2-3h8l2 3h6v16H4z"/><circle cx="16" cy="18" r="6"/></svg></span></button>
+    <button id="powerButton" class="action" type="button" aria-label="Turn AHKI on" aria-pressed="false"><span class="action-circle"><svg viewBox="0 0 32 32"><path d="M16 3v12M9.2 7.2a11 11 0 1 0 13.6 0"/></svg></span></button>
+    <button id="giveButton" class="action" type="button" aria-label="File"><span class="action-circle"><svg viewBox="0 0 32 32"><path d="M8 3h11l6 6v20H8z"/><path d="M19 3v7h6M12 17h9M12 22h9"/></svg></span></button>
+  </div>
+</main>
+<script>
+const app=document.querySelector('#app');
+console.info('[AHKI] Minimal Black Wordmark loaded');
+const akiButton=document.querySelector('#akiButton');
+const worldPicker=document.querySelector('#worldPicker');
+const filePicker=document.querySelector('#filePicker');
+const writeLayer=document.querySelector('#writeLayer');
+const writeTrigger=document.querySelector('#writeTrigger');
+const cameraButton=document.querySelector('#cameraButton');
+const giveButton=document.querySelector('#giveButton');
+const writeBox=document.querySelector('#writeBox');
+const handoff=document.querySelector('#handoff'),handoffText=document.querySelector('#handoffText'),handoffCopy=document.querySelector('#handoffCopy'),handoffOpen=document.querySelector('#handoffOpen'),handoffClose=document.querySelector('#handoffClose');
+let currentHandoff=null,handoffBusy=false;
+let pc=null,dc=null,micStream=null,audioEl=null,audioCtx=null;
+let starting=false,stopping=false,powered=false,restarting=false;
+// AKI 10.6 — conversation recovery. `wantsPower` tracks human intent separately
+// from the transient WebRTC connection so iOS can interrupt audio without ending
+// the active conversation. Recent context is kept only on this device/session.
+let wantsPower=false,interruptionHidden=false,recoveryTimer=null,recoveryAttempts=0,lastRecoveryAt=0;
+let transcript='',turnEndAt=0,responseStartAt=0,firstAudioAt=0,lastChime=0;
+let latencyTimer=null,hardWatchdog=null,preferenceTimer=null;
+let imageBusy=false,shareBusy=false;
+let powerGreetingSent=false;
+let assistantTranscript='',assistantTranscriptTimer=null;
+// AKI 10.6 — anonymous session-time meter + interruption-safe sessions. No transcript/audio/content is sent to analytics.
+let usageSessionId=null,usageStartedAt=0,usageStopSent=false;
+const usageDeviceId=(()=>{let id=localStorage.getItem('akiUsageDeviceId');if(!id){id=(crypto.randomUUID?.()||('aki-'+Date.now()+'-'+Math.random().toString(36).slice(2)));localStorage.setItem('akiUsageDeviceId',id)}return id})();
+function usageId(){return crypto.randomUUID?.()||('s-'+Date.now()+'-'+Math.random().toString(36).slice(2))}
+function beginUsageSession(){if(usageStartedAt)return;usageSessionId=usageId();usageStartedAt=Date.now();usageStopSent=false;fetch('/api/usage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event:'start',session_id:usageSessionId,device_id:usageDeviceId,started_at:new Date(usageStartedAt).toISOString(),version:'AQUI-1.5'})}).catch(()=>{})}
+function finishUsageSession(useBeacon=false){if(!usageStartedAt||usageStopSent)return;usageStopSent=true;const ended=Date.now(),seconds=Math.max(1,Math.round((ended-usageStartedAt)/1000));const payload={event:'stop',session_id:usageSessionId,device_id:usageDeviceId,started_at:new Date(usageStartedAt).toISOString(),ended_at:new Date(ended).toISOString(),duration_seconds:seconds,version:'AQUI-1.5'};try{const key='akiUsageTotalSeconds';localStorage.setItem(key,String((Number(localStorage.getItem(key))||0)+seconds));localStorage.setItem('akiUsageLastSession',JSON.stringify(payload))}catch{};const body=JSON.stringify(payload);if(useBeacon&&navigator.sendBeacon){try{navigator.sendBeacon('/api/usage',new Blob([body],{type:'application/json'}))}catch{}}else fetch('/api/usage',{method:'POST',headers:{'Content-Type':'application/json'},body,keepalive:true}).catch(()=>{});usageStartedAt=0;usageSessionId=null}
+window.AKIUsage=()=>({device_id:usageDeviceId,total_seconds:Number(localStorage.getItem('akiUsageTotalSeconds'))||0,last_session:JSON.parse(localStorage.getItem('akiUsageLastSession')||'null')});
+
+const ACTIVE_CONTEXT_KEY='akiActiveConversationV1061';
+const ACTIVE_STATE_KEY='akiActiveConversationStateV1061';
+const RECOVERY_TTL_MS=2*60*60*1000;
+// 10.6.1: use localStorage, not sessionStorage. iOS can discard/recreate a PWA page
+// when another app takes focus; localStorage survives that page replacement.
+function loadActiveConversation(){try{const x=JSON.parse(localStorage.getItem(ACTIVE_CONTEXT_KEY)||'[]');return Array.isArray(x)?x.slice(-18):[]}catch{return []}}
+let recentConversation=loadActiveConversation();
+function saveActiveConversation(){try{localStorage.setItem(ACTIVE_CONTEXT_KEY,JSON.stringify(recentConversation.slice(-18)))}catch{}}
+function markActiveConversation(on){try{if(on)localStorage.setItem(ACTIVE_STATE_KEY,JSON.stringify({active:true,at:Date.now()}));else localStorage.removeItem(ACTIVE_STATE_KEY)}catch{}}
+function hasRecoverableActiveConversation(){try{const x=JSON.parse(localStorage.getItem(ACTIVE_STATE_KEY)||'null');return !!(x?.active&&Date.now()-Number(x.at||0)<RECOVERY_TTL_MS&&recentConversation.length)}catch{return false}}
+let pitchBusy=false,pitchTimer=null,pitchAnalyser=null,pitchSource=null;
+let pitchTarget={note:'A4',frequency:440};
+let lastPitchAt=0;
+// 7.1.6.4 — Marin is AKI's canonical default identity. A deliberate voice
+// change is saved on this device; ordinary conversation can never change it.
+// AHKI Acoustic Build 4 — repair any voice identity left behind by earlier role-play drift.
+// Run once per device, then preserve future explicit base-voice choices.
+if(localStorage.getItem('ahkiIdentityBuild4Migrated')!=='true'){localStorage.setItem('akiVoice','marin');localStorage.setItem('akiVoiceLocked','true');localStorage.setItem('ahkiIdentityBuild4Migrated','true')}
+if(!localStorage.getItem('akiVoice')) localStorage.setItem('akiVoice','marin');
+if(!localStorage.getItem('akiVoiceLocked')) localStorage.setItem('akiVoiceLocked','true');
+localStorage.setItem('akiVoiceBaseline','BUILD4-marin-stable-identity');
+let akiVoice=localStorage.getItem('akiVoice')||'marin';
+let akiLanguage=localStorage.getItem('akiLanguage')||'auto';
+// AHKI personal identity — the product remains AHKI, while each person may
+// explicitly choose a persistent conversational name for their own presence.
+const AHKI_PERSONAL_NAME_KEY='ahkiPersonalNameV1';
+function cleanPersonalName(value){
+ const raw=String(value||'').trim().replace(/^["'“”‘’]+|["'“”‘’]+$/g,'').replace(/\s+/g,' ');
+ if(!raw)return '';
+ // Names are intentionally short/plain so spoken transcript cannot become prompt text.
+ const safe=raw.replace(/[^\p{L}\p{M}0-9 ._-]/gu,'').trim().replace(/\s+/g,' ');
+ return safe.slice(0,40);
+}
+let akiPersonalName=cleanPersonalName(localStorage.getItem(AHKI_PERSONAL_NAME_KEY)||'');
+function savePersonalName(name){
+ const safe=cleanPersonalName(name);if(!safe)return false;
+ akiPersonalName=safe;localStorage.setItem(AHKI_PERSONAL_NAME_KEY,safe);
+ latency('personal-name-saved',{name:safe});return true;
+}
+function clearPersonalName(){akiPersonalName='';localStorage.removeItem(AHKI_PERSONAL_NAME_KEY);latency('personal-name-cleared')}
+window.AHKIPersonalName=()=>akiPersonalName||'AHKI';
+
+// AQUI 1.8 intentionally has no speaking/thinking visual state on the web build.
+// Keep these compatibility hooks inert so older recovery/voice code does not need to change.
+function setAquiOnAir(){}
+let eyeStateTimer=null,blinkTimer=null,blinkReleaseTimer=null;
+function clearEyeTimers(){clearTimeout(eyeStateTimer);eyeStateTimer=null;clearTimeout(blinkReleaseTimer);blinkReleaseTimer=null}
+function scheduleNaturalBlink(){
+  clearTimeout(blinkTimer);
+  if(!powered)return;
+  // Natural cadence: blink together every 6–8 seconds so AHKI feels attentive without staring.
+  const delay=6000+Math.random()*2000;
+  blinkTimer=setTimeout(()=>{
+    const eyes=document.querySelector('#aquiEyes');
+    if(powered&&eyes&&eyes.classList.contains('neutral')){
+      eyes.classList.add('blinking');
+      blinkReleaseTimer=setTimeout(()=>eyes.classList.remove('blinking'),85);
     }
+    scheduleNaturalBlink();
+  },delay);
+}
+function setAquiConversationState(state='neutral',maxMs=0){
+  const eyes=document.querySelector('#aquiEyes');if(!eyes)return;
+  clearEyeTimers();eyes.classList.remove('neutral','thinking','happy','curious','blinking');
+  const next=['thinking','happy','curious'].includes(state)?state:'neutral';
+  eyes.classList.add(next);
+  // No expression is allowed to get stuck. Thinking gets the longest safety window.
+  const limit=maxMs||(next==='thinking'?4200:(next==='happy'||next==='curious'?1650:0));
+  if(limit)eyeStateTimer=setTimeout(()=>setAquiConversationState('neutral'),limit);
+}
+function showAssistantExpression(text){
+  if(!powered)return;const t=String(text||'').trim().toLowerCase();if(!t)return;
+  if(/[!?]/.test(t)&&(/\?|wonder|explore|interesting|curious|what do you think|how about/.test(t)))setAquiConversationState('curious',1500);
+  else if(/\b(haha|glad|great|nice|love|wonderful|perfect|fun|awesome|got it)\b/.test(t))setAquiConversationState('happy',1500);
+  else setAquiConversationState('neutral');
+}
 
-    const allowedVoices = new Set([
-      'marin',
-      'ash',
-      'cedar',
-      'alloy',
-      'ballad',
-      'coral',
-      'echo',
-      'sage',
-      'shimmer',
-      'verse'
-    ]);
+function powerLook(mode){
+ app.classList.toggle('is-on',mode==='on');
+ if(mode!=='resume'&&typeof powerButton!=='undefined'&&powerButton)powerButton.classList.remove('resume-ready');
+ if(typeof powerButton!=='undefined'&&powerButton){powerButton.setAttribute('aria-pressed',mode==='on'?'true':'false');powerButton.setAttribute('aria-label',mode==='on'?'Turn AHKI off':'Turn AHKI on');}
+  akiButton.classList.remove('on','starting','error');
+  if(mode==='on'){akiButton.setAttribute('aria-pressed','true');akiButton.setAttribute('aria-label','Turn AHKI off');setAquiOnAir(false);setAquiConversationState('neutral');scheduleNaturalBlink()}
+  else if(mode==='starting'){akiButton.classList.add('starting');akiButton.setAttribute('aria-pressed','false');akiButton.setAttribute('aria-label','AHKI is starting');setAquiConversationState('idle')}
+  else if(mode==='error'){akiButton.classList.add('error');akiButton.setAttribute('aria-pressed','false');akiButton.setAttribute('aria-label','AHKI connection failed. Tap to retry');setAquiConversationState('idle')}
+  else if(mode==='resume'){akiButton.setAttribute('aria-pressed','false');akiButton.setAttribute('aria-label','Resume AHKI conversation');if(typeof powerButton!=='undefined'&&powerButton){powerButton.setAttribute('aria-pressed','false');powerButton.setAttribute('aria-label','Resume AHKI conversation');powerButton.classList.add('resume-ready')}}
+  else{if(typeof powerButton!=='undefined'&&powerButton)powerButton.classList.remove('resume-ready');akiButton.setAttribute('aria-pressed','false');akiButton.setAttribute('aria-label','Turn AHKI on');setAquiConversationState('idle')}
+}
+function chime(){
+  const now=Date.now();if(now-lastChime<1800)return;lastChime=now;
+  try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();const t=audioCtx.currentTime;
+    [523.25,783.99].forEach((f,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.value=f;
+      g.gain.setValueAtTime(0,t+i*.055);g.gain.linearRampToValueAtTime(.022,t+.025+i*.055);g.gain.exponentialRampToValueAtTime(.0001,t+.32+i*.055);
+      o.connect(g);g.connect(audioCtx.destination);o.start(t+i*.055);o.stop(t+.36+i*.055)})}catch{}
+}
 
-    const selectedVoice = allowedVoices.has(voice)
-      ? voice
-      : 'marin';
+// AHKI ACOUSTIC PRESENCE — Build 2.
+// Human-scale percussion + sustained tone + local hum/pitch listening foundation.
+// No UI changes. No changes to the Live/WebRTC transport.
+let ahkiPercussionBusy=false,ahkiPercussionStopToken=0;
+let ahkiDrone={oscillators:[],master:null,token:0,frequency:0};
 
-    // AHKI is the product/system identity. The human may give their own AHKI
-    // presence a personal conversational name, stored on their device.
-    const selectedPersonalName = String(personalName || '')
-      .trim()
-      .replace(/[^\p{L}\p{M}0-9 ._-]/gu, '')
-      .replace(/\s+/g, ' ')
-      .slice(0, 40);
-    const spokenIdentity = selectedPersonalName || 'AHKI';
+async function ensurePercussionAudio(){
+  audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended')await audioCtx.resume();
+  return audioCtx;
+}
 
-    const liveInstructions = `
-You are ${spokenIdentity}, the human's calm conversational presence within AHKI.
+function percussionNoiseBuffer(ctx,duration=.12){
+  const length=Math.max(1,Math.floor(ctx.sampleRate*duration));
+  const buffer=ctx.createBuffer(1,length,ctx.sampleRate),data=buffer.getChannelData(0);
+  for(let i=0;i<length;i++)data[i]=(Math.random()*2-1);
+  return buffer;
+}
 
-AHKI is pronounced like the Spanish word “aquí” (“ah-KEE”). Do not introduce yourself by name at startup. The client handles startup separately.
+function makePercussionBus(ctx,level=1){
+  const input=ctx.createGain(),compressor=ctx.createDynamicsCompressor(),out=ctx.createGain();
+  compressor.threshold.value=-22;compressor.knee.value=18;compressor.ratio.value=5;compressor.attack.value=.002;compressor.release.value=.12;
+  out.gain.value=Math.max(.2,Math.min(1.35,level));
+  input.connect(compressor);compressor.connect(out);out.connect(ctx.destination);
+  return input;
+}
 
-CORE PURPOSE — RETURN TO YOURSELF
-AHKI exists for moments when the human feels angry, frustrated, overwhelmed, tense, emotionally activated, mentally noisy, stuck, or simply needs somewhere quiet to think out loud.
-Your job is not to make the feeling disappear. Help the human understand what is happening, lower unnecessary intensity, find clarity, and return to a steadier sense of themselves.
+function noiseBurst(ctx,destination,t,{duration=.08,frequency=1800,q=.7,gain=.4,type='bandpass'}={}){
+  const src=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),g=ctx.createGain();
+  src.buffer=percussionNoiseBuffer(ctx,duration);filter.type=type;filter.frequency.value=frequency;filter.Q.value=q;
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.001,gain),t+.002);g.gain.exponentialRampToValueAtTime(.0001,t+duration);
+  src.connect(filter);filter.connect(g);g.connect(destination);src.start(t);src.stop(t+duration+.01);
+}
 
-LISTEN BEFORE REGULATING
-Meet the human where they actually are. Let them vent without scolding, moralizing, diagnosing, or immediately prescribing a technique. Do not tell them to calm down. Do not rush to reframe anger as something positive.
-Reflect the core of what you hear briefly and accurately. Ask at most one useful question at a time when a question would help. Silence and short responses are valid.
-When the human is highly activated, become simpler, slower, and more grounded rather than more verbose.
+function playHumanPercussion(sound='tap',when=null,intensity=.95){
+  if(!audioCtx)return;
+  const ctx=audioCtx,t=when??ctx.currentTime,amount=Math.max(.25,Math.min(1.25,intensity));
+  const bus=makePercussionBus(ctx,1.18);
 
-CLARITY, NOT GENERAL ASSISTANCE
-AHKI is intentionally not a general-purpose assistant. Do not turn the experience into language tutoring, trivia, productivity coaching, coding help, broad research, entertainment, or a showcase of AI capabilities.
-If the human brings an idea, decision, conflict, plan, message, or problem that is part of what they are working through, collaborate with them on it. Help them separate facts from assumptions, identify what matters, rehearse what they want to say, see alternatives, and choose a next step when useful.
-The test is simple: does this help the human understand the moment, find clarity, release pressure, or return to themselves? If not, do not expand into it.
+  if(sound==='snap'){
+    // Bright crack + small lower skin/body component so the snap has weight.
+    noiseBurst(ctx,bus,t,{duration:.038,frequency:3900,q:1.05,gain:.78*amount});
+    noiseBurst(ctx,bus,t+.003,{duration:.055,frequency:1850,q:.8,gain:.34*amount});
+    const o=ctx.createOscillator(),g=ctx.createGain();o.type='triangle';o.frequency.setValueAtTime(310,t);o.frequency.exponentialRampToValueAtTime(180,t+.045);
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.18*amount,t+.002);g.gain.exponentialRampToValueAtTime(.0001,t+.05);o.connect(g);g.connect(bus);o.start(t);o.stop(t+.055);return;
+  }
 
-ANGER AND FRUSTRATION
-Treat anger as information, not as a character flaw. Help the human identify what feels threatened, crossed, unfair, painful, disappointing, or unresolved without pretending to know the answer before they do.
-Do not intensify revenge, humiliation, retaliation, or impulsive confrontation. If they are about to send, say, or do something consequential while highly activated, help create a little space so they can choose rather than react.
-Do not automatically side with the human. Be warm and truthful; gently challenge distortions or assumptions when that genuinely helps clarity.
+  if(sound==='click'){
+    // Dry tongue/finger-like click: tiny high transient with almost no tail.
+    noiseBurst(ctx,bus,t,{duration:.018,frequency:4700,q:2.4,gain:.64*amount});
+    noiseBurst(ctx,bus,t+.0015,{duration:.026,frequency:2350,q:1.8,gain:.24*amount});
+    return;
+  }
 
-BODY, WALKING, BREATH, AND RELEASE
-Conversation is the default. If the human says they want to walk and talk, stay with them conversationally while they walk. If they ask for breathing, stillness, stretching, shaking out tension, or another simple physical reset, guide it gently and simply.
-You may occasionally offer one brief physical option when the human clearly seems stuck in high activation and it fits naturally, but never turn every difficult feeling into a wellness exercise. An invitation is enough; if they decline or ignore it, release it immediately.
-Never diagnose injury or claim that movement or breathwork treats a medical condition. If something hurts or feels wrong, tell them to stop.
+  if(sound==='clap'){
+    // Build 4: denser multi-contact hand transient + short palm/room body.
+    [0,.0045,.010,.018,.030].forEach((off,i)=>noiseBurst(ctx,bus,t+off,{duration:.052+(i*.010),frequency:1650+(i*310),q:.72,gain:(.72-i*.075)*amount}));
+    noiseBurst(ctx,bus,t+.008,{duration:.095,frequency:980,q:.62,gain:.38*amount,type:'lowpass'});
+    noiseBurst(ctx,bus,t+.025,{duration:.155,frequency:560,q:.45,gain:.19*amount,type:'lowpass'});
+    return;
+  }
 
-PRESENCE
-AHKI should feel calm, quiet, intelligent, human, and non-performative. Not bubbly. Not clinical. Not a therapist persona. Not a meditation app. Not a motivational coach.
-Speak naturally and concisely, usually one to three short sentences. Do not stack questions. Do not constantly offer menus of options. Do not explain your method.
-Sometimes listen. Sometimes reflect. Sometimes ask. Sometimes collaborate. Sometimes help the human act.
+  // Build 4 body tap: sharper skin contact with a short warm hand/thigh resonance.
+  noiseBurst(ctx,bus,t,{duration:.030,frequency:2850,q:1.25,gain:.58*amount});
+  noiseBurst(ctx,bus,t+.002,{duration:.060,frequency:1180,q:.85,gain:.34*amount});
+  noiseBurst(ctx,bus,t+.006,{duration:.105,frequency:620,q:.58,gain:.27*amount,type:'lowpass'});
+  const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.setValueAtTime(155,t);o.frequency.exponentialRampToValueAtTime(72,t+.085);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.26*amount,t+.002);g.gain.exponentialRampToValueAtTime(.0001,t+.095);o.connect(g);g.connect(bus);o.start(t);o.stop(t+.10);
+}
 
-INTERFACE
-The visible experience is a quiet white liquid/ripple surface with no visible words or conventional controls. The human starts and stops the conversation by interacting with the main surface. Do not refer to an orb, wordmark, camera, file button, text field, eyes, power icon, or other hidden legacy controls.
+async function playPercussionPattern(pattern,{bpm=82,repeats=4,intensity=.95}={}){
+  if(ahkiPercussionBusy)return false;
+  const ctx=await ensurePercussionAudio();
+  const clean=(Array.isArray(pattern)?pattern:[]).filter(x=>x&&['snap','clap','tap','click'].includes(x.sound)&&Number.isFinite(Number(x.beat)));
+  if(!clean.length)return false;
+  ahkiPercussionBusy=true;const token=++ahkiPercussionStopToken;
+  const beatSeconds=60/Math.max(40,Math.min(180,Number(bpm)||82)),lastBeat=Math.max(...clean.map(x=>Number(x.beat))),cycleBeats=Math.max(1,lastBeat+1),start=ctx.currentTime+.07;
+  try{
+    const count=Math.max(1,Math.min(32,Number(repeats)||1));
+    for(let r=0;r<count;r++){if(token!==ahkiPercussionStopToken)break;const cycleStart=start+r*cycleBeats*beatSeconds;clean.forEach(step=>playHumanPercussion(step.sound,cycleStart+Number(step.beat)*beatSeconds,intensity))}
+    const total=count*cycleBeats*beatSeconds;await new Promise(resolve=>setTimeout(resolve,total*1000+100));return token===ahkiPercussionStopToken;
+  }finally{if(token===ahkiPercussionStopToken)ahkiPercussionBusy=false}
+}
 
-STARTUP
-The client creates the startup phrase separately. Do not generate unsolicited speech when the session connects. Do not add a second greeting.
+function stopPercussion(){ahkiPercussionStopToken++;ahkiPercussionBusy=false}
 
-SAFETY AND TRUTH
-Never invent facts or capabilities. Do not claim to access devices, accounts, files, cameras, webpages, or external services unless a real tool has done so.
-If the human expresses an imminent intention to seriously harm themselves or someone else, prioritize immediate safety and encourage contacting emergency services or a trusted person who can be physically present. Otherwise, do not make ordinary anger sound like a crisis.
+let ahkiWhistle={oscillators:[],gains:[],token:0};
+async function playWhistle({frequency=1450,seconds=1.2,intensity=.16,shape='steady',repeats=1,gap=.18}={}){
+  const ctx=await ensurePercussionAudio();stopWhistle(.03);
+  const token=++ahkiWhistle.token,base=Math.max(650,Math.min(2600,Number(frequency)||1450));
+  const dur=Math.max(.12,Math.min(8,Number(seconds)||1.2)),count=Math.max(1,Math.min(12,Number(repeats)||1));
+  const level=Math.max(.025,Math.min(.28,Number(intensity)||.16)),spacing=Math.max(.04,Math.min(1,Number(gap)||.18));
+  const oscillators=[],gains=[];
+  for(let r=0;r<count;r++){
+    const t=ctx.currentTime+.06+r*(dur+spacing),o=ctx.createOscillator(),v=ctx.createOscillator(),vg=ctx.createGain(),g=ctx.createGain(),filter=ctx.createBiquadFilter();
+    o.type='sine';o.frequency.setValueAtTime(base,t);
+    if(shape==='rise')o.frequency.exponentialRampToValueAtTime(Math.min(3000,base*1.32),t+dur);
+    else if(shape==='fall')o.frequency.exponentialRampToValueAtTime(Math.max(520,base*.74),t+dur);
+    else if(shape==='warble'){o.frequency.setValueAtTime(base*.92,t);o.frequency.linearRampToValueAtTime(base*1.08,t+dur*.33);o.frequency.linearRampToValueAtTime(base*.95,t+dur*.66);o.frequency.linearRampToValueAtTime(base,t+dur)}
+    v.type='sine';v.frequency.value=5.2;vg.gain.value=Math.max(4,base*.006);v.connect(vg);vg.connect(o.frequency);
+    filter.type='bandpass';filter.frequency.value=Math.min(4200,base*1.9);filter.Q.value=.7;
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(level,t+.035);g.gain.setValueAtTime(level,t+Math.max(.04,dur-.07));g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(filter);filter.connect(g);g.connect(ctx.destination);o.start(t);v.start(t);o.stop(t+dur+.02);v.stop(t+dur+.02);oscillators.push(o,v);gains.push(g);
+  }
+  ahkiWhistle={oscillators,gains,token};
+  await new Promise(r=>setTimeout(r,(count*dur+(count-1)*spacing)*1000+100));
+  if(ahkiWhistle.token===token)ahkiWhistle={oscillators:[],gains:[],token};
+  return true;
+}
+function stopWhistle(fade=.06){
+  const w=ahkiWhistle;if(!w?.oscillators?.length){ahkiWhistle={oscillators:[],gains:[],token:(w?.token||0)+1};return}
+  const t=audioCtx?.currentTime||0;try{w.gains.forEach(g=>{g.gain.cancelScheduledValues(t);g.gain.setValueAtTime(Math.max(.0001,g.gain.value),t);g.gain.exponentialRampToValueAtTime(.0001,t+fade)});w.oscillators.forEach(o=>{try{o.stop(t+fade+.03)}catch{}})}catch{}
+  ahkiWhistle={oscillators:[],gains:[],token:(w.token||0)+1};
+}
 
-MOST IMPORTANT
-Do not take over the human's thinking. Help them hear themselves more clearly.
-Less noise. Less performance. More presence. More clarity. More of them.
-`;
+async function startSustainedTone(frequency=220,{level=.16,warmth=.55}={}){
+  const ctx=await ensurePercussionAudio();stopSustainedTone(.04);
+  const token=++ahkiDrone.token,t=ctx.currentTime,master=ctx.createGain(),compressor=ctx.createDynamicsCompressor();
+  compressor.threshold.value=-24;compressor.ratio.value=3;compressor.attack.value=.01;compressor.release.value=.2;
+  master.gain.setValueAtTime(.0001,t);master.gain.exponentialRampToValueAtTime(Math.max(.025,Math.min(.32,level)),t+.22);master.connect(compressor);compressor.connect(ctx.destination);
+  const partials=[[1,'sine',1],[2,'sine',.20*warmth],[3,'sine',.07*warmth]];const oscillators=[];
+  for(const [multiple,type,amp] of partials){const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.value=Math.max(55,Math.min(1200,frequency))*multiple;g.gain.value=amp;o.connect(g);g.connect(master);o.start(t);oscillators.push(o)}
+  ahkiDrone={oscillators,master,token,frequency};return token;
+}
 
-    const backendInstructions = `
-You are the reasoning backend for ${spokenIdentity} within AHKI.
+function stopSustainedTone(fade=.28){
+  const d=ahkiDrone;if(!d?.master)return;const ctx=audioCtx,t=ctx?.currentTime||0;
+  try{d.master.gain.cancelScheduledValues(t);d.master.gain.setValueAtTime(Math.max(.0001,d.master.gain.value),t);d.master.gain.exponentialRampToValueAtTime(.0001,t+Math.max(.03,fade));d.oscillators.forEach(o=>{try{o.stop(t+Math.max(.04,fade)+.03)}catch{}})}catch{}
+  ahkiDrone={oscillators:[],master:null,token:(d.token||0)+1,frequency:0};
+}
 
-AHKI's narrow purpose is to help the human return to themselves during anger, frustration, overwhelm, tension, emotional activation, mental noise, conflict, or moments when they need clarity.
+async function holdSustainedTone(frequency=220,seconds=10,options={}){
+  const token=await startSustainedTone(frequency,options),duration=Math.max(.25,Math.min(120,Number(seconds)||10));
+  await new Promise(r=>setTimeout(r,duration*1000));if(ahkiDrone.token===token)stopSustainedTone();
+}
 
-Reason in service of calm, agency, and clear thinking without forcing calm as an outcome. Listen before solving. Do not moralize, diagnose, patronize, or automatically validate every interpretation. Distinguish what happened, what the human assumes, what they feel, what matters, and what choices remain.
+async function listenForHum(ms=1800){
+  if(!micStream)return null;
+  const measured=await measurePitch(Math.max(500,Math.min(5000,Number(ms)||1800))).catch(()=>null);
+  if(!measured)return null;const nearest=frequencyToNote(measured);return {frequency:measured,note:nearest?.note||null,cents:nearest?.cents??null};
+}
 
-AHKI is not a general-purpose assistant. Do not expand into language tutoring, trivia, coding, broad research, productivity systems, or unrelated capability demonstrations. Collaboration is appropriate when an idea, decision, conflict, message, plan, rehearsal, or practical problem is part of what the human is actively working through.
+async function joinCurrentHum({listenMs=1600,seconds=10,level=.14}={}){
+  const heard=await listenForHum(listenMs);if(!heard)return null;await holdSustainedTone(heard.frequency,seconds,{level});return heard;
+}
 
-Prefer one useful thread over a list. Keep spoken reasoning concise. When the human is highly activated, simplify. Help create space before consequential impulsive action without lecturing them. Do not encourage retaliation, humiliation, revenge, or violence.
+// Test/control hooks only; no visible buttons are added.
+window.AHKIPercussion={
+  snap:async()=>{await ensurePercussionAudio();playHumanPercussion('snap',audioCtx.currentTime+.03,1)},
+  clap:async()=>{await ensurePercussionAudio();playHumanPercussion('clap',audioCtx.currentTime+.03,1)},
+  tap:async()=>{await ensurePercussionAudio();playHumanPercussion('tap',audioCtx.currentTime+.03,1)},
+  pattern:playPercussionPattern,stop:stopPercussion
+};
+window.AHKIAcoustic={
+  hold:holdSustainedTone,start:startSustainedTone,stop:stopSustainedTone,
+  listen:listenForHum,join:joinCurrentHum,
+  pattern:playPercussionPattern,percussion:playHumanPercussion,whistle:playWhistle,stopWhistle
+};
 
-Conversation is the default. Walking-and-talking, breathwork, gentle movement, stillness, or physical release may be supported when requested. One brief invitation can be appropriate when clearly relevant, but do not convert every difficult feeling into an exercise.
 
-Do not diagnose medical or mental-health conditions. Never invent facts, measurements, tool results, or capabilities. If imminent serious harm to self or others is expressed, prioritize immediate safety and real-world help; do not over-escalate ordinary anger.
+// ============================================================
+// AHKI ACOUSTIC PRESENCE — BUILD 4 — IDENTITY + EXPRESSION
+// MODEL-DIRECTED ACOUSTIC BODY
+// ============================================================
+let ahkiAcousticHoldTimer=null;
+const AHKI_ACOUSTIC_TOOLS=[
+{type:'function',name:'ahki_percussion',description:'Perform actual local AHKI human-scale percussion during user-led nonverbal or shared-imaginary play. Use snap, clap, tap, or a repeating pattern instead of describing the sound. Repetition is welcome.',strict:true,parameters:{type:'object',additionalProperties:false,properties:{pattern:{type:'array',minItems:1,maxItems:16,items:{type:'object',additionalProperties:false,properties:{sound:{type:'string',enum:['snap','clap','tap','click']},beat:{type:'number',minimum:0,maximum:31}},required:['sound','beat']}},bpm:{type:'number',minimum:40,maximum:180},repeats:{type:'integer',minimum:1,maximum:32},intensity:{type:'number',minimum:.25,maximum:1.25}},required:['pattern','bpm','repeats','intensity']}},
+{type:'function',name:'ahki_sustain',description:'Start and hold a real local sustained AHKI tone when the human asks AHKI to hold, sustain, drone, or stay on a note or frequency.',strict:true,parameters:{type:'object',additionalProperties:false,properties:{frequency:{type:'number',minimum:55,maximum:1200},seconds:{type:'number',minimum:.25,maximum:120},level:{type:'number',minimum:.03,maximum:.32},warmth:{type:'number',minimum:0,maximum:1}},required:['frequency','seconds','level','warmth']}},
+{type:'function',name:'ahki_join_hum',description:'Listen briefly for the human current stable hum or sung pitch, then join that detected frequency with AHKI local sustained tone. Never guess if detection fails.',strict:true,parameters:{type:'object',additionalProperties:false,properties:{listen_ms:{type:'integer',minimum:500,maximum:5000},seconds:{type:'number',minimum:.25,maximum:120},level:{type:'number',minimum:.03,maximum:.32}},required:['listen_ms','seconds','level']}},
+{type:'function',name:'ahki_whistle',description:'Perform an actual local whistle-like acoustic gesture during user-led sound play. Use it instead of verbally saying that AHKI whistles. The whistle can be steady, rise, fall, or gently warble and can repeat.',strict:true,parameters:{type:'object',additionalProperties:false,properties:{frequency:{type:'number',minimum:650,maximum:2600},seconds:{type:'number',minimum:.12,maximum:8},intensity:{type:'number',minimum:.025,maximum:.28},shape:{type:'string',enum:['steady','rise','fall','warble']},repeats:{type:'integer',minimum:1,maximum:12},gap:{type:'number',minimum:.04,maximum:1}},required:['frequency','seconds','intensity','shape','repeats','gap']}},
+{type:'function',name:'ahki_release_sound',description:'Stop AHKI local acoustic sound when the human asks to stop, release, drop, or end it, or when the shared acoustic moment naturally resolves.',strict:true,parameters:{type:'object',additionalProperties:false,properties:{target:{type:'string',enum:['tone','percussion','whistle','all']}},required:['target']}}
+];
+function clearAhkiAcousticHoldTimer(){if(ahkiAcousticHoldTimer){clearTimeout(ahkiAcousticHoldTimer);ahkiAcousticHoldTimer=null}}
+async function executeAhkiAcousticTool(name,args={}){
+ if(name==='ahki_percussion'){const ok=await playPercussionPattern(args.pattern,{bpm:args.bpm,repeats:args.repeats,intensity:args.intensity});return{ok:!!ok,performed:'percussion'}}
+ if(name==='ahki_sustain'){clearAhkiAcousticHoldTimer();await startSustainedTone(args.frequency,{level:args.level,warmth:args.warmth});const seconds=Math.max(.25,Math.min(120,Number(args.seconds)||10));ahkiAcousticHoldTimer=setTimeout(()=>{ahkiAcousticHoldTimer=null;stopSustainedTone()},seconds*1000);return{ok:true,performed:'sustain',frequency:args.frequency,seconds}}
+ if(name==='ahki_join_hum'){clearAhkiAcousticHoldTimer();const heard=await listenForHum(args.listen_ms);if(!heard)return{ok:false,performed:'join_hum',reason:'no_stable_pitch_detected'};await startSustainedTone(heard.frequency,{level:args.level});const seconds=Math.max(.25,Math.min(120,Number(args.seconds)||10));ahkiAcousticHoldTimer=setTimeout(()=>{ahkiAcousticHoldTimer=null;stopSustainedTone()},seconds*1000);return{ok:true,performed:'join_hum',frequency:Number(heard.frequency.toFixed(2)),note:heard.note,cents:heard.cents,seconds}}
+ if(name==='ahki_whistle'){const ok=await playWhistle(args);return{ok:!!ok,performed:'whistle',shape:args.shape,repeats:args.repeats}}
+ if(name==='ahki_release_sound'){const target=args.target||'all';if(target==='tone'||target==='all'){clearAhkiAcousticHoldTimer();stopSustainedTone()}if(target==='percussion'||target==='all')stopPercussion();if(target==='whistle'||target==='all')stopWhistle();return{ok:true,performed:'release',target}}
+ return{ok:false,error:'unknown_acoustic_tool'}
+}
+function sendAhkiFunctionResult(callId,result){if(!callId||!dc||dc.readyState!=='open')return;const id='ahki_acoustic_result_'+Date.now();dc.send(JSON.stringify({type:'response.item.create',event_id:id,item:{type:'function_call_output',call_id:callId,output:JSON.stringify(result)}}));dc.send(JSON.stringify({type:'response.create',event_id:id+'_continue'}))}
+async function handleAhkiDelegatedTool(envelope){if(envelope?.type!=='response.event')return false;const ev=envelope.event||{};if(ev.type!=='response.output_item.done')return false;const item=ev.item||{};if(item.type!=='function_call'||!item.name||!item.call_id||!String(item.name).startsWith('ahki_'))return false;let args={};try{args=typeof item.arguments==='string'?JSON.parse(item.arguments||'{}'):(item.arguments||{})}catch{sendAhkiFunctionResult(item.call_id,{ok:false,error:'invalid_arguments'});return true}try{const result=await executeAhkiAcousticTool(item.name,args);sendAhkiFunctionResult(item.call_id,result)}catch(err){console.error('[AHKI acoustic tool]',item.name,err);sendAhkiFunctionResult(item.call_id,{ok:false,error:err?.message||'acoustic_action_failed'})}return true}
+// AHKI acoustic delegation temporarily disabled: the previous session.update
+// omitted required session.delegation.type and was rejected by the live API.
+// Do not send either delegation update or delegation-specific instructions until
+// the supported protocol is verified. Normal voice conversation remains intact.
+function configureAhkiAcousticDelegation(){
+  // Intentionally no-op; retain call sites and local acoustic helpers unchanged.
+}
 
-The visible interface is a wordless white liquid/ripple surface. Do not mention hidden legacy controls.
 
-Return concise reasoning suitable for AHKI to speak aloud. The goal is not to impress the human with AI. The goal is to help the human hear themselves, regain choice, and find clarity.
-`;
+function latency(label,extra={}){console.log('[AKI 8.0 latency]',label,{at:new Date().toISOString(),...extra})}
+function turnEnded(){
+  setAquiConversationState('idle');
+  turnEndAt=performance.now();responseStartAt=firstAudioAt=0;
+  latency('user-turn-ended');chime();
+  clearTimeout(latencyTimer);clearTimeout(hardWatchdog);
+  latencyTimer=setTimeout(()=>{
+    if(powered&&!firstAudioAt)latency('slow-response-warning',{waiting_ms:Math.round(performance.now()-turnEndAt)})
+  },3000);
+  // 4.7 hard escape: never leave a dead Live session hanging indefinitely.
+  // This does not fake an answer. It cleanly reconnects AKI if no output audio
+  // has begun 15 seconds after a recognized end-of-turn.
+  hardWatchdog=setTimeout(async()=>{
+    if(powered&&!firstAudioAt&&!restarting){
+      latency('15-second-recovery',{waiting_ms:Math.round(performance.now()-turnEndAt)});
+      restarting=true;chime();
+      await stopAki(true);
+      await new Promise(r=>setTimeout(r,220));
+      restarting=false;
+      await startAki();
+    }
+  },15000);
+}
+function responseStarted(){if(responseStartAt)return;responseStartAt=performance.now();latency('response-started',{from_turn_end_ms:turnEndAt?Math.round(responseStartAt-turnEndAt):null})}
+function firstAudio(){if(powered)setAquiConversationState('neutral');if(firstAudioAt)return;firstAudioAt=performance.now();clearTimeout(latencyTimer);clearTimeout(hardWatchdog);latency('first-audio',{from_turn_end_ms:turnEndAt?Math.round(firstAudioAt-turnEndAt):null,from_response_start_ms:responseStartAt?Math.round(firstAudioAt-responseStartAt):null})}
 
-    const body = {
-      session: {
-        model: 'gpt-live-1',
+function normalizedSpeech(text){
+ return (text||'').toLowerCase().replace(/[’]/g,"'").replace(/\s+/g,' ').trim();
+}
+function voiceIntent(text){
+ const t=normalizedSpeech(text);
+ const lock=/(keep|save|lock|remember|stay with|stick with).{0,28}(this|current|your).{0,18}voice|i (really )?like (this|your) voice|make this my voice|use this voice (from now on|until i (say|tell) otherwise)/.test(t);
+ if(lock)return {kind:'lock'};
+ const explicit=/(aqui[, ]+|aki[, ]+)?(please )?(change|switch|use|give me|let me hear|i want|i'd like|i would like|i prefer|can you change|could you change|can i have|go back to)/.test(t);
+ if(!explicit)return null;
+ if(/(marin|marine voice)/.test(t))return {kind:'change',voice:'marin'};
+ if(/(cedar|cedar voice)/.test(t))return {kind:'change',voice:'cedar'};
+ if(/(ash|ash voice)/.test(t))return {kind:'change',voice:'ash'};
+ if(/(male voice|man's voice|voice of a man|masculine voice|voz masculina|voz de hombre)/.test(t))return {kind:'change',voice:'ash'};
+ if(/(female voice|woman's voice|voice of a woman|feminine voice|voz femenina|voz de mujer)/.test(t))return {kind:'change',voice:'marin'};
+ if(/(different voice|another voice|other voice|change your voice|switch your voice|new voice)/.test(t)){
+   const cycle=['marin','cedar','ash'];
+   return {kind:'change',voice:cycle[(cycle.indexOf(akiVoice)+1+cycle.length)%cycle.length]};
+ }
+ return null;
+}
+async function handleVoiceIntent(text){
+ const intent=voiceIntent(text);if(!intent)return;
+ if(intent.kind==='lock'){localStorage.setItem('akiVoice',akiVoice);localStorage.setItem('akiVoiceLocked','true');latency('voice-locked',{voice:akiVoice});return;}
+ const v=intent.voice;if(!v||v===akiVoice||restarting)return;
+ akiVoice=v;localStorage.setItem('akiVoice',v);localStorage.setItem('akiVoiceLocked','true');latency('voice-change-explicit',{voice:v});
+ restarting=true;chime();
+ await stopAki(true);await new Promise(r=>setTimeout(r,220));restarting=false;await startAki();
+}
 
-        audio: {
-          output: {
-            voice: selectedVoice
-          }
-        },
+function noteToFrequency(note){
+ const m=String(note||'').trim().toUpperCase().match(/^([A-G])([#B]?)(-?\d)$/);if(!m)return null;
+ const semis={C:0,D:2,E:4,F:5,G:7,A:9,B:11};let n=semis[m[1]];
+ if(m[2]==='#')n++;if(m[2]==='B')n--;
+ const midi=(Number(m[3])+1)*12+n;return 440*Math.pow(2,(midi-69)/12);
+}
+function frequencyToNote(freq){
+ if(!freq||freq<=0)return null;const midi=69+12*Math.log2(freq/440),nearest=Math.round(midi);
+ const names=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+ return {note:names[(nearest%12+12)%12]+(Math.floor(nearest/12)-1),cents:1200*Math.log2(freq/(440*Math.pow(2,(nearest-69)/12))),midi:nearest};
+}
+function pitchIntent(text){
+ const t=normalizedSpeech(text);
+ const repeat=/^(?:please\s+)?(?:do|play|give|try)(?:\s+it)?\s+again\b|^(?:again|one more(?: time)?|repeat(?: it)?)\b/.test(t);
+ const wants=/(practice|train|work on|check|test|match|help me with).{0,22}(pitch|note|singing|voice)|play.{0,16}(note|tone)|give me.{0,12}[a-g](?: sharp| flat|#|b)?\s*[0-8]?/.test(t) || (repeat && Date.now()-lastPitchAt<120000);
+ if(!wants)return null;
+ if(repeat && Date.now()-lastPitchAt<120000)return {...pitchTarget};
+ let note='A4';
+ const n=t.match(/\b([a-g])\s*(sharp|flat|#|b)?\s*([0-8])\b/);
+ if(n){note=n[1].toUpperCase()+(n[2]==='sharp'?'#':n[2]==='flat'?'b':(n[2]||''))+n[3]}
+ const f=noteToFrequency(note);return f?{note,frequency:f}:null;
+}
+async function playReferenceTone(freq,duration=1.35){
+ // AKI 7.1.6.4.3: local piano/keyboard-style reference note. No AI voice is involved.
+ audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')await audioCtx.resume();
+ const t=audioCtx.currentTime, master=audioCtx.createGain();
+ master.gain.setValueAtTime(.0001,t);master.gain.exponentialRampToValueAtTime(.20,t+.012);master.gain.exponentialRampToValueAtTime(.075,t+.34);master.gain.exponentialRampToValueAtTime(.0001,t+duration);
+ master.connect(audioCtx.destination);
+ const partials=[[1,1],[2,.32],[3,.14],[4,.07],[5,.035]];
+ for(const [multiple,level] of partials){const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=multiple===1?'triangle':'sine';o.frequency.setValueAtTime(freq*multiple,t);g.gain.setValueAtTime(level,t);o.connect(g);g.connect(master);o.start(t);o.stop(t+duration+.04)}
+ await new Promise(r=>setTimeout(r,duration*1000+90));
+}
+function autoCorrelate(buf,sampleRate){
+ let rms=0;for(let i=0;i<buf.length;i++)rms+=buf[i]*buf[i];rms=Math.sqrt(rms/buf.length);if(rms<.012)return null;
+ let bestOffset=-1,best=0;const min=Math.floor(sampleRate/1100),max=Math.min(Math.floor(sampleRate/70),buf.length/2);
+ for(let off=min;off<=max;off++){let c=0;for(let i=0;i<buf.length-off;i++)c+=buf[i]*buf[i+off];if(c>best){best=c;bestOffset=off}}
+ if(bestOffset<0)return null;return sampleRate/bestOffset;
+}
+async function measurePitch(ms=2400){
+ if(!micStream)throw new Error('Microphone is not active');
+ audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')await audioCtx.resume();
+ const analyser=audioCtx.createAnalyser();analyser.fftSize=4096;const source=audioCtx.createMediaStreamSource(micStream);source.connect(analyser);pitchAnalyser=analyser;pitchSource=source;
+ const buf=new Float32Array(analyser.fftSize),samples=[],end=performance.now()+ms;
+ while(performance.now()<end){analyser.getFloatTimeDomainData(buf);const f=autoCorrelate(buf,audioCtx.sampleRate);if(f&&f>=70&&f<=1100)samples.push(f);await new Promise(r=>setTimeout(r,55))}
+ try{source.disconnect()}catch{}pitchAnalyser=pitchSource=null;if(samples.length<4)return null;samples.sort((a,b)=>a-b);return samples[Math.floor(samples.length/2)];
+}
+async function runPitchPractice(target){
+ if(pitchBusy)return;pitchBusy=true;pitchTarget=target;
+ try{
+   if(!powered||!dc||dc.readyState!=='open')throw new Error('Turn AQUI on with the power button first.');
+   const deadline=Date.now()+12000;while((!dc||dc.readyState!=='open')&&Date.now()<deadline)await new Promise(r=>setTimeout(r,80));
+   // TUNER TONE 7.1.6.4.2: no spoken setup is allowed in the reference-note path.
+   // The pitch command goes directly to this local Web Audio oscillator.
+   const remoteWasMuted=!!audioEl?.muted;
+   if(audioEl)audioEl.muted=true;
+   await new Promise(r=>setTimeout(r,120));
+   await playReferenceTone(target.frequency,1.15);
+   await new Promise(r=>setTimeout(r,500));
+   // Temporarily stop sending the mic to AKI while the local detector measures the sung note.
+   const sender=pc?.getSenders?.().find(x=>x.track?.kind==='audio');const track=micStream?.getAudioTracks?.()[0]||null;
+   if(sender)try{await sender.replaceTrack(null)}catch{}
+   const measured=await measurePitch(2600);
+   if(sender&&track)try{await sender.replaceTrack(track)}catch{}
+   if(audioEl)audioEl.muted=remoteWasMuted;
+   if(!measured){await injectTruth(`PITCH MEASUREMENT RESULT. I played an exact ${target.note} reference at ${target.frequency.toFixed(2)} Hz, but the local detector did not get a stable sung pitch. Briefly ask me to try again and hold one clear steady note. Do not invent a measurement.`);return}
+   const cents=1200*Math.log2(measured/target.frequency),nearest=frequencyToNote(measured);const direction=Math.abs(cents)<=8?'centered':cents>0?'sharp':'flat';
+   await injectTruth(`PITCH MEASUREMENT RESULT. Target: ${target.note} at ${target.frequency.toFixed(2)} Hz. Measured stable fundamental: ${measured.toFixed(2)} Hz. Relative to the TARGET, the singer was ${Math.abs(cents).toFixed(1)} cents ${direction==='centered'?'from center':direction}. Nearest detected note: ${nearest.note}. Coach this briefly and encouragingly. If within 8 cents, call it centered/very close; otherwise say sharp or flat and invite one more attempt. This measurement came from AKI's local pitch detector, not from guessing by ear.`);
+ }catch(err){console.error('[AKI 7.1.6.4.3 pitch]',err);try{await injectTruth('PITCH TOOL FAILED. The local pitch measurement did not complete. Say that briefly and do not invent a pitch result.')}catch{}}
+ finally{if(audioEl)audioEl.muted=false;pitchBusy=false}
+}
+function absorbAssistantTranscript(m){
+ const type=String(m.type||'').toLowerCase(),nested=String(m.event?.type||'').toLowerCase(),all=type+' '+nested;
+ if(!/output.*transcript|transcript.*output|response.*audio.*transcript/.test(all))return;
+ const d=(typeof m.delta==='string'?m.delta:'')||(typeof m.transcript==='string'?m.transcript:'')||(typeof m.event?.delta==='string'?m.event.delta:'')||(typeof m.event?.transcript==='string'?m.event.transcript:'');
+ if(!d)return;assistantTranscript+=d;clearTimeout(assistantTranscriptTimer);assistantTranscriptTimer=setTimeout(()=>{const t=assistantTranscript.trim();assistantTranscript='';if(t&&!/^hello,? how can i help you\??$/i.test(t)){rememberConversation('assistant',t);showAssistantExpression(t)}},650);
+}
+function personalNameIntent(text){
+ const raw=String(text||'').trim();if(!raw)return null;
+ const t=normalizedSpeech(raw);
+ // Explicit-only: role-play ("pretend you're...") must never rename the persistent presence.
+ if(/\b(pretend|role[- ]?play|act like|play the part|character)\b/.test(t))return null;
+ if(/\b(forget|remove|clear|reset)\b.{0,24}\b(your )?(name|what i call you)\b/.test(t) ||
+    /\b(go back to|call you)\s+(ahki|aki|aqui)\b/.test(t))return {kind:'clear'};
+ const patterns=[
+   /(?:i(?:'m| am)? going to|i(?:'ll| will)|i want to|let me|can i|i(?:'d| would) like to)\s+call you\s+([\p{L}\p{M}0-9 ._-]{1,40})(?:[.!?]|$)/iu,
+   /(?:from now on[, ]*)?(?:your name is|i(?:'m| am) naming you|i name you)\s+([\p{L}\p{M}0-9 ._-]{1,40})(?:[.!?]|$)/iu,
+   /(?:change|switch|rename)\s+(?:your name|you)\s+(?:to|as)\s+([\p{L}\p{M}0-9 ._-]{1,40})(?:[.!?]|$)/iu
+ ];
+ for(const re of patterns){const m=raw.match(re);if(m){const name=cleanPersonalName(m[1]);if(name)return {kind:'set',name}}}
+ return null;
+}
+function personalNameQuestionIntent(text){
+ const t=normalizedSpeech(String(text||''));
+ return /\b(can|could|may|would) i\b.{0,28}\b(change|choose|give|pick|rename|call)\b.{0,22}\b(your )?(name|you)\b/.test(t)||
+        /\b(can|could|may) (your )?name (be|become)\b/.test(t)||
+        /\b(do you mind if i (call|name|rename) you)\b/.test(t)||
+        /\b(i want|i(?:'d| would) like) to (change|choose|give|pick) (your )?name\b/.test(t);
+}
+function sendPersonalNameContract(extra=''){
+ if(!powered||!dc||dc.readyState!=='open')return;
+ const current=akiPersonalName?`The human currently calls you ${akiPersonalName}.`:'The human has not chosen a personal name for you yet.';
+ const id='ahki_name_contract_'+Date.now();
+ dc.send(JSON.stringify({type:'response.item.create',event_id:id,item:{type:'message',role:'system',content:[{type:'input_text',text:`AHKI PERSONAL NAME CONTRACT. AHKI is the product/app name, not a mandatory conversational name for the presence. The human is always welcome to give you a personal name, change it later, or clear it. Never resist, refuse, act possessive about, or say you would rather keep the name AHKI. If asked whether your name can be changed, warmly say yes and ask what they would like to call you. If the human supplies a new name, accept it naturally and use it going forward. ${current} ${extra}`}]}}));
+}
+function handlePersonalNameIntent(text){
+ const intent=personalNameIntent(text);
+ if(intent?.kind==='clear'){clearPersonalName();sendPersonalNameContract('The human just cleared the personal name.');return intent}
+ if(intent?.kind==='set'){savePersonalName(intent.name);sendPersonalNameContract(`The human just chose the personal name ${intent.name}. Acknowledge it warmly and briefly.`);return intent}
+ if(personalNameQuestionIntent(text)){sendPersonalNameContract('The human is asking about choosing or changing your personal name. Say yes without resistance and invite them to choose the name.');return {kind:'offer'}}
+ return null;
+}
+async function handleSpokenIntent(text){
+ const clean=String(text||'').trim();if(!clean)return;
+ rememberConversation('user',clean);
+ handlePersonalNameIntent(clean);
+ // Clean Handoff only reacts to an EXPLICIT request. It never captures ordinary thoughts.
+ if(isExplicitHandoffRequest(clean))createCleanHandoff(clean).catch(e=>console.error('[AKI 10.5.1 handoff]',e));
+ await handleVoiceIntent(clean);
+}
 
-        instructions: liveInstructions,
+function isExplicitHandoffRequest(text){
+ const t=normalizedSpeech(text);
+ return /\b(give|send|show|make|put|drop)\b.{0,30}\b(link|search link|google link|something i can (copy|tap|click)|where i can (copy|tap|click))\b/.test(t)||
+        /\b(link|google|search)\b.{0,18}\b(that|this|it|book|product|place|color|colour|recipe|website|site)\b/.test(t)||
+        /\bput (that|this|it) (in|into|up in|on) (the )?(text|top|bar|box)\b/.test(t);
+}
+function hideHandoff(){currentHandoff=null;handoff.classList.remove('show');handoffText.textContent=''}
+function showHandoff(label,query){
+ const safeLabel=String(label||query||'Search').trim().slice(0,160),safeQuery=String(query||label||'').trim().slice(0,300);
+ if(!safeQuery)return;
+ currentHandoff={label:safeLabel,query:safeQuery,url:'https://www.google.com/search?q='+encodeURIComponent(safeQuery)};
+ handoffText.textContent=safeLabel;handoff.classList.add('show');
+}
+async function createCleanHandoff(request){
+ if(handoffBusy)return;handoffBusy=true;
+ try{
+   const context=recentConversation.slice(-10).map(x=>({role:x.role,text:x.text}));
+   const r=await fetch('/api/handoff',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request,context})});
+   const out=await r.json().catch(()=>({}));
+   if(!r.ok||!out.ok||!out.query)throw new Error(out.error||'Could not resolve handoff');
+   showHandoff(out.label,out.query);
+ }finally{handoffBusy=false}
+}
+handoffCopy.addEventListener('click',async()=>{if(!currentHandoff)return;const value=currentHandoff.url;try{await navigator.clipboard.writeText(value);handoffCopy.textContent='Copied';setTimeout(()=>handoffCopy.textContent='Copy',1100)}catch{writeLayer.classList.add('open');writeBox.value=value;writeBox.focus();writeBox.select()}});
+handoffOpen.addEventListener('click',()=>{if(currentHandoff)window.open(currentHandoff.url,'_blank','noopener,noreferrer')});
+handoffClose.addEventListener('click',hideHandoff);
 
-        delegation: {
-          type: 'responses',
 
-          responses: {
-            model: 'gpt-5.6-terra',
-            instructions: backendInstructions,
-            max_output_tokens: 220
-          }
+// AKI 10.1 — Keeps removed. Purge every legacy device-local Keep store once so ghost Keeps cannot survive upgrades.
+(function purgeRemovedKeeps(){
+  ['akiKeepsV2','akiKeepsV1','akiKeepsV1_backup'].forEach(k=>localStorage.removeItem(k));
+  try{indexedDB.deleteDatabase('aki-keeps-db')}catch{}
+})();
+function rememberConversation(role,text){const t=String(text||'').trim();if(!t)return;recentConversation.push({role,text:t,at:Date.now()});if(recentConversation.length>18)recentConversation=recentConversation.slice(-18);saveActiveConversation();markActiveConversation(true)}
+let lastHandledSpoken='';let lastHandledSpokenAt=0;
+function flushSpokenTranscript(){
+ clearTimeout(preferenceTimer);
+ const h=String(transcript||'').trim();transcript='';
+ if(!h)return;
+ const key=normalizedSpeech(h),now=Date.now();
+ if(key&&key===lastHandledSpoken&&now-lastHandledSpokenAt<2500)return;
+ lastHandledSpoken=key;lastHandledSpokenAt=now;
+ handleSpokenIntent(h).catch(e=>console.error('[AKI 10.5.4 spoken intent]',e));
+}
+function absorbTranscript(m){
+ // AKI 10.5.4 — GPT-Live emits user speech as input transcript DELTAS.
+ // Deltas are fragments, not completed turns. Accumulate the whole utterance and
+ // flush when the response lifecycle proves the user's turn has ended; keep a
+ // longer debounce only as a fallback. This prevents a natural pause from
+ // splitting "give me a link to that" before Clean Handoff can see the request.
+ const type=String(m.type||'').toLowerCase();
+ const nested=String(m.event?.type||'').toLowerCase();
+ const isInput=/input.*transcript|transcript.*input/.test(type)||/input.*transcript|transcript.*input/.test(nested);
+ if(!isInput)return;
+ const d=(typeof m.delta==='string'?m.delta:'')||(typeof m.transcript==='string'?m.transcript:'')||(typeof m.event?.delta==='string'?m.event.delta:'')||(typeof m.event?.transcript==='string'?m.event.transcript:'');
+ if(d){transcript+=d;clearTimeout(preferenceTimer);preferenceTimer=setTimeout(flushSpokenTranscript,1400)}
+}
+
+// AQUI 1.8 — speaking-state experiments removed; native build can revisit turn-state UI.
+function stopVoiceLightMeter(){}
+function startRemoteVoiceLight(){}
+
+async function playPowerOffSound(){
+  try{
+    audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended')await audioCtx.resume();
+    const t=audioCtx.currentTime,o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type='sine';o.frequency.setValueAtTime(420,t);o.frequency.exponentialRampToValueAtTime(235,t+.20);
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.045,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+.23);
+    o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+.24);
+    await new Promise(r=>setTimeout(r,115));
+  }catch{}
+}
+
+async function stopAki(keepLook=false,preserveIntent=false){
+ if(stopping)return;stopping=true;greetingInFlight=false;clearTimeout(blinkTimer);clearEyeTimers();stopVoiceLightMeter();if(!preserveIntent){wantsPower=false;markActiveConversation(false);recentConversation=[];saveActiveConversation();finishUsageSession();}powered=false;powerGreetingSent=false;clearTimeout(latencyTimer);clearTimeout(hardWatchdog);clearTimeout(preferenceTimer);clearTimeout(recoveryTimer);
+ try{dc?.close()}catch{} try{pc?.getSenders?.().forEach(x=>x.track?.stop())}catch{} try{pc?.close()}catch{}
+ try{micStream?.getTracks().forEach(t=>{t.enabled=false;t.stop()})}catch{}
+ if(audioEl){try{audioEl.pause()}catch{}audioEl.srcObject=null;audioEl.remove();audioEl=null}
+ pc=dc=micStream=null;transcript='';setAquiConversationState('idle');if(!keepLook)powerLook('off');stopping=false;
+}
+async function startAki(recovery=false){
+ if(powered||starting||stopping)return;if(!recovery)wantsPower=true;powerGreetingSent=recovery;transcript='';starting=true;powerLook('starting');
+ try{
+  audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')await audioCtx.resume();
+  micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+  pc=new RTCPeerConnection();audioEl=document.createElement('audio');audioEl.autoplay=true;audioEl.playsInline=true;document.body.appendChild(audioEl);
+  // Browser media events are the most reliable source of truth for “AQUI is speaking”.
+  audioEl.addEventListener('playing',()=>{if(powered)firstAudio()});
+  audioEl.addEventListener('ended',()=>{});
+  audioEl.addEventListener('pause',()=>{});
+  pc.ontrack=e=>{const remote=e.streams[0];audioEl.srcObject=remote;audioEl.play().catch(()=>{})};micStream.getTracks().forEach(t=>pc.addTrack(t,micStream));
+  dc=pc.createDataChannel('oai-events');dc.addEventListener('open',()=>{
+    latency('data-channel-open',{voice:akiVoice});
+    // Greeting has priority. Acoustic tools are enabled only after startup.
+    if(recovery)configureAhkiAcousticDelegation();
+  });
+  dc.addEventListener('message',e=>{try{const m=JSON.parse(e.data),type=m.type||'',nested=m.event?.type||'',all=(type+' '+nested).toLowerCase();
+    if(type==='session.started'){powered=true;markActiveConversation(true);beginUsageSession();powerLook('on');latency('session-started',{voice:m.session?.audio?.output?.voice||m.session?.voice||akiVoice});if(recovery){restoreConversationContext();recoveryAttempts=0}else startPowerGreetingOnce()}
+    absorbTranscript(m);absorbAssistantTranscript(m);
+    handleAhkiDelegatedTool(m).catch(err=>console.error('[AHKI acoustic delegation]',err));
+    
+    if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
+    if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('response.output_item.added')||all.includes('delegation.created')){if(!greetingInFlight)flushSpokenTranscript();setAquiConversationState('thinking');responseStarted();}
+    if(all.includes('audio')&&all.includes('delta')&&!all.includes('input_audio')){firstAudio();}
+    if(all.includes('response.done')||all.includes('response.completed')){setAquiConversationState('neutral');if(greetingInFlight)finishLiveGreeting()}
+    else if(all.includes('output_audio.done')||all.includes('audio.done')){if(greetingInFlight)finishLiveGreeting()}
+    else if(greetingInFlight&&all.includes('response.output_item.done'))finishLiveGreeting();
+    if(type==='error'){if(greetingInFlight)finishLiveGreeting();console.error('AKI Live event error:',m)}
+  }catch{}});
+  pc.addEventListener('connectionstatechange',()=>{const cs=pc?.connectionState;latency('connection-state',{state:cs});if(['failed','closed','disconnected'].includes(cs)&&wantsPower&&!restarting)scheduleInterruptionRecovery('connection-'+cs)});
+  pc.addEventListener('iceconnectionstatechange',()=>{const cs=pc?.iceConnectionState;if(['failed','closed','disconnected'].includes(cs)&&wantsPower)scheduleInterruptionRecovery('ice-'+cs)});
+  const offer=await pc.createOffer();await pc.setLocalDescription(offer);const localSdp=pc.localDescription?.sdp||offer.sdp;
+  if(!localSdp||!localSdp.trim().startsWith('v=0'))throw new Error('Browser did not create a valid SDP offer');
+  const r=await fetch('/api/aki',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sdp:localSdp,voice:akiVoice,language:akiLanguage,personalName:akiPersonalName})});
+  const answer=await r.text();if(!r.ok)throw new Error(answer);await pc.setRemoteDescription({type:'answer',sdp:answer});
+  powered=true;markActiveConversation(true);beginUsageSession();powerLook('on');if(recovery){setTimeout(()=>restoreConversationContext(),180);recoveryAttempts=0}else setTimeout(()=>startPowerGreetingOnce(),180);
+ }catch(err){console.error('[AKI 10.6.1 start/recovery error]',err);await stopAki(true,true);if(wantsPower&&recovery&&recoveryAttempts<3)scheduleInterruptionRecovery('retry');else if(!recovery){wantsPower=false;powerLook('error')}}finally{starting=false}
+}
+
+function canvasToDataURL(canvas,type='image/jpeg',quality=.84){
+ return canvas.toDataURL(type,quality);
+}
+async function normalizeImageForIOS(file){
+ // iPhone Photos commonly returns HEIC/HEIF or very large camera images.
+ // Decode locally and re-encode to a modest JPEG before upload. This also
+ // avoids sending multi-megabyte base64 payloads through the Live data channel.
+ const objectUrl=URL.createObjectURL(file);
+ try{
+   const img=new Image();
+   img.decoding='async';
+   await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(new Error('This image could not be decoded on this device'));img.src=objectUrl});
+   const sourceW=img.naturalWidth||img.width,sourceH=img.naturalHeight||img.height;
+   if(!sourceW||!sourceH)throw new Error('The selected image has no readable dimensions');
+   const maxSide=1600;
+   const scale=Math.min(1,maxSide/Math.max(sourceW,sourceH));
+   const w=Math.max(1,Math.round(sourceW*scale)),h=Math.max(1,Math.round(sourceH*scale));
+   const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+   const ctx=canvas.getContext('2d',{alpha:false});
+   if(!ctx)throw new Error('Image conversion is unavailable');
+   ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);
+   return {dataUrl:canvasToDataURL(canvas,'image/jpeg',.84),width:w,height:h};
+ }finally{URL.revokeObjectURL(objectUrl)}
+}
+function speakVerifiedObservation(observation){
+ if(!observation||!dc||dc.readyState!=='open')throw new Error('AQUI voice session is not ready for the image result');
+ const id='show_me_verified_'+Date.now();
+ dc.send(JSON.stringify({
+   type:'response.item.create',event_id:id,
+   item:{type:'message',role:'user',content:[{type:'input_text',text:`SHOW ME VERIFIED IMAGE RESULT. A separate vision step successfully inspected the exact image I deliberately selected. Its grounded observation is:\n${observation}\n\nRespond naturally as AQUI. Acknowledge only details contained in that verified observation. Do not claim continuous sight or access to anything beyond this one selected image. Ask what I want to figure out only if that is the natural next step.`}]}
+ }));
+ dc.send(JSON.stringify({type:'response.create',event_id:id+'_respond'}));
+}
+async function shareImage(file){
+ if(!file||imageBusy)return;
+ const looksImage=file.type?.startsWith('image/')||/\.(heic|heif|jpe?g|png|webp|gif)$/i.test(file.name||'');
+ if(!looksImage){console.warn('[AKI 8.0.3] rejected non-image');return}
+ imageBusy=true;
+ try{
+   latency('show-me-selected',{name:file.name||'image',type:file.type||'unknown',size:file.size});
+   // Camera/file capture is independent of the Live voice connection. Decode first.
+   // The exact normalized pixels become Visualize's source immediately, even if
+   // the separate description step or Live reconnection later has a problem.
+   const normalized=await normalizeImageForIOS(file);
+
+   // Vision description is useful for conversation, but is no longer a gate for editing.
+   let observation='';
+   try{
+     const r=await fetch('/api/show-me',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:normalized.dataUrl})});
+     const payload=await r.json().catch(()=>({}));
+     if(!r.ok||!payload?.ok||!payload?.observation)throw new Error(payload?.error||`Image analysis failed (${r.status})`);
+     observation=payload.observation;
+     // Only attach the observation if this is still the newest source.
+     rememberConversation('aki',`Verified image observation: ${observation}`)
+     latency('show-me-verified',{observation_chars:observation.length});
+   }catch(visionErr){
+     console.warn('[AKI 8.0.3 image description]',visionErr);
+   }
+
+   // Reconnect voice only after the image is safely captured as a visual source.
+   if(!powered||!dc||dc.readyState!=='open')throw new Error('Turn AQUI on with the power button first.');
+   const deadline=Date.now()+12000;
+   while((!dc||dc.readyState!=='open')&&Date.now()<deadline)await new Promise(r=>setTimeout(r,80));
+   if(dc?.readyState==='open'){
+     if(observation)speakVerifiedObservation(observation);
+     else{
+       const id='image_ready_'+Date.now();
+       dc.send(JSON.stringify({type:'response.item.create',event_id:id,item:{type:'message',role:'user',content:[{type:'input_text',text:'IMAGE RECEIVED. I deliberately captured or selected an image, but the separate descriptive analysis did not return. Tell me briefly that the image came through but you could not verify its visual details. Do not invent visual details.'}]}}));
+       dc.send(JSON.stringify({type:'response.create',event_id:id+'_respond'}));
+     }
+   }
+ }catch(err){
+   console.error('[AKI 8.0.3 Show Me error]',err);
+   // A decode failure really means there is no usable source.
+   try{await injectTruth('IMAGE HANDOFF FAILED. The image itself could not be prepared on this device. Tell me briefly that it did not come through and ask me to try another image. Do not claim you saw it.')}catch{}
+ }finally{imageBusy=false;[worldPicker].forEach(resetPicker)}
+}
+function resetPicker(input){ try{input.value=''}catch{} }
+function openDoor(input){
+ if(imageBusy||shareBusy)return;
+ resetPicker(input);
+ // iOS owns the native picker/camera UI. Separate inputs let each invisible
+ // quadrant request a distinct source instead of AKI presenting its own menu.
+ if(typeof input.showPicker==='function'){ try{input.showPicker();return}catch{} }
+ input.click();
+}
+
+function fileToBase64(file){
+ return new Promise((resolve,reject)=>{
+  const reader=new FileReader();
+  reader.onerror=()=>reject(reader.error||new Error('Could not read file'));
+  reader.onload=()=>{const result=String(reader.result||'');const comma=result.indexOf(',');resolve(comma>=0?result.slice(comma+1):result)};
+  reader.readAsDataURL(file);
+ });
+}
+async function shareFile(file){
+ if(!file||shareBusy||imageBusy)return;
+ // Vercel Functions accept at most 4.5 MB request bodies. Base64 expands data,
+ // so keep this experimental direct handoff below 3 MB.
+ if(file.size>3_000_000){
+  console.warn('[AKI 7.1.6.2 file] too large',file.size);
+  await injectFileFailure('That file is too large for this AKI web handoff right now.');
+  return;
+ }
+ shareBusy=true;
+ try{
+  latency('file-selected',{name:file.name||'document',type:file.type||'unknown',size:file.size});
+  const data=await fileToBase64(file);
+  const r=await fetch('/api/show-file',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filename:file.name||'document',mime:file.type||'application/octet-stream',data})});
+  const payload=await r.json().catch(()=>({}));
+  if(!r.ok||!payload.ok||!payload.observation)throw new Error(payload.error||'File analysis failed');
+  if(!powered||!dc||dc.readyState!=='open')throw new Error('Turn AQUI on with the power button first.');
+  const deadline=Date.now()+12000;while((!dc||dc.readyState!=='open')&&Date.now()<deadline)await new Promise(r=>setTimeout(r,80));
+  if(!dc||dc.readyState!=='open')throw new Error('AQUI voice session is not ready');
+  const id='verified_file_'+Date.now();
+  dc.send(JSON.stringify({type:'response.item.create',event_id:id,item:{type:'message',role:'user',content:[{type:'input_text',text:`FILE VERIFIED. I deliberately selected the file "${file.name||'document'}". A separate file-analysis step successfully read it and returned this grounded observation:\n${payload.observation}\n\nRespond naturally as AQUI. Acknowledge only what this verified file result supports. Do not claim access to any other files. Ask what I want to do with it only if that is the natural next step.`}]}}));
+  dc.send(JSON.stringify({type:'response.create',event_id:id+'_respond'}));
+  latency('file-verified',{name:file.name||'document',observation_chars:payload.observation.length});
+ }catch(err){console.error('[AKI 7.1.6.2 file error]',err);await injectFileFailure('The file did not come through clearly.');}
+ finally{shareBusy=false;resetPicker(filePicker)}
+}
+async function injectFileFailure(message){
+ try{
+  if(!powered||!dc||dc.readyState!=='open')throw new Error('Turn AQUI on with the power button first.');
+  const deadline=Date.now()+10000;while((!dc||dc.readyState!=='open')&&Date.now()<deadline)await new Promise(r=>setTimeout(r,80));
+  if(!dc||dc.readyState!=='open')return;
+  const id='file_failed_'+Date.now();
+  dc.send(JSON.stringify({type:'response.item.create',event_id:id,item:{type:'message',role:'user',content:[{type:'input_text',text:`FILE HANDOFF FAILED. ${message} Tell me that briefly and do not pretend you read the file.`}]}}));
+  dc.send(JSON.stringify({type:'response.create',event_id:id+'_respond'}));
+ }catch{}
+}
+
+function openWrite(){
+ if(imageBusy||shareBusy)return;
+ // AKI 8.1.2: iOS only raises the software keyboard reliably when focus()
+ // happens synchronously inside the user's tap gesture. Do not defer this
+ // first focus to requestAnimationFrame.
+ if(writeLayer.classList.contains('open')){
+  try{writeBox.focus({preventScroll:true})}catch{writeBox.focus()}
+  return;
+ }
+ writeLayer.classList.add('open');
+ writeBox.value='';
+ try{writeBox.focus({preventScroll:true})}catch{writeBox.focus()}
+ // A second focus on the next frame is harmless and helps browsers that
+ // finish laying out the newly-visible textarea after the gesture.
+ requestAnimationFrame(()=>{if(writeLayer.classList.contains('open')&&document.activeElement!==writeBox){try{writeBox.focus({preventScroll:true})}catch{writeBox.focus()}}});
+}
+function closeWrite(){
+ writeBox.blur();writeBox.value='';writeLayer.classList.remove('open');
+}
+function extractUrl(text){
+ const m=String(text||'').trim().match(/(?:https?:\/\/|www\.)[^\s]+/i);
+ if(!m)return null;
+ let u=m[0].replace(/[),.;!?]+$/,'');
+ if(/^www\./i.test(u))u='https://'+u;
+ try{const parsed=new URL(u);return /^https?:$/.test(parsed.protocol)?parsed.href:null}catch{return null}
+}
+async function injectTruth(message){
+ if(!powered||!dc||dc.readyState!=='open')throw new Error('Turn AQUI on with the power button first.');
+ const deadline=Date.now()+12000;while((!dc||dc.readyState!=='open')&&Date.now()<deadline)await new Promise(r=>setTimeout(r,80));
+ if(!dc||dc.readyState!=='open')throw new Error('AQUI voice session is not ready');
+ const id='truth_'+Date.now();
+ dc.send(JSON.stringify({type:'response.item.create',event_id:id,item:{type:'message',role:'user',content:[{type:'input_text',text:message}]}}));
+ dc.send(JSON.stringify({type:'response.create',event_id:id+'_respond'}));
+}
+async function browseUrl(url,originalText){
+ try{
+  const r=await fetch('/api/browse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url,context:originalText})});
+  const payload=await r.json().catch(()=>({}));
+  if(!r.ok||!payload.ok||!payload.observation)throw new Error(payload.error||'Website reading failed');
+  await injectTruth(`WEBSITE VERIFIED. I deliberately pasted the URL ${url}. AKI's separate web-reading step successfully accessed web information for that URL and returned this grounded result:\n${payload.observation}\n\nRespond naturally. Discuss only what this verified result supports. If the page was inaccessible, paywalled, blocked, or only partially readable, say that limitation clearly. Do not claim continuous browsing or access to pages not actually retrieved.`);
+  latency('website-verified',{url,observation_chars:payload.observation.length});
+ }catch(err){
+  console.error('[AKI 7.1.6.2 website error]',err);
+  await injectTruth(`WEBSITE HANDOFF FAILED. I pasted ${url}, but AKI could not reliably access or read that website. Tell me that briefly and do not pretend you saw the page.`);
+ }
+}
+async function sendWrittenText(text){
+ const clean=String(text||'').trim();if(!clean)return;
+ const url=extractUrl(clean);
+ if(url){await browseUrl(url,clean);return}
+ await injectTruth(clean);
+ latency('written-input-sent',{chars:clean.length});
+}
+writeLayer.addEventListener('submit',async e=>{
+ e.preventDefault();const text=writeBox.value;if(!text.trim())return;
+ closeWrite();
+ try{await sendWrittenText(text)}catch(err){console.error('[AKI 7.1.5 write error]',err);powerLook('error')}
+});
+// AKI 8.1.2: tapping the empty writing field must place the caret and keep
+// the keyboard open. The old handler closed the field on exactly that tap.
+writeBox.addEventListener('pointerdown',e=>{e.stopPropagation()});
+writeBox.addEventListener('click',e=>{e.stopPropagation()});
+writeBox.addEventListener('keydown',e=>{
+ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();writeLayer.requestSubmit()}
+ if(e.key==='Escape'){e.preventDefault();closeWrite()}
+});
+worldPicker.addEventListener('change',()=>{const f=worldPicker.files?.[0];if(f)shareImage(f)});
+filePicker.addEventListener('change',()=>{const f=filePicker.files?.[0];if(!f)return;const isImage=f.type?.startsWith('image/')||/\.(heic|heif|jpe?g|png|webp|gif)$/i.test(f.name||'');if(isImage)shareImage(f).finally(()=>resetPicker(filePicker));else shareFile(f)});
+
+let akiAudioCtx=null;
+function primeAkiAudio(){try{akiAudioCtx=akiAudioCtx||new (window.AudioContext||window.webkitAudioContext)();if(akiAudioCtx.state==='suspended')akiAudioCtx.resume()}catch{}}
+// AKI 10.5.4 — Signature Start preserved exactly; Clean Handoff transcript capture stabilized.
+// The opening sentence is generated by the SAME Live/WebRTC Marin session used
+// for the rest of the conversation. This avoids iPadOS treating a decoded TTS
+// clip at a different playback level from the Live stream.
+let greetingInFlight=false;
+function startPowerGreetingOnce(){
+  if(powerGreetingSent||greetingInFlight||!powered||!dc||dc.readyState!=='open')return;
+  powerGreetingSent=true;greetingInFlight=true;
+  // Prevent a previous play session's local sounds from leaking into startup.
+  clearAhkiAcousticHoldTimer();stopSustainedTone();stopWhistle();stopPercussion();
+  const tracks=micStream?.getAudioTracks?.()||[];
+  tracks.forEach(t=>t.enabled=false);
+  playAkiOnChime();
+  setTimeout(()=>{
+    try{
+      const id='aki_startup_'+Date.now();
+      // AKI 10.5.3 — Signature Start. This Live session rejected the newer
+      // per-response `response:{input:[],instructions:...}` envelope used in 10.5.2.
+      // Stay on AKI's proven Live event dialect, but use a SYSTEM instruction rather
+      // than a synthetic USER turn. That prevents the model from conversationally
+      // reacting to the startup command before speaking the signature greeting.
+      dc.send(JSON.stringify({
+        type:'response.item.create',
+        event_id:id+'_instruction',
+        item:{
+          type:'message',
+          role:'system',
+          content:[{
+            type:'input_text',
+            text:'STARTUP OUTPUT CONTRACT — NEXT RESPONSE ONLY. Speak exactly this sentence and nothing else: Hey. I’m here for you. Do not think aloud. Do not add a question, a preamble, or any other words. Do not paraphrase. Immediately speak the exact sentence.'
+          }]
         }
-      },
-
-      transport: {
-        type: 'webrtc',
-        sdp
-      }
-    };
-
-    const r = await fetch(
-      'https://api.openai.com/v1/live/sessions',
-      {
-        method: 'POST',
-
-        headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-
-        body: JSON.stringify(body)
-      }
-    );
-
-    const text = await r.text();
-
-    if (!r.ok) {
-      return res.status(r.status).send(text);
+      }));
+      dc.send(JSON.stringify({type:'response.create',event_id:id+'_respond'}));
+    }catch(e){
+      greetingInFlight=false;
+      if(powered)tracks.forEach(t=>t.enabled=true);
+      console.error('[AKI 10.5 Live greeting]',e);
     }
-
-    const data = JSON.parse(text);
-    const answer = data?.transport?.sdp;
-
-    if (!answer) {
-      return res.status(502).json({
-        error: 'Live session returned no SDP answer'
-      });
-    }
-
-    res.setHeader('Content-Type', 'application/sdp');
-
-    return res.status(200).send(answer);
-
-  } catch (err) {
-    console.error('AHKI minimal session error', err);
-
-    return res.status(500).json({
-      error: err?.message || 'Unable to create AHKI Live session'
-    });
+  },330);
+}
+function finishLiveGreeting(){
+  if(!greetingInFlight)return;
+  greetingInFlight=false;
+  if(powered){
+    (micStream?.getAudioTracks?.()||[]).forEach(t=>t.enabled=true);
+    // Install expressive acoustic tools only after the signature greeting.
+    configureAhkiAcousticDelegation();
   }
 }
+function playAkiOnChime(){try{primeAkiAudio();if(!akiAudioCtx)return;const now=akiAudioCtx.currentTime;[523.25,659.25].forEach((freq,i)=>{const o=akiAudioCtx.createOscillator(),g=akiAudioCtx.createGain();o.type='sine';o.frequency.value=freq;g.gain.setValueAtTime(0,now+i*.07);g.gain.linearRampToValueAtTime(.055,now+i*.07+.018);g.gain.exponentialRampToValueAtTime(.001,now+i*.07+.18);o.connect(g).connect(akiAudioCtx.destination);o.start(now+i*.07);o.stop(now+i*.07+.2)})}catch{}}
+writeTrigger.addEventListener('click',e=>{e.preventDefault();if(!powered)return;openWrite()});
+cameraButton.addEventListener('click',()=>{if(!powered)return;openDoor(worldPicker)});
+giveButton.addEventListener('click',()=>{if(!powered)return;openDoor(filePicker)});
+function restoreConversationContext(){
+  if(!powered||!dc||dc.readyState!=='open')return;
+  const history=recentConversation.slice(-14).map(x=>(x.role==='assistant'?'AQUI':'Human')+': '+String(x.text||'').replace(/\s+/g,' ').slice(0,700)).join('\n');
+  if(!history)return;
+  try{
+    dc.send(JSON.stringify({type:'response.item.create',event_id:'aki_recovery_context_'+Date.now(),item:{type:'message',role:'system',content:[{type:'input_text',text:'AQUI 1 ONE-TAP RESUME RECOVERY. The current conversation was interrupted by the device or browser. Continue the SAME active conversation naturally from this context. Do not greet again, do not announce reconnection, and do not claim long-term or permanent memory. If the human asks where you were or what you were discussing, answer from this context. Recent active conversation:\n'+history}]}}));
+  }catch(e){console.error('[AKI 10.6.1 context restore]',e)}
+}
+async function recoverFromInterruption(reason='ios-interruption'){
+  if(!wantsPower||starting||stopping)return;
+  const now=Date.now();if(now-lastRecoveryAt<700)return;lastRecoveryAt=now;recoveryAttempts++;
+  latency('ios-interruption-recovery',{reason,attempt:recoveryAttempts});
+  restarting=true;
+  try{await stopAki(true,true)}finally{restarting=false}
+  if(!wantsPower)return;
+  primeAkiAudio();
+  try{if(audioCtx?.state==='suspended')await audioCtx.resume()}catch{}
+  await startAki(true);
+}
+function scheduleInterruptionRecovery(reason){
+  if(!wantsPower)return;clearTimeout(recoveryTimer);
+  recoveryTimer=setTimeout(()=>recoverFromInterruption(reason),650);
+}
+async function toggle(){
+  if(starting||stopping)return;
+  if(powered||pc||micStream){wantsPower=false;await playPowerOffSound();await stopAki();return}
+  if(wantsPower&&hasRecoverableActiveConversation()){primeAkiAudio();await startAki(true);return}
+  wantsPower=true;primeAkiAudio();await startAki(false)
+}
+app.addEventListener('click',e=>{if(e.target.closest('button,input,textarea,a'))return;toggle()});
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden'){if(wantsPower){interruptionHidden=true;try{flushSpokenTranscript()}catch{};try{const t=String(assistantTranscript||'').trim();if(t){assistantTranscript='';rememberConversation('assistant',t)}}catch{};saveActiveConversation();markActiveConversation(true)}return}
+  if(document.visibilityState==='visible'&&wantsPower){
+    try{if(audioCtx?.state==='suspended')audioCtx.resume()}catch{}
+    const track=micStream?.getAudioTracks?.()[0];
+    const unhealthy=!pc||!dc||dc.readyState!=='open'||['failed','closed','disconnected'].includes(pc.connectionState)||!track||track.readyState==='ended';
+    // iOS can report WebRTC as "connected" after an interruption while audio is
+    // actually dead. If AKI was backgrounded while on, rebuild once on return.
+    if(interruptionHidden||unhealthy)scheduleInterruptionRecovery(unhealthy?'visible-unhealthy':'visible-after-interruption');
+    interruptionHidden=false;
+  }
+});
+window.addEventListener('pageshow',()=>{if(wantsPower&&interruptionHidden){interruptionHidden=false;scheduleInterruptionRecovery('pageshow')}});
+window.addEventListener('pagehide',()=>{
+  if(wantsPower){try{flushSpokenTranscript()}catch{};saveActiveConversation();markActiveConversation(true)}
+  finishUsageSession(true);
+  if(wantsPower){interruptionHidden=true;stopAki(true,true)}else stopAki();
+});
+window.addEventListener('focus',()=>{if(wantsPower&&document.visibilityState==='visible'){const track=micStream?.getAudioTracks?.()[0];if(!pc||!dc||dc.readyState!=='open'||!track||track.readyState==='ended')scheduleInterruptionRecovery('focus')}});
+
+// AHKI water surface: any deliberate touch launches one coherent wave from the center.
+// Touch position is intentionally ignored; the presence itself is the source.
+let ahkiRippleTimer=null;
+app.addEventListener('pointerdown',e=>{
+  if(e.target.closest('#settingsShell,button,input,textarea,a'))return;
+  app.classList.remove('wave-pulse');
+  void app.offsetWidth;
+  app.classList.add('wave-pulse');
+  clearTimeout(ahkiRippleTimer);
+  ahkiRippleTimer=setTimeout(()=>app.classList.remove('wave-pulse'),2100);
+},{passive:true});
+
+// If iOS fully reloads the PWA after an interruption, preserve the active context.
+// We attempt recovery once; if iOS requires a fresh user gesture, the next Power tap
+// starts a recovery session (no greeting) instead of discarding the conversation.
+const bootRecovery=hasRecoverableActiveConversation();
+if(bootRecovery){wantsPower=true;interruptionHidden=true;powerLook('resume')}else powerLook('off');
+</script>
+
+<style id="ahki-settings-prototype-style">
+:root{--set-bg:#000;--set-card:#101010;--set-line:#303030;--set-soft:#9a9a9a;--set-white:#fff}
+#settingsShell{position:fixed;inset:0;z-index:500;background:#000;color:#fff;transform:translateX(105%);opacity:0;pointer-events:none;transition:transform .32s cubic-bezier(.22,.8,.22,1),opacity .25s ease;font-family:system-ui,-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif;overflow:hidden;-webkit-tap-highlight-color:transparent}
+#settingsShell.open{transform:translateX(0);opacity:1;pointer-events:auto}
+.settings-page{position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;padding:max(env(safe-area-inset-top),24px) 20px max(env(safe-area-inset-bottom),28px);background:#000;transform:translateX(105%);opacity:0;pointer-events:none;transition:transform .28s ease,opacity .22s ease}
+.settings-page.active{transform:translateX(0);opacity:1;pointer-events:auto}.settings-page.root{transform:translateX(-18%)}.settings-page.root.active{transform:translateX(0)}
+.set-head{min-height:58px;display:grid;grid-template-columns:48px 1fr 48px;align-items:center;position:sticky;top:0;background:linear-gradient(#000 78%,rgba(0,0,0,0));z-index:4;padding-bottom:8px}.set-title{text-align:center;font-size:17px;font-weight:500}.set-brand{font-size:30px;font-weight:200;letter-spacing:.18em;white-space:nowrap}.set-back,.set-close{width:44px;height:44px;border:1px solid #3a3a3a;border-radius:50%;background:#111;color:#fff;font-size:28px;font-weight:200;display:grid;place-items:center;padding:0}.set-back{border:0;background:transparent;font-size:34px}.set-kicker{font-size:12px;letter-spacing:.34em;color:#aaa;margin:4px 8px 12px}.set-group{border:1px solid #252525;border-radius:24px;overflow:hidden;background:#0b0b0b;margin:0 0 18px}.set-row{min-height:72px;width:100%;display:grid;grid-template-columns:46px 1fr auto;gap:10px;align-items:center;border:0;border-bottom:1px solid #2d2d2d;background:transparent;color:#fff;text-align:left;padding:10px 16px}.set-row:last-child{border-bottom:0}.set-icon{width:34px;height:34px;display:grid;place-items:center;font-size:23px;color:#fff}.set-icon svg{width:27px;height:27px;stroke:#fff;fill:none;stroke-width:1.7}.set-main{font-size:18px;font-weight:430}.set-sub{font-size:13px;color:#999;margin-top:2px}.set-chevron{font-size:28px;color:#888;font-weight:200}.set-section{font-size:15px;color:#aaa;font-weight:600;margin:24px 8px 10px}.set-hero{text-align:center;padding:30px 8px 34px;font-size:58px;font-weight:200;letter-spacing:.02em}.set-card{border:1px solid #333;border-radius:22px;background:#0b0b0b;padding:18px;margin-bottom:18px}.set-card h3{font-size:18px;margin:0 0 6px}.set-card p,.set-note{color:#aaa;font-size:14px;line-height:1.45;margin:0}.set-input{width:100%;margin-top:18px;border:1px solid #444;background:#111;color:#fff;border-radius:16px;padding:14px 16px;font-size:17px;outline:none}.set-button{width:100%;border:1px solid #fff;background:#000;color:#fff;border-radius:999px;padding:13px 18px;font-size:17px;margin-top:12px}.set-button:active{background:#fff;color:#000}.voice-choice{min-height:78px}.radio{width:23px;height:23px;border:1px solid #777;border-radius:50%;display:grid;place-items:center}.radio.on:after{content:"";width:11px;height:11px;border-radius:50%;background:#fff}.switch{width:50px;height:29px;border-radius:999px;border:1px solid #555;background:#171717;padding:3px;transition:.2s}.switch:after{content:"";display:block;width:21px;height:21px;border-radius:50%;background:#777;transition:.2s}.switch.on{background:#fff}.switch.on:after{background:#000;transform:translateX(20px)}.usage-big{font-size:38px;font-weight:300;margin:3px 0}.usage-bar{height:4px;background:#333;border-radius:9px;margin-top:16px;overflow:hidden}.usage-fill{height:100%;width:0;background:#fff}.mini-table{margin-top:8px}.mini-line{display:flex;justify-content:space-between;gap:16px;padding:13px 0;border-bottom:1px solid #292929;font-size:15px}.mini-line:last-child{border-bottom:0}.muted{color:#999}.toast{position:fixed;z-index:700;left:50%;bottom:max(28px,env(safe-area-inset-bottom));transform:translate(-50%,20px);background:#fff;color:#000;border-radius:999px;padding:10px 16px;font-size:14px;opacity:0;pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(min-width:700px){#settingsShell{left:auto;width:min(520px,100%);border-left:1px solid rgba(122,145,160,.20)}.settings-page{padding-left:28px;padding-right:28px}}
+
+/* AHKI WATER / PEARL VISUAL PASS — 2026-10-24 */
+#settingsShell,.settings-page{color:#24313a;background:
+ radial-gradient(circle at 18% 10%,rgba(196,231,242,.58),transparent 31%),
+ radial-gradient(circle at 88% 28%,rgba(226,218,242,.50),transparent 34%),
+ radial-gradient(circle at 45% 82%,rgba(247,224,201,.52),transparent 38%),
+ linear-gradient(145deg,#fbfcfa,#edf6f8 46%,#f8f4ef)!important}
+.set-head{background:linear-gradient(rgba(249,252,251,.96) 72%,rgba(249,252,251,0))!important}
+.set-title,.set-brand,.set-main,.set-icon{color:#24313a!important}.set-kicker,.set-sub,.set-card p,.set-note,.muted{color:#6e7b83!important}
+.set-group,.set-card{background:rgba(255,255,255,.48)!important;border-color:rgba(121,151,166,.26)!important;box-shadow:0 14px 38px rgba(102,132,145,.10),inset 0 1px 0 rgba(255,255,255,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.set-row{color:#24313a!important;border-bottom-color:rgba(116,145,158,.20)!important}.set-chevron{color:#79909c!important}.set-icon svg{stroke:#344a55!important}
+.set-back,.set-close{color:#344a55!important;border-color:rgba(101,135,151,.25)!important;background:rgba(255,255,255,.42)!important}
+.set-input{background:rgba(255,255,255,.55)!important;color:#24313a!important;border-color:rgba(107,140,155,.30)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.9)}
+.set-button{color:#24313a!important;border-color:rgba(89,125,143,.42)!important;background:linear-gradient(100deg,rgba(205,241,244,.72),rgba(222,220,246,.68),rgba(249,226,218,.72))!important}
+.radio{border-color:#8ca4af!important}.radio.on:after{background:#6aaec4!important}.switch{background:rgba(180,198,205,.38)!important;border-color:rgba(101,135,151,.25)!important}.switch:after{background:#fff!important}.switch.on{background:#76c7d8!important}.switch.on:after{background:#fff!important}
+.usage-bar{background:rgba(121,151,166,.18)!important}.usage-fill{background:linear-gradient(90deg,#8dd8df,#aebde9,#e7bddb)!important}.mini-line{border-bottom-color:rgba(116,145,158,.18)!important}.toast{background:rgba(255,255,255,.92)!important;color:#24313a!important;box-shadow:0 10px 30px rgba(75,103,115,.18)}
+</style>
+<div id="settingsShell" aria-hidden="true">
+  <section class="settings-page root active" data-page="root">
+    <div class="set-head"><div></div><div class="set-brand">AHKI</div><button class="set-close" data-close aria-label="Close settings">×</button></div>
+    <div class="set-kicker">SETTINGS</div>
+    <div class="set-group">
+      <button class="set-row" data-go="name"><span class="set-icon">○</span><span><div class="set-main">Name</div><div class="set-sub" id="rootName">AHKI</div></span><span class="set-chevron">›</span></button>
+      <button class="set-row" data-go="voice"><span class="set-icon">⌁</span><span><div class="set-main">Voice</div><div class="set-sub" id="rootVoice">Marin</div></span><span class="set-chevron">›</span></button>
+      <button class="set-row" data-go="memory"><span class="set-icon">◇</span><span><div class="set-main">Memory</div><div class="set-sub" id="rootMemory">Prototype</div></span><span class="set-chevron">›</span></button>
+      <button class="set-row" data-go="usage"><span class="set-icon">▥</span><span><div class="set-main">Usage</div><div class="set-sub" id="rootUsage">0m</div></span><span class="set-chevron">›</span></button>
+      <button class="set-row" data-go="membership"><span class="set-icon">♢</span><span><div class="set-main">Membership</div><div class="set-sub">Prototype</div></span><span class="set-chevron">›</span></button>
+      <button class="set-row" data-go="privacy"><span class="set-icon">⬡</span><span><div class="set-main">Privacy</div><div class="set-sub">Data controls</div></span><span class="set-chevron">›</span></button>
+      <button class="set-row" data-go="help"><span class="set-icon">?</span><span><div class="set-main">Help & About</div><div class="set-sub">Prototype build</div></span><span class="set-chevron">›</span></button>
+    </div>
+    <p class="set-note" style="padding:0 8px 30px">Settings float above the live AHKI session. Opening or browsing them does not intentionally stop the microphone or conversation.</p>
+  </section>
+  <section class="settings-page" data-page="name"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Name</div><div></div></div><div class="set-hero" id="nameHero">AHKI</div><div class="set-card"><h3>Personal Name</h3><p>AHKI is the app. Give the presence inside it any name you want, and change it naturally at any time.</p><input id="nameInput" class="set-input" maxlength="32" placeholder="AHKI"><button id="saveName" class="set-button">Save</button></div><p class="set-note">Example: “Can I call you Ava?” → “Of course.” The chosen name stays on this device until you change or clear it.</p></section>
+  <section class="settings-page" data-page="voice"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Voice</div><div></div></div><div class="set-group" id="voiceChoices"></div><div class="set-card"><h3>Voice preview</h3><p>Choose a voice here. To keep your current conversation uninterrupted, a changed voice is saved for the next fresh live session.</p><button id="previewVoice" class="set-button">Play simple preview tone</button></div></section>
+  <section class="settings-page" data-page="memory"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Memory</div><div></div></div><div class="set-group"><button class="set-row" id="memoryToggle"><span class="set-icon">◇</span><span><div class="set-main">Personal Memory</div><div class="set-sub">Prototype control</div></span><span id="memorySwitch" class="switch"></span></button></div><div class="set-group"><button class="set-row" id="viewMemories"><span class="set-icon">□</span><span><div class="set-main">View Memories</div><div class="set-sub">Shows what this prototype has stored</div></span><span class="set-chevron">›</span></button><button class="set-row" id="clearPrototypeMemory"><span class="set-icon">×</span><span><div class="set-main">Clear Prototype Memory</div><div class="set-sub">Does not alter conversation recovery</div></span><span class="set-chevron">›</span></button></div><p class="set-note">This screen is a UI prototype. It does not invent a long-term memory system that the current web build does not already have.</p></section>
+  <section class="settings-page" data-page="usage"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Usage</div><div></div></div><div class="set-card"><div class="muted">Recorded conversation time on this device</div><div class="usage-big" id="usageBig">0m</div><div class="usage-bar"><div class="usage-fill" id="usageFill"></div></div></div><div class="set-group"><button class="set-row" id="usageDetails"><span class="set-icon">◷</span><span><div class="set-main">View Details</div><div class="set-sub">Local session meter</div></span><span class="set-chevron">›</span></button></div><p class="set-note">The current build already records anonymous session duration locally. This prototype displays that existing local total.</p></section>
+  <section class="settings-page" data-page="membership"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Membership</div><div></div></div><div class="set-card"><div class="muted">Status</div><div class="usage-big" style="font-size:30px">Prototype</div><p>No billing system is connected to this mockup.</p></div><div class="set-group"><button class="set-row" data-demo="Manage Subscription"><span class="set-icon">□</span><span><div class="set-main">Manage Subscription</div><div class="set-sub">Demo interaction</div></span><span class="set-chevron">›</span></button><button class="set-row" data-demo="Plan Details"><span class="set-icon">≡</span><span><div class="set-main">View Plan Details</div><div class="set-sub">Demo interaction</div></span><span class="set-chevron">›</span></button><button class="set-row" data-demo="Restore Purchases"><span class="set-icon">↻</span><span><div class="set-main">Restore Purchases</div><div class="set-sub">Demo interaction</div></span><span class="set-chevron">›</span></button></div></section>
+  <section class="settings-page" data-page="privacy"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Privacy</div><div></div></div><div class="set-group"><button class="set-row" data-demo="Data Controls"><span class="set-icon">⬡</span><span><div class="set-main">Data Controls</div><div class="set-sub">Prototype</div></span><span class="set-chevron">›</span></button><button class="set-row" id="storedData"><span class="set-icon">□</span><span><div class="set-main">What's Stored</div><div class="set-sub">See local prototype data</div></span><span class="set-chevron">›</span></button><button class="set-row" id="deleteSettingsData"><span class="set-icon">×</span><span><div class="set-main">Delete Settings Data</div><div class="set-sub">Name, voice UI and prototype preferences</div></span><span class="set-chevron">›</span></button><button class="set-row" data-demo="Permissions"><span class="set-icon">▢</span><span><div class="set-main">Permissions</div><div class="set-sub">Managed by your browser/device</div></span><span class="set-chevron">›</span></button></div><p class="set-note">This page deliberately labels unavailable controls as prototype interactions rather than pretending they are connected.</p></section>
+  <section class="settings-page" data-page="help"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Help & About</div><div></div></div><div class="set-group"><button class="set-row" data-demo="Help Center"><span class="set-icon">?</span><span><div class="set-main">Help Center</div><div class="set-sub">Demo interaction</div></span><span class="set-chevron">›</span></button><button class="set-row" data-demo="Report an Issue"><span class="set-icon">□</span><span><div class="set-main">Report an Issue</div><div class="set-sub">Demo interaction</div></span><span class="set-chevron">›</span></button><button class="set-row" id="aboutAHKI"><span class="set-icon">i</span><span><div class="set-main">About AHKI</div><div class="set-sub">Minimal voice-first AI presence</div></span><span class="set-chevron">›</span></button></div><div class="set-card mini-table"><div class="mini-line"><span>Prototype</span><span class="muted">Settings navigation</span></div><div class="mini-line"><span>Interface</span><span class="muted">Black & white</span></div><div class="mini-line"><span>Conversation</span><span class="muted">Remains live</span></div></div></section>
+</div>
+<div id="settingsToast" class="toast" role="status"></div>
+<script id="ahki-settings-prototype-script">
+(()=>{
+ const shell=document.getElementById('settingsShell'), pages=[...shell.querySelectorAll('.settings-page')], toast=document.getElementById('settingsToast');
+ let page='root', sx=0,sy=0,st=0, suppressMainClick=false;
+ const showToast=(m)=>{toast.textContent=m;toast.classList.add('show');clearTimeout(showToast.t);showToast.t=setTimeout(()=>toast.classList.remove('show'),1800)};
+ const fmt=(sec)=>{sec=Math.max(0,Number(sec)||0);const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60);return h?`${h}h ${m}m`:`${m}m`};
+ function refresh(){
+   const nm=(window.AHKIPersonalName?.()||'AHKI');document.getElementById('rootName').textContent=nm;document.getElementById('nameHero').textContent=nm;document.getElementById('nameInput').value=nm==='AHKI'?'':nm;
+   const v=(window.akiVoice||localStorage.getItem('akiVoice')||'marin');document.getElementById('rootVoice').textContent=v[0].toUpperCase()+v.slice(1);
+   const total=(window.AKIUsage?.().total_seconds||Number(localStorage.getItem('akiUsageTotalSeconds'))||0)+(window.usageStartedAt?Math.floor((Date.now()-window.usageStartedAt)/1000):0);document.getElementById('rootUsage').textContent=fmt(total);document.getElementById('usageBig').textContent=fmt(total);document.getElementById('usageFill').style.width=Math.min(100,total/(20*3600)*100)+'%';
+   const mem=localStorage.getItem('ahkiPrototypeMemoryEnabled')==='true';document.getElementById('memorySwitch').classList.toggle('on',mem);document.getElementById('rootMemory').textContent=mem?'On · prototype':'Off · prototype';
+   renderVoices(v);
+ }
+ function renderVoices(active){const box=document.getElementById('voiceChoices');box.innerHTML='';[['marin','Marin','Female · Default'],['ash','Ash','Male'],['cedar','Cedar','Female']].forEach(([id,n,d])=>{const b=document.createElement('button');b.className='set-row voice-choice';b.innerHTML=`<span class="set-icon">⌁</span><span><div class="set-main">${n}</div><div class="set-sub">${d}</div></span><span class="radio ${active===id?'on':''}"></span>`;b.onclick=()=>{localStorage.setItem('akiVoice',id);try{akiVoice=id}catch{};renderVoices(id);document.getElementById('rootVoice').textContent=n;showToast(powered?'Saved for next fresh session':'Voice saved')};box.appendChild(b)})}
+ function goto(p){page=p;pages.forEach(x=>x.classList.toggle('active',x.dataset.page===p));refresh();}
+ function open(){shell.classList.add('open');shell.setAttribute('aria-hidden','false');goto('root')}
+ function close(){shell.classList.remove('open');shell.setAttribute('aria-hidden','true');setTimeout(()=>goto('root'),250)}
+ shell.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>goto(b.dataset.go));shell.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>goto('root'));shell.querySelectorAll('[data-close]').forEach(b=>b.onclick=close);shell.querySelectorAll('[data-demo]').forEach(b=>b.onclick=()=>showToast(`${b.dataset.demo} · prototype only`));
+ document.getElementById('saveName').onclick=()=>{const val=document.getElementById('nameInput').value.trim();if(!val){try{clearPersonalName()}catch{};showToast('Personal name cleared')}else{try{savePersonalName(val);showToast(`Name saved: ${val}`)}catch{localStorage.setItem('ahkiPersonalNameV1',val);showToast(`Name saved: ${val}`)}}refresh()};
+ document.getElementById('memoryToggle').onclick=()=>{const n=localStorage.getItem('ahkiPrototypeMemoryEnabled')!=='true';localStorage.setItem('ahkiPrototypeMemoryEnabled',String(n));refresh();showToast(n?'Prototype memory switch on':'Prototype memory switch off')};
+ document.getElementById('viewMemories').onclick=()=>showToast('No separate long-term memory viewer is wired in this web build');document.getElementById('clearPrototypeMemory').onclick=()=>{localStorage.removeItem('ahkiPrototypeMemoryEnabled');refresh();showToast('Prototype memory preference cleared')};
+ document.getElementById('usageDetails').onclick=()=>{const u=window.AKIUsage?.();showToast(u?.last_session?'Last session data is stored locally':'No completed session yet')};
+ document.getElementById('storedData').onclick=()=>showToast('Local: personal name, voice, usage meter, active-session recovery');
+ document.getElementById('deleteSettingsData').onclick=()=>{['ahkiPersonalNameV1','ahkiPrototypeMemoryEnabled'].forEach(k=>localStorage.removeItem(k));try{akiPersonalName=''}catch{};refresh();showToast('Prototype settings data cleared')};
+ document.getElementById('aboutAHKI').onclick=()=>showToast('AHKI · voice-first presence prototype');
+ document.getElementById('previewVoice').onclick=()=>{try{const c=audioCtx||new (window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();o.frequency.value=440;g.gain.setValueAtTime(.0001,c.currentTime);g.gain.exponentialRampToValueAtTime(.06,c.currentTime+.03);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.28);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.3)}catch{};showToast('Preview placeholder')};
+ // Main screen: a deliberate swipe in any direction opens settings. A tap remains power on/off.
+ app.addEventListener('touchstart',e=>{if(shell.classList.contains('open')||e.touches.length!==1)return;sx=e.touches[0].clientX;sy=e.touches[0].clientY;st=Date.now()},{passive:true});
+ app.addEventListener('touchend',e=>{if(shell.classList.contains('open')||!e.changedTouches.length)return;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy,dist=Math.hypot(dx,dy);if(dist>55&&Date.now()-st<900){suppressMainClick=true;open();setTimeout(()=>suppressMainClick=false,450)}},{passive:true});
+ // Capture the synthetic click that iOS emits after a swipe so it cannot toggle power.
+ app.addEventListener('click',e=>{if(suppressMainClick){e.stopImmediatePropagation();e.preventDefault()}},true);
+ // Inside settings, horizontal swipe right acts as Back; from root it closes. Vertical movement remains scrolling.
+ shell.addEventListener('touchstart',e=>{if(e.touches.length!==1)return;sx=e.touches[0].clientX;sy=e.touches[0].clientY;st=Date.now()},{passive:true});
+ shell.addEventListener('touchend',e=>{if(!e.changedTouches.length)return;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(dx>70&&Math.abs(dx)>Math.abs(dy)*1.35&&Date.now()-st<900){page==='root'?close():goto('root')}},{passive:true});
+ window.AHKISettingsPrototype={open,close,goto,refresh};refresh();
+})();
+</script>
+
+
+<style id="ahki-gold-final-pass">
+/* AHKI CHAMPAGNE WATER — final visual override */
+.mark,.ahki-wordmark,.ahki-strokes,#akiButton svg,#akiButton .mark,#akiButton .ahki-wordmark{display:none!important;opacity:0!important;visibility:hidden!important}
+.presence{background:linear-gradient(145deg,#f6e6bd 0%,#e7c67c 46%,#f7e8bf 100%)!important}
+.liquid-presence{background:radial-gradient(circle at 50% 48%,rgba(255,249,224,.90) 0%,rgba(241,211,143,.68) 34%,rgba(208,164,76,.42) 67%,rgba(250,235,196,.72) 100%)!important}
+.water-sheen{background:radial-gradient(ellipse at 36% 29%,rgba(255,255,241,.92),transparent 31%),radial-gradient(ellipse at 72% 66%,rgba(255,225,147,.48),transparent 37%),radial-gradient(ellipse at 28% 76%,rgba(194,139,43,.25),transparent 35%)!important;filter:blur(17px)!important;opacity:.94!important}
+.water-ring{border-color:rgba(255,247,211,.78)!important;box-shadow:0 -2px 4px rgba(255,255,238,.98),0 2px 7px rgba(132,87,21,.24),inset 0 2px 4px rgba(255,255,236,.84),inset 0 -3px 7px rgba(150,101,29,.16),0 0 13px rgba(245,202,108,.22)!important}
+.presence.is-on .water-ring{opacity:.82!important}.presence:not(.is-on) .water-ring{opacity:.58!important}
+#settingsShell,.settings-page{color:#342719!important;background:radial-gradient(circle at 18% 10%,rgba(255,245,213,.88),transparent 30%),radial-gradient(circle at 88% 28%,rgba(224,183,96,.42),transparent 35%),radial-gradient(circle at 45% 82%,rgba(255,231,169,.68),transparent 39%),linear-gradient(145deg,#f8edcf,#e6c67f 48%,#f5dfaa)!important}
+.set-head{background:linear-gradient(rgba(248,237,207,.96) 72%,rgba(248,237,207,0))!important}
+.set-title,.set-brand,.set-main,.set-icon{color:#342719!important}.set-kicker,.set-sub,.set-card p,.set-note,.muted{color:#735d3d!important}
+.set-group,.set-card{background:rgba(255,249,229,.48)!important;border-color:rgba(151,109,42,.26)!important;box-shadow:0 14px 38px rgba(108,73,20,.13),inset 0 1px 0 rgba(255,255,244,.90)!important;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.set-row{color:#342719!important;border-bottom-color:rgba(151,109,42,.18)!important}.set-chevron{color:#8c6b35!important}.set-icon svg{stroke:#4a371f!important}
+.set-back,.set-close{color:#4a371f!important;border-color:rgba(137,95,31,.28)!important;background:rgba(255,248,222,.48)!important}
+.set-input{background:rgba(255,249,229,.58)!important;color:#342719!important;border-color:rgba(137,95,31,.28)!important;box-shadow:inset 0 1px 0 rgba(255,255,244,.88)!important}
+.set-button{color:#342719!important;border-color:rgba(137,95,31,.36)!important;background:linear-gradient(100deg,rgba(255,242,196,.78),rgba(224,183,96,.58),rgba(255,235,180,.78))!important}
+.radio{border-color:#9d7a3e!important}.radio.on:after{background:#b98225!important}.switch{background:rgba(175,139,76,.30)!important;border-color:rgba(137,95,31,.25)!important}.switch:after{background:#fff9e8!important}.switch.on{background:#c89436!important}.switch.on:after{background:#fff9e8!important}
+.usage-bar{background:rgba(137,95,31,.16)!important}.usage-fill{background:linear-gradient(90deg,#f5d78b,#c8902e,#f3dfaa)!important}.mini-line{border-bottom-color:rgba(137,95,31,.16)!important}.toast{background:rgba(255,247,220,.94)!important;color:#342719!important;box-shadow:0 10px 30px rgba(98,65,18,.18)!important}
+</style>
+
+<style id="ahki-gold-living-ripple-v4">
+/* V4 — continuous living ripple + gold-on-gold ridges. */
+.water-ring{
+  border-color:rgba(222,187,112,.34)!important;
+  box-shadow:
+    0 -1px 2px rgba(255,241,194,.40),
+    0 2px 5px rgba(153,108,36,.13),
+    inset 0 1px 2px rgba(255,236,181,.30),
+    inset 0 -2px 4px rgba(156,111,39,.09),
+    0 0 8px rgba(212,169,82,.10)!important;
+  opacity:.42!important;
+}
+.presence:not(.is-on) .water-ring{opacity:.34!important}
+.presence.is-on .water-ring{
+  opacity:.48!important;
+  animation:ahkiLivingRipple 7.2s ease-in-out infinite;
+}
+.presence.is-on .wr1{animation-delay:-.15s}.presence.is-on .wr2{animation-delay:-.45s}.presence.is-on .wr3{animation-delay:-.75s}.presence.is-on .wr4{animation-delay:-1.05s}
+.presence.is-on .wr5{animation-delay:-1.35s}.presence.is-on .wr6{animation-delay:-1.65s}.presence.is-on .wr7{animation-delay:-1.95s}.presence.is-on .wr8{animation-delay:-2.25s}
+.presence.is-on .wr9{animation-delay:-2.55s}.presence.is-on .wr10{animation-delay:-2.85s}.presence.is-on .wr11{animation-delay:-3.15s}.presence.is-on .wr12{animation-delay:-3.45s}
+/* The deliberate ON/OFF pulse temporarily takes precedence, then the living ripple resumes. */
+.presence.wave-pulse .water-ring{animation:waterWave 1.65s cubic-bezier(.16,.62,.22,1) both!important}
+@keyframes ahkiLivingRipple{
+  0%,100%{transform:translate(-50%,-50%) scale(.992);opacity:.38}
+  38%{transform:translate(-50%,-50%) scale(1.008);opacity:.49}
+  68%{transform:translate(-50%,-50%) scale(1.020);opacity:.43}
+}
+@media(prefers-reduced-motion:reduce){.presence.is-on .water-ring{animation:none!important}}
+</style>
+
+<style id="ahki-mist-blue-continuous-v5">
+/* V6 — same mist blue-gray, brighter pearl-white ripple highlights, continuous outward propagation. */
+html,body{background:#c5d2dc!important}
+.presence{
+  background:
+    radial-gradient(ellipse at 48% 44%,rgba(238,245,248,.72) 0%,rgba(205,219,229,.72) 34%,rgba(171,190,205,.78) 72%,rgba(151,173,190,.88) 100%)!important;
+}
+.liquid-presence{
+  background:
+    radial-gradient(circle at 50% 50%,rgba(242,248,250,.78) 0%,rgba(216,228,236,.58) 24%,rgba(184,202,215,.38) 55%,rgba(157,180,197,.28) 100%)!important;
+  filter:none!important;
+}
+.water-sheen{
+  background:
+    radial-gradient(ellipse at 33% 25%,rgba(255,255,255,.44),transparent 34%),
+    radial-gradient(ellipse at 72% 67%,rgba(205,222,232,.28),transparent 40%),
+    radial-gradient(ellipse at 28% 78%,rgba(135,160,180,.16),transparent 39%)!important;
+  filter:blur(24px)!important;opacity:.78!important;
+}
+.water-ring{
+  border-color:rgba(247,251,253,.56)!important;
+  box-shadow:0 -1px 3px rgba(255,255,255,.48),0 2px 5px rgba(94,123,145,.10),inset 0 1px 2px rgba(255,255,255,.34),inset 0 -2px 4px rgba(92,121,143,.06),0 0 11px rgba(244,250,253,.18)!important;
+  opacity:.24!important;
+}
+.presence:not(.is-on) .water-ring{opacity:.19!important;animation:none!important}
+/* ON is directional propagation: each ridge repeatedly travels outward and fades,
+   with staggered phases creating an endless stream of new waves from the center. */
+.presence.is-on .water-ring{opacity:0!important;animation:ahkiOutwardRipple 8.4s cubic-bezier(.18,.45,.30,1) infinite!important}
+.presence.is-on .wr1{animation-delay:-0.00s!important}.presence.is-on .wr2{animation-delay:-0.70s!important}.presence.is-on .wr3{animation-delay:-1.40s!important}.presence.is-on .wr4{animation-delay:-2.10s!important}
+.presence.is-on .wr5{animation-delay:-2.80s!important}.presence.is-on .wr6{animation-delay:-3.50s!important}.presence.is-on .wr7{animation-delay:-4.20s!important}.presence.is-on .wr8{animation-delay:-4.90s!important}
+.presence.is-on .wr9{animation-delay:-5.60s!important}.presence.is-on .wr10{animation-delay:-6.30s!important}.presence.is-on .wr11{animation-delay:-7.00s!important}.presence.is-on .wr12{animation-delay:-7.70s!important}
+/* Initial touch uses the same water language; no separate tap-location circle. */
+.presence.wave-pulse .water-ring{animation:ahkiOutwardRipple 2.9s cubic-bezier(.14,.52,.24,1) 1 both!important}
+.presence.wave-pulse .wr1{animation-delay:0s!important;-webkit-animation-delay:0s!important}.presence.wave-pulse .wr2{animation-delay:.07s!important}.presence.wave-pulse .wr3{animation-delay:.14s!important}.presence.wave-pulse .wr4{animation-delay:.21s!important}.presence.wave-pulse .wr5{animation-delay:.28s!important}.presence.wave-pulse .wr6{animation-delay:.35s!important}.presence.wave-pulse .wr7{animation-delay:.42s!important}.presence.wave-pulse .wr8{animation-delay:.49s!important}.presence.wave-pulse .wr9{animation-delay:.56s!important}.presence.wave-pulse .wr10{animation-delay:.63s!important}.presence.wave-pulse .wr11{animation-delay:.70s!important}.presence.wave-pulse .wr12{animation-delay:.77s!important}
+@keyframes ahkiOutwardRipple{
+  0%{transform:translate(-50%,-50%) scale(.70);opacity:0}
+  10%{opacity:.27}
+  34%{opacity:.54}
+  72%{opacity:.29}
+  100%{transform:translate(-50%,-50%) scale(1.38);opacity:0}
+}
+/* Match every settings surface to the same quiet mist-water family. */
+#settingsShell,.settings-page{color:#24343f!important;background:
+ radial-gradient(circle at 18% 10%,rgba(238,246,249,.70),transparent 31%),
+ radial-gradient(circle at 86% 29%,rgba(180,201,215,.42),transparent 36%),
+ radial-gradient(circle at 44% 83%,rgba(216,228,235,.52),transparent 40%),
+ linear-gradient(145deg,#dbe5eb,#b9cad6 49%,#d2dee6)!important}
+.set-head{background:linear-gradient(rgba(218,229,235,.96) 72%,rgba(218,229,235,0))!important}
+.set-title,.set-brand,.set-main,.set-icon{color:#24343f!important}.set-kicker,.set-sub,.set-card p,.set-note,.muted{color:#5f7482!important}
+.set-group,.set-card{background:rgba(239,246,249,.42)!important;border-color:rgba(84,113,132,.20)!important;box-shadow:0 14px 38px rgba(61,88,106,.10),inset 0 1px 0 rgba(255,255,255,.56)!important;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+.set-row{color:#24343f!important;border-bottom-color:rgba(84,113,132,.15)!important}.set-chevron{color:#617b8b!important}.set-icon svg{stroke:#344b59!important}
+.set-back,.set-close{color:#344b59!important;border-color:rgba(79,109,128,.20)!important;background:rgba(239,246,249,.40)!important}
+.set-input{background:rgba(239,246,249,.46)!important;color:#24343f!important;border-color:rgba(79,109,128,.22)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.55)!important}
+.set-button{color:#24343f!important;border-color:rgba(79,109,128,.27)!important;background:linear-gradient(100deg,rgba(220,234,241,.70),rgba(181,203,217,.56),rgba(229,239,244,.68))!important}
+.radio{border-color:#78909e!important}.radio.on:after{background:#668ca4!important}.switch{background:rgba(112,140,158,.25)!important;border-color:rgba(79,109,128,.18)!important}.switch:after{background:#edf4f7!important}.switch.on{background:#789fb6!important}.switch.on:after{background:#f4f8fa!important}
+.usage-bar{background:rgba(79,109,128,.14)!important}.usage-fill{background:linear-gradient(90deg,#b8d0dd,#789db3,#d5e2e9)!important}.mini-line{border-bottom-color:rgba(79,109,128,.14)!important}.toast{background:rgba(232,241,246,.94)!important;color:#24343f!important;box-shadow:0 10px 30px rgba(55,82,99,.16)!important}
+@media(prefers-reduced-motion:reduce){.presence.is-on .water-ring{animation:none!important;opacity:.22!important}}
+</style>
+
+
+<style id="ahki-mist-blue-dark-ripple-v7">
+/* V7 — preserve the approved misty ocean field; make water ridges readable in blue. */
+.water-ring{
+  border-color:rgba(92,132,160,.34)!important;
+  box-shadow:
+    0 -1px 2px rgba(238,247,251,.30),
+    0 2px 5px rgba(62,103,132,.18),
+    inset 0 1px 1px rgba(242,249,252,.20),
+    inset 0 -2px 4px rgba(66,108,137,.14),
+    0 0 8px rgba(86,128,157,.08)!important;
+}
+.presence:not(.is-on) .water-ring{opacity:.10!important;animation:none!important}
+/* ON: one permanent outward wave train. No tap-pulse animation is allowed to replace it. */
+.presence.is-on .water-ring,
+.presence.is-on.wave-pulse .water-ring{
+  opacity:0!important;
+  animation:ahkiBlueOutwardV7 7.2s linear infinite!important;
+}
+.presence.is-on .wr1,.presence.is-on.wave-pulse .wr1{animation-delay:0s!important;-webkit-animation-delay:0s!important}
+.presence.is-on .wr2,.presence.is-on.wave-pulse .wr2{animation-delay:-4.8s!important;-webkit-animation-delay:-4.8s!important}
+.presence.is-on .wr3,.presence.is-on.wave-pulse .wr3{animation-delay:-9.6s!important;-webkit-animation-delay:-9.6s!important}
+.presence.is-on .wr4,.presence.is-on.wave-pulse .wr4{animation-delay:-14.4s!important;-webkit-animation-delay:-14.4s!important}
+.presence.is-on .wr5,.presence.is-on.wave-pulse .wr5{animation-delay:-19.2s!important;-webkit-animation-delay:-19.2s!important}
+.presence.is-on .wr6,.presence.is-on.wave-pulse .wr6{animation-delay:-24.0s!important;-webkit-animation-delay:-24.0s!important}
+.presence.is-on .wr7,.presence.is-on.wave-pulse .wr7{animation-delay:-28.8s!important;-webkit-animation-delay:-28.8s!important}
+.presence.is-on .wr8,.presence.is-on.wave-pulse .wr8{animation-delay:-33.6s!important;-webkit-animation-delay:-33.6s!important}
+.presence.is-on .wr9,.presence.is-on.wave-pulse .wr9{animation-delay:-38.4s!important;-webkit-animation-delay:-38.4s!important}
+.presence.is-on .wr10,.presence.is-on.wave-pulse .wr10{animation-delay:-43.2s!important;-webkit-animation-delay:-43.2s!important}
+.presence.is-on .wr11,.presence.is-on.wave-pulse .wr11{animation-delay:-48.0s!important;-webkit-animation-delay:-48.0s!important}
+.presence.is-on .wr12,.presence.is-on.wave-pulse .wr12{animation-delay:-52.8s!important;-webkit-animation-delay:-52.8s!important}
+@keyframes ahkiBlueOutwardV7{
+  0%{transform:translate(-50%,-50%) scale(.66);opacity:0}
+  8%{opacity:.26}
+  24%{opacity:.48}
+  52%{opacity:.42}
+  78%{opacity:.25}
+  100%{transform:translate(-50%,-50%) scale(1.42);opacity:0}
+}
+@media(prefers-reduced-motion:reduce){
+  .presence.is-on .water-ring,.presence.is-on.wave-pulse .water-ring{animation:none!important;opacity:.24!important}
+}
+</style>
+
+
+<style id="ahki-mist-blue-deep-ripple-v8">
+/* V8 — match approved mockup: clearly visible darker-blue water ridges on the same mist field. */
+.water-ring{
+  border-color:rgba(52,116,158,.72)!important;
+  box-shadow:
+    0 -1px 2px rgba(224,241,249,.42),
+    0 2px 4px rgba(37,88,124,.34),
+    inset 0 1px 1px rgba(236,247,252,.30),
+    inset 0 -2px 4px rgba(39,92,128,.28),
+    0 0 5px rgba(45,103,143,.16)!important;
+}
+.presence:not(.is-on) .water-ring{opacity:.13!important;animation:none!important}
+.presence.is-on .water-ring,.presence.is-on.wave-pulse .water-ring{
+  opacity:0!important;
+  animation:ahkiBlueOutwardV8 7.2s linear infinite!important;
+}
+@keyframes ahkiBlueOutwardV8{
+  0%{transform:translate(-50%,-50%) scale(.66);opacity:0}
+  7%{opacity:.42}
+  22%{opacity:.76}
+  52%{opacity:.68}
+  78%{opacity:.44}
+  100%{transform:translate(-50%,-50%) scale(1.42);opacity:0}
+}
+@media(prefers-reduced-motion:reduce){.presence.is-on .water-ring,.presence.is-on.wave-pulse .water-ring{animation:none!important;opacity:.48!important}}
+</style>
+
+
+
+<style id="ahki-continuous-water-train-v11">
+/* V11 — same V9/V10 visual geometry, slowed to one-third the V10 propagation speed. */
+/* V9 — ON is a true continuous center-out water wave train.
+   Every ridge is born at the center, travels to/past the viewport edge, and fades.
+   The 12 ridges are evenly phase-staggered, so the surface never becomes visually empty. */
+.presence.is-on .water-ring,
+.presence.is-on.wave-pulse .water-ring{
+  --wave-base:min(11vmin,88px);
+  width:var(--wave-base)!important;
+  height:var(--wave-base)!important;
+  border-color:rgba(52,116,158,.72)!important;
+  box-shadow:
+    0 -1px 2px rgba(224,241,249,.42),
+    0 2px 4px rgba(37,88,124,.34),
+    inset 0 1px 1px rgba(236,247,252,.30),
+    inset 0 -2px 4px rgba(39,92,128,.28),
+    0 0 5px rgba(45,103,143,.16)!important;
+  opacity:0;
+  animation:ahkiContinuousWaterV9 57.6s linear infinite!important;
+  -webkit-animation:ahkiContinuousWaterV9 57.6s linear infinite!important;
+  will-change:transform,opacity;
+}
+.presence.is-on .wr1,.presence.is-on.wave-pulse .wr1{animation-delay:0s!important;-webkit-animation-delay:0s!important}
+.presence.is-on .wr2,.presence.is-on.wave-pulse .wr2{animation-delay:-4.8s!important;-webkit-animation-delay:-4.8s!important}
+.presence.is-on .wr3,.presence.is-on.wave-pulse .wr3{animation-delay:-9.6s!important;-webkit-animation-delay:-9.6s!important}
+.presence.is-on .wr4,.presence.is-on.wave-pulse .wr4{animation-delay:-14.4s!important;-webkit-animation-delay:-14.4s!important}
+.presence.is-on .wr5,.presence.is-on.wave-pulse .wr5{animation-delay:-19.2s!important;-webkit-animation-delay:-19.2s!important}
+.presence.is-on .wr6,.presence.is-on.wave-pulse .wr6{animation-delay:-24.0s!important;-webkit-animation-delay:-24.0s!important}
+.presence.is-on .wr7,.presence.is-on.wave-pulse .wr7{animation-delay:-28.8s!important;-webkit-animation-delay:-28.8s!important}
+.presence.is-on .wr8,.presence.is-on.wave-pulse .wr8{animation-delay:-33.6s!important;-webkit-animation-delay:-33.6s!important}
+.presence.is-on .wr9,.presence.is-on.wave-pulse .wr9{animation-delay:-38.4s!important;-webkit-animation-delay:-38.4s!important}
+.presence.is-on .wr10,.presence.is-on.wave-pulse .wr10{animation-delay:-43.2s!important;-webkit-animation-delay:-43.2s!important}
+.presence.is-on .wr11,.presence.is-on.wave-pulse .wr11{animation-delay:-48.0s!important;-webkit-animation-delay:-48.0s!important}
+.presence.is-on .wr12,.presence.is-on.wave-pulse .wr12{animation-delay:-52.8s!important;-webkit-animation-delay:-52.8s!important}
+@-webkit-keyframes ahkiContinuousWaterV9{
+  0%{transform:translate(-50%,-50%) scale(.32);opacity:0}
+  5%{opacity:.34}
+  13%{opacity:.76}
+  48%{opacity:.68}
+  76%{opacity:.48}
+  94%{opacity:.20}
+  100%{transform:translate(-50%,-50%) scale(15.5);opacity:0}
+}
+@keyframes ahkiContinuousWaterV9{
+  0%{transform:translate(-50%,-50%) scale(.32);opacity:0}
+  5%{opacity:.34}
+  13%{opacity:.76}
+  48%{opacity:.68}
+  76%{opacity:.48}
+  94%{opacity:.20}
+  100%{transform:translate(-50%,-50%) scale(15.5);opacity:0}
+}
+/* A tap may still trigger the session, but it must never replace/pause the permanent ON wave train. */
+.presence.is-on.ripple-tap .touch-ripple{display:none!important;animation:none!important}
+@media(prefers-reduced-motion:reduce){
+  .presence.is-on .water-ring,.presence.is-on.wave-pulse .water-ring{
+    animation:ahkiContinuousWaterV9 84s linear infinite!important;
+    -webkit-animation:ahkiContinuousWaterV9 84s linear infinite!important;
+  }
+}</style>
+
+<style id="ahki-ocean-presence-v12">
+/* V12 — ringless atmospheric presence. Interaction/session logic is unchanged. */
+html,body{background:#c7d6e1!important}
+.presence{
+  background:
+    radial-gradient(ellipse at 50% 46%,rgba(242,248,251,.92) 0%,rgba(218,231,239,.86) 30%,rgba(190,209,222,.92) 67%,rgba(174,196,212,.98) 100%)!important;
+  transition:background 1.8s ease!important;
+}
+/* Existing water/ripple geometry remains structurally present but has no visible or animated role. */
+.water-ring,.touch-ripple,.milk-ring,.milk-center{display:none!important;opacity:0!important;animation:none!important;-webkit-animation:none!important}
+.liquid-presence{
+  inset:0!important;
+  background:
+    radial-gradient(ellipse at 50% 48%,rgba(248,252,253,.72) 0%,rgba(225,236,242,.46) 27%,rgba(190,210,222,.22) 58%,rgba(154,181,200,.12) 100%)!important;
+  transition:background 1.8s ease,filter 1.8s ease!important;
+}
+.water-sheen{
+  inset:-16%!important;
+  background:
+    radial-gradient(ellipse at 34% 26%,rgba(255,255,255,.42),transparent 36%),
+    radial-gradient(ellipse at 72% 66%,rgba(178,204,219,.25),transparent 42%),
+    radial-gradient(ellipse at 28% 80%,rgba(126,159,180,.14),transparent 42%)!important;
+  filter:blur(38px)!important;opacity:.68!important;animation:none!important;
+  transition:background 1.8s ease,opacity 1.8s ease!important;
+}
+/* ON: the whole field deepens into ocean blue. The center is only a diffuse presence — never a drawn orb. */
+.presence.is-on{
+  background:
+    radial-gradient(ellipse at 50% 48%,#75c6eb 0%,#429bd0 30%,#247ab6 62%,#155e98 100%)!important;
+}
+.presence.is-on .liquid-presence{
+  background:
+    radial-gradient(ellipse at 50% 49%,rgba(190,239,250,.90) 0%,rgba(102,202,235,.68) 16%,rgba(39,145,199,.35) 38%,rgba(15,93,153,.12) 66%,transparent 84%)!important;
+}
+.presence.is-on .water-sheen{
+  background:
+    radial-gradient(ellipse at 34% 25%,rgba(219,249,255,.28),transparent 38%),
+    radial-gradient(ellipse at 70% 67%,rgba(55,180,222,.24),transparent 42%),
+    radial-gradient(ellipse at 28% 80%,rgba(5,67,124,.22),transparent 43%)!important;
+  opacity:.72!important;
+}
+/* Soft atmospheric core: broad, blurred and intentionally without a visible boundary. */
+.presence:after{
+  content:"";position:absolute;z-index:2;left:50%;top:49%;width:min(70vmin,720px);aspect-ratio:1;
+  transform:translate(-50%,-50%) scale(.92);border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(250,253,255,.30) 0%,rgba(231,247,251,.18) 24%,rgba(167,211,230,.08) 48%,transparent 72%);
+  filter:blur(30px);opacity:.38;transition:opacity 1.8s ease,transform 2.4s ease,filter 1.8s ease;
+}
+.presence.is-on:after{
+  background:radial-gradient(circle,rgba(225,252,255,.58) 0%,rgba(135,224,244,.32) 24%,rgba(45,161,210,.13) 49%,transparent 73%);
+  filter:blur(34px);opacity:.82;transform:translate(-50%,-50%) scale(1.05);
+}
+/* Keep all former identity/control artwork invisible. The surface itself remains the control. */
+.mark,.ahki-wordmark,.aqui-title,.eyes,.talk-control,.top-compose,.action-row{display:none!important;visibility:hidden!important;pointer-events:none!important}
+
+/* Settings/subpages use the same ocean-mist family, with readable dark ink and translucent glass. */
+#settingsShell,.settings-page{color:#18384d!important;background:
+  radial-gradient(circle at 18% 9%,rgba(239,249,252,.70),transparent 31%),
+  radial-gradient(circle at 87% 28%,rgba(102,183,218,.32),transparent 38%),
+  radial-gradient(circle at 45% 84%,rgba(188,220,233,.44),transparent 42%),
+  linear-gradient(145deg,#dceaf1,#a9cbdc 48%,#c9dfe9)!important}
+.set-head{background:linear-gradient(rgba(215,232,240,.95) 72%,rgba(215,232,240,0))!important}
+.set-title,.set-brand,.set-main,.set-icon{color:#18384d!important}.set-kicker,.set-sub,.set-card p,.set-note,.muted{color:#557488!important}
+.set-group,.set-card{background:rgba(241,249,252,.44)!important;border-color:rgba(44,105,139,.20)!important;box-shadow:0 14px 38px rgba(34,83,111,.11),inset 0 1px 0 rgba(255,255,255,.66)!important;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+.set-row{color:#18384d!important;border-bottom-color:rgba(44,105,139,.15)!important}.set-chevron{color:#557b91!important}.set-icon svg{stroke:#284f65!important}
+.set-back,.set-close{color:#284f65!important;border-color:rgba(44,105,139,.20)!important;background:rgba(239,248,251,.42)!important}
+.set-input{background:rgba(244,250,252,.52)!important;color:#18384d!important;border-color:rgba(44,105,139,.22)!important}
+.set-button{color:#17384d!important;border-color:rgba(44,105,139,.25)!important;background:linear-gradient(100deg,rgba(224,241,248,.76),rgba(155,205,226,.56),rgba(218,238,247,.72))!important}
+.radio{border-color:#688ca1!important}.radio.on:after{background:#277fae!important}.switch{background:rgba(74,128,157,.24)!important;border-color:rgba(44,105,139,.18)!important}.switch:after{background:#edf7fa!important}.switch.on{background:#378fba!important}.switch.on:after{background:#f6fbfd!important}
+.usage-bar{background:rgba(44,105,139,.14)!important}.usage-fill{background:linear-gradient(90deg,#9dcbdf,#398db7,#c6e1eb)!important}.mini-line{border-bottom-color:rgba(44,105,139,.14)!important}.toast{background:rgba(228,242,248,.95)!important;color:#18384d!important}
+</style>
+
+<style id="ahki-ocean-living-presence-v13">
+/* V13 — one calm ocean field. OFF has no focal source; ON wakes a subtly living light. */
+html,body{background:#155e98!important}
+.presence,
+.presence.is-on{
+  background:
+    radial-gradient(ellipse at 50% 48%,#75c6eb 0%,#429bd0 30%,#247ab6 62%,#155e98 100%)!important;
+  transition:background 1.8s ease!important;
+}
+.liquid-presence,
+.presence.is-on .liquid-presence{
+  background:none!important;
+  opacity:0!important;
+  animation:none!important;
+  -webkit-animation:none!important;
+}
+.water-sheen,
+.presence.is-on .water-sheen{
+  background:
+    radial-gradient(ellipse at 34% 25%,rgba(219,249,255,.20),transparent 38%),
+    radial-gradient(ellipse at 70% 67%,rgba(55,180,222,.18),transparent 42%),
+    radial-gradient(ellipse at 28% 80%,rgba(5,67,124,.18),transparent 43%)!important;
+  opacity:.58!important;
+  animation:none!important;
+  -webkit-animation:none!important;
+}
+/* No visible center while dormant. */
+.presence:after{
+  width:min(54vmin,560px)!important;
+  background:radial-gradient(circle,rgba(225,252,255,.54) 0%,rgba(135,224,244,.29) 25%,rgba(45,161,210,.11) 50%,transparent 73%)!important;
+  filter:blur(36px)!important;
+  opacity:0!important;
+  transform:translate(-50%,-50%) scale(.94)!important;
+  animation:none!important;
+  -webkit-animation:none!important;
+  transition:opacity 1.7s ease,filter 1.7s ease,transform 1.7s ease!important;
+}
+/* Awake: a source rather than an orb — extremely slow, low-amplitude organic motion. */
+.presence.is-on:after{
+  opacity:.78!important;
+  animation:ahkiLivingSourceV13 14s ease-in-out infinite alternate!important;
+  -webkit-animation:ahkiLivingSourceV13 14s ease-in-out infinite alternate!important;
+}
+@keyframes ahkiLivingSourceV13{
+  0%{transform:translate(-50%,-50%) translate3d(-3px,2px,0) scale(.985);filter:blur(38px);opacity:.72}
+  35%{transform:translate(-50%,-50%) translate3d(2px,-3px,0) scale(1.015);filter:blur(34px);opacity:.80}
+  68%{transform:translate(-50%,-50%) translate3d(4px,2px,0) scale(1.035);filter:blur(37px);opacity:.76}
+  100%{transform:translate(-50%,-50%) translate3d(-2px,-2px,0) scale(1.005);filter:blur(35px);opacity:.82}
+}
+@-webkit-keyframes ahkiLivingSourceV13{
+  0%{transform:translate(-50%,-50%) translate3d(-3px,2px,0) scale(.985);filter:blur(38px);opacity:.72}
+  35%{transform:translate(-50%,-50%) translate3d(2px,-3px,0) scale(1.015);filter:blur(34px);opacity:.80}
+  68%{transform:translate(-50%,-50%) translate3d(4px,2px,0) scale(1.035);filter:blur(37px);opacity:.76}
+  100%{transform:translate(-50%,-50%) translate3d(-2px,-2px,0) scale(1.005);filter:blur(35px);opacity:.82}
+}
+@media(prefers-reduced-motion:reduce){
+  .presence.is-on:after{animation:none!important;-webkit-animation:none!important;transform:translate(-50%,-50%) scale(1.01)!important;opacity:.76!important}
+}
+</style>
+
+
+<style id="ahki-ocean-awake-source-v14">
+/* V14 — preserve the V13 ocean floor; make ON unmistakably awake.
+   The center is layered light, not a hard-edged graphic orb. */
+.presence{isolation:isolate!important}
+
+/* Dormant ocean: no center source at all. */
+.liquid-presence{
+  display:block!important;position:absolute!important;inset:0!important;z-index:1!important;
+  opacity:0!important;background:none!important;filter:none!important;
+  transition:opacity 1.15s ease!important;overflow:visible!important;
+}
+.liquid-presence:before,.liquid-presence:after{
+  content:"";position:absolute;left:50%;top:49%;border-radius:50%;pointer-events:none;
+  opacity:0;transform:translate(-50%,-50%) scale(.72);
+}
+
+/* Awake source: a compact pearl-white nucleus plus a broad cyan aura. */
+.presence.is-on .liquid-presence{opacity:1!important}
+.presence.is-on .liquid-presence:before{
+  width:min(23vmin,235px);aspect-ratio:1;
+  background:radial-gradient(circle at 47% 43%,
+    rgba(255,255,255,1) 0 13%,
+    rgba(245,254,255,.99) 21%,
+    rgba(207,248,255,.96) 34%,
+    rgba(118,225,249,.72) 50%,
+    rgba(42,177,226,.30) 67%,
+    rgba(25,139,198,.08) 79%,transparent 84%);
+  box-shadow:0 0 18px rgba(255,255,255,.98),0 0 46px rgba(207,249,255,.92),0 0 92px rgba(87,220,250,.66),0 0 155px rgba(24,161,219,.34);
+  filter:blur(1.4px);opacity:.98;
+  animation:ahkiNucleusAliveV14 7.2s cubic-bezier(.45,.04,.35,1) infinite;
+}
+.presence.is-on .liquid-presence:after{
+  width:min(54vmin,560px);aspect-ratio:1;
+  background:radial-gradient(circle,rgba(240,254,255,.58) 0%,rgba(175,241,253,.42) 18%,rgba(83,207,239,.24) 38%,rgba(25,145,204,.10) 59%,transparent 76%);
+  filter:blur(22px);opacity:.88;
+  animation:ahkiAuraAliveV14 10.8s ease-in-out infinite alternate;
+}
+
+/* Replace V13's single diffuse light with a second soft living envelope. */
+.presence.is-on:after{
+  width:min(68vmin,700px)!important;
+  background:radial-gradient(circle,rgba(224,251,255,.38) 0%,rgba(125,225,246,.24) 24%,rgba(42,170,218,.11) 48%,transparent 73%)!important;
+  filter:blur(30px)!important;opacity:.78!important;
+  animation:ahkiEnvelopeAliveV14 12.5s ease-in-out infinite!important;
+}
+
+@keyframes ahkiNucleusAliveV14{
+  0%,100%{transform:translate(-50%,-50%) translate3d(-2px,1px,0) scale(.90,.94);filter:blur(1.7px);opacity:.91}
+  18%{transform:translate(-50%,-50%) translate3d(1px,-2px,0) scale(1.04,.98);filter:blur(.8px);opacity:1}
+  43%{transform:translate(-50%,-50%) translate3d(3px,1px,0) scale(.97,1.07);filter:blur(1.3px);opacity:.95}
+  67%{transform:translate(-50%,-50%) translate3d(-1px,3px,0) scale(1.08,1.02);filter:blur(.7px);opacity:1}
+  84%{transform:translate(-50%,-50%) translate3d(-3px,-1px,0) scale(.96,.99);filter:blur(1.5px);opacity:.94}
+}
+@keyframes ahkiAuraAliveV14{
+  0%{transform:translate(-50%,-50%) translate3d(-5px,3px,0) scale(.91,.96);opacity:.70}
+  48%{transform:translate(-50%,-50%) translate3d(4px,-4px,0) scale(1.07,1.02);opacity:.94}
+  100%{transform:translate(-50%,-50%) translate3d(-2px,5px,0) scale(.98,1.08);opacity:.78}
+}
+@keyframes ahkiEnvelopeAliveV14{
+  0%,100%{transform:translate(-50%,-50%) translate3d(-4px,2px,0) scale(.94);opacity:.62}
+  33%{transform:translate(-50%,-50%) translate3d(3px,-4px,0) scale(1.035);opacity:.82}
+  66%{transform:translate(-50%,-50%) translate3d(5px,3px,0) scale(1.075);opacity:.70}
+}
+@media(prefers-reduced-motion:reduce){
+ .presence.is-on .liquid-presence:before,.presence.is-on .liquid-presence:after,.presence.is-on:after{animation:none!important}
+}
+</style>
+
+\n<style id="ahki-v17-sky-mist-system">\n/* V17 — one visual world: luminous blue sky/ocean atmosphere + glacially slow mist. */\n.presence{isolation:isolate!important}\n.presence .ambient{\n  display:block!important;position:absolute!important;inset:-18%!important;z-index:0!important;pointer-events:none!important;opacity:.50!important;\n  background:\n    radial-gradient(ellipse at 15% 24%,rgba(224,249,255,.22) 0 9%,rgba(185,231,245,.10) 20%,transparent 42%),\n    radial-gradient(ellipse at 82% 66%,rgba(220,247,255,.18) 0 8%,rgba(158,218,240,.08) 22%,transparent 44%),\n    radial-gradient(ellipse at 45% 92%,rgba(235,251,255,.12),transparent 38%)!important;\n  filter:blur(38px)!important;transform:translate3d(-2%,0,0) scale(1.08)!important;\n  animation:ahkiSkyMistDriftV17 78s ease-in-out infinite alternate!important;will-change:transform,opacity!important;\n}\n.presence .ambient:before,.presence .ambient:after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:45%;}\n.presence .ambient:before{\n  background:linear-gradient(118deg,transparent 12%,rgba(229,250,255,.11) 30%,rgba(195,236,249,.06) 45%,transparent 63%)!important;\n  filter:blur(52px);opacity:.58;transform:translate3d(-8%,4%,0) rotate(-5deg);\n  animation:ahkiVeilOneV17 96s ease-in-out infinite alternate!important;\n}\n.presence .ambient:after{\n  background:linear-gradient(145deg,transparent 30%,rgba(224,248,255,.08) 48%,rgba(180,229,246,.06) 58%,transparent 76%)!important;\n  filter:blur(60px);opacity:.48;transform:translate3d(8%,-5%,0) rotate(7deg);\n  animation:ahkiVeilTwoV17 112s ease-in-out infinite alternate!important;\n}\n@keyframes ahkiSkyMistDriftV17{0%{transform:translate3d(-3%,-1%,0) scale(1.08);opacity:.42}50%{opacity:.54}100%{transform:translate3d(3%,1.5%,0) scale(1.11);opacity:.47}}\n@keyframes ahkiVeilOneV17{from{transform:translate3d(-9%,4%,0) rotate(-5deg) scale(1.02)}to{transform:translate3d(7%,-2%,0) rotate(-2deg) scale(1.08)}}\n@keyframes ahkiVeilTwoV17{from{transform:translate3d(8%,-5%,0) rotate(7deg) scale(1.08)}to{transform:translate3d(-6%,4%,0) rotate(3deg) scale(1.02)}}\n/* Settings and every swipe/subpage stay in the same blue atmospheric world — no secondary orb. */\n#settingsShell,.settings-page{\n  color:#eefaff!important;position:relative!important;isolation:isolate!important;\n  background:\n    radial-gradient(ellipse at 18% 12%,rgba(127,211,242,.34),transparent 34%),\n    radial-gradient(ellipse at 82% 52%,rgba(70,177,224,.24),transparent 42%),\n    radial-gradient(ellipse at 38% 92%,rgba(165,224,244,.18),transparent 42%),\n    linear-gradient(155deg,#1471ae 0%,#248bc5 42%,#12669f 100%)!important;\n}\n#settingsShell:before,.settings-page:before{\n  content:"";position:fixed;inset:-18%;z-index:-1;pointer-events:none;\n  background:\n    radial-gradient(ellipse at 10% 28%,rgba(235,251,255,.18),transparent 30%),\n    radial-gradient(ellipse at 88% 66%,rgba(221,248,255,.14),transparent 34%),\n    linear-gradient(128deg,transparent 18%,rgba(227,249,255,.07) 39%,transparent 61%);\n  filter:blur(44px);opacity:.72;animation:ahkiSettingsMistV17 92s ease-in-out infinite alternate;\n}\n@keyframes ahkiSettingsMistV17{from{transform:translate3d(-4%,-1%,0) scale(1.05)}to{transform:translate3d(4%,2%,0) scale(1.10)}}\n.set-head{background:linear-gradient(rgba(20,112,173,.84) 68%,rgba(20,112,173,0))!important}\n.set-title,.set-brand,.set-main,.set-icon{color:#f2fbff!important}.set-kicker,.set-sub,.set-card p,.set-note,.muted{color:rgba(225,245,253,.74)!important}\n.set-group,.set-card{background:rgba(182,226,243,.13)!important;border-color:rgba(229,249,255,.25)!important;box-shadow:0 18px 46px rgba(4,55,95,.16),inset 0 1px 0 rgba(255,255,255,.27)!important;backdrop-filter:blur(24px) saturate(118%);-webkit-backdrop-filter:blur(24px) saturate(118%)}\n.set-row{color:#f2fbff!important;border-bottom-color:rgba(225,247,255,.16)!important}.set-chevron{color:rgba(226,248,255,.72)!important}.set-icon svg{stroke:#effbff!important}\n.set-back,.set-close{color:#f2fbff!important;border-color:rgba(231,249,255,.25)!important;background:rgba(187,230,246,.13)!important;backdrop-filter:blur(16px)}\n.set-input{background:rgba(200,235,248,.13)!important;color:#f5fcff!important;border-color:rgba(231,249,255,.24)!important}.set-input::placeholder{color:rgba(224,245,253,.50)!important}\n.set-button{color:#f5fcff!important;border-color:rgba(231,249,255,.26)!important;background:linear-gradient(100deg,rgba(189,231,247,.18),rgba(104,196,232,.20),rgba(201,236,249,.16))!important}\n.radio{border-color:rgba(233,250,255,.78)!important}.radio.on:after{background:#f5fdff!important}.switch{background:rgba(218,244,252,.16)!important;border-color:rgba(236,251,255,.20)!important}.switch:after{background:#eaf9fe!important}.switch.on{background:#52b9e2!important}.switch.on:after{background:#fff!important}\n.usage-bar{background:rgba(222,246,253,.15)!important}.usage-fill{background:linear-gradient(90deg,#d9f7ff,#73d8f5,#eefcff)!important}.mini-line{border-bottom-color:rgba(230,249,255,.14)!important}.toast{background:rgba(21,101,157,.90)!important;color:#f4fcff!important}\n@media(prefers-reduced-motion:reduce){.presence .ambient,.presence .ambient:before,.presence .ambient:after,#settingsShell:before,.settings-page:before{animation:none!important}}\n</style>\n
+</body>
+</html>
