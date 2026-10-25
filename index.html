@@ -299,6 +299,160 @@ html,body{background:#f7f4ee!important;color:#252525!important}
 }
 </style>
 
+
+<style id="ahki-v19-unified-blue">
+/* V19 — ONE CONTINUOUS OCEAN-BLUE WORLD
+   Settings and every settings subpage retain the same base environment as the
+   main/off screen. Only controls/cards receive restrained blue glass. */
+
+#settings,
+.settings,
+.settings-overlay,
+.settings-shell,
+.settings-wrap,
+.settings-panel,
+.settings-page,
+[data-settings],
+[data-page] {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* The settings overlay itself no longer lays a pale/white veil over the app. */
+#settingsOverlay,
+.settings-overlay,
+.settings-modal,
+.settings-layer {
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(99,211,244,.12) 0%, rgba(34,153,216,.07) 32%, rgba(5,86,159,.04) 62%, transparent 82%) !important;
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Main settings surface: deep transparent blue glass, not white frost. */
+.settings-sheet,
+.settings-card,
+.set-card,
+.set-group,
+.settings-panel,
+.settings-page > .set-group,
+.settings-page > .set-card {
+  background: linear-gradient(180deg,
+    rgba(16,125,199,.34) 0%,
+    rgba(4,91,166,.30) 100%) !important;
+  border: 1px solid rgba(170,232,255,.22) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 14px 42px rgba(0,51,108,.10) !important;
+  backdrop-filter: blur(14px) saturate(112%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(112%) !important;
+}
+
+/* Root list remains one coherent glass card, matching the approved mockup. */
+.set-group {
+  overflow: hidden !important;
+  border-radius: 28px !important;
+}
+
+/* Rows are transparent blue, separated by subtle luminous rules. */
+.set-row {
+  background: rgba(12,111,188,.18) !important;
+  color: rgba(245,252,255,.98) !important;
+  border-color: rgba(185,233,251,.18) !important;
+}
+.set-row + .set-row {
+  border-top: 1px solid rgba(185,233,251,.18) !important;
+}
+.set-row:active {
+  background: rgba(66,174,230,.25) !important;
+}
+
+/* Typography: bright enough to read, still soft. */
+.set-main,
+.set-title,
+.settings-page h2,
+.settings-page h3,
+#settings h1,
+#settings h2,
+#settings h3 {
+  color: rgba(247,252,255,.98) !important;
+}
+.set-sub,
+.set-note,
+.settings-page p,
+.settings-page label {
+  color: rgba(215,239,250,.76) !important;
+}
+.set-icon,
+.set-chevron,
+.set-back {
+  color: rgba(235,249,255,.92) !important;
+}
+
+/* AHKI/settings heading glass area stays blue rather than pale. */
+.set-head,
+.settings-header,
+.settings-top {
+  background: rgba(9,100,177,.14) !important;
+  color: rgba(247,252,255,.98) !important;
+  border-color: rgba(190,236,255,.16) !important;
+}
+
+/* Inputs/buttons/sub-controls stay within the same blue material system. */
+.set-input,
+.settings-page input,
+.settings-page select,
+.settings-page textarea {
+  background: rgba(3,78,148,.34) !important;
+  color: rgba(248,253,255,.98) !important;
+  border: 1px solid rgba(184,234,253,.24) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05) !important;
+}
+.set-input::placeholder,
+.settings-page input::placeholder,
+.settings-page textarea::placeholder {
+  color: rgba(205,234,247,.52) !important;
+}
+.set-button,
+.settings-page button:not(.set-row):not(.set-back) {
+  background: rgba(38,155,219,.28) !important;
+  color: rgba(248,253,255,.98) !important;
+  border-color: rgba(190,238,255,.26) !important;
+}
+
+/* Ensure any legacy pale pseudo-overlays cannot wash the settings canvas out. */
+#settings::before,
+#settings::after,
+.settings::before,
+.settings::after,
+.settings-overlay::before,
+.settings-overlay::after,
+.settings-page::before,
+.settings-page::after {
+  background-color: transparent !important;
+}
+
+/* Keep the live orb out of settings visually while preserving the live session. */
+body.settings-open .orb,
+body.settings-open #orb,
+body.settings-open .presence,
+body.settings-open .source {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* On compact phones, keep panels readable without turning them opaque. */
+@media (max-width: 600px) {
+  .set-group,
+  .set-card {
+    background: linear-gradient(180deg,
+      rgba(13,116,190,.32),
+      rgba(4,87,160,.28)) !important;
+  }
+}
+</style>
+
 </head>
 <body>
 <main id="app" class="presence" aria-label="AHKI">
