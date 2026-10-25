@@ -270,6 +270,35 @@ html,body{background:#f7f4ee!important;color:#252525!important}
 </style>
 
 
+
+<style id="ahki-ocean-awake-source-v15-large">
+/* V15 — larger conversational source, matched to the approved zoomed reference.
+   Scale the source geometry itself (not the page) so the pearl edge and glow stay crisp. */
+.presence.is-on .liquid-presence:before{
+  width:min(38vmin,390px)!important;
+  background:radial-gradient(circle at 47% 43%,
+    rgba(255,255,255,1) 0 13%,
+    rgba(248,255,255,1) 21%,
+    rgba(213,249,255,.98) 34%,
+    rgba(126,227,249,.76) 50%,
+    rgba(43,178,226,.32) 67%,
+    rgba(25,139,198,.08) 79%,transparent 84%)!important;
+  box-shadow:0 0 20px rgba(255,255,255,.98),0 0 50px rgba(207,249,255,.92),0 0 100px rgba(87,220,250,.64),0 0 170px rgba(24,161,219,.32)!important;
+  filter:blur(1.05px)!important;
+}
+.presence.is-on .liquid-presence:after{
+  width:min(67vmin,690px)!important;
+  filter:blur(23px)!important;
+}
+.presence.is-on:after{
+  width:min(80vmin,820px)!important;
+  filter:blur(31px)!important;
+}
+@media(max-height:620px){
+  .presence.is-on .liquid-presence:before{width:min(34vmin,350px)!important}
+}
+</style>
+
 </head>
 <body>
 <main id="app" class="presence" aria-label="AHKI">
