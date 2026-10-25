@@ -1403,7 +1403,7 @@ html,body{background:#c5d2dc!important}
 .presence.is-on .wr9{animation-delay:-5.60s!important}.presence.is-on .wr10{animation-delay:-6.30s!important}.presence.is-on .wr11{animation-delay:-7.00s!important}.presence.is-on .wr12{animation-delay:-7.70s!important}
 /* Initial touch uses the same water language; no separate tap-location circle. */
 .presence.wave-pulse .water-ring{animation:ahkiOutwardRipple 2.9s cubic-bezier(.14,.52,.24,1) 1 both!important}
-.presence.wave-pulse .wr1{animation-delay:0s!important}.presence.wave-pulse .wr2{animation-delay:.07s!important}.presence.wave-pulse .wr3{animation-delay:.14s!important}.presence.wave-pulse .wr4{animation-delay:.21s!important}.presence.wave-pulse .wr5{animation-delay:.28s!important}.presence.wave-pulse .wr6{animation-delay:.35s!important}.presence.wave-pulse .wr7{animation-delay:.42s!important}.presence.wave-pulse .wr8{animation-delay:.49s!important}.presence.wave-pulse .wr9{animation-delay:.56s!important}.presence.wave-pulse .wr10{animation-delay:.63s!important}.presence.wave-pulse .wr11{animation-delay:.70s!important}.presence.wave-pulse .wr12{animation-delay:.77s!important}
+.presence.wave-pulse .wr1{animation-delay:0s!important;-webkit-animation-delay:0s!important}.presence.wave-pulse .wr2{animation-delay:.07s!important}.presence.wave-pulse .wr3{animation-delay:.14s!important}.presence.wave-pulse .wr4{animation-delay:.21s!important}.presence.wave-pulse .wr5{animation-delay:.28s!important}.presence.wave-pulse .wr6{animation-delay:.35s!important}.presence.wave-pulse .wr7{animation-delay:.42s!important}.presence.wave-pulse .wr8{animation-delay:.49s!important}.presence.wave-pulse .wr9{animation-delay:.56s!important}.presence.wave-pulse .wr10{animation-delay:.63s!important}.presence.wave-pulse .wr11{animation-delay:.70s!important}.presence.wave-pulse .wr12{animation-delay:.77s!important}
 @keyframes ahkiOutwardRipple{
   0%{transform:translate(-50%,-50%) scale(.70);opacity:0}
   10%{opacity:.27}
@@ -1448,7 +1448,7 @@ html,body{background:#c5d2dc!important}
   opacity:0!important;
   animation:ahkiBlueOutwardV7 7.2s linear infinite!important;
 }
-.presence.is-on .wr1,.presence.is-on.wave-pulse .wr1{animation-delay:0s!important}
+.presence.is-on .wr1,.presence.is-on.wave-pulse .wr1{animation-delay:0s!important;-webkit-animation-delay:0s!important}
 .presence.is-on .wr2,.presence.is-on.wave-pulse .wr2{animation-delay:-.60s!important}
 .presence.is-on .wr3,.presence.is-on.wave-pulse .wr3{animation-delay:-1.20s!important}
 .presence.is-on .wr4,.presence.is-on.wave-pulse .wr4{animation-delay:-1.80s!important}
@@ -1520,21 +1520,31 @@ html,body{background:#c5d2dc!important}
     inset 0 -2px 4px rgba(39,92,128,.28),
     0 0 5px rgba(45,103,143,.16)!important;
   opacity:0;
-  animation:ahkiContinuousWaterV9 9.6s linear infinite!important;
+  animation:ahkiContinuousWaterV9 19.2s linear infinite!important;
+  -webkit-animation:ahkiContinuousWaterV9 19.2s linear infinite!important;
   will-change:transform,opacity;
 }
-.presence.is-on .wr1,.presence.is-on.wave-pulse .wr1{animation-delay:0s!important}
-.presence.is-on .wr2,.presence.is-on.wave-pulse .wr2{animation-delay:-.8s!important}
-.presence.is-on .wr3,.presence.is-on.wave-pulse .wr3{animation-delay:-1.6s!important}
-.presence.is-on .wr4,.presence.is-on.wave-pulse .wr4{animation-delay:-2.4s!important}
-.presence.is-on .wr5,.presence.is-on.wave-pulse .wr5{animation-delay:-3.2s!important}
-.presence.is-on .wr6,.presence.is-on.wave-pulse .wr6{animation-delay:-4.0s!important}
-.presence.is-on .wr7,.presence.is-on.wave-pulse .wr7{animation-delay:-4.8s!important}
-.presence.is-on .wr8,.presence.is-on.wave-pulse .wr8{animation-delay:-5.6s!important}
-.presence.is-on .wr9,.presence.is-on.wave-pulse .wr9{animation-delay:-6.4s!important}
-.presence.is-on .wr10,.presence.is-on.wave-pulse .wr10{animation-delay:-7.2s!important}
-.presence.is-on .wr11,.presence.is-on.wave-pulse .wr11{animation-delay:-8.0s!important}
-.presence.is-on .wr12,.presence.is-on.wave-pulse .wr12{animation-delay:-8.8s!important}
+.presence.is-on .wr1,.presence.is-on.wave-pulse .wr1{animation-delay:0s!important;-webkit-animation-delay:0s!important}
+.presence.is-on .wr2,.presence.is-on.wave-pulse .wr2{animation-delay:-1.6s!important;-webkit-animation-delay:-1.6s!important}
+.presence.is-on .wr3,.presence.is-on.wave-pulse .wr3{animation-delay:-3.2s!important;-webkit-animation-delay:-3.2s!important}
+.presence.is-on .wr4,.presence.is-on.wave-pulse .wr4{animation-delay:-4.8s!important;-webkit-animation-delay:-4.8s!important}
+.presence.is-on .wr5,.presence.is-on.wave-pulse .wr5{animation-delay:-6.4s!important;-webkit-animation-delay:-6.4s!important}
+.presence.is-on .wr6,.presence.is-on.wave-pulse .wr6{animation-delay:-8.0s!important;-webkit-animation-delay:-8.0s!important}
+.presence.is-on .wr7,.presence.is-on.wave-pulse .wr7{animation-delay:-9.6s!important;-webkit-animation-delay:-9.6s!important}
+.presence.is-on .wr8,.presence.is-on.wave-pulse .wr8{animation-delay:-11.2s!important;-webkit-animation-delay:-11.2s!important}
+.presence.is-on .wr9,.presence.is-on.wave-pulse .wr9{animation-delay:-12.8s!important;-webkit-animation-delay:-12.8s!important}
+.presence.is-on .wr10,.presence.is-on.wave-pulse .wr10{animation-delay:-14.4s!important;-webkit-animation-delay:-14.4s!important}
+.presence.is-on .wr11,.presence.is-on.wave-pulse .wr11{animation-delay:-16.0s!important;-webkit-animation-delay:-16.0s!important}
+.presence.is-on .wr12,.presence.is-on.wave-pulse .wr12{animation-delay:-17.6s!important;-webkit-animation-delay:-17.6s!important}
+@-webkit-keyframes ahkiContinuousWaterV9{
+  0%{transform:translate(-50%,-50%) scale(.32);opacity:0}
+  5%{opacity:.34}
+  13%{opacity:.76}
+  48%{opacity:.68}
+  76%{opacity:.48}
+  94%{opacity:.20}
+  100%{transform:translate(-50%,-50%) scale(15.5);opacity:0}
+}
 @keyframes ahkiContinuousWaterV9{
   0%{transform:translate(-50%,-50%) scale(.32);opacity:0}
   5%{opacity:.34}
@@ -1548,7 +1558,8 @@ html,body{background:#c5d2dc!important}
 .presence.is-on.ripple-tap .touch-ripple{display:none!important;animation:none!important}
 @media(prefers-reduced-motion:reduce){
   .presence.is-on .water-ring,.presence.is-on.wave-pulse .water-ring{
-    animation:ahkiContinuousWaterV9 18s linear infinite!important;
+    animation:ahkiContinuousWaterV9 28s linear infinite!important;
+    -webkit-animation:ahkiContinuousWaterV9 28s linear infinite!important;
   }
 }
 </style>
