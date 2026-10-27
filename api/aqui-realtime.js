@@ -4,6 +4,73 @@ import { createHash, randomUUID, timingSafeEqual } from 'node:crypto';
 export const config = { api: { bodyParser: false }, maxDuration: 30 };
 const MAX_BYTES = 64 * 1024;
 
+
+const ERROR_DIAGNOSTIC_LIMIT = 8192;
+const ERROR_TYPES = new Set(['invalid_request_error', 'authentication_error', 'permission_error', 'rate_limit_error', 'server_error']);
+const ERROR_CODES = new Set(['invalid_api_key', 'missing_api_key', 'invalid_authentication', 'invalid_organization', 'organization_restricted', 'organization_deactivated', 'project_not_found', 'invalid_project', 'mismatched_project', 'insufficient_permissions', 'permission_denied', 'model_not_found', 'insufficient_quota', 'rate_limit_exceeded']);
+
+// No upstream text is emitted, even if it resembles a harmless error message.
+function safeErrorMessage(message) {
+  if (typeof message !== 'string') return 'unavailable';
+  if (/incorrect api key|invalid api key/i.test(message)) return 'api_key_rejected';
+  if (/revoked|deactivated api key|expired api key/i.test(message)) return 'credential_revoked_or_expired';
+  if (/missing.*(?:api key|bearer)|did not provide.*api key/i.test(message)) return 'authentication_missing';
+  if (/project/i.test(message)) return 'project_related_rejection';
+  if (/organization|organisation/i.test(message)) return 'organization_related_rejection';
+  if (/permission|not authorized|not authorised/i.test(message)) return 'permission_denied';
+  if (/quota|billing/i.test(message)) return 'quota_or_billing';
+  if (/rate limit/i.test(message)) return 'rate_limit';
+  return 'unclassified_upstream_error';
+}
+
+// Non-success path only; bounded memory/time, no raw body/error logging.
+async function diagnoseUpstreamError(upstream, diagnostic) {
+  let reader, timer, size = 0;
+  const bytes = new Uint8Array(ERROR_DIAGNOSTIC_LIMIT);
+  try {
+    const requestId = upstream.headers.get('x-request-id');
+    if (typeof requestId === 'string' && /^req_[a-f0-9]{32}$/.test(requestId)) {
+      diagnostic('upstream_request_id', requestId);
+    }
+    if (!upstream.body) {
+      diagnostic('upstream_error_body', 'absent');
+      return;
+    }
+    reader = upstream.body.getReader();
+    const deadline = new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new Error('diagnostic_deadline')), 1000);
+    });
+    for (;;) {
+      const { done, value } = await Promise.race([reader.read(), deadline]);
+      if (done) break;
+      if (size + value.byteLength > bytes.length) {
+        diagnostic('upstream_error_body', 'oversized');
+        return;
+      }
+      bytes.set(value, size);
+      size += value.byteLength;
+    }
+    diagnostic('upstream_body_received', size > 0);
+    const body = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes.subarray(0, size)));
+    const error = body?.error;
+    if (!error || typeof error !== 'object' || Array.isArray(error)) {
+      diagnostic('upstream_error_body', 'invalid_shape');
+      return;
+    }
+    diagnostic('upstream_error_body', 'parsed');
+    diagnostic('upstream_error_type', ERROR_TYPES.has(error.type) ? error.type : 'unrecognized');
+    diagnostic('upstream_error_code', ERROR_CODES.has(error.code) ? error.code : 'unrecognized');
+    diagnostic('upstream_error_message', safeErrorMessage(error.message));
+  } catch {
+    diagnostic('upstream_error_body', 'unreadable_or_invalid');
+  } finally {
+    clearTimeout(timer);
+    bytes.fill(0);
+    // Cancellation is best effort; it must not delay or replace the HTTP result.
+    if (reader) void reader.cancel().catch(() => {});
+  }
+}
+
 // Replace this boundary with production caller authentication later.
 function authenticate(header, expected) {
   if (typeof header !== 'string' || header.length > 256) return false;
@@ -96,12 +163,11 @@ export default async function handler(req, res) {
       redirect: 'error'
     });
     diagnostic('upstream_status', upstream.status);
-    // A stream being present does not prove its bytes were received. Do not
-    // consume error bodies: retain the existing cancellation behavior.
+    // A stream being present does not prove its bytes were received.
     diagnostic('upstream_body_stream_present', upstream.body !== null);
     if (!upstream.ok) {
       diagnostic('upstream_failure', 'non_success_response');
-      await upstream.body?.cancel();
+      await diagnoseUpstreamError(upstream, diagnostic);
       if (upstream.status === 429) return fail(429, 'Voice service is busy; try again later');
       return fail(502, 'Unable to establish voice session');
     }
