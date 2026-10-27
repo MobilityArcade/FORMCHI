@@ -1963,6 +1963,121 @@ html,body{background:#155e98!important}
 </style>
 
 \n<style id="ahki-v17-sky-mist-system">\n/* V17 — one visual world: luminous blue sky/ocean atmosphere + glacially slow mist. */\n.presence{isolation:isolate!important}\n.presence .ambient{\n  display:block!important;position:absolute!important;inset:-18%!important;z-index:0!important;pointer-events:none!important;opacity:.50!important;\n  background:\n    radial-gradient(ellipse at 15% 24%,rgba(224,249,255,.22) 0 9%,rgba(185,231,245,.10) 20%,transparent 42%),\n    radial-gradient(ellipse at 82% 66%,rgba(220,247,255,.18) 0 8%,rgba(158,218,240,.08) 22%,transparent 44%),\n    radial-gradient(ellipse at 45% 92%,rgba(235,251,255,.12),transparent 38%)!important;\n  filter:blur(38px)!important;transform:translate3d(-2%,0,0) scale(1.08)!important;\n  animation:ahkiSkyMistDriftV17 78s ease-in-out infinite alternate!important;will-change:transform,opacity!important;\n}\n.presence .ambient:before,.presence .ambient:after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:45%;}\n.presence .ambient:before{\n  background:linear-gradient(118deg,transparent 12%,rgba(229,250,255,.11) 30%,rgba(195,236,249,.06) 45%,transparent 63%)!important;\n  filter:blur(52px);opacity:.58;transform:translate3d(-8%,4%,0) rotate(-5deg);\n  animation:ahkiVeilOneV17 96s ease-in-out infinite alternate!important;\n}\n.presence .ambient:after{\n  background:linear-gradient(145deg,transparent 30%,rgba(224,248,255,.08) 48%,rgba(180,229,246,.06) 58%,transparent 76%)!important;\n  filter:blur(60px);opacity:.48;transform:translate3d(8%,-5%,0) rotate(7deg);\n  animation:ahkiVeilTwoV17 112s ease-in-out infinite alternate!important;\n}\n@keyframes ahkiSkyMistDriftV17{0%{transform:translate3d(-3%,-1%,0) scale(1.08);opacity:.42}50%{opacity:.54}100%{transform:translate3d(3%,1.5%,0) scale(1.11);opacity:.47}}\n@keyframes ahkiVeilOneV17{from{transform:translate3d(-9%,4%,0) rotate(-5deg) scale(1.02)}to{transform:translate3d(7%,-2%,0) rotate(-2deg) scale(1.08)}}\n@keyframes ahkiVeilTwoV17{from{transform:translate3d(8%,-5%,0) rotate(7deg) scale(1.08)}to{transform:translate3d(-6%,4%,0) rotate(3deg) scale(1.02)}}\n/* Settings and every swipe/subpage stay in the same blue atmospheric world — no secondary orb. */\n#settingsShell,.settings-page{\n  color:#eefaff!important;position:relative!important;isolation:isolate!important;\n  background:\n    radial-gradient(ellipse at 18% 12%,rgba(127,211,242,.34),transparent 34%),\n    radial-gradient(ellipse at 82% 52%,rgba(70,177,224,.24),transparent 42%),\n    radial-gradient(ellipse at 38% 92%,rgba(165,224,244,.18),transparent 42%),\n    linear-gradient(155deg,#1471ae 0%,#248bc5 42%,#12669f 100%)!important;\n}\n#settingsShell:before,.settings-page:before{\n  content:"";position:fixed;inset:-18%;z-index:-1;pointer-events:none;\n  background:\n    radial-gradient(ellipse at 10% 28%,rgba(235,251,255,.18),transparent 30%),\n    radial-gradient(ellipse at 88% 66%,rgba(221,248,255,.14),transparent 34%),\n    linear-gradient(128deg,transparent 18%,rgba(227,249,255,.07) 39%,transparent 61%);\n  filter:blur(44px);opacity:.72;animation:ahkiSettingsMistV17 92s ease-in-out infinite alternate;\n}\n@keyframes ahkiSettingsMistV17{from{transform:translate3d(-4%,-1%,0) scale(1.05)}to{transform:translate3d(4%,2%,0) scale(1.10)}}\n.set-head{background:linear-gradient(rgba(20,112,173,.84) 68%,rgba(20,112,173,0))!important}\n.set-title,.set-brand,.set-main,.set-icon{color:#f2fbff!important}.set-kicker,.set-sub,.set-card p,.set-note,.muted{color:rgba(225,245,253,.74)!important}\n.set-group,.set-card{background:rgba(182,226,243,.13)!important;border-color:rgba(229,249,255,.25)!important;box-shadow:0 18px 46px rgba(4,55,95,.16),inset 0 1px 0 rgba(255,255,255,.27)!important;backdrop-filter:blur(24px) saturate(118%);-webkit-backdrop-filter:blur(24px) saturate(118%)}\n.set-row{color:#f2fbff!important;border-bottom-color:rgba(225,247,255,.16)!important}.set-chevron{color:rgba(226,248,255,.72)!important}.set-icon svg{stroke:#effbff!important}\n.set-back,.set-close{color:#f2fbff!important;border-color:rgba(231,249,255,.25)!important;background:rgba(187,230,246,.13)!important;backdrop-filter:blur(16px)}\n.set-input{background:rgba(200,235,248,.13)!important;color:#f5fcff!important;border-color:rgba(231,249,255,.24)!important}.set-input::placeholder{color:rgba(224,245,253,.50)!important}\n.set-button{color:#f5fcff!important;border-color:rgba(231,249,255,.26)!important;background:linear-gradient(100deg,rgba(189,231,247,.18),rgba(104,196,232,.20),rgba(201,236,249,.16))!important}\n.radio{border-color:rgba(233,250,255,.78)!important}.radio.on:after{background:#f5fdff!important}.switch{background:rgba(218,244,252,.16)!important;border-color:rgba(236,251,255,.20)!important}.switch:after{background:#eaf9fe!important}.switch.on{background:#52b9e2!important}.switch.on:after{background:#fff!important}\n.usage-bar{background:rgba(222,246,253,.15)!important}.usage-fill{background:linear-gradient(90deg,#d9f7ff,#73d8f5,#eefcff)!important}.mini-line{border-bottom-color:rgba(230,249,255,.14)!important}.toast{background:rgba(21,101,157,.90)!important;color:#f4fcff!important}\n@media(prefers-reduced-motion:reduce){.presence .ambient,.presence .ambient:before,.presence .ambient:after,#settingsShell:before,.settings-page:before{animation:none!important}}\n</style>\n
+
+
+<style id="ahki-v24-concave-tunnel-correction">
+/* V24 — corrected smooth concave infinite cylinder.
+   Overrides V23 flat radial field. No fog, clouds, rings, ribs, streaks or endpoint. */
+html,body{background:#063b69!important}
+.presence,.presence.is-on{
+  isolation:isolate!important;
+  overflow:hidden!important;
+  /* Cylindrical wall: bright axial band + deep curved sidewalls. */
+  background:
+    linear-gradient(90deg,
+      #04365f 0%,
+      #075184 10%,
+      #0b6ba4 23%,
+      #1382bb 38%,
+      #1b91c7 50%,
+      #1382bb 62%,
+      #0b6ba4 77%,
+      #075184 90%,
+      #04365f 100%)!important;
+}
+.ahki-mist,.mist-bank{display:none!important}
+/* Concave wall shading: dark upper/lower curvature + a long central cavity.
+   Deliberately elliptical rather than circular so it reads as tube wall, not halo. */
+.presence::before{
+  content:""!important;
+  display:block!important;
+  position:absolute!important;
+  z-index:0!important;
+  inset:-12% -8%!important;
+  pointer-events:none!important;
+  opacity:1!important;
+  transform:none!important;
+  background:
+    radial-gradient(ellipse 70% 118% at 50% 50%,
+      rgba(68,185,229,.18) 0%,
+      rgba(28,139,193,.10) 34%,
+      rgba(3,62,108,.18) 65%,
+      rgba(0,24,52,.55) 100%),
+    linear-gradient(180deg,
+      rgba(0,25,55,.42) 0%,
+      rgba(0,39,76,.12) 22%,
+      rgba(41,157,207,.04) 50%,
+      rgba(0,39,76,.12) 78%,
+      rgba(0,25,55,.42) 100%)!important;
+  filter:blur(8px)!important;
+  animation:none!important;
+}
+/* Orb-cast light on the inner cylinder. Wide vertically, narrow axially: a curved-wall reflection,
+   not another circular aura. */
+.presence:after{
+  content:""!important;
+  display:block!important;
+  position:absolute!important;
+  left:50%!important;top:50%!important;
+  z-index:1!important;
+  width:min(150vmin,1500px)!important;
+  height:min(88vmin,900px)!important;
+  border-radius:50%!important;
+  pointer-events:none!important;
+  background:radial-gradient(ellipse at 50% 50%,
+    rgba(229,253,255,.30) 0%,
+    rgba(144,231,250,.22) 18%,
+    rgba(66,190,232,.14) 37%,
+    rgba(18,125,190,.07) 57%,
+    transparent 76%)!important;
+  mix-blend-mode:screen!important;
+  opacity:0!important;
+  filter:blur(34px)!important;
+  transform:translate(-50%,-50%) scale(.72,1.0)!important;
+}
+.presence.is-on:after{
+  opacity:.78!important;
+  animation:ahkiCylinderCastV24 13s cubic-bezier(.45,.04,.35,1) infinite!important;
+}
+/* Remove old environmental sheen that flattened the cylinder. */
+.water-sheen,.presence.is-on .water-sheen{
+  opacity:0!important;background:none!important;filter:none!important;animation:none!important;
+}
+/* Preserve actual orb above wall/reflection. */
+.liquid-presence{z-index:2!important}
+@keyframes ahkiCylinderCastV24{
+  0%,100%{
+    transform:translate(-50%,-50%) scale(.70,.90);
+    opacity:.46;filter:blur(44px) brightness(.90)
+  }
+  52%{
+    transform:translate(-50%,-50%) scale(1.08,1.20);
+    opacity:.98;filter:blur(28px) brightness(1.16)
+  }
+}
+/* Additional edge occlusion gives the eye a near wall without drawing any line. */
+.presence .ahki-v24-edge-vignette{
+  position:absolute;z-index:1;inset:0;pointer-events:none;
+  background:
+    linear-gradient(90deg,rgba(0,19,43,.38),transparent 20%,transparent 80%,rgba(0,19,43,.38)),
+    linear-gradient(180deg,rgba(0,24,52,.25),transparent 23%,transparent 77%,rgba(0,24,52,.25));
+  box-shadow:inset 0 0 18vmin rgba(0,22,50,.25);
+}
+@media(prefers-reduced-motion:reduce){
+  .presence.is-on:after{animation:none!important;transform:translate(-50%,-50%) scale(.88,1.02)!important;opacity:.72!important}
+}
+</style>
+<script id="ahki-v24-edge-vignette-script">
+(function(){
+  function add(){
+    var p=document.querySelector('.presence');
+    if(p && !p.querySelector('.ahki-v24-edge-vignette')){
+      var v=document.createElement('div');v.className='ahki-v24-edge-vignette';p.insertBefore(v,p.firstChild);
+    }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',add); else add();
+})();
+</script>
 </body>
 </html>
 \n<style id="ahki-v18-grounded-settings">\n/* V18 — settings/swipe world matches the OFF-state ocean blue instead of pale white glass. */\n#settingsShell,.settings-page{\n color:#f2fbff!important;\n background:\n  radial-gradient(ellipse at 50% 42%,rgba(91,190,224,.24) 0%,rgba(57,155,203,.13) 31%,transparent 58%),\n  radial-gradient(ellipse at 18% 18%,rgba(121,207,234,.12),transparent 36%),\n  linear-gradient(180deg,#2b96c8 0%,#258fc2 46%,#2388ba 100%)!important;\n}\n#settingsShell:before,.settings-page:before{opacity:.34!important;filter:blur(58px)!important}\n.set-head{background:linear-gradient(rgba(39,143,192,.92) 64%,rgba(39,143,192,0))!important}\n.set-group,.set-card{background:rgba(24,112,164,.28)!important;border:1px solid rgba(226,248,255,.25)!important;box-shadow:0 18px 48px rgba(10,74,119,.15),inset 0 1px 0 rgba(255,255,255,.20)!important;backdrop-filter:blur(22px) saturate(112%)!important;-webkit-backdrop-filter:blur(22px) saturate(112%)!important}\n.set-row{background:rgba(255,255,255,.018)!important;border-bottom-color:rgba(230,249,255,.18)!important}\n.set-title,.set-brand,.set-main,.set-icon,.set-chevron{color:#f4fcff!important}\n.set-kicker,.set-sub,.set-card p,.set-note,.muted{color:rgba(235,249,255,.78)!important}\n.set-back,.set-close{background:rgba(20,105,158,.28)!important;color:#f6fdff!important;border-color:rgba(235,250,255,.28)!important}\n.set-input{background:rgba(15,99,153,.28)!important;color:#fff!important;border-color:rgba(235,250,255,.28)!important}\n.set-button{background:rgba(21,112,169,.34)!important;color:#fff!important;border-color:rgba(235,250,255,.28)!important}\n</style>\n
