@@ -453,6 +453,57 @@ body.settings-open .source {
 }
 </style>
 
+
+
+<style id="ahki-living-white-mist-v30">
+/* Living white mist — visual-only.
+   Preserve the original ocean orb + white pearl ring; replace the surrounding
+   colored aura with a broad white mist at the same visual weight as V29. */
+.presence.is-on .liquid-presence:after{
+  width:min(82vmin,840px)!important;
+  aspect-ratio:1!important;
+  background:radial-gradient(circle,
+    rgba(255,255,255,.56) 0%,
+    rgba(255,255,255,.44) 18%,
+    rgba(250,254,255,.31) 36%,
+    rgba(244,251,255,.18) 53%,
+    rgba(255,255,255,.08) 67%,
+    transparent 80%)!important;
+  filter:blur(30px)!important;
+  opacity:.92!important;
+  animation:ahkiLivingWhiteMistBreath 13s cubic-bezier(.45,.04,.35,1) infinite!important;
+  transform-origin:50% 50%!important;
+  will-change:transform,opacity,filter;
+}
+.presence.is-on:after{
+  width:min(96vmin,980px)!important;
+  aspect-ratio:1!important;
+  background:radial-gradient(circle,
+    rgba(255,255,255,.28) 0%,
+    rgba(252,254,255,.22) 26%,
+    rgba(246,252,255,.12) 48%,
+    rgba(255,255,255,.05) 64%,
+    transparent 78%)!important;
+  filter:blur(40px)!important;
+  opacity:.80!important;
+  animation:ahkiLivingWhiteMistEnvelope 13s cubic-bezier(.45,.04,.35,1) infinite!important;
+  transform-origin:50% 50%!important;
+  will-change:transform,opacity,filter;
+}
+@keyframes ahkiLivingWhiteMistBreath{
+  0%,100%{transform:translate(-50%,-50%) scale(.94);opacity:.70;filter:blur(28px)}
+  52%{transform:translate(-50%,-50%) scale(1.30);opacity:.98;filter:blur(35px)}
+}
+@keyframes ahkiLivingWhiteMistEnvelope{
+  0%,100%{transform:translate(-50%,-50%) scale(.92);opacity:.52;filter:blur(38px)}
+  52%{transform:translate(-50%,-50%) scale(1.30);opacity:.86;filter:blur(46px)}
+}
+@media(prefers-reduced-motion:reduce){
+  .presence.is-on .liquid-presence:after,.presence.is-on:after{
+    animation:none!important;transform:translate(-50%,-50%) scale(1)!important;
+  }
+}
+</style>
 </head>
 <body>
 <main id="app" class="presence" aria-label="AHKI">
