@@ -2129,6 +2129,61 @@ html,body{background:#000!important}
 @keyframes ahkiV27OuterBreath{0%,100%{transform:translate(-50%,-50%) scale(.60);opacity:.48}52%{transform:translate(-50%,-50%) scale(1.03);opacity:.78}}
 @media(prefers-reduced-motion:reduce){.presence::before,.presence:after,.presence.is-on .liquid-presence:before,.presence.is-on .liquid-presence:after{animation:none!important}}
 </style>
+
+<style id="ahki-v30-ocean-blue-environment">
+/* V30 — preserve V29 orb + expanded living mist, replace the black void with
+   the saturated ocean-blue environment from the approved visual reference.
+   Visual-only override: no controller, voice, audio, or interaction changes. */
+html,body{background:#0879bd!important;}
+.presence,.presence.is-on{
+  background:
+    radial-gradient(ellipse 92% 86% at 50% 50%,
+      rgba(32,174,232,.52) 0%,
+      rgba(18,146,211,.38) 32%,
+      rgba(8,116,183,.22) 58%,
+      rgba(2,73,132,.08) 78%,
+      transparent 100%),
+    linear-gradient(180deg,#0878b9 0%,#0a82c4 46%,#0875b6 100%)!important;
+}
+/* A broad environmental illumination makes the cyan mist feel embedded in blue
+   rather than pasted onto a flat canvas. It breathes gently with the orb. */
+.presence::before{
+  content:""!important;display:block!important;position:absolute!important;z-index:0!important;
+  inset:-18%!important;pointer-events:none!important;
+  background:
+    radial-gradient(ellipse 64% 60% at 50% 50%,rgba(72,211,247,.30) 0%,rgba(24,169,226,.18) 38%,rgba(4,108,183,.07) 64%,transparent 82%),
+    radial-gradient(ellipse 105% 90% at 50% 52%,rgba(0,61,121,.00) 42%,rgba(0,54,108,.12) 78%,rgba(0,35,76,.20) 100%)!important;
+  filter:blur(34px)!important;opacity:.88!important;transform:scale(.96)!important;
+  animation:ahkiV30EnvironmentBreath 13s cubic-bezier(.45,.04,.35,1) infinite!important;
+}
+/* Keep the V29 mist large, but tune it for a blue field: cyan atmosphere with
+   enough contrast to remain visible at both ends of the breath. */
+.presence .ahki-v28-haze{mix-blend-mode:screen!important;}
+.presence .ahki-v28-haze::before{
+  background:
+    radial-gradient(ellipse 48% 43% at 34% 47%,rgba(0,108,255,.38) 0%,rgba(0,95,229,.24) 38%,transparent 73%),
+    radial-gradient(ellipse 50% 42% at 68% 43%,rgba(35,224,255,.38) 0%,rgba(0,160,246,.24) 42%,transparent 75%),
+    radial-gradient(ellipse 58% 36% at 53% 72%,rgba(0,186,255,.31) 0%,rgba(0,112,218,.17) 46%,transparent 79%)!important;
+}
+.presence .ahki-v28-haze::after{
+  background:
+    radial-gradient(ellipse 60% 52% at 48% 48%,rgba(83,235,255,.34) 0%,rgba(0,183,255,.22) 38%,rgba(0,103,210,.10) 63%,transparent 80%),
+    radial-gradient(ellipse 32% 46% at 25% 58%,rgba(0,116,255,.22),transparent 73%)!important;
+}
+.presence .ahki-v28-haze-soft{
+  background:
+    radial-gradient(ellipse 48% 44% at 45% 48%,rgba(0,128,255,.20),transparent 69%),
+    radial-gradient(ellipse 42% 40% at 61% 53%,rgba(43,222,255,.18),transparent 71%)!important;
+}
+/* Orb remains the approved white-center cyan sphere and thin white rim. */
+@keyframes ahkiV30EnvironmentBreath{
+  0%,100%{transform:scale(.96);opacity:.72;filter:blur(40px)}
+  55%{transform:scale(1.08);opacity:1;filter:blur(29px)}
+}
+@media(prefers-reduced-motion:reduce){
+ .presence::before{animation:none!important;transform:scale(1)!important;opacity:.84!important}
+}
+</style>
 </body>
 </html>
 \n<style id="ahki-v18-grounded-settings">\n/* V18 — settings/swipe world matches the OFF-state ocean blue instead of pale white glass. */\n#settingsShell,.settings-page{\n color:#f2fbff!important;\n background:\n  radial-gradient(ellipse at 50% 42%,rgba(91,190,224,.24) 0%,rgba(57,155,203,.13) 31%,transparent 58%),\n  radial-gradient(ellipse at 18% 18%,rgba(121,207,234,.12),transparent 36%),\n  linear-gradient(180deg,#2b96c8 0%,#258fc2 46%,#2388ba 100%)!important;\n}\n#settingsShell:before,.settings-page:before{opacity:.34!important;filter:blur(58px)!important}\n.set-head{background:linear-gradient(rgba(39,143,192,.92) 64%,rgba(39,143,192,0))!important}\n.set-group,.set-card{background:rgba(24,112,164,.28)!important;border:1px solid rgba(226,248,255,.25)!important;box-shadow:0 18px 48px rgba(10,74,119,.15),inset 0 1px 0 rgba(255,255,255,.20)!important;backdrop-filter:blur(22px) saturate(112%)!important;-webkit-backdrop-filter:blur(22px) saturate(112%)!important}\n.set-row{background:rgba(255,255,255,.018)!important;border-bottom-color:rgba(230,249,255,.18)!important}\n.set-title,.set-brand,.set-main,.set-icon,.set-chevron{color:#f4fcff!important}\n.set-kicker,.set-sub,.set-card p,.set-note,.muted{color:rgba(235,249,255,.78)!important}\n.set-back,.set-close{background:rgba(20,105,158,.28)!important;color:#f6fdff!important;border-color:rgba(235,250,255,.28)!important}\n.set-input{background:rgba(15,99,153,.28)!important;color:#fff!important;border-color:rgba(235,250,255,.28)!important}\n.set-button{background:rgba(21,112,169,.34)!important;color:#fff!important;border-color:rgba(235,250,255,.28)!important}\n</style>\n
