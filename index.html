@@ -2351,3 +2351,81 @@ html,body{background:#000!important}
 }
 </style>
 \n<style id="ahki-v22-orb-mist-experiment">\n/* V22 VISUAL EXPERIMENT — atmospheric mist around the approved ocean orb.\n   No voice/conversation behavior changes. Back mist sits behind the source;\n   front mist softly crosses its lower edge so the breathing orb appears to\n   emerge from and recede into a cool cloud layer. */\n.ahki-mist{\n  position:absolute;inset:-16%;pointer-events:none;overflow:hidden;\n  opacity:0;transition:opacity 1.8s ease;will-change:opacity;\n}\n.ahki-mist-back{z-index:.5;mix-blend-mode:screen}\n.ahki-mist-front{z-index:3;mix-blend-mode:screen}\n.presence.is-on .ahki-mist-back{opacity:.68}\n.presence.is-on .ahki-mist-front{opacity:.82}\n.mist-bank{\n  position:absolute;display:block;border-radius:50%;\n  transform:translate3d(0,0,0);will-change:transform,opacity;\n  background:\n    radial-gradient(ellipse at 28% 52%,rgba(244,253,255,.42) 0 8%,rgba(220,247,255,.23) 19%,transparent 45%),\n    radial-gradient(ellipse at 55% 44%,rgba(235,251,255,.38) 0 10%,rgba(194,235,248,.20) 24%,transparent 50%),\n    radial-gradient(ellipse at 78% 58%,rgba(247,254,255,.34) 0 7%,rgba(198,237,249,.18) 22%,transparent 47%);\n  filter:blur(28px);\n}\n/* Behind: large, thin veils that give the blue world depth without obscuring the pearl edge. */\n.mb1{left:-10%;top:22%;width:76%;height:42%;opacity:.52;animation:ahkiMistBackOne 38s ease-in-out infinite alternate}\n.mb2{right:-14%;top:12%;width:72%;height:48%;opacity:.43;animation:ahkiMistBackTwo 46s ease-in-out infinite alternate}\n.mb3{left:17%;bottom:4%;width:74%;height:35%;opacity:.34;filter:blur(36px);animation:ahkiMistBackThree 52s ease-in-out infinite alternate}\n/* Front: lower cloud banks occasionally wash over the lower third of the breathing source. */\n.mf1{left:-12%;bottom:7%;width:82%;height:38%;opacity:.58;filter:blur(23px);animation:ahkiMistFrontOne 31s ease-in-out infinite alternate}\n.mf2{right:-17%;bottom:14%;width:78%;height:34%;opacity:.52;filter:blur(25px);animation:ahkiMistFrontTwo 36s ease-in-out infinite alternate}\n.mf3{left:21%;top:47%;width:62%;height:27%;opacity:.24;filter:blur(31px);animation:ahkiMistFrontThree 43s ease-in-out infinite alternate}\n@keyframes ahkiMistBackOne{from{transform:translate3d(-5%,-2%,0) scale(1.02);opacity:.40}to{transform:translate3d(13%,4%,0) scale(1.14);opacity:.60}}\n@keyframes ahkiMistBackTwo{from{transform:translate3d(8%,2%,0) scale(1.10);opacity:.48}to{transform:translate3d(-13%,-3%,0) scale(.99);opacity:.34}}\n@keyframes ahkiMistBackThree{from{transform:translate3d(-7%,3%,0) scale(1.03);opacity:.25}to{transform:translate3d(9%,-4%,0) scale(1.16);opacity:.40}}\n@keyframes ahkiMistFrontOne{from{transform:translate3d(-8%,5%,0) scale(1.04);opacity:.46}to{transform:translate3d(14%,-5%,0) scale(1.14);opacity:.67}}\n@keyframes ahkiMistFrontTwo{from{transform:translate3d(12%,-2%,0) scale(1.12);opacity:.58}to{transform:translate3d(-14%,4%,0) scale(1.01);opacity:.43}}\n@keyframes ahkiMistFrontThree{from{transform:translate3d(-10%,3%,0) scale(.98);opacity:.18}to{transform:translate3d(11%,-3%,0) scale(1.13);opacity:.31}}\n/* Let the mist subtly thicken as the source reaches the far end of its breath,\n   reinforcing the impression that the orb is moving through atmosphere. */\n.presence.is-on .ahki-mist-front{animation:ahkiMistDepthPulse 13s cubic-bezier(.45,.04,.35,1) infinite}\n@keyframes ahkiMistDepthPulse{0%,100%{filter:opacity(.88)}52%{filter:opacity(1)}}\n@media(prefers-reduced-motion:reduce){\n  .mist-bank,.presence.is-on .ahki-mist-front{animation:none!important}\n  .presence.is-on .ahki-mist-back{opacity:.48}\n  .presence.is-on .ahki-mist-front{opacity:.58;filter:none}\n}\n</style>\n\n<style id="ahki-v23-smooth-infinite-tunnel">\n/* V23 VISUAL EXPERIMENT — smooth infinite blue cylindrical chamber.\n   No clouds, fog, streaks, rings, seams, opening, or visible endpoint.\n   The approved orb remains centered and breathes on its existing 13s cycle;\n   the chamber illumination follows that same cycle to imply forward/back depth. */\nhtml,body{background:#0d5f99!important}\n.presence,.presence.is-on{\n  isolation:isolate!important;\n  background:\n    radial-gradient(ellipse 76% 112% at 50% 50%,\n      #238fc9 0%,\n      #1b82bd 30%,\n      #126da8 58%,\n      #0a568e 80%,\n      #064374 100%)!important;\n}\n/* Hide every previous mist/cloud experiment. */\n.ahki-mist,.mist-bank{display:none!important;opacity:0!important;visibility:hidden!important}\n/* The tunnel is suggested only by smooth cylindrical falloff. No drawn rings/lines. */\n.presence::before{\n  content:"";position:absolute;z-index:0;inset:-18%;pointer-events:none;\n  background:\n    radial-gradient(ellipse 62% 96% at 50% 50%,\n      rgba(113,213,246,.16) 0%,\n      rgba(62,174,224,.10) 31%,\n      rgba(7,68,121,.08) 62%,\n      rgba(2,31,65,.34) 100%);\n  filter:blur(18px);\n}\n/* Wall reflection cast by the orb. It expands/brightens in phase with the orb. */\n.presence .tunnel-light{display:none}\n.presence.is-on::before{\n  animation:ahkiTunnelWallLightV23 13s cubic-bezier(.45,.04,.35,1) infinite!important;\n  will-change:transform,filter,opacity;\n}\n/* Re-purpose the existing broad atmospheric pseudo-element as a soft light pool,\n   never a second sphere. */\n.presence:after{\n  z-index:1!important;\n  width:min(112vmin,1180px)!important;\n  aspect-ratio:1!important;\n  background:radial-gradient(circle,\n    rgba(220,251,255,.23) 0%,\n    rgba(112,222,249,.18) 18%,\n    rgba(40,170,224,.11) 39%,\n    rgba(10,104,170,.05) 60%,\n    transparent 76%)!important;\n  filter:blur(42px)!important;\n  opacity:0!important;\n  transform:translate(-50%,-50%) scale(.84)!important;\n}\n.presence.is-on:after{\n  opacity:.92!important;\n  animation:ahkiTunnelReflectionV23 13s cubic-bezier(.45,.04,.35,1) infinite!important;\n  will-change:transform,filter,opacity;\n}\n/* Keep the old sheen extremely restrained: it now reads as curved-wall light, not cloud. */\n.water-sheen,.presence.is-on .water-sheen{\n  background:radial-gradient(ellipse 72% 92% at 50% 50%,\n    rgba(206,247,255,.12) 0%,\n    rgba(100,208,241,.07) 34%,\n    rgba(8,89,151,.03) 64%,\n    transparent 82%)!important;\n  filter:blur(52px)!important;opacity:.42!important;animation:none!important;\n}\n@keyframes ahkiTunnelWallLightV23{\n  0%,100%{transform:scale(.94);opacity:.62;filter:blur(20px) brightness(.92)}\n  52%{transform:scale(1.10);opacity:1;filter:blur(25px) brightness(1.18)}\n}\n@keyframes ahkiTunnelReflectionV23{\n  0%,100%{transform:translate(-50%,-50%) scale(.78);opacity:.60;filter:blur(48px)}\n  52%{transform:translate(-50%,-50%) scale(1.18);opacity:1;filter:blur(36px)}\n}\n@media(prefers-reduced-motion:reduce){\n  .presence.is-on::before,.presence.is-on:after{animation:none!important}\n  .presence.is-on::before{transform:none!important;opacity:.82!important}\n  .presence.is-on:after{transform:translate(-50%,-50%) scale(.96)!important;opacity:.82!important}\n}\n</style>\n\n\n<style id="ahki-v25-deep-space-breathing-orb">\n/* V25 — visual-only target: generated deep-space cyan orb reference.\n   No tunnel, fog, cloud, text, rings, seams, or endpoint.\n   Existing conversation/controller behavior remains untouched. */\nhtml,body{background:#001126!important}\n.presence,.presence.is-on{\n  isolation:isolate!important;overflow:hidden!important;\n  background:\n    radial-gradient(circle at 50% 50%,rgba(0,116,196,.30) 0%,rgba(0,72,135,.20) 25%,rgba(0,34,76,.10) 50%,transparent 70%),\n    linear-gradient(180deg,#00162f 0%,#001c3d 45%,#00142c 100%)!important;\n}\n/* Kill all earlier tunnel/mist experiments. */\n.ahki-mist,.mist-bank,.ahki-v24-edge-vignette{display:none!important;opacity:0!important;visibility:hidden!important}\n.water-sheen,.water-ring{display:none!important;opacity:0!important}\n.presence::before{\n  content:""!important;display:block!important;position:absolute!important;z-index:0!important;\n  inset:-15%!important;pointer-events:none!important;\n  background:radial-gradient(circle at 50% 50%,rgba(0,170,255,.20) 0%,rgba(0,117,220,.13) 25%,rgba(0,66,148,.07) 47%,transparent 70%)!important;\n  filter:blur(34px)!important;opacity:.72!important;transform:scale(.94)!important;\n  animation:ahkiV25EnvironmentBreath 13s cubic-bezier(.45,.04,.35,1) infinite!important;\n}\n/* Broad blue light cast into the surrounding space. */\n.presence:after{\n  content:""!important;display:block!important;position:absolute!important;left:50%!important;top:50%!important;z-index:1!important;\n  width:min(118vmin,1240px)!important;height:min(118vmin,1240px)!important;border-radius:50%!important;pointer-events:none!important;\n  background:radial-gradient(circle,rgba(104,231,255,.26) 0%,rgba(0,197,255,.22) 15%,rgba(0,139,244,.18) 32%,rgba(0,85,186,.09) 52%,transparent 73%)!important;\n  mix-blend-mode:screen!important;filter:blur(40px)!important;opacity:.70!important;\n  transform:translate(-50%,-50%) scale(.72)!important;\n  animation:ahkiV25AuraBreath 13s cubic-bezier(.45,.04,.35,1) infinite!important;\n}\n.liquid-presence{display:block!important;position:absolute!important;inset:0!important;z-index:3!important;overflow:visible!important;background:none!important;filter:none!important}\n.presence.is-on .liquid-presence{opacity:1!important}\n/* The orb itself: cyan glass-light body, white center, very thin white circumference. */\n.presence.is-on .liquid-presence:before{\n  content:""!important;position:absolute!important;left:50%!important;top:50%!important;\n  width:min(38vmin,390px)!important;aspect-ratio:1!important;border-radius:50%!important;\n  background:radial-gradient(circle at 50% 50%,\n    #ffffff 0%,#f9ffff 10%,#d9fbff 22%,#82edff 43%,#24c9f2 68%,#0ca8dc 86%,#0795c9 100%)!important;\n  border:clamp(1px,.18vmin,2px) solid rgba(255,255,255,.96)!important;\n  box-shadow:0 0 7px rgba(255,255,255,.98),0 0 20px rgba(145,244,255,.98),0 0 48px rgba(0,213,255,.86),0 0 95px rgba(0,150,255,.62),0 0 170px rgba(0,102,221,.34)!important;\n  filter:none!important;opacity:1!important;transform-origin:50% 50%!important;\n  animation:ahkiV25OrbBreath 13s cubic-bezier(.45,.04,.35,1) infinite!important;will-change:transform,box-shadow;\n}\n/* Secondary glow follows the body but stays diffuse, like the generated reference. */\n.presence.is-on .liquid-presence:after{\n  content:""!important;position:absolute!important;left:50%!important;top:50%!important;\n  width:min(62vmin,650px)!important;aspect-ratio:1!important;border-radius:50%!important;\n  background:radial-gradient(circle,rgba(111,235,255,.30) 0%,rgba(0,202,255,.22) 28%,rgba(0,123,239,.12) 51%,transparent 73%)!important;\n  filter:blur(30px)!important;opacity:.82!important;\n  animation:ahkiV25LocalGlowBreath 13s cubic-bezier(.45,.04,.35,1) infinite!important;\n}\n/* Keep the requested interface visually pure. */\n.mark,.ahki-wordmark,.eyes,.aqui-title,.top-compose,.action-row,.talk-control{display:none!important;opacity:0!important;visibility:hidden!important}\n@keyframes ahkiV25OrbBreath{0%,100%{transform:translate(-50%,-50%) scale(1)}52%{transform:translate(-50%,-50%) scale(1.30)}}\n@keyframes ahkiV25LocalGlowBreath{0%,100%{transform:translate(-50%,-50%) scale(.78);opacity:.62;filter:blur(34px)}52%{transform:translate(-50%,-50%) scale(1.18);opacity:1;filter:blur(25px)}}\n@keyframes ahkiV25AuraBreath{0%,100%{transform:translate(-50%,-50%) scale(.68);opacity:.54;filter:blur(48px)}52%{transform:translate(-50%,-50%) scale(1.18);opacity:.96;filter:blur(34px)}}\n@keyframes ahkiV25EnvironmentBreath{0%,100%{transform:scale(.94);opacity:.58;filter:blur(40px)}52%{transform:scale(1.08);opacity:.92;filter:blur(28px)}}\n@media(prefers-reduced-motion:reduce){\n .presence::before,.presence:after,.presence.is-on .liquid-presence:before,.presence.is-on .liquid-presence:after{animation:none!important}\n .presence.is-on .liquid-presence:before{transform:translate(-50%,-50%) scale(1)!important}\n .presence.is-on .liquid-presence:after{transform:translate(-50%,-50%) scale(.98)!important}\n .presence:after{transform:translate(-50%,-50%) scale(.92)!important}\n}\n</style>\n
+
+<style id="ahki-v28-living-blue-mist">
+/* V28 — add the missing atmospheric blue bloom around V27.
+   True black remains untouched. The haze is luminous blue atmosphere, not white cloud.
+   Multiple offset lobes avoid a perfect CSS-circle look. The haze breathes slightly
+   behind the orb, creating the reference image's living suspended-light quality. */
+.presence .ahki-v28-haze{
+  position:absolute!important;left:50%!important;top:50%!important;z-index:2!important;
+  width:min(94vmin,940px)!important;height:min(82vmin,820px)!important;
+  transform:translate(-50%,-50%) scale(.70);pointer-events:none!important;
+  opacity:0;mix-blend-mode:screen!important;filter:blur(30px)!important;
+  will-change:transform,opacity,filter;
+}
+.presence .ahki-v28-haze::before,
+.presence .ahki-v28-haze::after{
+  content:"";position:absolute;inset:0;border-radius:46% 54% 52% 48% / 55% 44% 56% 45%;
+}
+.presence .ahki-v28-haze::before{
+  background:
+    radial-gradient(ellipse 46% 42% at 34% 47%,rgba(0,116,255,.34) 0%,rgba(0,89,230,.22) 38%,transparent 72%),
+    radial-gradient(ellipse 48% 40% at 68% 43%,rgba(0,207,255,.30) 0%,rgba(0,126,255,.19) 40%,transparent 74%),
+    radial-gradient(ellipse 56% 34% at 53% 72%,rgba(0,150,255,.27) 0%,rgba(0,80,218,.14) 45%,transparent 78%);
+  filter:blur(42px);
+  transform:rotate(-7deg) scale(1.04,.90);
+}
+.presence .ahki-v28-haze::after{
+  inset:7% 3% 1% 8%;
+  background:
+    radial-gradient(ellipse 58% 50% at 48% 48%,rgba(0,220,255,.27) 0%,rgba(0,148,255,.18) 36%,rgba(0,67,190,.08) 61%,transparent 79%),
+    radial-gradient(ellipse 30% 44% at 25% 58%,rgba(0,89,255,.19),transparent 72%);
+  filter:blur(54px);
+  transform:rotate(8deg) scale(.96,1.08);
+}
+.presence.is-on .ahki-v28-haze{
+  opacity:.86;
+  animation:ahkiV28HazeBreath 13s cubic-bezier(.45,.04,.35,1) infinite!important;
+}
+/* A second, lower-opacity bloom gives the haze a soft tail into black without
+   turning the whole canvas blue. */
+.presence .ahki-v28-haze-soft{
+  position:absolute;left:50%;top:50%;z-index:1;pointer-events:none;
+  width:min(118vmin,1180px);height:min(102vmin,1020px);border-radius:50%;
+  background:
+    radial-gradient(ellipse 46% 42% at 45% 48%,rgba(0,104,255,.16),transparent 68%),
+    radial-gradient(ellipse 40% 38% at 61% 53%,rgba(0,185,255,.13),transparent 70%);
+  mix-blend-mode:screen;filter:blur(64px);opacity:0;
+  transform:translate(-50%,-50%) scale(.62);
+  will-change:transform,opacity;
+}
+.presence.is-on .ahki-v28-haze-soft{
+  opacity:.72;
+  animation:ahkiV28SoftBreath 13s cubic-bezier(.45,.04,.35,1) infinite!important;
+}
+@keyframes ahkiV28HazeBreath{
+  0%,100%{transform:translate(-50%,-50%) scale(.70) rotate(-1deg);opacity:.62;filter:blur(39px)}
+  55%{transform:translate(-50%,-50%) scale(1.13) rotate(1deg);opacity:.96;filter:blur(31px)}
+}
+@keyframes ahkiV28SoftBreath{
+  0%,100%{transform:translate(-50%,-50%) scale(.62);opacity:.42}
+  58%{transform:translate(-50%,-50%) scale(1.04);opacity:.76}
+}
+@media(prefers-reduced-motion:reduce){
+ .presence.is-on .ahki-v28-haze,.presence.is-on .ahki-v28-haze-soft{animation:none!important}
+ .presence.is-on .ahki-v28-haze{transform:translate(-50%,-50%) scale(.88)!important;opacity:.76!important}
+ .presence.is-on .ahki-v28-haze-soft{transform:translate(-50%,-50%) scale(.82)!important;opacity:.56!important}
+}
+</style>
+<script id="ahki-v28-living-blue-mist-script">
+(function(){
+ function add(){
+   var p=document.querySelector('.presence'); if(!p||p.querySelector('.ahki-v28-haze')) return;
+   var soft=document.createElement('div'); soft.className='ahki-v28-haze-soft'; soft.setAttribute('aria-hidden','true');
+   var haze=document.createElement('div'); haze.className='ahki-v28-haze'; haze.setAttribute('aria-hidden','true');
+   p.appendChild(soft); p.appendChild(haze);
+ }
+ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',add); else add();
+})();
+</script>
