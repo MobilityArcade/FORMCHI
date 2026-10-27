@@ -2091,6 +2091,44 @@ html,body{background:#063b69!important}
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',add); else add();
 })();
 </script>
+
+<style id="ahki-v27-black-void-orb">
+/* V27: true black void. All visible blue originates from the orb. */
+html,body{background:#000!important}
+.presence,.presence.is-on{background:#000!important;isolation:isolate!important;overflow:hidden!important}
+.presence::before{
+ content:""!important;display:block!important;position:absolute!important;left:50%!important;top:50%!important;inset:auto!important;z-index:0!important;pointer-events:none!important;
+ width:min(112vmin,1120px)!important;height:min(112vmin,1120px)!important;border-radius:50%!important;
+ background:radial-gradient(circle,rgba(0,167,255,.22) 0%,rgba(0,112,255,.16) 22%,rgba(0,55,155,.09) 43%,rgba(0,20,75,.035) 60%,transparent 76%)!important;
+ filter:blur(42px)!important;opacity:.66!important;transform:translate(-50%,-50%) scale(.62)!important;
+ animation:ahkiV27OuterBreath 13s cubic-bezier(.45,.04,.35,1) infinite!important;
+}
+.presence:after{
+ content:""!important;display:block!important;position:absolute!important;left:50%!important;top:50%!important;z-index:1!important;pointer-events:none!important;
+ width:min(78vmin,780px)!important;height:min(78vmin,780px)!important;border-radius:50%!important;
+ background:radial-gradient(circle,rgba(80,225,255,.36) 0%,rgba(0,198,255,.29) 20%,rgba(0,124,255,.19) 39%,rgba(0,58,180,.08) 58%,transparent 75%)!important;
+ mix-blend-mode:screen!important;filter:blur(30px)!important;opacity:.78!important;transform:translate(-50%,-50%) scale(.72)!important;
+ animation:ahkiV27AuraBreath 13s cubic-bezier(.45,.04,.35,1) infinite!important;
+}
+.liquid-presence{z-index:3!important;background:none!important}
+.presence.is-on .liquid-presence:before{
+ width:min(38vmin,390px)!important;aspect-ratio:1!important;border-radius:50%!important;
+ background:radial-gradient(circle at 50% 50%,#fff 0%,#fff 9%,#e9feff 18%,#a9f5ff 31%,#55e5ff 48%,#18c7f5 68%,#08a7df 86%,#078bc2 100%)!important;
+ border:clamp(1px,.16vmin,2px) solid rgba(255,255,255,.96)!important;
+ box-shadow:0 0 5px rgba(255,255,255,1),0 0 18px rgba(150,247,255,.95),0 0 42px rgba(0,220,255,.82),0 0 82px rgba(0,155,255,.58)!important;
+ animation:ahkiV27OrbBreath 13s cubic-bezier(.45,.04,.35,1) infinite!important;
+}
+.presence.is-on .liquid-presence:after{
+ width:min(66vmin,660px)!important;aspect-ratio:1!important;border-radius:50%!important;
+ background:radial-gradient(circle,rgba(105,236,255,.33) 0%,rgba(0,205,255,.25) 25%,rgba(0,125,245,.14) 48%,rgba(0,48,150,.05) 65%,transparent 76%)!important;
+ filter:blur(32px)!important;opacity:.76!important;animation:ahkiV27LocalBreath 13s cubic-bezier(.45,.04,.35,1) infinite!important;
+}
+@keyframes ahkiV27OrbBreath{0%,100%{transform:translate(-50%,-50%) scale(1)}52%{transform:translate(-50%,-50%) scale(1.30)}}
+@keyframes ahkiV27LocalBreath{0%,100%{transform:translate(-50%,-50%) scale(.76);opacity:.58}52%{transform:translate(-50%,-50%) scale(1.18);opacity:.96}}
+@keyframes ahkiV27AuraBreath{0%,100%{transform:translate(-50%,-50%) scale(.68);opacity:.54}52%{transform:translate(-50%,-50%) scale(1.18);opacity:.92}}
+@keyframes ahkiV27OuterBreath{0%,100%{transform:translate(-50%,-50%) scale(.60);opacity:.48}52%{transform:translate(-50%,-50%) scale(1.03);opacity:.78}}
+@media(prefers-reduced-motion:reduce){.presence::before,.presence:after,.presence.is-on .liquid-presence:before,.presence.is-on .liquid-presence:after{animation:none!important}}
+</style>
 </body>
 </html>
 \n<style id="ahki-v18-grounded-settings">\n/* V18 — settings/swipe world matches the OFF-state ocean blue instead of pale white glass. */\n#settingsShell,.settings-page{\n color:#f2fbff!important;\n background:\n  radial-gradient(ellipse at 50% 42%,rgba(91,190,224,.24) 0%,rgba(57,155,203,.13) 31%,transparent 58%),\n  radial-gradient(ellipse at 18% 18%,rgba(121,207,234,.12),transparent 36%),\n  linear-gradient(180deg,#2b96c8 0%,#258fc2 46%,#2388ba 100%)!important;\n}\n#settingsShell:before,.settings-page:before{opacity:.34!important;filter:blur(58px)!important}\n.set-head{background:linear-gradient(rgba(39,143,192,.92) 64%,rgba(39,143,192,0))!important}\n.set-group,.set-card{background:rgba(24,112,164,.28)!important;border:1px solid rgba(226,248,255,.25)!important;box-shadow:0 18px 48px rgba(10,74,119,.15),inset 0 1px 0 rgba(255,255,255,.20)!important;backdrop-filter:blur(22px) saturate(112%)!important;-webkit-backdrop-filter:blur(22px) saturate(112%)!important}\n.set-row{background:rgba(255,255,255,.018)!important;border-bottom-color:rgba(230,249,255,.18)!important}\n.set-title,.set-brand,.set-main,.set-icon,.set-chevron{color:#f4fcff!important}\n.set-kicker,.set-sub,.set-card p,.set-note,.muted{color:rgba(235,249,255,.78)!important}\n.set-back,.set-close{background:rgba(20,105,158,.28)!important;color:#f6fdff!important;border-color:rgba(235,250,255,.28)!important}\n.set-input{background:rgba(15,99,153,.28)!important;color:#fff!important;border-color:rgba(235,250,255,.28)!important}\n.set-button{background:rgba(21,112,169,.34)!important;color:#fff!important;border-color:rgba(235,250,255,.28)!important}\n</style>\n
