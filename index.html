@@ -453,6 +453,19 @@ body.settings-open .source {
 }
 </style>
 
+
+<style id="ahki-v26-deep-navy-floating-orb">
+/* V26 — match the approved deep-space reference: near-black navy negative space, concentrated cyan aura, floating luminous sphere. */
+html,body{background:#000816!important}
+.presence,.presence.is-on{background:radial-gradient(ellipse at 50% 50%,#062a50 0%,#031b38 27%,#011127 52%,#000a1b 75%,#000714 100%)!important}
+.presence::before{inset:-8%!important;background:radial-gradient(circle at 50% 50%,rgba(0,115,220,.12) 0%,rgba(0,67,155,.075) 30%,rgba(0,31,85,.035) 51%,transparent 69%)!important;filter:blur(52px)!important;opacity:.52!important}
+.presence:after{width:min(86vmin,900px)!important;height:min(86vmin,900px)!important;background:radial-gradient(circle,rgba(73,224,255,.22) 0%,rgba(0,194,255,.17) 18%,rgba(0,116,234,.10) 38%,rgba(0,58,156,.045) 55%,transparent 72%)!important;filter:blur(48px)!important;opacity:.58!important;mix-blend-mode:screen!important}
+.presence.is-on .liquid-presence:before{width:min(36vmin,370px)!important;background:radial-gradient(circle at 50% 50%,#fff 0%,#fbffff 8%,#dffcff 19%,#91efff 38%,#35d3f5 62%,#11b6e5 82%,#079acb 100%)!important;border:clamp(1px,.14vmin,1.7px) solid rgba(244,255,255,.94)!important;box-shadow:0 0 5px rgba(255,255,255,.98),0 0 14px rgba(186,249,255,.92),0 0 34px rgba(23,215,255,.72),0 0 72px rgba(0,151,255,.46),0 0 128px rgba(0,92,219,.22)!important}
+.presence.is-on .liquid-presence:after{width:min(52vmin,540px)!important;background:radial-gradient(circle,rgba(119,239,255,.22) 0%,rgba(0,204,255,.16) 28%,rgba(0,120,235,.075) 52%,transparent 74%)!important;filter:blur(38px)!important;opacity:.64!important}
+@keyframes ahkiV25LocalGlowBreath{0%,100%{transform:translate(-50%,-50%) scale(.80);opacity:.48;filter:blur(42px)}52%{transform:translate(-50%,-50%) scale(1.14);opacity:.76;filter:blur(34px)}}
+@keyframes ahkiV25AuraBreath{0%,100%{transform:translate(-50%,-50%) scale(.70);opacity:.38;filter:blur(56px)}52%{transform:translate(-50%,-50%) scale(1.10);opacity:.68;filter:blur(46px)}}
+@keyframes ahkiV25EnvironmentBreath{0%,100%{transform:scale(.96);opacity:.42;filter:blur(56px)}52%{transform:scale(1.04);opacity:.60;filter:blur(48px)}}
+</style>
 </head>
 <body>
 <main id="app" class="presence" aria-label="AHKI">
