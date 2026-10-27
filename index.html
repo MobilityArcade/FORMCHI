@@ -2429,3 +2429,33 @@ html,body{background:#000!important}
  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',add); else add();
 })();
 </script>
+
+<style id="ahki-v29-expanded-blue-mist">
+/* V29 — broaden V28 atmospheric footprint ~50% without changing orb/body logic. */
+.presence .ahki-v28-haze{
+  width:min(118vmin,1180px)!important;
+  height:min(104vmin,1040px)!important;
+}
+.presence .ahki-v28-haze-soft{
+  width:min(148vmin,1480px)!important;
+  height:min(132vmin,1320px)!important;
+}
+.presence.is-on .ahki-v28-haze{
+  animation:ahkiV29HazeBreath 13s cubic-bezier(.45,.04,.35,1) infinite!important;
+}
+.presence.is-on .ahki-v28-haze-soft{
+  animation:ahkiV29SoftBreath 13s cubic-bezier(.45,.04,.35,1) infinite!important;
+}
+@keyframes ahkiV29HazeBreath{
+  0%,100%{transform:translate(-50%,-50%) scale(.82) rotate(-1deg);opacity:.68;filter:blur(46px)}
+  55%{transform:translate(-50%,-50%) scale(1.32) rotate(1deg);opacity:1;filter:blur(36px)}
+}
+@keyframes ahkiV29SoftBreath{
+  0%,100%{transform:translate(-50%,-50%) scale(.72);opacity:.46;filter:blur(76px)}
+  58%{transform:translate(-50%,-50%) scale(1.20);opacity:.82;filter:blur(62px)}
+}
+@media(prefers-reduced-motion:reduce){
+ .presence.is-on .ahki-v28-haze{transform:translate(-50%,-50%) scale(1.02)!important;opacity:.80!important}
+ .presence.is-on .ahki-v28-haze-soft{transform:translate(-50%,-50%) scale(.96)!important;opacity:.62!important}
+}
+</style>
