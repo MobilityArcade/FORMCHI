@@ -506,12 +506,12 @@ body.settings-open .source {
 </style>
 <style id="ahki-volumetric-dust-v3">
 /* V5: Seamless overscanned breathing field with selective living shimmer. */
-.presence{--dust-r:91;--dust-g:205;--dust-b:248;--dust-bg:#032345}
+.presence{--dust-r:174;--dust-g:226;--dust-b:224;--dust-bg:#082a49}
 .ahki-dust{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;opacity:.64;transition:opacity 1.5s ease}
 .presence.is-on .ahki-dust{opacity:1}
 .ahki-dust svg{display:block;width:100%;height:100%;preserveAspectRatio:xMidYMid slice}
-.ahki-dust .speck{fill:rgb(var(--dust-r),var(--dust-g),var(--dust-b));transform-box:fill-box;transform-origin:center;animation:dustTwinkle var(--tw,16s) ease-in-out var(--delay,0s) infinite alternate}
-.ahki-dust .speck.warm{fill:#fff1cb}
+.ahki-dust .speck{fill:var(--speck-color,rgb(var(--dust-r),var(--dust-g),var(--dust-b)));transform-box:fill-box;transform-origin:center;animation:dustTwinkle var(--tw,16s) ease-in-out var(--delay,0s) infinite alternate}
+.ahki-dust .speck.warm{fill:var(--speck-color,#dce9f0)}
 .ahki-dust .speck.blur1{filter:url(#dustBlur1)}
 .ahki-dust .speck.blur2{filter:url(#dustBlur2)}
 .ahki-dust .speck.blur3{filter:url(#dustBlur3)}
@@ -527,6 +527,26 @@ body.settings-open .source {
 @media(prefers-reduced-motion:reduce){.ahki-dust .speck,.ahki-dust .dust-hover,#ahkiDustBreathing{animation:none!important}.ahki-dust .speck{opacity:var(--lo,.25)}}
 /* Dust stays behind the original orb; existing breathing geometry remains untouched. */
 .liquid-presence{z-index:3!important;pointer-events:none}
+</style>
+
+<style id="ahki-v6-dust-only">
+/* V6: The particles ARE the presence. No orb, pearl, mist, ring or halo. */
+.presence,.presence.is-on{background:var(--dust-bg,#082a49)!important;}
+.presence .ambient,.presence .orb,.presence .liquid-presence,.presence .mark,
+.presence .ahki-wordmark,.presence .eyes,.presence .water-sheen,
+.presence .water-ring,.presence .milk-glow,.presence .milk-center,
+.presence .milk-ring,.presence .touch-ripple{display:none!important;visibility:hidden!important;opacity:0!important;}
+.presence:before,.presence:after,.presence.is-on:before,.presence.is-on:after,
+.presence .liquid-presence:before,.presence .liquid-presence:after{content:none!important;display:none!important;}
+.presence .ahki-dust{display:block!important;opacity:1!important;visibility:visible!important;z-index:5!important;}
+/* Off: suspended particles shimmer without collective breathing. */
+#ahkiDustBreathing{animation:none!important;transform:scale(1)!important;}
+/* Listening: slower, gentler expansion. Speaking: fuller, more expressive breath. */
+.presence.is-on #ahkiDustBreathing{animation:ahkiDustListen 17.33s cubic-bezier(.45,.04,.35,1) infinite!important;}
+.presence.is-on[data-dust-mode="speaking"] #ahkiDustBreathing{animation:ahkiDustSpeak 10.93s cubic-bezier(.45,.04,.35,1) infinite!important;}
+@keyframes ahkiDustListen{0%,100%{transform:scale(.975) translate(0,0)}52%{transform:scale(1.105) translate(0,-.6px)}}
+@keyframes ahkiDustSpeak{0%,100%{transform:scale(.97) translate(0,0)}52%{transform:scale(1.15) translate(0,-.9px)}}
+@media(prefers-reduced-motion:reduce){.presence.is-on #ahkiDustBreathing{animation:none!important;transform:scale(1)!important;}}
 </style>
 </head>
 <body>
@@ -675,6 +695,7 @@ function showAssistantExpression(text){
 
 function powerLook(mode){
  app.classList.toggle('is-on',mode==='on');
+ app.dataset.dustMode = mode==='on' ? 'listening' : 'idle';
  if(mode!=='resume'&&typeof powerButton!=='undefined'&&powerButton)powerButton.classList.remove('resume-ready');
  if(typeof powerButton!=='undefined'&&powerButton){powerButton.setAttribute('aria-pressed',mode==='on'?'true':'false');powerButton.setAttribute('aria-label',mode==='on'?'Turn AHKI off':'Turn AHKI on');}
   akiButton.classList.remove('on','starting','error');
@@ -907,8 +928,8 @@ function turnEnded(){
     }
   },15000);
 }
-function responseStarted(){if(responseStartAt)return;responseStartAt=performance.now();latency('response-started',{from_turn_end_ms:turnEndAt?Math.round(responseStartAt-turnEndAt):null})}
-function firstAudio(){if(powered)setAquiConversationState('neutral');if(firstAudioAt)return;firstAudioAt=performance.now();clearTimeout(latencyTimer);clearTimeout(hardWatchdog);latency('first-audio',{from_turn_end_ms:turnEndAt?Math.round(firstAudioAt-turnEndAt):null,from_response_start_ms:responseStartAt?Math.round(firstAudioAt-responseStartAt):null})}
+function responseStarted(){if(powered)app.dataset.dustMode='listening';if(responseStartAt)return;responseStartAt=performance.now();latency('response-started',{from_turn_end_ms:turnEndAt?Math.round(responseStartAt-turnEndAt):null})}
+function firstAudio(){if(powered){setAquiConversationState('neutral');app.dataset.dustMode='speaking';}if(firstAudioAt)return;firstAudioAt=performance.now();clearTimeout(latencyTimer);clearTimeout(hardWatchdog);latency('first-audio',{from_turn_end_ms:turnEndAt?Math.round(firstAudioAt-turnEndAt):null,from_response_start_ms:responseStartAt?Math.round(firstAudioAt-responseStartAt):null})}
 
 function normalizedSpeech(text){
  return (text||'').toLowerCase().replace(/[’]/g,"'").replace(/\s+/g,' ').trim();
@@ -1164,8 +1185,8 @@ async function startAki(recovery=false){
     if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
     if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('response.output_item.added')||all.includes('delegation.created')){if(!greetingInFlight)flushSpokenTranscript();setAquiConversationState('thinking');responseStarted();}
     if(all.includes('audio')&&all.includes('delta')&&!all.includes('input_audio')){firstAudio();}
-    if(all.includes('response.done')||all.includes('response.completed')){setAquiConversationState('neutral');if(greetingInFlight)finishLiveGreeting()}
-    else if(all.includes('output_audio.done')||all.includes('audio.done')){if(greetingInFlight)finishLiveGreeting()}
+    if(all.includes('response.done')||all.includes('response.completed')){app.dataset.dustMode='listening';setAquiConversationState('neutral');if(greetingInFlight)finishLiveGreeting()}
+    else if(all.includes('output_audio.done')||all.includes('audio.done')){app.dataset.dustMode='listening';if(greetingInFlight)finishLiveGreeting()}
     else if(greetingInFlight&&all.includes('response.output_item.done'))finishLiveGreeting();
     if(type==='error'){if(greetingInFlight)finishLiveGreeting();console.error('AKI Live event error:',m)}
   }catch{}});
@@ -2049,24 +2070,28 @@ html,body{background:#155e98!important}
  // Overscan in every direction: even at the smallest breath and on wide screens,
  // no particle-cloud perimeter can enter the visible viewport.
  // A broad rectangular volume avoids the previous circular boundary.
- for(let i=0;i<6600;i++){
+ for(let i=0;i<6720;i++){
    const x=-1450+rand()*3900,y=-1150+rand()*3000;
    const depth=rand();const radius=depth<.80?.45+rand()*1.55:depth<.972?1.7+rand()*2.8:3.5+rand()*5.5;
    const c=document.createElementNS(ns,'circle');c.setAttribute('cx',x.toFixed(1));c.setAttribute('cy',y.toFixed(1));c.setAttribute('r',radius.toFixed(2));
    const blur=radius>7.5?'blur2':radius>4.4?'blur1':'';
    const shimmer=rand()<.23;
-   c.setAttribute('class','speck '+blur+(rand()<.11?' warm':'')+(shimmer?' shimmer':''));
+   c.setAttribute('class','speck '+blur+(rand()<.36?' warm':'')+(shimmer?' shimmer':''));
    const base=.08+rand()*.31;
    c.style.setProperty('--lo',base.toFixed(2));
+   if(rand()<.38)c.style.setProperty('--speck-color',rand()<.50?'#c5d7e2':'#e2eef2');
+   else if(rand()<.46)c.style.setProperty('--speck-color',rand()<.5?'#69c7bf':'#8edbd1');
    c.style.setProperty('--hi',Math.min(shimmer?.95:.78,base+(shimmer?.32:.08)+rand()*(shimmer?.48:.25)).toFixed(2));
    c.style.setProperty('--tw',(shimmer?5+rand()*12:11+rand()*19).toFixed(1)+'s');
    c.style.setProperty('--delay',(-rand()*32).toFixed(1)+'s');
    const hover=document.createElementNS(ns,'g');hover.setAttribute('class','dust-hover');hover.style.setProperty('--hover',(15+rand()*16).toFixed(1)+'s');hover.style.setProperty('--hover-delay',(-rand()*28).toFixed(1)+'s');hover.appendChild(c);frag.appendChild(hover);
  }
  layer.appendChild(frag);
- const stops=[{t:300,c:[255,173,59]},{t:480,c:[255,192,86]},{t:600,c:[194,237,233]},{t:720,c:[75,214,255]},{t:900,c:[42,170,255]},{t:1020,c:[120,142,255]},{t:1140,c:[249,117,228]},{t:1260,c:[224,96,230]},{t:1440,c:[148,78,235]},{t:1620,c:[62,115,237]},{t:1800,c:[33,123,230]}];
- function update(){const d=new Date(),m=d.getHours()*60+d.getMinutes();let v=m<300?m+1440:m;const extended=[...stops,{t:1740,c:[255,173,59]}];let left=extended[0],right=extended[extended.length-1];for(let i=0;i<extended.length-1;i++){if(v>=extended[i].t&&v<=extended[i+1].t){left=extended[i];right=extended[i+1];break}}const f=Math.max(0,Math.min(1,(v-left.t)/(right.t-left.t)));const rgb=left.c.map((n,i)=>Math.round(n+(right.c[i]-n)*f));['r','g','b'].forEach((k,i)=>root.style.setProperty('--dust-'+k,rgb[i]));}
- update();setInterval(update,60000);
+ // AHKI silver-and-teal palette: stable through the day, with no warm/purple shifts.
+ // Slightly cool, luminous silver is mixed with quiet marine teal per particle.
+ root.style.setProperty('--dust-r','166');
+ root.style.setProperty('--dust-g','223');
+ root.style.setProperty('--dust-b','221');
 })();
 </script>
 </body>
@@ -2291,17 +2316,39 @@ html,body{background:#155e98!important}
 }
 </style>
 
-<style id="ahki-v9-matte-blue-dust-only">
-/* Visual-only update. Preserve original 13-second particle breathing and twinkle. */
-html,body{background:#176b9e!important;}
-.presence,.presence.is-on,.presence:not(.is-on){background:#176b9e!important;background-image:none!important;}
-/* Remove the pearl nucleus, halo, dome, ambient veils, and legacy orb completely. */
-.presence .orb,.presence .ambient,.presence .liquid-presence,.presence .water-sheen,
-.presence .water-ring,.presence .milk-glow,.presence .milk-ring,.presence .milk-center,
-.presence .touch-ripple,.presence .halo,.presence .rim,.presence .oil,.presence .oil2,
-.presence .core,.presence .signal-band{display:none!important;visibility:hidden!important;opacity:0!important;}
-.presence::before,.presence::after,.presence.is-on::before,.presence.is-on::after,
-.presence .ambient::before,.presence .ambient::after{content:none!important;display:none!important;animation:none!important;}
-/* Preserve original particle SVG, scale cycle, hover and shimmering. */
-.presence .ahki-dust{display:block!important;visibility:visible!important;z-index:2!important;}
+<style id="ahki-v15-solid-blue-dimensional-drift">
+/* V15: solid uninterrupted deep blue, no luminous dome or legacy orb/mist. */
+html,body,body .presence,body .presence.is-on{
+  background:#082a49!important;background-color:#082a49!important;
+  background-image:none!important;
+}
+body .presence .ambient,body .presence .orb,body .presence .liquid-presence,
+body .presence .milk-glow,body .presence .milk-ring,body .presence .milk-center,
+body .presence .water-sheen,body .presence .water-ring,
+body .presence .mark,body .presence .ahki-wordmark{
+  display:none!important;visibility:hidden!important;opacity:0!important;
+}
+body .presence::before,body .presence::after,
+body .presence.is-on::before,body .presence.is-on::after,
+body .presence .liquid-presence::before,body .presence .liquid-presence::after{
+  content:none!important;display:none!important;opacity:0!important;
+}
+body .presence .ahki-dust{display:block!important;opacity:1!important;visibility:visible!important}
+/* Optical depth comes from the whole field scaling toward and away from the viewer,
+   rather than from tiny positional drift. Slow 17.33s cycle stays smooth. */
+body .presence #ahkiDustBreathing{animation:none!important;transform:scale(1)!important;transform-origin:50% 50%;transform-box:view-box}
+body .presence.is-on #ahkiDustBreathing,
+body .presence.is-on[data-dust-mode="speaking"] #ahkiDustBreathing{
+  animation:ahkiV15DepthDrift 17.33s cubic-bezier(.45,.04,.35,1) infinite!important;
+}
+@keyframes ahkiV15DepthDrift{
+  0%,100%{transform:scale(.90)}
+  52%{transform:scale(1.30)}
+}
+@media(prefers-reduced-motion:reduce){
+  body .presence.is-on #ahkiDustBreathing,
+  body .presence.is-on[data-dust-mode="speaking"] #ahkiDustBreathing{
+    animation:none!important;transform:scale(1)!important;
+  }
+}
 </style>
