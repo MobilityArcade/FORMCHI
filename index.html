@@ -528,22 +528,23 @@ body.settings-open .source {
 /* Dust stays behind the original orb; existing breathing geometry remains untouched. */
 .liquid-presence{z-index:3!important;pointer-events:none}
 </style>
-
-<style id="ahki-v12-solar-eclipse-presence">
-/* V12: visual-only solar corona. The original voice, dust, settings and background controllers remain unchanged. */
-.ahki-eclipse{position:absolute;left:50%;top:50%;width:clamp(130px,38vmin,365px);aspect-ratio:1;transform:translate(-50%,-50%);z-index:3;pointer-events:none;opacity:0;visibility:hidden;transition:opacity 1.25s ease,visibility 0s linear 1.25s;isolation:isolate}
-.presence.is-on .ahki-eclipse{opacity:1;visibility:visible;transition:opacity 1.35s ease,visibility 0s}
-.ahki-eclipse-breath{position:absolute;inset:0;border-radius:50%;transform-origin:center;animation:ahkiEclipseBreath 13s cubic-bezier(.45,.04,.35,1) infinite;will-change:transform}
-.ahki-eclipse-rays{position:absolute;inset:-46%;border-radius:50%;background:repeating-conic-gradient(from 5deg,rgba(255,227,155,.0) 0deg,rgba(255,226,159,.17) 1.15deg,rgba(255,255,234,.015) 2.4deg,transparent 4.8deg,transparent 8.5deg),radial-gradient(circle,transparent 29%,rgba(255,230,168,.16) 33%,rgba(255,219,139,.15) 37%,rgba(255,207,112,.075) 45%,transparent 66%);mask-image:radial-gradient(circle,transparent 24%,#000 36%,rgba(0,0,0,.50) 49%,transparent 73%);-webkit-mask-image:radial-gradient(circle,transparent 24%,#000 36%,rgba(0,0,0,.50) 49%,transparent 73%);filter:blur(5px);animation:ahkiEclipseFlicker 7.7s ease-in-out infinite alternate}
-.ahki-eclipse-aura{position:absolute;inset:-23%;border-radius:50%;background:radial-gradient(circle,transparent 29%,rgba(255,255,231,.10) 35%,rgba(255,230,166,.49) 41%,rgba(255,205,117,.30) 45%,rgba(255,208,132,.10) 53%,transparent 72%);filter:blur(17px);animation:ahkiEclipseFlicker 9.1s ease-in-out -3s infinite alternate}
-.ahki-eclipse-ring{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 45% 43%,#8cdaff 0%,#3da7e4 48%,#1668ac 72%,#0b477e 100%);border:clamp(2px,.55vmin,5px) solid rgba(255,247,215,.96);box-shadow:0 0 7px 3px rgba(255,255,236,.96),0 0 18px 7px rgba(255,232,164,.83),0 0 42px 13px rgba(255,204,116,.51),0 0 80px 21px rgba(255,213,146,.22),inset 0 0 23px rgba(207,246,255,.55);animation:ahkiEclipseRingLight 6.4s ease-in-out infinite alternate}
-.ahki-eclipse-ring:before{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 48% 42%,rgba(232,251,255,.50),rgba(115,209,252,.17) 36%,transparent 75%);pointer-events:none}
-@keyframes ahkiEclipseBreath{0%,100%{transform:scale(.92)}52%{transform:scale(1.22)}}
-@keyframes ahkiEclipseFlicker{0%,100%{opacity:.78;filter:blur(6px) brightness(.91)}29%{opacity:.96}56%{opacity:.84;filter:blur(5px) brightness(1.18)}78%{opacity:1}}
-@keyframes ahkiEclipseRingLight{0%,100%{filter:brightness(.94)}27%{filter:brightness(1.07)}52%{filter:brightness(1.17)}70%{filter:brightness(.99)}83%{filter:brightness(1.12)}}
-/* Keep the dust in front of the eclipse as well as behind it, with the existing overscan and 13-second motion. */
-.presence .ahki-dust{z-index:4!important}
-@media(prefers-reduced-motion:reduce){.ahki-eclipse-breath,.ahki-eclipse-rays,.ahki-eclipse-aura,.ahki-eclipse-ring{animation:none!important}}
+<style id="ahki-v13-living-cluster">
+/* V13: no solid sphere, corona, ring or nucleus. The living presence is particles alone. */
+.presence .orb,.presence .liquid-presence,.presence .milk-glow,.presence .milk-center{display:none!important}
+#ahkiDustBreathing{animation-duration:26s!important}
+.ahki-dust .dust-hover{animation-duration:calc(var(--hover,19s) * 2)!important}
+.ahki-dust .speck{animation-duration:calc(var(--tw,16s) * 2)!important}
+.ahki-dust .speck.shimmer{animation-duration:calc(var(--tw,8s) * 2)!important}
+#ahkiCluster{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;visibility:hidden;transition:opacity 1.6s ease,visibility 0s linear 1.6s;overflow:hidden}
+.presence.is-on #ahkiCluster{opacity:1;visibility:visible;transition:opacity 2.2s ease,visibility 0s}
+#ahkiCluster svg{display:block;width:100%;height:100%}
+#ahkiClusterBreath{transform-box:view-box;transform-origin:50% 50%;animation:ahkiClusterBreathe 26s cubic-bezier(.45,.04,.35,1) infinite}
+@keyframes ahkiClusterBreathe{0%,100%{transform:scale(.83)}52%{transform:scale(1.22)}}
+#ahkiCluster .cluster-dot{animation:ahkiClusterFlicker var(--flicker,9s) ease-in-out var(--phase,0s) infinite alternate;opacity:var(--low,.25)}
+@keyframes ahkiClusterFlicker{0%,100%{opacity:var(--low,.22)}38%{opacity:var(--high,.8)}58%{opacity:var(--low,.22)}77%{opacity:var(--high,.8)}}
+#ahkiCluster .cluster-haze{animation:ahkiClusterGlow 26s ease-in-out infinite;transform-origin:50% 50%}
+@keyframes ahkiClusterGlow{0%,100%{opacity:.24}52%{opacity:.62}}
+@media(prefers-reduced-motion:reduce){#ahkiClusterBreath,#ahkiCluster .cluster-dot,#ahkiCluster .cluster-haze{animation:none!important}}
 </style>
 </head>
 <body>
@@ -551,8 +552,8 @@ body.settings-open .source {
   <input id="worldPicker" type="file" accept="image/*" capture="environment" hidden aria-hidden="true">
   <input id="filePicker" type="file" accept="image/*,application/pdf,text/plain,text/markdown,text/csv,application/json,.pdf,.txt,.md,.csv,.json,.doc,.docx,.xls,.xlsx,.ppt,.pptx" hidden aria-hidden="true">
   <div class="ambient"></div>
-  <div class="ahki-eclipse" aria-hidden="true"><div class="ahki-eclipse-breath"><div class="ahki-eclipse-rays"></div><div class="ahki-eclipse-aura"></div><div class="ahki-eclipse-ring"></div></div></div>
   <div class="ahki-dust" aria-hidden="true"><svg id="ahkiDustSvg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice"><defs><filter id="dustBlur1" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="1.4"/></filter><filter id="dustBlur2" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3.8"/></filter><filter id="dustBlur3" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="7"/></filter></defs><g id="ahkiDustBreathing"><g id="ahkiDustPoints"></g></g></svg></div>
+  <div id="ahkiCluster" aria-hidden="true"><svg viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice"><defs><filter id="clusterSoft"><feGaussianBlur stdDeviation="8"/></filter><filter id="clusterBokeh"><feGaussianBlur stdDeviation="2.2"/></filter></defs><g id="ahkiClusterBreath"><g id="ahkiClusterPoints"></g></g></svg></div>
   <div class="liquid-presence" aria-hidden="true">
     <span class="water-sheen"></span>
     <span class="water-ring wr1"></span><span class="water-ring wr2"></span><span class="water-ring wr3"></span><span class="water-ring wr4"></span><span class="water-ring wr5"></span><span class="water-ring wr6"></span><span class="water-ring wr7"></span><span class="water-ring wr8"></span><span class="water-ring wr9"></span><span class="water-ring wr10"></span><span class="water-ring wr11"></span><span class="water-ring wr12"></span>
@@ -2088,6 +2089,28 @@ html,body{background:#155e98!important}
  const stops=[{t:300,c:[255,173,59]},{t:480,c:[255,192,86]},{t:600,c:[194,237,233]},{t:720,c:[75,214,255]},{t:900,c:[42,170,255]},{t:1020,c:[120,142,255]},{t:1140,c:[249,117,228]},{t:1260,c:[224,96,230]},{t:1440,c:[148,78,235]},{t:1620,c:[62,115,237]},{t:1800,c:[33,123,230]}];
  function update(){const d=new Date(),m=d.getHours()*60+d.getMinutes();let v=m<300?m+1440:m;const extended=[...stops,{t:1740,c:[255,173,59]}];let left=extended[0],right=extended[extended.length-1];for(let i=0;i<extended.length-1;i++){if(v>=extended[i].t&&v<=extended[i+1].t){left=extended[i];right=extended[i+1];break}}const f=Math.max(0,Math.min(1,(v-left.t)/(right.t-left.t)));const rgb=left.c.map((n,i)=>Math.round(n+(right.c[i]-n)*f));['r','g','b'].forEach((k,i)=>root.style.setProperty('--dust-'+k,rgb[i]));}
  // Color is now managed by the user-selectable four-environment controller.
+})();
+</script>
+<script id="ahki-v13-cluster-generator">
+(()=>{
+ const target=document.getElementById('ahkiClusterPoints');if(!target)return;
+ let seed=130927;const rand=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
+ const ns='http://www.w3.org/2000/svg',frag=document.createDocumentFragment();
+ // Lumpy, asymmetric overlapping clouds: never draw a circular boundary or opaque core.
+ const lobes=[[-105,-25,115,77,.23],[20,-45,100,92,.25],[90,35,93,74,.19],[-32,64,105,65,.20],[0,0,74,62,.13]];
+ const palettes=['#ffda87','#ffd071','#ffecbb','#fff8dc','#87d9ff','#3cafff','#e7bfff'];
+ for(let i=0;i<2650;i++){
+  const r=rand();let a=0,acc=0;for(let k=0;k<lobes.length;k++){acc+=lobes[k][4];if(r<=acc){a=k;break}}
+  const [ox,oy,sx,sy]=lobes[a];const gauss=()=>Math.sqrt(-2*Math.log(Math.max(1e-6,rand())))*Math.cos(2*Math.PI*rand());
+  const x=500+ox+gauss()*sx*.62,y=350+oy+gauss()*sy*.62;
+  const radius=rand()<.88?.35+rand()*1.25:1.8+rand()*3.7;
+  const c=document.createElementNS(ns,'circle');c.setAttribute('cx',x.toFixed(2));c.setAttribute('cy',y.toFixed(2));c.setAttribute('r',radius.toFixed(2));
+  c.setAttribute('fill',palettes[Math.floor(rand()*palettes.length)]);c.setAttribute('class','cluster-dot');
+  if(radius>3.1)c.setAttribute('filter','url(#clusterBokeh)');
+  c.style.setProperty('--low',(.09+rand()*.23).toFixed(2));c.style.setProperty('--high',(.50+rand()*.49).toFixed(2));
+  c.style.setProperty('--flicker',(5+rand()*15).toFixed(1)+'s');c.style.setProperty('--phase',(-rand()*24).toFixed(1)+'s');frag.appendChild(c);
+ }
+ target.appendChild(frag);
 })();
 </script>
 </body>
