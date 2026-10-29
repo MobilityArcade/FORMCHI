@@ -2090,6 +2090,22 @@ html,body{background:#155e98!important}
  update();setInterval(update,60000);
 })();
 </script>
+
+<!-- AHKI V7: uniform blue, living full-field breathing. Last visual override. -->
+<style id="ahki-v7-uniform-blue-breath">
+html,body,body .presence,body .presence.is-on{background:#237fb7!important;background-image:none!important;}
+body .presence .ambient,body .presence .liquid-presence,body .presence .orb,body .presence .mark,body .presence .ahki-wordmark{display:none!important;opacity:0!important;visibility:hidden!important;}
+body .presence::before,body .presence::after,body .presence.is-on::before,body .presence.is-on::after{content:none!important;display:none!important;}
+body .presence .ahki-dust{position:absolute!important;inset:0!important;display:block!important;visibility:visible!important;opacity:1!important;z-index:5!important;background:transparent!important;filter:none!important;}
+body .presence .ahki-dust svg{width:100%!important;height:100%!important;display:block!important;overflow:hidden!important;}
+/* No collective motion until activation. All particles breathe as one volume thereafter. */
+body .presence #ahkiDustBreathing{animation:none!important;transform:scale(1)!important;transform-box:view-box!important;transform-origin:50% 50%!important;will-change:transform;}
+body .presence.is-on #ahkiDustBreathing{animation:ahkiV7Breath 12.8s ease-in-out infinite!important;}
+body .presence.is-on[data-dust-mode="speaking"] #ahkiDustBreathing{animation:ahkiV7Speak 9.2s ease-in-out infinite!important;}
+@keyframes ahkiV7Breath{0%,100%{transform:scale(.90)}50%{transform:scale(1.30)}}
+@keyframes ahkiV7Speak{0%,100%{transform:scale(.90)}50%{transform:scale(1.34)}}
+@media(prefers-reduced-motion:reduce){body .presence.is-on #ahkiDustBreathing{animation:none!important;transform:scale(1)!important;}}
+</style>
 </body>
 </html>
 \n<style id="ahki-v18-grounded-settings">\n/* V18 — settings/swipe world matches the OFF-state ocean blue instead of pale white glass. */\n#settingsShell,.settings-page{\n color:#f2fbff!important;\n background:\n  radial-gradient(ellipse at 50% 42%,rgba(91,190,224,.24) 0%,rgba(57,155,203,.13) 31%,transparent 58%),\n  radial-gradient(ellipse at 18% 18%,rgba(121,207,234,.12),transparent 36%),\n  linear-gradient(180deg,#2b96c8 0%,#258fc2 46%,#2388ba 100%)!important;\n}\n#settingsShell:before,.settings-page:before{opacity:.34!important;filter:blur(58px)!important}\n.set-head{background:linear-gradient(rgba(39,143,192,.92) 64%,rgba(39,143,192,0))!important}\n.set-group,.set-card{background:rgba(24,112,164,.28)!important;border:1px solid rgba(226,248,255,.25)!important;box-shadow:0 18px 48px rgba(10,74,119,.15),inset 0 1px 0 rgba(255,255,255,.20)!important;backdrop-filter:blur(22px) saturate(112%)!important;-webkit-backdrop-filter:blur(22px) saturate(112%)!important}\n.set-row{background:rgba(255,255,255,.018)!important;border-bottom-color:rgba(230,249,255,.18)!important}\n.set-title,.set-brand,.set-main,.set-icon,.set-chevron{color:#f4fcff!important}\n.set-kicker,.set-sub,.set-card p,.set-note,.muted{color:rgba(235,249,255,.78)!important}\n.set-back,.set-close{background:rgba(20,105,158,.28)!important;color:#f6fdff!important;border-color:rgba(235,250,255,.28)!important}\n.set-input{background:rgba(15,99,153,.28)!important;color:#fff!important;border-color:rgba(235,250,255,.28)!important}\n.set-button{background:rgba(21,112,169,.34)!important;color:#fff!important;border-color:rgba(235,250,255,.28)!important}\n</style>\n
