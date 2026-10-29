@@ -2235,3 +2235,56 @@ html,body{background:#155e98!important}
   }
 }
 </style>
+
+
+<style id="ahki-ethereal-presence-v1">
+html,body{background:#020817!important;color:#f3f8ff!important}
+.presence{background:#020817!important;isolation:isolate!important}
+.presence:before,.presence:after,.presence .liquid-presence,.presence .ambient,.presence .orb,.presence .mark,.presence .eyes{display:none!important;content:none!important}
+#ahkiEtherCanvas{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}
+#settingsEtherCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+#settingsShell,#settingsShell .settings-page,#settingsShell .settings-page.active{background:transparent!important;background-color:transparent!important}
+#settingsShell{isolation:isolate!important}
+#settingsShell:before,#settingsShell:after,#settingsShell .settings-page:before,#settingsShell .settings-page:after{display:none!important;content:none!important}
+#settingsShell .set-head,#settingsShell .set-group,#settingsShell .set-card{position:relative;z-index:2}
+#settingsShell .set-group,#settingsShell .set-card{background:rgba(4,13,34,.54)!important;border-color:rgba(195,224,255,.16)!important;backdrop-filter:blur(17px)!important}
+#settingsShell .set-row{background:rgba(8,20,45,.22)!important}
+#settingsShell .set-head{background:transparent!important}
+@media(prefers-reduced-motion:reduce){#ahkiEtherCanvas,#settingsEtherCanvas{animation:none!important}}
+</style>
+<script id="ahki-ethereal-presence-engine">
+(()=>{
+'use strict';
+const main=document.getElementById('app'), shell=document.getElementById('settingsShell');
+if(!main)return;
+const canvas=document.createElement('canvas');canvas.id='ahkiEtherCanvas';canvas.setAttribute('aria-hidden','true');main.prepend(canvas);
+let settingsCanvas=null;if(shell){settingsCanvas=document.createElement('canvas');settingsCanvas.id='settingsEtherCanvas';settingsCanvas.setAttribute('aria-hidden','true');shell.prepend(settingsCanvas)}
+const reduce=matchMedia('(prefers-reduced-motion: reduce)');
+const palette=[{t:0,c:[23,83,185],bg:[1,8,26]},{t:5,c:[255,166,49],bg:[36,17,15]},{t:8,c:[255,197,94],bg:[35,22,19]},{t:10,c:[112,220,240],bg:[3,36,66]},{t:12,c:[22,178,255],bg:[2,34,78]},{t:15,c:[18,149,255],bg:[2,25,68]},{t:17,c:[91,150,255],bg:[12,20,66]},{t:19,c:[247,119,220],bg:[39,12,61]},{t:21,c:[194,75,234],bg:[25,10,57]},{t:24,c:[74,97,225],bg:[4,11,40]}];
+function colorAt(hour){let h=hour<5?hour+24:hour;let points=palette;let a=points[0],b=points[1];for(let i=0;i<points.length-1;i++)if(h>=points[i].t&&h<=points[i+1].t){a=points[i];b=points[i+1];break}if(h>24){a=points[points.length-1];b={t:29,c:palette[1].c,bg:palette[1].bg}}let f=Math.max(0,Math.min(1,(h-a.t)/(b.t-a.t)));f=f*f*(3-2*f);return {c:a.c.map((v,i)=>v+(b.c[i]-v)*f),bg:a.bg.map((v,i)=>v+(b.bg[i]-v)*f)}}
+const rgba=(c,a)=>`rgba(${c.map(v=>Math.round(v)).join(',')},${a})`;
+let state='idle',targetState='idle',lastSpeech=0,phase=0,lastFrame=0,listener=null;
+const particles=Array.from({length:260},(_,i)=>({x:Math.random(),y:Math.random(),r:.35+Math.random()*2.0,z:.25+Math.random()*.75,seed:Math.random()*6.283,dx:(Math.random()-.5)*.000011,dy:(Math.random()-.5)*.000012}));
+const layers=[{el:canvas,ctx:canvas.getContext('2d',{alpha:false}),w:0,h:0},{el:settingsCanvas,ctx:settingsCanvas?.getContext('2d',{alpha:false}),w:0,h:0}].filter(x=>x.el&&x.ctx);
+function resize(layer){const r=layer.el.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,1.65);let w=Math.max(1,Math.round(r.width*dpr)),h=Math.max(1,Math.round(r.height*dpr));if(layer.el.width!==w||layer.el.height!==h){layer.el.width=w;layer.el.height=h}layer.w=w;layer.h=h}
+function draw(layer,now,p){resize(layer);const {ctx,w,h}=layer;if(w<2||h<2)return;const active=main.classList.contains('is-on');const settings=layer.el===settingsCanvas;const clock=new Date();const hour=clock.getHours()+clock.getMinutes()/60+clock.getSeconds()/3600;const {c,bg}=colorAt(hour);const base=ctx.createLinearGradient(0,0,w,h);base.addColorStop(0,rgba(bg,1));base.addColorStop(1,'#010612');ctx.fillStyle=base;ctx.fillRect(0,0,w,h);
+const cx=w*.5,cy=h*.48,unit=Math.min(w,h),slow=reduce.matches?0:now*.00012;let factor=state==='listening'?1.20:state==='reflecting'?.74:state==='speaking'?1.08:state==='breathing'?1.17:state==='quiet'?.48:1;let breath=reduce.matches?1:1+.065*Math.sin(now/2500);let speech=state==='speaking'?(1+.028*Math.sin(now/270)+.018*Math.sin(now/510)):1;let radius=unit*.19*factor*breath*speech;
+let ambient=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(w,h)*.77);ambient.addColorStop(0,rgba(c,active?.24:.14));ambient.addColorStop(.30,rgba(c,.10));ambient.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=ambient;ctx.fillRect(0,0,w,h);
+// Light is behind the dust, never a solid sphere or a sharp ring.
+let glow=ctx.createRadialGradient(cx,cy,0,cx,cy,radius*2.3);glow.addColorStop(0,`rgba(255,252,236,${active?.96:.63})`);glow.addColorStop(.035,rgba(c,active?.85:.52));glow.addColorStop(.14,rgba(c,active?.44:.29));glow.addColorStop(.46,rgba(c,.14));glow.addColorStop(1,rgba(c,0));ctx.fillStyle=glow;ctx.fillRect(cx-radius*2.3,cy-radius*2.3,radius*4.6,radius*4.6);
+ctx.globalCompositeOperation='screen';for(let i=0;i<particles.length;i++){const q=particles[i],drift=reduce.matches?0:now*.000006;let x=(q.x+q.dx*now*.018+Math.sin(slow+q.seed)*.009+2)%1,y=(q.y+q.dy*now*.018+Math.cos(slow*.72+q.seed)*.009+2)%1;let px=x*w,py=y*h;const dist=Math.hypot((px-cx)/w,(py-cy)/h);let focus=Math.exp(-dist*dist*13);let alpha=(.12+.30*q.z+focus*.37)*(active?1:.7);let r=q.r*(.65+q.z)*Math.max(.8,unit/560);ctx.beginPath();ctx.fillStyle=rgba(i%13===0?[255,211,160]:c,alpha);ctx.shadowBlur=r*6;ctx.shadowColor=rgba(c,.5);ctx.arc(px,py,r,0,Math.PI*2);ctx.fill()}ctx.shadowBlur=0;ctx.globalCompositeOperation='source-over';
+}
+function loop(now){if(now-lastFrame>32||reduce.matches&&now-lastFrame>1000){lastFrame=now;for(const l of layers)draw(l,now)}requestAnimationFrame(loop)}requestAnimationFrame(loop);
+window.AHKIEthereal={setState(next){if(['idle','listening','reflecting','speaking','breathing','quiet'].includes(next))state=next},getState(){return state},getColor(){const d=new Date();return colorAt(d.getHours()+d.getMinutes()/60)}};
+// Connect to existing realtime events without modifying their audio/network implementation.
+const oldOnAir=window.setAquiOnAir;if(typeof oldOnAir==='function')window.setAquiOnAir=function(v){oldOnAir(v);if(v)state='speaking';else if(state==='speaking')state='listening'};
+const oldConversation=window.setAquiConversationState;if(typeof oldConversation==='function')window.setAquiConversationState=function(s,m){oldConversation(s,m);if(s==='thinking')state='reflecting';else if(s==='idle')state='idle';else if(state==='reflecting')state='listening'};
+const oldFirstAudio=window.firstAudio;if(typeof oldFirstAudio==='function')window.firstAudio=function(...args){state='speaking';lastSpeech=performance.now();return oldFirstAudio(...args)};
+// Event listener for actual realtime states, including user speech and assistant audio.
+const oldAdd=window.RTCPeerConnection;
+// The existing connection already uses a data channel; watch events via a light non-invasive wrapper.
+if(oldAdd?.prototype?.createDataChannel){const original=oldAdd.prototype.createDataChannel;oldAdd.prototype.createDataChannel=function(...args){const ch=original.apply(this,args);ch.addEventListener('message',ev=>{try{const v=JSON.parse(ev.data),t=String(v.type||'');if(t.includes('input_audio_buffer.speech_started'))state='listening';else if(t.includes('input_audio_buffer.speech_stopped')||t.includes('response.created'))state='reflecting';else if(t.includes('response.audio.delta')||t.includes('response.output_audio.delta')){state='speaking';lastSpeech=performance.now()}else if(t.includes('response.done'))state='listening'}catch{}});return ch}};
+// Listening is the resting conversational mode; never flash or rapidly alternate.
+setInterval(()=>{if(!main.classList.contains('is-on')){state='quiet';return}if(state==='speaking'&&performance.now()-lastSpeech>3000)state='listening'},1200);
+})();
+</script>
