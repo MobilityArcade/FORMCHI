@@ -1547,7 +1547,7 @@ if(bootRecovery){wantsPower=true;interruptionHidden=true;powerLook('resume')}els
     <p class="set-note" style="padding:0 8px 30px">Settings float above the live AHKI session. Opening or browsing them does not intentionally stop the microphone or conversation.</p>
   </section>
   <section class="settings-page" data-page="name"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Name</div><div></div></div><div class="set-hero" id="nameHero">AHKI</div><div class="set-card"><h3>Personal Name</h3><p>AHKI is the app. Give the presence inside it any name you want, and change it naturally at any time.</p><input id="nameInput" class="set-input" maxlength="32" placeholder="AHKI"><button id="saveName" class="set-button">Save</button></div><p class="set-note">Example: “Can I call you Ava?” → “Of course.” The chosen name stays on this device until you change or clear it.</p></section>
-  <section class="settings-page" data-page="environment"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Particle Environment</div><div></div></div><div class="set-card"><h3>Choose your atmosphere</h3><p>Auto follows your local time, or keep one environment all day. The same living particles breathe in every mode.</p></div><div class="set-group" id="environmentChoices"></div><p class="set-note" style="padding:12px 8px 28px">Morning 5–10 AM · Day 10 AM–5 PM · Evening 5–9 PM · Night 9 PM–5 AM</p></section>
+  <section class="settings-page" data-page="environment"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Particle Environment</div><div></div></div><div class="set-card"><h3>Choose your atmosphere</h3><p>Auto follows your local time, or keep one environment all day. The same living particles breathe in every mode.</p></div><div class="set-group" id="environmentChoices"></div><div class="set-card"><h3>Matte Background</h3><p>Choose a background independently of the particles above. Auto matches the particle environment.</p></div><div class="set-group" id="backgroundChoices"></div><p class="set-note" style="padding:12px 8px 28px">Morning 5–10 AM · Day 10 AM–5 PM · Evening 5–9 PM · Night 9 PM–5 AM</p></section>
   <section class="settings-page" data-page="voice"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Voice</div><div></div></div><div class="set-group" id="voiceChoices"></div><div class="set-card"><h3>Voice preview</h3><p>Choose a voice here. To keep your current conversation uninterrupted, a changed voice is saved for the next fresh live session.</p><button id="previewVoice" class="set-button">Play simple preview tone</button></div></section>
   <section class="settings-page" data-page="memory"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Memory</div><div></div></div><div class="set-group"><button class="set-row" id="memoryToggle"><span class="set-icon">◇</span><span><div class="set-main">Personal Memory</div><div class="set-sub">Prototype control</div></span><span id="memorySwitch" class="switch"></span></button></div><div class="set-group"><button class="set-row" id="viewMemories"><span class="set-icon">□</span><span><div class="set-main">View Memories</div><div class="set-sub">Shows what this prototype has stored</div></span><span class="set-chevron">›</span></button><button class="set-row" id="clearPrototypeMemory"><span class="set-icon">×</span><span><div class="set-main">Clear Prototype Memory</div><div class="set-sub">Does not alter conversation recovery</div></span><span class="set-chevron">›</span></button></div><p class="set-note">This screen is a UI prototype. It does not invent a long-term memory system that the current web build does not already have.</p></section>
   <section class="settings-page" data-page="usage"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Usage</div><div></div></div><div class="set-card"><div class="muted">Recorded conversation time on this device</div><div class="usage-big" id="usageBig">0m</div><div class="usage-bar"><div class="usage-fill" id="usageFill"></div></div></div><div class="set-group"><button class="set-row" id="usageDetails"><span class="set-icon">◷</span><span><div class="set-main">View Details</div><div class="set-sub">Local session meter</div></span><span class="set-chevron">›</span></button></div><p class="set-note">The current build already records anonymous session duration locally. This prototype displays that existing local total.</p></section>
@@ -2333,7 +2333,7 @@ html,body,.presence{background:var(--ahki-environment-bg,#176B9E)!important;back
  function getMode(){try{return localStorage.getItem('ahkiParticleEnvironmentV10')||'auto'}catch{return 'auto'}}
  function timeMode(){const h=new Date().getHours();return h>=5&&h<10?'morning':h>=10&&h<17?'day':h>=17&&h<21?'evening':'night'}
  function render(){const saved=getMode(),mode=saved==='auto'?timeMode():saved,p=palettes[mode]||palettes.day;
-  root.style.setProperty('--ahki-environment-bg',p.bg);
+  root.style.setProperty('--ahki-environment-bg',p.bg); if(window.AHKIBackground)window.AHKIBackground.refresh();
   ['r','g','b'].forEach((k,i)=>root.style.setProperty('--dust-'+k,p.rgb[i]));
   root.style.setProperty('--flake-gold',p.gold);root.style.setProperty('--flake-deep',p.deep);root.style.setProperty('--flake-cool',p.cool);root.style.setProperty('--flake-lilac',p.lilac);
   const summary=document.getElementById('rootEnvironment');if(summary)summary.textContent=saved==='auto'?'Auto · '+mode[0].toUpperCase()+mode.slice(1):mode[0].toUpperCase()+mode.slice(1);
@@ -2341,5 +2341,57 @@ html,body,.presence{background:var(--ahki-environment-bg,#176B9E)!important;back
  }
  window.AHKIEnvironment={set(mode){if(options.some(x=>x[0]===mode)){localStorage.setItem('ahkiParticleEnvironmentV10',mode);render()}},refresh:render};
  render();setInterval(()=>{if(getMode()==='auto')render()},60000);
+})();
+</script>
+
+
+<style id="ahki-v11-independent-matte-backgrounds">
+/* Background selection is independent of the existing particle palette and motion. */
+html,body,html body .presence,html body .presence.is-on,html body .presence:not(.is-on){
+ background:var(--ahki-selected-matte,#176b9e)!important;
+ background-color:var(--ahki-selected-matte,#176b9e)!important;
+ background-image:none!important;
+ transition:background-color 1.4s ease!important;
+}
+#backgroundChoices .set-row .radio{margin-left:auto;flex:none}
+#backgroundChoices .matte-swatch{width:24px;height:24px;border-radius:50%;border:1px solid rgba(255,255,255,.65);box-shadow:0 0 0 1px rgba(0,0,0,.14);flex:none}
+</style>
+<script id="ahki-v11-independent-matte-backgrounds-controller">
+(()=>{
+ const root=document.querySelector('.presence');
+ const key='ahkiMatteBackgroundV11';
+ const choices=[
+  ['auto','Auto · Match particles',null,'Uses the selected particle environment background'],
+  ['blue','Blue matte','#176b9e','Original ocean-blue matte'],
+  ['white','White matte','#f6f5f0','Soft warm white'],
+  ['black','Black matte','#050608','Near-black charcoal'],
+  ['purple','Purple matte','#49336e','Deep muted violet'],
+  ['gold','Gold matte','#b68a43','Warm champagne gold']
+ ];
+ const read=()=>{try{return localStorage.getItem(key)||'auto'}catch{return 'auto'}};
+ function refresh(){
+  const selected=read();const match=choices.find(c=>c[0]===selected)||choices[0];
+  const inherited=root.style.getPropertyValue('--ahki-environment-bg').trim()||'#176b9e';
+  const color=match[2]||inherited;
+  root.style.setProperty('--ahki-selected-matte',color);
+  document.documentElement.style.setProperty('--ahki-selected-matte',color);
+  const box=document.getElementById('backgroundChoices');if(!box)return;
+  box.replaceChildren();
+  for(const [id,label,swatch,desc] of choices){
+   const button=document.createElement('button');button.type='button';button.className='set-row';
+   const circle=document.createElement('span');circle.className='matte-swatch';circle.style.background=swatch||inherited;
+   const content=document.createElement('span');
+   const title=document.createElement('div');title.className='set-main';title.textContent=label;
+   const sub=document.createElement('div');sub.className='set-sub';sub.textContent=desc;
+   content.append(title,sub);
+   const radio=document.createElement('span');radio.className='radio'+(selected===id?' on':'');
+   button.append(circle,content,radio);
+   button.setAttribute('aria-pressed',String(selected===id));
+   button.addEventListener('click',()=>{try{localStorage.setItem(key,id)}catch{}refresh()});
+   box.appendChild(button);
+  }
+ }
+ window.AHKIBackground={refresh,set(mode){if(choices.some(c=>c[0]===mode)){try{localStorage.setItem(key,mode)}catch{}refresh()}},get:read};
+ refresh();
 })();
 </script>
