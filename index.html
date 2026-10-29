@@ -505,7 +505,7 @@ body.settings-open .source {
 }
 </style>
 <style id="ahki-volumetric-dust-v3">
-/* V4: Suspended volumetric dust, synchronized with the pearl orb breathing. */
+/* V5: Seamless overscanned breathing field with selective living shimmer. */
 .presence{--dust-r:91;--dust-g:205;--dust-b:248;--dust-bg:#032345}
 .ahki-dust{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;opacity:.64;transition:opacity 1.5s ease}
 .presence.is-on .ahki-dust{opacity:1}
@@ -521,6 +521,9 @@ body.settings-open .source {
 .ahki-dust .dust-hover{animation:ahkiDustHover var(--hover,19s) ease-in-out var(--hover-delay,0s) infinite alternate;transform-box:fill-box;transform-origin:center}
 @keyframes ahkiDustHover{0%{transform:translate(-1.3px,.8px)}50%{transform:translate(1.1px,-1.5px)}100%{transform:translate(-.6px,1.2px)}}
 @keyframes dustTwinkle{0%,100%{opacity:var(--lo,.18)}50%{opacity:var(--hi,.50)}}
+/* Only a subset glints; tiny irregular flashes avoid synchronized blinking. */
+.ahki-dust .speck.shimmer{animation:ahkiDustShimmer var(--tw,8s) ease-in-out var(--delay,0s) infinite}
+@keyframes ahkiDustShimmer{0%,16%,38%,66%,100%{opacity:var(--lo,.18)}20%{opacity:var(--hi,.65)}23%{opacity:var(--lo,.18)}42%{opacity:calc(var(--hi,.65) * .78)}45%{opacity:var(--lo,.18)}70%{opacity:var(--hi,.65)}73%{opacity:var(--lo,.18)}}
 @media(prefers-reduced-motion:reduce){.ahki-dust .speck,.ahki-dust .dust-hover,#ahkiDustBreathing{animation:none!important}.ahki-dust .speck{opacity:var(--lo,.25)}}
 /* Dust stays behind the original orb; existing breathing geometry remains untouched. */
 .liquid-presence{z-index:3!important;pointer-events:none}
@@ -2043,15 +2046,21 @@ html,body{background:#155e98!important}
  // Seeded, fixed-in-space particles: near-field bokeh, mid-field glow and far-field dust.
  let seed=84529;const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296};
  const ns='http://www.w3.org/2000/svg',frag=document.createDocumentFragment();
- for(let i=0;i<980;i++){
-   const near=rand(),a=rand()*Math.PI*2;
-   const spread=near<.72?Math.sqrt(rand())*320:Math.sqrt(rand())*650;
-   const x=500+Math.cos(a)*spread*1.48,y=350+Math.sin(a)*spread*.92;
-   const depth=rand();const radius=depth<.78?.45+rand()*1.55:depth<.965?1.7+rand()*2.8:3.5+rand()*5.5;
+ // Overscan in every direction: even at the smallest breath and on wide screens,
+ // no particle-cloud perimeter can enter the visible viewport.
+ // A broad rectangular volume avoids the previous circular boundary.
+ for(let i=0;i<5600;i++){
+   const x=-1450+rand()*3900,y=-1150+rand()*3000;
+   const depth=rand();const radius=depth<.80?.45+rand()*1.55:depth<.972?1.7+rand()*2.8:3.5+rand()*5.5;
    const c=document.createElementNS(ns,'circle');c.setAttribute('cx',x.toFixed(1));c.setAttribute('cy',y.toFixed(1));c.setAttribute('r',radius.toFixed(2));
    const blur=radius>7.5?'blur2':radius>4.4?'blur1':'';
-   c.setAttribute('class','speck '+blur+(rand()<.11?' warm':''));
-   const base=.08+rand()*.31;c.style.setProperty('--lo',base.toFixed(2));c.style.setProperty('--hi',Math.min(.78,base+.08+rand()*.25).toFixed(2));c.style.setProperty('--tw',(11+rand()*19).toFixed(1)+'s');c.style.setProperty('--delay',(-rand()*30).toFixed(1)+'s');
+   const shimmer=rand()<.23;
+   c.setAttribute('class','speck '+blur+(rand()<.11?' warm':'')+(shimmer?' shimmer':''));
+   const base=.08+rand()*.31;
+   c.style.setProperty('--lo',base.toFixed(2));
+   c.style.setProperty('--hi',Math.min(shimmer?.95:.78,base+(shimmer?.32:.08)+rand()*(shimmer?.48:.25)).toFixed(2));
+   c.style.setProperty('--tw',(shimmer?5+rand()*12:11+rand()*19).toFixed(1)+'s');
+   c.style.setProperty('--delay',(-rand()*32).toFixed(1)+'s');
    const hover=document.createElementNS(ns,'g');hover.setAttribute('class','dust-hover');hover.style.setProperty('--hover',(15+rand()*16).toFixed(1)+'s');hover.style.setProperty('--hover-delay',(-rand()*28).toFixed(1)+'s');hover.appendChild(c);frag.appendChild(hover);
  }
  layer.appendChild(frag);
