@@ -528,26 +528,6 @@ body.settings-open .source {
 /* Dust stays behind the original orb; existing breathing geometry remains untouched. */
 .liquid-presence{z-index:3!important;pointer-events:none}
 </style>
-
-<style id="ahki-v6-dust-only">
-/* V6: The particles ARE the presence. No orb, pearl, mist, ring or halo. */
-.presence,.presence.is-on{background:var(--dust-bg,#032345)!important;}
-.presence .ambient,.presence .orb,.presence .liquid-presence,.presence .mark,
-.presence .ahki-wordmark,.presence .eyes,.presence .water-sheen,
-.presence .water-ring,.presence .milk-glow,.presence .milk-center,
-.presence .milk-ring,.presence .touch-ripple{display:none!important;visibility:hidden!important;opacity:0!important;}
-.presence:before,.presence:after,.presence.is-on:before,.presence.is-on:after,
-.presence .liquid-presence:before,.presence .liquid-presence:after{content:none!important;display:none!important;}
-.presence .ahki-dust{display:block!important;opacity:1!important;visibility:visible!important;z-index:5!important;}
-/* Off: suspended particles shimmer without collective breathing. */
-#ahkiDustBreathing{animation:none!important;transform:scale(1)!important;}
-/* Listening: slower, gentler expansion. Speaking: fuller, more expressive breath. */
-.presence.is-on #ahkiDustBreathing{animation:ahkiDustListen 13s cubic-bezier(.45,.04,.35,1) infinite!important;}
-.presence.is-on[data-dust-mode="speaking"] #ahkiDustBreathing{animation:ahkiDustSpeak 8.2s cubic-bezier(.45,.04,.35,1) infinite!important;}
-@keyframes ahkiDustListen{0%,100%{transform:scale(.94)}52%{transform:scale(1.24)}}
-@keyframes ahkiDustSpeak{0%,100%{transform:scale(.94)}52%{transform:scale(1.32)}}
-@media(prefers-reduced-motion:reduce){.presence.is-on #ahkiDustBreathing{animation:none!important;transform:scale(1)!important;}}
-</style>
 </head>
 <body>
 <main id="app" class="presence" aria-label="AHKI">
@@ -695,7 +675,6 @@ function showAssistantExpression(text){
 
 function powerLook(mode){
  app.classList.toggle('is-on',mode==='on');
- app.dataset.dustMode = mode==='on' ? 'listening' : 'idle';
  if(mode!=='resume'&&typeof powerButton!=='undefined'&&powerButton)powerButton.classList.remove('resume-ready');
  if(typeof powerButton!=='undefined'&&powerButton){powerButton.setAttribute('aria-pressed',mode==='on'?'true':'false');powerButton.setAttribute('aria-label',mode==='on'?'Turn AHKI off':'Turn AHKI on');}
   akiButton.classList.remove('on','starting','error');
@@ -928,8 +907,8 @@ function turnEnded(){
     }
   },15000);
 }
-function responseStarted(){if(powered)app.dataset.dustMode='listening';if(responseStartAt)return;responseStartAt=performance.now();latency('response-started',{from_turn_end_ms:turnEndAt?Math.round(responseStartAt-turnEndAt):null})}
-function firstAudio(){if(powered){setAquiConversationState('neutral');app.dataset.dustMode='speaking';}if(firstAudioAt)return;firstAudioAt=performance.now();clearTimeout(latencyTimer);clearTimeout(hardWatchdog);latency('first-audio',{from_turn_end_ms:turnEndAt?Math.round(firstAudioAt-turnEndAt):null,from_response_start_ms:responseStartAt?Math.round(firstAudioAt-responseStartAt):null})}
+function responseStarted(){if(responseStartAt)return;responseStartAt=performance.now();latency('response-started',{from_turn_end_ms:turnEndAt?Math.round(responseStartAt-turnEndAt):null})}
+function firstAudio(){if(powered)setAquiConversationState('neutral');if(firstAudioAt)return;firstAudioAt=performance.now();clearTimeout(latencyTimer);clearTimeout(hardWatchdog);latency('first-audio',{from_turn_end_ms:turnEndAt?Math.round(firstAudioAt-turnEndAt):null,from_response_start_ms:responseStartAt?Math.round(firstAudioAt-responseStartAt):null})}
 
 function normalizedSpeech(text){
  return (text||'').toLowerCase().replace(/[’]/g,"'").replace(/\s+/g,' ').trim();
@@ -1185,8 +1164,8 @@ async function startAki(recovery=false){
     if(all.includes('speech_stopped')||all.includes('input_audio_buffer.committed')||all.includes('turn.ended'))turnEnded();
     if(all.includes('response.created')||all.includes('response.in_progress')||all.includes('response.output_item.added')||all.includes('delegation.created')){if(!greetingInFlight)flushSpokenTranscript();setAquiConversationState('thinking');responseStarted();}
     if(all.includes('audio')&&all.includes('delta')&&!all.includes('input_audio')){firstAudio();}
-    if(all.includes('response.done')||all.includes('response.completed')){app.dataset.dustMode='listening';setAquiConversationState('neutral');if(greetingInFlight)finishLiveGreeting()}
-    else if(all.includes('output_audio.done')||all.includes('audio.done')){app.dataset.dustMode='listening';if(greetingInFlight)finishLiveGreeting()}
+    if(all.includes('response.done')||all.includes('response.completed')){setAquiConversationState('neutral');if(greetingInFlight)finishLiveGreeting()}
+    else if(all.includes('output_audio.done')||all.includes('audio.done')){if(greetingInFlight)finishLiveGreeting()}
     else if(greetingInFlight&&all.includes('response.output_item.done'))finishLiveGreeting();
     if(type==='error'){if(greetingInFlight)finishLiveGreeting();console.error('AKI Live event error:',m)}
   }catch{}});
@@ -2070,7 +2049,7 @@ html,body{background:#155e98!important}
  // Overscan in every direction: even at the smallest breath and on wide screens,
  // no particle-cloud perimeter can enter the visible viewport.
  // A broad rectangular volume avoids the previous circular boundary.
- for(let i=0;i<6720;i++){
+ for(let i=0;i<5600;i++){
    const x=-1450+rand()*3900,y=-1150+rand()*3000;
    const depth=rand();const radius=depth<.80?.45+rand()*1.55:depth<.972?1.7+rand()*2.8:3.5+rand()*5.5;
    const c=document.createElementNS(ns,'circle');c.setAttribute('cx',x.toFixed(1));c.setAttribute('cy',y.toFixed(1));c.setAttribute('r',radius.toFixed(2));
@@ -2090,33 +2069,6 @@ html,body{background:#155e98!important}
  update();setInterval(update,60000);
 })();
 </script>
-
-<!-- AHKI V8: V7 uniform blue + V5 original independent volumetric breath. -->
-<style id="ahki-v7-uniform-blue-breath">
-html,body,body .presence,body .presence.is-on{background:#237fb7!important;background-image:none!important;}
-body .presence .ambient,body .presence .liquid-presence,body .presence .orb,body .presence .mark,body .presence .ahki-wordmark{display:none!important;opacity:0!important;visibility:hidden!important;}
-body .presence::before,body .presence::after,body .presence.is-on::before,body .presence.is-on::after{content:none!important;display:none!important;}
-body .presence .ahki-dust{position:absolute!important;inset:0!important;display:block!important;visibility:visible!important;opacity:1!important;z-index:5!important;background:transparent!important;filter:none!important;}
-body .presence .ahki-dust svg{width:100%!important;height:100%!important;display:block!important;overflow:hidden!important;}
-/* Restore V5's original volumetric breathing on the actual SVG group.
-   It runs continuously, independently of microphone/voice states. */
-body .presence #ahkiDustBreathing,
-body .presence.is-on #ahkiDustBreathing,
-body .presence.is-on[data-dust-mode="speaking"] #ahkiDustBreathing{
-  animation:ahkiV8OriginalBreath 13s cubic-bezier(.45,.04,.35,1) infinite!important;
-  transform-box:view-box!important;
-  transform-origin:50% 50%!important;
-  will-change:transform;
-}
-@keyframes ahkiV8OriginalBreath{
-  0%,100%{transform:scale(.94) translate(0,0)}
-  52%{transform:scale(1.30) translate(0,-.8px)}
-}
-@media(prefers-reduced-motion:reduce){
- body .presence #ahkiDustBreathing,
- body .presence.is-on #ahkiDustBreathing{animation:none!important;transform:scale(1)!important;}
-}
-</style>
 </body>
 </html>
 \n<style id="ahki-v18-grounded-settings">\n/* V18 — settings/swipe world matches the OFF-state ocean blue instead of pale white glass. */\n#settingsShell,.settings-page{\n color:#f2fbff!important;\n background:\n  radial-gradient(ellipse at 50% 42%,rgba(91,190,224,.24) 0%,rgba(57,155,203,.13) 31%,transparent 58%),\n  radial-gradient(ellipse at 18% 18%,rgba(121,207,234,.12),transparent 36%),\n  linear-gradient(180deg,#2b96c8 0%,#258fc2 46%,#2388ba 100%)!important;\n}\n#settingsShell:before,.settings-page:before{opacity:.34!important;filter:blur(58px)!important}\n.set-head{background:linear-gradient(rgba(39,143,192,.92) 64%,rgba(39,143,192,0))!important}\n.set-group,.set-card{background:rgba(24,112,164,.28)!important;border:1px solid rgba(226,248,255,.25)!important;box-shadow:0 18px 48px rgba(10,74,119,.15),inset 0 1px 0 rgba(255,255,255,.20)!important;backdrop-filter:blur(22px) saturate(112%)!important;-webkit-backdrop-filter:blur(22px) saturate(112%)!important}\n.set-row{background:rgba(255,255,255,.018)!important;border-bottom-color:rgba(230,249,255,.18)!important}\n.set-title,.set-brand,.set-main,.set-icon,.set-chevron{color:#f4fcff!important}\n.set-kicker,.set-sub,.set-card p,.set-note,.muted{color:rgba(235,249,255,.78)!important}\n.set-back,.set-close{background:rgba(20,105,158,.28)!important;color:#f6fdff!important;border-color:rgba(235,250,255,.28)!important}\n.set-input{background:rgba(15,99,153,.28)!important;color:#fff!important;border-color:rgba(235,250,255,.28)!important}\n.set-button{background:rgba(21,112,169,.34)!important;color:#fff!important;border-color:rgba(235,250,255,.28)!important}\n</style>\n
