@@ -2049,7 +2049,7 @@ html,body{background:#155e98!important}
  // Overscan in every direction: even at the smallest breath and on wide screens,
  // no particle-cloud perimeter can enter the visible viewport.
  // A broad rectangular volume avoids the previous circular boundary.
- for(let i=0;i<5600;i++){
+ for(let i=0;i<6600;i++){
    const x=-1450+rand()*3900,y=-1150+rand()*3000;
    const depth=rand();const radius=depth<.80?.45+rand()*1.55:depth<.972?1.7+rand()*2.8:3.5+rand()*5.5;
    const c=document.createElementNS(ns,'circle');c.setAttribute('cx',x.toFixed(1));c.setAttribute('cy',y.toFixed(1));c.setAttribute('r',radius.toFixed(2));
@@ -2289,4 +2289,19 @@ html,body{background:#155e98!important}
     transform:translate(-50%,-50%) scale(1)!important;
   }
 }
+</style>
+
+<style id="ahki-v9-matte-blue-dust-only">
+/* Visual-only update. Preserve original 13-second particle breathing and twinkle. */
+html,body{background:#176b9e!important;}
+.presence,.presence.is-on,.presence:not(.is-on){background:#176b9e!important;background-image:none!important;}
+/* Remove the pearl nucleus, halo, dome, ambient veils, and legacy orb completely. */
+.presence .orb,.presence .ambient,.presence .liquid-presence,.presence .water-sheen,
+.presence .water-ring,.presence .milk-glow,.presence .milk-ring,.presence .milk-center,
+.presence .touch-ripple,.presence .halo,.presence .rim,.presence .oil,.presence .oil2,
+.presence .core,.presence .signal-band{display:none!important;visibility:hidden!important;opacity:0!important;}
+.presence::before,.presence::after,.presence.is-on::before,.presence.is-on::after,
+.presence .ambient::before,.presence .ambient::after{content:none!important;display:none!important;animation:none!important;}
+/* Preserve original particle SVG, scale cycle, hover and shimmering. */
+.presence .ahki-dust{display:block!important;visibility:visible!important;z-index:2!important;}
 </style>
