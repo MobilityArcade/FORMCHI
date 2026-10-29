@@ -528,12 +528,30 @@ body.settings-open .source {
 /* Dust stays behind the original orb; existing breathing geometry remains untouched. */
 .liquid-presence{z-index:3!important;pointer-events:none}
 </style>
+
+<style id="ahki-v12-solar-eclipse-presence">
+/* V12: visual-only solar corona. The original voice, dust, settings and background controllers remain unchanged. */
+.ahki-eclipse{position:absolute;left:50%;top:50%;width:clamp(130px,38vmin,365px);aspect-ratio:1;transform:translate(-50%,-50%);z-index:3;pointer-events:none;opacity:0;visibility:hidden;transition:opacity 1.25s ease,visibility 0s linear 1.25s;isolation:isolate}
+.presence.is-on .ahki-eclipse{opacity:1;visibility:visible;transition:opacity 1.35s ease,visibility 0s}
+.ahki-eclipse-breath{position:absolute;inset:0;border-radius:50%;transform-origin:center;animation:ahkiEclipseBreath 13s cubic-bezier(.45,.04,.35,1) infinite;will-change:transform}
+.ahki-eclipse-rays{position:absolute;inset:-46%;border-radius:50%;background:repeating-conic-gradient(from 5deg,rgba(255,227,155,.0) 0deg,rgba(255,226,159,.17) 1.15deg,rgba(255,255,234,.015) 2.4deg,transparent 4.8deg,transparent 8.5deg),radial-gradient(circle,transparent 29%,rgba(255,230,168,.16) 33%,rgba(255,219,139,.15) 37%,rgba(255,207,112,.075) 45%,transparent 66%);mask-image:radial-gradient(circle,transparent 24%,#000 36%,rgba(0,0,0,.50) 49%,transparent 73%);-webkit-mask-image:radial-gradient(circle,transparent 24%,#000 36%,rgba(0,0,0,.50) 49%,transparent 73%);filter:blur(5px);animation:ahkiEclipseFlicker 7.7s ease-in-out infinite alternate}
+.ahki-eclipse-aura{position:absolute;inset:-23%;border-radius:50%;background:radial-gradient(circle,transparent 29%,rgba(255,255,231,.10) 35%,rgba(255,230,166,.49) 41%,rgba(255,205,117,.30) 45%,rgba(255,208,132,.10) 53%,transparent 72%);filter:blur(17px);animation:ahkiEclipseFlicker 9.1s ease-in-out -3s infinite alternate}
+.ahki-eclipse-ring{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 45% 43%,#8cdaff 0%,#3da7e4 48%,#1668ac 72%,#0b477e 100%);border:clamp(2px,.55vmin,5px) solid rgba(255,247,215,.96);box-shadow:0 0 7px 3px rgba(255,255,236,.96),0 0 18px 7px rgba(255,232,164,.83),0 0 42px 13px rgba(255,204,116,.51),0 0 80px 21px rgba(255,213,146,.22),inset 0 0 23px rgba(207,246,255,.55);animation:ahkiEclipseRingLight 6.4s ease-in-out infinite alternate}
+.ahki-eclipse-ring:before{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 48% 42%,rgba(232,251,255,.50),rgba(115,209,252,.17) 36%,transparent 75%);pointer-events:none}
+@keyframes ahkiEclipseBreath{0%,100%{transform:scale(.92)}52%{transform:scale(1.22)}}
+@keyframes ahkiEclipseFlicker{0%,100%{opacity:.78;filter:blur(6px) brightness(.91)}29%{opacity:.96}56%{opacity:.84;filter:blur(5px) brightness(1.18)}78%{opacity:1}}
+@keyframes ahkiEclipseRingLight{0%,100%{filter:brightness(.94)}27%{filter:brightness(1.07)}52%{filter:brightness(1.17)}70%{filter:brightness(.99)}83%{filter:brightness(1.12)}}
+/* Keep the dust in front of the eclipse as well as behind it, with the existing overscan and 13-second motion. */
+.presence .ahki-dust{z-index:4!important}
+@media(prefers-reduced-motion:reduce){.ahki-eclipse-breath,.ahki-eclipse-rays,.ahki-eclipse-aura,.ahki-eclipse-ring{animation:none!important}}
+</style>
 </head>
 <body>
 <main id="app" class="presence" aria-label="AHKI">
   <input id="worldPicker" type="file" accept="image/*" capture="environment" hidden aria-hidden="true">
   <input id="filePicker" type="file" accept="image/*,application/pdf,text/plain,text/markdown,text/csv,application/json,.pdf,.txt,.md,.csv,.json,.doc,.docx,.xls,.xlsx,.ppt,.pptx" hidden aria-hidden="true">
   <div class="ambient"></div>
+  <div class="ahki-eclipse" aria-hidden="true"><div class="ahki-eclipse-breath"><div class="ahki-eclipse-rays"></div><div class="ahki-eclipse-aura"></div><div class="ahki-eclipse-ring"></div></div></div>
   <div class="ahki-dust" aria-hidden="true"><svg id="ahkiDustSvg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice"><defs><filter id="dustBlur1" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="1.4"/></filter><filter id="dustBlur2" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3.8"/></filter><filter id="dustBlur3" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="7"/></filter></defs><g id="ahkiDustBreathing"><g id="ahkiDustPoints"></g></g></svg></div>
   <div class="liquid-presence" aria-hidden="true">
     <span class="water-sheen"></span>
@@ -1536,6 +1554,7 @@ if(bootRecovery){wantsPower=true;interruptionHidden=true;powerLook('resume')}els
     <div class="set-kicker">SETTINGS</div>
     <div class="set-group">
       <button class="set-row" data-go="name"><span class="set-icon">○</span><span><div class="set-main">Name</div><div class="set-sub" id="rootName">AHKI</div></span><span class="set-chevron">›</span></button>
+      <button class="set-row" data-go="environment"><span class="set-icon">✧</span><span><div class="set-main">Particle Environment</div><div class="set-sub" id="rootEnvironment">Auto · Time of day</div></span><span class="set-chevron">›</span></button>
       <button class="set-row" data-go="voice"><span class="set-icon">⌁</span><span><div class="set-main">Voice</div><div class="set-sub" id="rootVoice">Marin</div></span><span class="set-chevron">›</span></button>
       <button class="set-row" data-go="memory"><span class="set-icon">◇</span><span><div class="set-main">Memory</div><div class="set-sub" id="rootMemory">Prototype</div></span><span class="set-chevron">›</span></button>
       <button class="set-row" data-go="usage"><span class="set-icon">▥</span><span><div class="set-main">Usage</div><div class="set-sub" id="rootUsage">0m</div></span><span class="set-chevron">›</span></button>
@@ -1546,6 +1565,7 @@ if(bootRecovery){wantsPower=true;interruptionHidden=true;powerLook('resume')}els
     <p class="set-note" style="padding:0 8px 30px">Settings float above the live AHKI session. Opening or browsing them does not intentionally stop the microphone or conversation.</p>
   </section>
   <section class="settings-page" data-page="name"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Name</div><div></div></div><div class="set-hero" id="nameHero">AHKI</div><div class="set-card"><h3>Personal Name</h3><p>AHKI is the app. Give the presence inside it any name you want, and change it naturally at any time.</p><input id="nameInput" class="set-input" maxlength="32" placeholder="AHKI"><button id="saveName" class="set-button">Save</button></div><p class="set-note">Example: “Can I call you Ava?” → “Of course.” The chosen name stays on this device until you change or clear it.</p></section>
+  <section class="settings-page" data-page="environment"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Particle Environment</div><div></div></div><div class="set-card"><h3>Choose your atmosphere</h3><p>Auto follows your local time, or keep one environment all day. The same living particles breathe in every mode.</p></div><div class="set-group" id="environmentChoices"></div><div class="set-card"><h3>Matte Background</h3><p>Choose a background independently of the particles above. Auto matches the particle environment.</p></div><div class="set-group" id="backgroundChoices"></div><p class="set-note" style="padding:12px 8px 28px">Morning 5–10 AM · Day 10 AM–5 PM · Evening 5–9 PM · Night 9 PM–5 AM</p></section>
   <section class="settings-page" data-page="voice"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Voice</div><div></div></div><div class="set-group" id="voiceChoices"></div><div class="set-card"><h3>Voice preview</h3><p>Choose a voice here. To keep your current conversation uninterrupted, a changed voice is saved for the next fresh live session.</p><button id="previewVoice" class="set-button">Play simple preview tone</button></div></section>
   <section class="settings-page" data-page="memory"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Memory</div><div></div></div><div class="set-group"><button class="set-row" id="memoryToggle"><span class="set-icon">◇</span><span><div class="set-main">Personal Memory</div><div class="set-sub">Prototype control</div></span><span id="memorySwitch" class="switch"></span></button></div><div class="set-group"><button class="set-row" id="viewMemories"><span class="set-icon">□</span><span><div class="set-main">View Memories</div><div class="set-sub">Shows what this prototype has stored</div></span><span class="set-chevron">›</span></button><button class="set-row" id="clearPrototypeMemory"><span class="set-icon">×</span><span><div class="set-main">Clear Prototype Memory</div><div class="set-sub">Does not alter conversation recovery</div></span><span class="set-chevron">›</span></button></div><p class="set-note">This screen is a UI prototype. It does not invent a long-term memory system that the current web build does not already have.</p></section>
   <section class="settings-page" data-page="usage"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Usage</div><div></div></div><div class="set-card"><div class="muted">Recorded conversation time on this device</div><div class="usage-big" id="usageBig">0m</div><div class="usage-bar"><div class="usage-fill" id="usageFill"></div></div></div><div class="set-group"><button class="set-row" id="usageDetails"><span class="set-icon">◷</span><span><div class="set-main">View Details</div><div class="set-sub">Local session meter</div></span><span class="set-chevron">›</span></button></div><p class="set-note">The current build already records anonymous session duration locally. This prototype displays that existing local total.</p></section>
@@ -2049,13 +2069,14 @@ html,body{background:#155e98!important}
  // Overscan in every direction: even at the smallest breath and on wide screens,
  // no particle-cloud perimeter can enter the visible viewport.
  // A broad rectangular volume avoids the previous circular boundary.
- for(let i=0;i<5600;i++){
+ for(let i=0;i<6600;i++){
    const x=-1450+rand()*3900,y=-1150+rand()*3000;
    const depth=rand();const radius=depth<.80?.45+rand()*1.55:depth<.972?1.7+rand()*2.8:3.5+rand()*5.5;
    const c=document.createElementNS(ns,'circle');c.setAttribute('cx',x.toFixed(1));c.setAttribute('cy',y.toFixed(1));c.setAttribute('r',radius.toFixed(2));
    const blur=radius>7.5?'blur2':radius>4.4?'blur1':'';
    const shimmer=rand()<.23;
-   c.setAttribute('class','speck '+blur+(rand()<.11?' warm':'')+(shimmer?' shimmer':''));
+   const hueRoll=rand();const hueClass=hueRoll<.20?' warm':hueRoll<.30?' warm deep-gold':hueRoll<.35?' lilac':hueRoll<.41?' cool':'';
+   c.setAttribute('class','speck '+blur+hueClass+(shimmer?' shimmer':''));
    const base=.08+rand()*.31;
    c.style.setProperty('--lo',base.toFixed(2));
    c.style.setProperty('--hi',Math.min(shimmer?.95:.78,base+(shimmer?.32:.08)+rand()*(shimmer?.48:.25)).toFixed(2));
@@ -2066,7 +2087,7 @@ html,body{background:#155e98!important}
  layer.appendChild(frag);
  const stops=[{t:300,c:[255,173,59]},{t:480,c:[255,192,86]},{t:600,c:[194,237,233]},{t:720,c:[75,214,255]},{t:900,c:[42,170,255]},{t:1020,c:[120,142,255]},{t:1140,c:[249,117,228]},{t:1260,c:[224,96,230]},{t:1440,c:[148,78,235]},{t:1620,c:[62,115,237]},{t:1800,c:[33,123,230]}];
  function update(){const d=new Date(),m=d.getHours()*60+d.getMinutes();let v=m<300?m+1440:m;const extended=[...stops,{t:1740,c:[255,173,59]}];let left=extended[0],right=extended[extended.length-1];for(let i=0;i<extended.length-1;i++){if(v>=extended[i].t&&v<=extended[i+1].t){left=extended[i];right=extended[i+1];break}}const f=Math.max(0,Math.min(1,(v-left.t)/(right.t-left.t)));const rgb=left.c.map((n,i)=>Math.round(n+(right.c[i]-n)*f));['r','g','b'].forEach((k,i)=>root.style.setProperty('--dust-'+k,rgb[i]));}
- update();setInterval(update,60000);
+ // Color is now managed by the user-selectable four-environment controller.
 })();
 </script>
 </body>
@@ -2290,3 +2311,105 @@ html,body{background:#155e98!important}
   }
 }
 </style>
+
+<style id="ahki-v9-matte-blue-dust-only">
+/* Visual-only update. Preserve original 13-second particle breathing and twinkle. */
+html,body{background:#176b9e!important;}
+.presence,.presence.is-on,.presence:not(.is-on){background:#176b9e!important;background-image:none!important;}
+/* Remove the pearl nucleus, halo, dome, ambient veils, and legacy orb completely. */
+.presence .orb,.presence .ambient,.presence .liquid-presence,.presence .water-sheen,
+.presence .water-ring,.presence .milk-glow,.presence .milk-ring,.presence .milk-center,
+.presence .touch-ripple,.presence .halo,.presence .rim,.presence .oil,.presence .oil2,
+.presence .core,.presence .signal-band{display:none!important;visibility:hidden!important;opacity:0!important;}
+.presence::before,.presence::after,.presence.is-on::before,.presence.is-on::after,
+.presence .ambient::before,.presence .ambient::after{content:none!important;display:none!important;animation:none!important;}
+/* Preserve original particle SVG, scale cycle, hover and shimmering. */
+.presence .ahki-dust{display:block!important;visibility:visible!important;z-index:2!important;}
+</style>
+
+<style id="ahki-v10-four-environments">
+/* V10: no orb, no mist; flat matte atmospheric canvases. Original particle breathing untouched. */
+html,body,.presence{background:var(--ahki-environment-bg,#176B9E)!important;background-color:var(--ahki-environment-bg,#176B9E)!important;transition:background-color 2.5s ease!important}
+.presence .ambient,.liquid-presence,.presence:before,.presence:after,.presence .liquid-presence:before,.presence .liquid-presence:after{display:none!important;content:none!important;opacity:0!important}
+.ahki-dust .speck.warm{fill:var(--flake-gold,#ffd486)!important}
+.ahki-dust .speck.warm.deep-gold{fill:var(--flake-deep,#ffb54e)!important}
+.ahki-dust .speck.cool{fill:var(--flake-cool,#8ad8ff)!important}
+.ahki-dust .speck.lilac{fill:var(--flake-lilac,#d9b3ff)!important}
+.ahki-dust .speck{transition:fill 3s ease}
+#environmentChoices .set-row .radio{margin-left:auto;flex:none}
+</style>
+<script id="ahki-v10-environment-controller">
+(()=>{
+ const root=document.querySelector('.presence');
+ const options=[['auto','Auto · Time of day','Changes naturally with your local clock'],['morning','Morning · Golden sunrise','Amber and champagne light'],['day','Day · Ocean blue','Blue with warm golden flakes'],['evening','Evening · Violet','Purple, rose and soft gold'],['night','Night · Deep midnight','Dark navy with silver and amber stars']];
+ const palettes={
+  morning:{bg:'#8b542d',rgb:[255,207,126],gold:'#ffe5a5',deep:'#ffbc51',cool:'#ffefc9',lilac:'#ffc59e'},
+  day:{bg:'#176B9E',rgb:[92,203,249],gold:'#ffe1a0',deep:'#ffbf59',cool:'#8ddcff',lilac:'#d6c7ff'},
+  evening:{bg:'#48346e',rgb:[216,154,255],gold:'#ffd59a',deep:'#ffb866',cool:'#a9a7ff',lilac:'#f1a5ec'},
+  night:{bg:'#07172e',rgb:[103,154,232],gold:'#f5d29a',deep:'#dca85f',cool:'#a9d7ff',lilac:'#b3a6ee'}
+ };
+ function getMode(){try{return localStorage.getItem('ahkiParticleEnvironmentV10')||'auto'}catch{return 'auto'}}
+ function timeMode(){const h=new Date().getHours();return h>=5&&h<10?'morning':h>=10&&h<17?'day':h>=17&&h<21?'evening':'night'}
+ function render(){const saved=getMode(),mode=saved==='auto'?timeMode():saved,p=palettes[mode]||palettes.day;
+  root.style.setProperty('--ahki-environment-bg',p.bg); if(window.AHKIBackground)window.AHKIBackground.refresh();
+  ['r','g','b'].forEach((k,i)=>root.style.setProperty('--dust-'+k,p.rgb[i]));
+  root.style.setProperty('--flake-gold',p.gold);root.style.setProperty('--flake-deep',p.deep);root.style.setProperty('--flake-cool',p.cool);root.style.setProperty('--flake-lilac',p.lilac);
+  const summary=document.getElementById('rootEnvironment');if(summary)summary.textContent=saved==='auto'?'Auto · '+mode[0].toUpperCase()+mode.slice(1):mode[0].toUpperCase()+mode.slice(1);
+  const box=document.getElementById('environmentChoices');if(box){box.innerHTML='';options.forEach(([id,label,description])=>{const b=document.createElement('button');b.type='button';b.className='set-row';b.innerHTML='<span class="set-icon">✧</span><span><div class="set-main">'+label+'</div><div class="set-sub">'+description+'</div></span><span class="radio '+(id===saved?'on':'')+'"></span>';b.onclick=()=>{try{localStorage.setItem('ahkiParticleEnvironmentV10',id)}catch{}render()};box.appendChild(b)})}
+ }
+ window.AHKIEnvironment={set(mode){if(options.some(x=>x[0]===mode)){localStorage.setItem('ahkiParticleEnvironmentV10',mode);render()}},refresh:render};
+ render();setInterval(()=>{if(getMode()==='auto')render()},60000);
+})();
+</script>
+
+
+<style id="ahki-v11-independent-matte-backgrounds">
+/* Background selection is independent of the existing particle palette and motion. */
+html,body,html body .presence,html body .presence.is-on,html body .presence:not(.is-on){
+ background:var(--ahki-selected-matte,#176b9e)!important;
+ background-color:var(--ahki-selected-matte,#176b9e)!important;
+ background-image:none!important;
+ transition:background-color 1.4s ease!important;
+}
+#backgroundChoices .set-row .radio{margin-left:auto;flex:none}
+#backgroundChoices .matte-swatch{width:24px;height:24px;border-radius:50%;border:1px solid rgba(255,255,255,.65);box-shadow:0 0 0 1px rgba(0,0,0,.14);flex:none}
+</style>
+<script id="ahki-v11-independent-matte-backgrounds-controller">
+(()=>{
+ const root=document.querySelector('.presence');
+ const key='ahkiMatteBackgroundV11';
+ const choices=[
+  ['auto','Auto · Match particles',null,'Uses the selected particle environment background'],
+  ['blue','Blue matte','#176b9e','Original ocean-blue matte'],
+  ['white','White matte','#f6f5f0','Soft warm white'],
+  ['black','Black matte','#050608','Near-black charcoal'],
+  ['purple','Purple matte','#49336e','Deep muted violet'],
+  ['gold','Gold matte','#b68a43','Warm champagne gold']
+ ];
+ const read=()=>{try{return localStorage.getItem(key)||'auto'}catch{return 'auto'}};
+ function refresh(){
+  const selected=read();const match=choices.find(c=>c[0]===selected)||choices[0];
+  const inherited=root.style.getPropertyValue('--ahki-environment-bg').trim()||'#176b9e';
+  const color=match[2]||inherited;
+  root.style.setProperty('--ahki-selected-matte',color);
+  document.documentElement.style.setProperty('--ahki-selected-matte',color);
+  const box=document.getElementById('backgroundChoices');if(!box)return;
+  box.replaceChildren();
+  for(const [id,label,swatch,desc] of choices){
+   const button=document.createElement('button');button.type='button';button.className='set-row';
+   const circle=document.createElement('span');circle.className='matte-swatch';circle.style.background=swatch||inherited;
+   const content=document.createElement('span');
+   const title=document.createElement('div');title.className='set-main';title.textContent=label;
+   const sub=document.createElement('div');sub.className='set-sub';sub.textContent=desc;
+   content.append(title,sub);
+   const radio=document.createElement('span');radio.className='radio'+(selected===id?' on':'');
+   button.append(circle,content,radio);
+   button.setAttribute('aria-pressed',String(selected===id));
+   button.addEventListener('click',()=>{try{localStorage.setItem(key,id)}catch{}refresh()});
+   box.appendChild(button);
+  }
+ }
+ window.AHKIBackground={refresh,set(mode){if(choices.some(c=>c[0]===mode)){try{localStorage.setItem(key,mode)}catch{}refresh()}},get:read};
+ refresh();
+})();
+</script>
