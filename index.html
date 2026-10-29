@@ -505,7 +505,7 @@ body.settings-open .source {
 }
 </style>
 <style id="ahki-volumetric-dust-v3">
-/* Static volumetric bokeh around the ORIGINAL pearl orb. No particle travel. */
+/* V4: Suspended volumetric dust, synchronized with the pearl orb breathing. */
 .presence{--dust-r:91;--dust-g:205;--dust-b:248;--dust-bg:#032345}
 .ahki-dust{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;opacity:.64;transition:opacity 1.5s ease}
 .presence.is-on .ahki-dust{opacity:1}
@@ -515,8 +515,13 @@ body.settings-open .source {
 .ahki-dust .speck.blur1{filter:url(#dustBlur1)}
 .ahki-dust .speck.blur2{filter:url(#dustBlur2)}
 .ahki-dust .speck.blur3{filter:url(#dustBlur3)}
+/* Entire dust volume inhales and exhales together, with a restrained gravitational hover. */
+#ahkiDustBreathing{transform-box:view-box;transform-origin:50% 50%;animation:ahkiDustBreath 13s cubic-bezier(.45,.04,.35,1) infinite;will-change:transform}
+@keyframes ahkiDustBreath{0%,100%{transform:scale(.94) translate(0,0)}52%{transform:scale(1.30) translate(0,-.8px)}}
+.ahki-dust .dust-hover{animation:ahkiDustHover var(--hover,19s) ease-in-out var(--hover-delay,0s) infinite alternate;transform-box:fill-box;transform-origin:center}
+@keyframes ahkiDustHover{0%{transform:translate(-1.3px,.8px)}50%{transform:translate(1.1px,-1.5px)}100%{transform:translate(-.6px,1.2px)}}
 @keyframes dustTwinkle{0%,100%{opacity:var(--lo,.18)}50%{opacity:var(--hi,.50)}}
-@media(prefers-reduced-motion:reduce){.ahki-dust .speck{animation:none!important;opacity:var(--lo,.25)}}
+@media(prefers-reduced-motion:reduce){.ahki-dust .speck,.ahki-dust .dust-hover,#ahkiDustBreathing{animation:none!important}.ahki-dust .speck{opacity:var(--lo,.25)}}
 /* Dust stays behind the original orb; existing breathing geometry remains untouched. */
 .liquid-presence{z-index:3!important;pointer-events:none}
 </style>
@@ -526,7 +531,7 @@ body.settings-open .source {
   <input id="worldPicker" type="file" accept="image/*" capture="environment" hidden aria-hidden="true">
   <input id="filePicker" type="file" accept="image/*,application/pdf,text/plain,text/markdown,text/csv,application/json,.pdf,.txt,.md,.csv,.json,.doc,.docx,.xls,.xlsx,.ppt,.pptx" hidden aria-hidden="true">
   <div class="ambient"></div>
-  <div class="ahki-dust" aria-hidden="true"><svg id="ahkiDustSvg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice"><defs><filter id="dustBlur1" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="1.4"/></filter><filter id="dustBlur2" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3.8"/></filter><filter id="dustBlur3" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="7"/></filter></defs><g id="ahkiDustPoints"></g></svg></div>
+  <div class="ahki-dust" aria-hidden="true"><svg id="ahkiDustSvg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice"><defs><filter id="dustBlur1" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="1.4"/></filter><filter id="dustBlur2" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3.8"/></filter><filter id="dustBlur3" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="7"/></filter></defs><g id="ahkiDustBreathing"><g id="ahkiDustPoints"></g></g></svg></div>
   <div class="liquid-presence" aria-hidden="true">
     <span class="water-sheen"></span>
     <span class="water-ring wr1"></span><span class="water-ring wr2"></span><span class="water-ring wr3"></span><span class="water-ring wr4"></span><span class="water-ring wr5"></span><span class="water-ring wr6"></span><span class="water-ring wr7"></span><span class="water-ring wr8"></span><span class="water-ring wr9"></span><span class="water-ring wr10"></span><span class="water-ring wr11"></span><span class="water-ring wr12"></span>
@@ -2042,12 +2047,12 @@ html,body{background:#155e98!important}
    const near=rand(),a=rand()*Math.PI*2;
    const spread=near<.72?Math.sqrt(rand())*320:Math.sqrt(rand())*650;
    const x=500+Math.cos(a)*spread*1.48,y=350+Math.sin(a)*spread*.92;
-   const depth=rand();const radius=depth<.68?.35+rand()*1.65:depth<.92?1.8+rand()*3.3:4+rand()*8;
+   const depth=rand();const radius=depth<.78?.45+rand()*1.55:depth<.965?1.7+rand()*2.8:3.5+rand()*5.5;
    const c=document.createElementNS(ns,'circle');c.setAttribute('cx',x.toFixed(1));c.setAttribute('cy',y.toFixed(1));c.setAttribute('r',radius.toFixed(2));
-   const blur=radius>6?'blur3':radius>3.4?'blur2':radius>2?'blur1':'';
+   const blur=radius>7.5?'blur2':radius>4.4?'blur1':'';
    c.setAttribute('class','speck '+blur+(rand()<.11?' warm':''));
    const base=.08+rand()*.31;c.style.setProperty('--lo',base.toFixed(2));c.style.setProperty('--hi',Math.min(.78,base+.08+rand()*.25).toFixed(2));c.style.setProperty('--tw',(11+rand()*19).toFixed(1)+'s');c.style.setProperty('--delay',(-rand()*30).toFixed(1)+'s');
-   frag.appendChild(c);
+   const hover=document.createElementNS(ns,'g');hover.setAttribute('class','dust-hover');hover.style.setProperty('--hover',(15+rand()*16).toFixed(1)+'s');hover.style.setProperty('--hover-delay',(-rand()*28).toFixed(1)+'s');hover.appendChild(c);frag.appendChild(hover);
  }
  layer.appendChild(frag);
  const stops=[{t:300,c:[255,173,59]},{t:480,c:[255,192,86]},{t:600,c:[194,237,233]},{t:720,c:[75,214,255]},{t:900,c:[42,170,255]},{t:1020,c:[120,142,255]},{t:1140,c:[249,117,228]},{t:1260,c:[224,96,230]},{t:1440,c:[148,78,235]},{t:1620,c:[62,115,237]},{t:1800,c:[33,123,230]}];
