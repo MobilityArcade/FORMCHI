@@ -504,12 +504,29 @@ body.settings-open .source {
   }
 }
 </style>
+<style id="ahki-volumetric-dust-v3">
+/* Static volumetric bokeh around the ORIGINAL pearl orb. No particle travel. */
+.presence{--dust-r:91;--dust-g:205;--dust-b:248;--dust-bg:#032345}
+.ahki-dust{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;opacity:.64;transition:opacity 1.5s ease}
+.presence.is-on .ahki-dust{opacity:1}
+.ahki-dust svg{display:block;width:100%;height:100%;preserveAspectRatio:xMidYMid slice}
+.ahki-dust .speck{fill:rgb(var(--dust-r),var(--dust-g),var(--dust-b));transform-box:fill-box;transform-origin:center;animation:dustTwinkle var(--tw,16s) ease-in-out var(--delay,0s) infinite alternate}
+.ahki-dust .speck.warm{fill:#fff1cb}
+.ahki-dust .speck.blur1{filter:url(#dustBlur1)}
+.ahki-dust .speck.blur2{filter:url(#dustBlur2)}
+.ahki-dust .speck.blur3{filter:url(#dustBlur3)}
+@keyframes dustTwinkle{0%,100%{opacity:var(--lo,.18)}50%{opacity:var(--hi,.50)}}
+@media(prefers-reduced-motion:reduce){.ahki-dust .speck{animation:none!important;opacity:var(--lo,.25)}}
+/* Dust stays behind the original orb; existing breathing geometry remains untouched. */
+.liquid-presence{z-index:3!important;pointer-events:none}
+</style>
 </head>
 <body>
 <main id="app" class="presence" aria-label="AHKI">
   <input id="worldPicker" type="file" accept="image/*" capture="environment" hidden aria-hidden="true">
   <input id="filePicker" type="file" accept="image/*,application/pdf,text/plain,text/markdown,text/csv,application/json,.pdf,.txt,.md,.csv,.json,.doc,.docx,.xls,.xlsx,.ppt,.pptx" hidden aria-hidden="true">
   <div class="ambient"></div>
+  <div class="ahki-dust" aria-hidden="true"><svg id="ahkiDustSvg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice"><defs><filter id="dustBlur1" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="1.4"/></filter><filter id="dustBlur2" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3.8"/></filter><filter id="dustBlur3" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="7"/></filter></defs><g id="ahkiDustPoints"></g></svg></div>
   <div class="liquid-presence" aria-hidden="true">
     <span class="water-sheen"></span>
     <span class="water-ring wr1"></span><span class="water-ring wr2"></span><span class="water-ring wr3"></span><span class="water-ring wr4"></span><span class="water-ring wr5"></span><span class="water-ring wr6"></span><span class="water-ring wr7"></span><span class="water-ring wr8"></span><span class="water-ring wr9"></span><span class="water-ring wr10"></span><span class="water-ring wr11"></span><span class="water-ring wr12"></span>
@@ -2014,6 +2031,30 @@ html,body{background:#155e98!important}
 </style>
 
 \n<style id="ahki-v17-sky-mist-system">\n/* V17 — one visual world: luminous blue sky/ocean atmosphere + glacially slow mist. */\n.presence{isolation:isolate!important}\n.presence .ambient{\n  display:block!important;position:absolute!important;inset:-18%!important;z-index:0!important;pointer-events:none!important;opacity:.50!important;\n  background:\n    radial-gradient(ellipse at 15% 24%,rgba(224,249,255,.22) 0 9%,rgba(185,231,245,.10) 20%,transparent 42%),\n    radial-gradient(ellipse at 82% 66%,rgba(220,247,255,.18) 0 8%,rgba(158,218,240,.08) 22%,transparent 44%),\n    radial-gradient(ellipse at 45% 92%,rgba(235,251,255,.12),transparent 38%)!important;\n  filter:blur(38px)!important;transform:translate3d(-2%,0,0) scale(1.08)!important;\n  animation:ahkiSkyMistDriftV17 78s ease-in-out infinite alternate!important;will-change:transform,opacity!important;\n}\n.presence .ambient:before,.presence .ambient:after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:45%;}\n.presence .ambient:before{\n  background:linear-gradient(118deg,transparent 12%,rgba(229,250,255,.11) 30%,rgba(195,236,249,.06) 45%,transparent 63%)!important;\n  filter:blur(52px);opacity:.58;transform:translate3d(-8%,4%,0) rotate(-5deg);\n  animation:ahkiVeilOneV17 96s ease-in-out infinite alternate!important;\n}\n.presence .ambient:after{\n  background:linear-gradient(145deg,transparent 30%,rgba(224,248,255,.08) 48%,rgba(180,229,246,.06) 58%,transparent 76%)!important;\n  filter:blur(60px);opacity:.48;transform:translate3d(8%,-5%,0) rotate(7deg);\n  animation:ahkiVeilTwoV17 112s ease-in-out infinite alternate!important;\n}\n@keyframes ahkiSkyMistDriftV17{0%{transform:translate3d(-3%,-1%,0) scale(1.08);opacity:.42}50%{opacity:.54}100%{transform:translate3d(3%,1.5%,0) scale(1.11);opacity:.47}}\n@keyframes ahkiVeilOneV17{from{transform:translate3d(-9%,4%,0) rotate(-5deg) scale(1.02)}to{transform:translate3d(7%,-2%,0) rotate(-2deg) scale(1.08)}}\n@keyframes ahkiVeilTwoV17{from{transform:translate3d(8%,-5%,0) rotate(7deg) scale(1.08)}to{transform:translate3d(-6%,4%,0) rotate(3deg) scale(1.02)}}\n/* Settings and every swipe/subpage stay in the same blue atmospheric world — no secondary orb. */\n#settingsShell,.settings-page{\n  color:#eefaff!important;position:relative!important;isolation:isolate!important;\n  background:\n    radial-gradient(ellipse at 18% 12%,rgba(127,211,242,.34),transparent 34%),\n    radial-gradient(ellipse at 82% 52%,rgba(70,177,224,.24),transparent 42%),\n    radial-gradient(ellipse at 38% 92%,rgba(165,224,244,.18),transparent 42%),\n    linear-gradient(155deg,#1471ae 0%,#248bc5 42%,#12669f 100%)!important;\n}\n#settingsShell:before,.settings-page:before{\n  content:"";position:fixed;inset:-18%;z-index:-1;pointer-events:none;\n  background:\n    radial-gradient(ellipse at 10% 28%,rgba(235,251,255,.18),transparent 30%),\n    radial-gradient(ellipse at 88% 66%,rgba(221,248,255,.14),transparent 34%),\n    linear-gradient(128deg,transparent 18%,rgba(227,249,255,.07) 39%,transparent 61%);\n  filter:blur(44px);opacity:.72;animation:ahkiSettingsMistV17 92s ease-in-out infinite alternate;\n}\n@keyframes ahkiSettingsMistV17{from{transform:translate3d(-4%,-1%,0) scale(1.05)}to{transform:translate3d(4%,2%,0) scale(1.10)}}\n.set-head{background:linear-gradient(rgba(20,112,173,.84) 68%,rgba(20,112,173,0))!important}\n.set-title,.set-brand,.set-main,.set-icon{color:#f2fbff!important}.set-kicker,.set-sub,.set-card p,.set-note,.muted{color:rgba(225,245,253,.74)!important}\n.set-group,.set-card{background:rgba(182,226,243,.13)!important;border-color:rgba(229,249,255,.25)!important;box-shadow:0 18px 46px rgba(4,55,95,.16),inset 0 1px 0 rgba(255,255,255,.27)!important;backdrop-filter:blur(24px) saturate(118%);-webkit-backdrop-filter:blur(24px) saturate(118%)}\n.set-row{color:#f2fbff!important;border-bottom-color:rgba(225,247,255,.16)!important}.set-chevron{color:rgba(226,248,255,.72)!important}.set-icon svg{stroke:#effbff!important}\n.set-back,.set-close{color:#f2fbff!important;border-color:rgba(231,249,255,.25)!important;background:rgba(187,230,246,.13)!important;backdrop-filter:blur(16px)}\n.set-input{background:rgba(200,235,248,.13)!important;color:#f5fcff!important;border-color:rgba(231,249,255,.24)!important}.set-input::placeholder{color:rgba(224,245,253,.50)!important}\n.set-button{color:#f5fcff!important;border-color:rgba(231,249,255,.26)!important;background:linear-gradient(100deg,rgba(189,231,247,.18),rgba(104,196,232,.20),rgba(201,236,249,.16))!important}\n.radio{border-color:rgba(233,250,255,.78)!important}.radio.on:after{background:#f5fdff!important}.switch{background:rgba(218,244,252,.16)!important;border-color:rgba(236,251,255,.20)!important}.switch:after{background:#eaf9fe!important}.switch.on{background:#52b9e2!important}.switch.on:after{background:#fff!important}\n.usage-bar{background:rgba(222,246,253,.15)!important}.usage-fill{background:linear-gradient(90deg,#d9f7ff,#73d8f5,#eefcff)!important}.mini-line{border-bottom-color:rgba(230,249,255,.14)!important}.toast{background:rgba(21,101,157,.90)!important;color:#f4fcff!important}\n@media(prefers-reduced-motion:reduce){.presence .ambient,.presence .ambient:before,.presence .ambient:after,#settingsShell:before,.settings-page:before{animation:none!important}}\n</style>\n
+<script id="ahki-volumetric-dust-script">
+(()=>{
+ const root=document.querySelector('.presence'),layer=document.getElementById('ahkiDustPoints');
+ if(!root||!layer)return;
+ // Seeded, fixed-in-space particles: near-field bokeh, mid-field glow and far-field dust.
+ let seed=84529;const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296};
+ const ns='http://www.w3.org/2000/svg',frag=document.createDocumentFragment();
+ for(let i=0;i<980;i++){
+   const near=rand(),a=rand()*Math.PI*2;
+   const spread=near<.72?Math.sqrt(rand())*320:Math.sqrt(rand())*650;
+   const x=500+Math.cos(a)*spread*1.48,y=350+Math.sin(a)*spread*.92;
+   const depth=rand();const radius=depth<.68?.35+rand()*1.65:depth<.92?1.8+rand()*3.3:4+rand()*8;
+   const c=document.createElementNS(ns,'circle');c.setAttribute('cx',x.toFixed(1));c.setAttribute('cy',y.toFixed(1));c.setAttribute('r',radius.toFixed(2));
+   const blur=radius>6?'blur3':radius>3.4?'blur2':radius>2?'blur1':'';
+   c.setAttribute('class','speck '+blur+(rand()<.11?' warm':''));
+   const base=.08+rand()*.31;c.style.setProperty('--lo',base.toFixed(2));c.style.setProperty('--hi',Math.min(.78,base+.08+rand()*.25).toFixed(2));c.style.setProperty('--tw',(11+rand()*19).toFixed(1)+'s');c.style.setProperty('--delay',(-rand()*30).toFixed(1)+'s');
+   frag.appendChild(c);
+ }
+ layer.appendChild(frag);
+ const stops=[{t:300,c:[255,173,59]},{t:480,c:[255,192,86]},{t:600,c:[194,237,233]},{t:720,c:[75,214,255]},{t:900,c:[42,170,255]},{t:1020,c:[120,142,255]},{t:1140,c:[249,117,228]},{t:1260,c:[224,96,230]},{t:1440,c:[148,78,235]},{t:1620,c:[62,115,237]},{t:1800,c:[33,123,230]}];
+ function update(){const d=new Date(),m=d.getHours()*60+d.getMinutes();let v=m<300?m+1440:m;const extended=[...stops,{t:1740,c:[255,173,59]}];let left=extended[0],right=extended[extended.length-1];for(let i=0;i<extended.length-1;i++){if(v>=extended[i].t&&v<=extended[i+1].t){left=extended[i];right=extended[i+1];break}}const f=Math.max(0,Math.min(1,(v-left.t)/(right.t-left.t)));const rgb=left.c.map((n,i)=>Math.round(n+(right.c[i]-n)*f));['r','g','b'].forEach((k,i)=>root.style.setProperty('--dust-'+k,rgb[i]));}
+ update();setInterval(update,60000);
+})();
+</script>
 </body>
 </html>
 \n<style id="ahki-v18-grounded-settings">\n/* V18 — settings/swipe world matches the OFF-state ocean blue instead of pale white glass. */\n#settingsShell,.settings-page{\n color:#f2fbff!important;\n background:\n  radial-gradient(ellipse at 50% 42%,rgba(91,190,224,.24) 0%,rgba(57,155,203,.13) 31%,transparent 58%),\n  radial-gradient(ellipse at 18% 18%,rgba(121,207,234,.12),transparent 36%),\n  linear-gradient(180deg,#2b96c8 0%,#258fc2 46%,#2388ba 100%)!important;\n}\n#settingsShell:before,.settings-page:before{opacity:.34!important;filter:blur(58px)!important}\n.set-head{background:linear-gradient(rgba(39,143,192,.92) 64%,rgba(39,143,192,0))!important}\n.set-group,.set-card{background:rgba(24,112,164,.28)!important;border:1px solid rgba(226,248,255,.25)!important;box-shadow:0 18px 48px rgba(10,74,119,.15),inset 0 1px 0 rgba(255,255,255,.20)!important;backdrop-filter:blur(22px) saturate(112%)!important;-webkit-backdrop-filter:blur(22px) saturate(112%)!important}\n.set-row{background:rgba(255,255,255,.018)!important;border-bottom-color:rgba(230,249,255,.18)!important}\n.set-title,.set-brand,.set-main,.set-icon,.set-chevron{color:#f4fcff!important}\n.set-kicker,.set-sub,.set-card p,.set-note,.muted{color:rgba(235,249,255,.78)!important}\n.set-back,.set-close{background:rgba(20,105,158,.28)!important;color:#f6fdff!important;border-color:rgba(235,250,255,.28)!important}\n.set-input{background:rgba(15,99,153,.28)!important;color:#fff!important;border-color:rgba(235,250,255,.28)!important}\n.set-button{background:rgba(21,112,169,.34)!important;color:#fff!important;border-color:rgba(235,250,255,.28)!important}\n</style>\n
