@@ -1465,41 +1465,30 @@ async function toggle(){
   if(wantsPower&&hasRecoverableActiveConversation()){primeAkiAudio();await startAki(true);return}
   wantsPower=true;primeAkiAudio();await startAki(false)
 }
-// AHKI V3 — short mechanical rotary-switch click, synthesized locally (no licensed audio asset).
-// Separate on/off timbres. Triggered only by intentional taps, never by recovery.
-let knobAudioContext=null;
-function playKnobClick(turningOn){
+// AHKI V4 — two gentle electronic speaker tones, on and off.
+// Synthesized on the user's tap; no external sound files or rotary clicks.
+let ahkiBeepContext=null;
+function playPowerBeep(turningOn){
  try{
-  const AudioCtor=window.AudioContext||window.webkitAudioContext;
-  if(!AudioCtor)return;
-  knobAudioContext=knobAudioContext||new AudioCtor();
-  if(knobAudioContext.state==='suspended')knobAudioContext.resume().catch(()=>{});
-  const ctx=knobAudioContext,t=ctx.currentTime;
-  // Mechanical detent: two closely spaced, dry clicks with a little low wooden body.
-  const n=Math.floor(ctx.sampleRate*.035),buffer=ctx.createBuffer(1,n,ctx.sampleRate),data=buffer.getChannelData(0);
-  for(let i=0;i<n;i++)data[i]=(Math.random()*2-1)*Math.exp(-i/(ctx.sampleRate*.005));
-  function detent(offset,level,pitch){
-   const noise=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),gain=ctx.createGain();
-   noise.buffer=buffer;filter.type='bandpass';filter.frequency.value=pitch;filter.Q.value=.65;
-   gain.gain.setValueAtTime(.0001,t+offset);gain.gain.linearRampToValueAtTime(level,t+offset+.001);
-   gain.gain.exponentialRampToValueAtTime(.0001,t+offset+.033);
-   noise.connect(filter).connect(gain).connect(ctx.destination);noise.start(t+offset);noise.stop(t+offset+.035);
-   const body=ctx.createOscillator(),bodyGain=ctx.createGain();body.type='triangle';
-   body.frequency.setValueAtTime(turningOn?155:125,t+offset);
-   body.frequency.exponentialRampToValueAtTime(65,t+offset+.045);
-   bodyGain.gain.setValueAtTime(.0001,t+offset);bodyGain.gain.linearRampToValueAtTime(.065,t+offset+.002);
-   bodyGain.gain.exponentialRampToValueAtTime(.0001,t+offset+.05);
-   body.connect(bodyGain).connect(ctx.destination);body.start(t+offset);body.stop(t+offset+.055);
-  }
-  detent(0,.19,turningOn?1550:1250);
-  detent(turningOn?.062:.043,.12,turningOn?1150:950);
- }catch(err){console.debug('[AHKI knob audio unavailable]',err)}
+  const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
+  ahkiBeepContext=ahkiBeepContext||new C();
+  if(ahkiBeepContext.state==='suspended')ahkiBeepContext.resume().catch(()=>{});
+  const c=ahkiBeepContext,t=c.currentTime+.005;
+  const notes=turningOn?[{hz:660,at:0},{hz:880,at:.105}]:[{hz:660,at:0},{hz:440,at:.105}];
+  notes.forEach(({hz,at})=>{
+   const osc=c.createOscillator(),gain=c.createGain();osc.type='sine';osc.frequency.value=hz;
+   const s=t+at;gain.gain.setValueAtTime(.0001,s);
+   gain.gain.exponentialRampToValueAtTime(.085,s+.012);
+   gain.gain.exponentialRampToValueAtTime(.0001,s+.095);
+   osc.connect(gain).connect(c.destination);osc.start(s);osc.stop(s+.1);
+  });
+ }catch(err){console.debug('[AHKI beep unavailable]',err)}
 }
 app.addEventListener('click',e=>{
  if(e.target.closest('button,input,textarea,a'))return;
  if(starting||stopping)return;
  const turningOn=!(powered||pc||micStream);
- playKnobClick(turningOn);
+ playPowerBeep(turningOn);
  toggle();
 });
 document.addEventListener('visibilitychange',()=>{
@@ -1570,7 +1559,7 @@ if(bootRecovery){wantsPower=true;interruptionHidden=true;powerLook('resume')}els
   <section class="settings-page root active" data-page="root">
     <div class="set-head"><div></div><div class="set-brand">AHKI</div><button class="set-close" data-close aria-label="Close settings">×</button></div>
     <div class="set-kicker">SETTINGS</div>
-    <div class="set-group"><button class="set-row" data-go="faceplates"><span class="set-icon">▦</span><span><div class="set-main">Faceplate</div><div class="set-sub" id="rootFaceplate">Classic</div></span><span class="set-chevron">›</span></button></div>
+    <div class="set-group"><button class="set-row" data-go="faceplates"><span class="set-icon">▦</span><span><div class="set-main">Faceplate</div><div class="set-sub" id="rootFaceplate">Black</div></span><span class="set-chevron">›</span></button></div>
     <div class="set-group">
       <button class="set-row" data-go="name"><span class="set-icon">○</span><span><div class="set-main">Name</div><div class="set-sub" id="rootName">AHKI</div></span><span class="set-chevron">›</span></button>
       <button class="set-row" data-go="voice"><span class="set-icon">⌁</span><span><div class="set-main">Voice</div><div class="set-sub" id="rootVoice">Marin</div></span><span class="set-chevron">›</span></button>
@@ -1582,11 +1571,12 @@ if(bootRecovery){wantsPower=true;interruptionHidden=true;powerLook('resume')}els
     </div>
     <p class="set-note" style="padding:0 8px 30px">Settings float above the live AHKI session. Opening or browsing them does not intentionally stop the microphone or conversation.</p>
   </section>
-  <section class="settings-page" data-page="faceplates"><div class="set-head"><button class="set-back" data-back aria-label="Back">‹</button><div class="set-title">Faceplate</div><div></div></div><p class="set-note" style="margin:8px 2px 18px">Choose the speaker that feels like yours. Your conversation stays the same.</p><div class="faceplate-grid" id="faceplateGrid">
-<button class="faceplate-option" type="button" data-faceplate="classic"><img src="backgrounds/classic-portrait.webp" alt="Classic leather and woven grille"><span>Classic</span><small>Leather · brass</small></button>
-<button class="faceplate-option" type="button" data-faceplate="heritage"><img src="backgrounds/heritage-portrait.webp" alt="Heritage walnut and round driver"><span>Heritage</span><small>Walnut · brass</small></button>
-<button class="faceplate-option" type="button" data-faceplate="radio"><img src="backgrounds/radio-portrait.webp" alt="Old-fashioned wooden radio"><span>Radio</span><small>Wood · tuning dial</small></button>
-<button class="faceplate-option" type="button" data-faceplate="modern"><img src="backgrounds/modern-portrait.webp" alt="Modern black mesh speaker"><span>Modern</span><small>Charcoal · mesh</small></button>
+  <section class="settings-page" data-page="faceplates"><div class="set-head"><button class="set-back" data-back aria-label="Back">‹</button><div class="set-title">Faceplate</div><div></div></div><p class="set-note" style="margin:8px 2px 18px">Choose a speaker color. Your conversation stays the same.</p><div class="faceplate-grid" id="faceplateGrid">
+<button class="faceplate-option" type="button" data-faceplate="black"><img src="backgrounds/black-portrait.webp" alt="Black AHKI speaker grille"><span>Black</span><small>Black · woven mesh</small></button>
+<button class="faceplate-option" type="button" data-faceplate="white"><img src="backgrounds/white-portrait.webp" alt="White AHKI speaker grille"><span>White</span><small>White · perforated metal</small></button>
+<button class="faceplate-option" type="button" data-faceplate="pink"><img src="backgrounds/pink-portrait.webp" alt="Pink AHKI speaker grille"><span>Pink</span><small>Pink · perforated metal</small></button>
+<button class="faceplate-option" type="button" data-faceplate="blue"><img src="backgrounds/blue-portrait.webp" alt="Blue AHKI speaker grille"><span>Blue</span><small>Blue · mesh</small></button>
+<button class="faceplate-option" type="button" data-faceplate="red"><img src="backgrounds/red-portrait.webp" alt="Red AHKI speaker grille"><span>Red</span><small>Red · mesh</small></button>
 </div><p class="set-note" style="margin:18px 2px">Swipe in any direction on the main speaker to return here. Tap the main speaker to start or stop AHKI.</p></section>
   <section class="settings-page" data-page="name"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Name</div><div></div></div><div class="set-hero" id="nameHero">AHKI</div><div class="set-card"><h3>Personal Name</h3><p>AHKI is the app. Give the presence inside it any name you want, and change it naturally at any time.</p><input id="nameInput" class="set-input" maxlength="32" placeholder="AHKI"><button id="saveName" class="set-button">Save</button></div><p class="set-note">Example: “Can I call you Ava?” → “Of course.” The chosen name stays on this device until you change or clear it.</p></section>
   <section class="settings-page" data-page="voice"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Voice</div><div></div></div><div class="set-group" id="voiceChoices"></div><div class="set-card"><h3>Voice preview</h3><p>Choose a voice here. To keep your current conversation uninterrupted, a changed voice is saved for the next fresh live session.</p><button id="previewVoice" class="set-button">Play simple preview tone</button></div></section>
@@ -2086,10 +2076,10 @@ html,body{background:#155e98!important}
 
 
 <style id="ahki-speaker-faceplates-v1">
-/* AHKI Speaker Faceplates V1 — one selected design, orientation-specific art. */
+/* AHKI Speaker Faceplates V4 — one selected design, orientation-specific art. */
 html,body,body .presence,body .presence.is-on{background:#101010!important;background-image:none!important}
 body .presence{overflow:hidden!important;touch-action:pan-y;cursor:pointer}
-body .presence .sanctuary-scene{display:block!important;position:absolute!important;inset:0!important;z-index:1!important;pointer-events:none!important;background-color:#151515!important;background-image:image-set(url('backgrounds/classic-portrait.webp') type('image/webp'))!important;background-position:center center!important;background-repeat:no-repeat!important;background-size:100% 100%!important}
+body .presence .sanctuary-scene{display:block!important;position:absolute!important;inset:0!important;z-index:1!important;pointer-events:none!important;background-color:#151515!important;background-image:image-set(url('backgrounds/black-portrait.webp') type('image/webp'))!important;background-position:center center!important;background-repeat:no-repeat!important;background-size:100% 100%!important}
 body .presence .sanctuary-scene::after{display:none!important;content:none!important}
 body .presence .ahki-dust,body .presence .ambient,body .presence .orb,body .presence .liquid-presence,body .presence .mark,body .presence .eyes,body .presence .water-sheen,body .presence .water-ring,body .presence .milk-glow,body .presence .milk-center,body .presence .milk-ring,body .presence .touch-ripple{display:none!important;opacity:0!important;visibility:hidden!important}
 body .presence::before,body .presence::after{display:none!important;content:none!important}
@@ -2117,27 +2107,27 @@ body .presence.is-on .speaker-live-indicator{opacity:.95}
 #settingsShell .faceplate-option[aria-pressed=true]{border-color:#dedede;box-shadow:0 0 0 1px #dedede inset}
 .faceplate-option img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:8px;background:#111}
 .faceplate-option span{font-size:15px;font-weight:600;padding:3px 4px 0}.faceplate-option small{font-size:12px;color:#999;padding:0 4px 5px}
-@media (min-width:700px){.faceplate-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.faceplate-option img{aspect-ratio:4/5}}
+@media (min-width:700px){.faceplate-grid{grid-template-columns:repeat(5,minmax(0,1fr))}.faceplate-option img{aspect-ratio:4/5}}
 </style>
 <script id="ahki-speaker-faceplates-controller-v1">
 (()=>{
  const scene=document.getElementById('sanctuaryScene');
- const names=['classic','heritage','radio','modern'];
- const labels={classic:'Classic',heritage:'Heritage',radio:'Radio',modern:'Modern'};
+ const names=['black','white','pink','blue','red'];
+ const labels={black:'Black',white:'White',pink:'Pink',blue:'Blue',red:'Red'};
  const choices=[...document.querySelectorAll('[data-faceplate]')];
  const rootLabel=document.getElementById('rootFaceplate');
  const orientation=window.matchMedia('(orientation: landscape)');
- let selected='classic';
+ let selected='black';
  function apply(){
   const mode=orientation.matches?'landscape':'portrait';
   scene.style.setProperty('background-image',`url("backgrounds/${selected}-${mode}.webp")`,'important');
   choices.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.faceplate===selected)));
   if(rootLabel)rootLabel.textContent=labels[selected];
  }
- function select(name){selected=names.includes(name)?name:'classic';try{localStorage.setItem('ahkiFaceplateV1',selected)}catch{}apply()}
+ function select(name){selected=names.includes(name)?name:'black';try{localStorage.setItem('ahkiFaceplateV1',selected)}catch{}apply()}
  choices.forEach(b=>b.addEventListener('click',()=>select(b.dataset.faceplate)));
- try{selected=localStorage.getItem('ahkiFaceplateV1')||'classic'}catch{}
- if(!names.includes(selected))selected='classic';
+ try{selected=localStorage.getItem('ahkiFaceplateV1')||'black'}catch{}
+ if(!names.includes(selected))selected='black';
  apply();orientation.addEventListener?.('change',apply);window.addEventListener('resize',apply);
  const indicator=document.createElement('span');indicator.className='speaker-live-indicator';indicator.setAttribute('aria-hidden','true');document.getElementById('app').appendChild(indicator);
  // Desktop mouse/trackpad drag provides the same settings gesture as touch swipes.
