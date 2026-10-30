@@ -573,16 +573,6 @@ html,body,.presence,.presence.is-on{background:#101a1b!important}
   <input id="worldPicker" type="file" accept="image/*" capture="environment" hidden aria-hidden="true">
   <input id="filePicker" type="file" accept="image/*,application/pdf,text/plain,text/markdown,text/csv,application/json,.pdf,.txt,.md,.csv,.json,.doc,.docx,.xls,.xlsx,.ppt,.pptx" hidden aria-hidden="true">
   <div class="sanctuary-scene" id="sanctuaryScene" aria-hidden="true"></div>
-  <div class="sanctuary-picker" id="sanctuaryPicker">
-    <button class="sanctuary-open" id="sanctuaryOpen" type="button" aria-expanded="false" aria-controls="sanctuaryPanel">Choose a place</button>
-    <div class="sanctuary-panel" id="sanctuaryPanel" hidden>
-      <div class="sanctuary-heading">Your place to be here</div>
-      <button class="sanctuary-choice" data-sanctuary="beach" type="button"><img src="backgrounds/beach.jpg" alt=""><span>Beach</span></button>
-      <button class="sanctuary-choice" data-sanctuary="forest" type="button"><img src="backgrounds/forest.jpg" alt=""><span>Autumn forest</span></button>
-      <button class="sanctuary-choice" data-sanctuary="pond" type="button"><img src="backgrounds/pond.jpg" alt=""><span>Quiet pond</span></button>
-      <div class="sanctuary-note">Tap anywhere outside this menu to talk with AHKI.</div>
-    </div>
-  </div>
   <div class="ambient"></div>
   <div class="ahki-dust" aria-hidden="true"><svg id="ahkiDustSvg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice"><defs><filter id="dustBlur1" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="1.4"/></filter><filter id="dustBlur2" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3.8"/></filter><filter id="dustBlur3" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="7"/></filter></defs><g id="ahkiDustBreathing"><g id="ahkiDustPoints"></g></g></svg></div>
   <div class="liquid-presence" aria-hidden="true">
@@ -1586,6 +1576,7 @@ if(bootRecovery){wantsPower=true;interruptionHidden=true;powerLook('resume')}els
   <section class="settings-page root active" data-page="root">
     <div class="set-head"><div></div><div class="set-brand">AHKI</div><button class="set-close" data-close aria-label="Close settings">×</button></div>
     <div class="set-kicker">SETTINGS</div>
+    <div class="set-group"><button class="set-row" data-go="faceplates"><span class="set-icon">▦</span><span><div class="set-main">Faceplate</div><div class="set-sub" id="rootFaceplate">Classic</div></span><span class="set-chevron">›</span></button></div>
     <div class="set-group">
       <button class="set-row" data-go="name"><span class="set-icon">○</span><span><div class="set-main">Name</div><div class="set-sub" id="rootName">AHKI</div></span><span class="set-chevron">›</span></button>
       <button class="set-row" data-go="voice"><span class="set-icon">⌁</span><span><div class="set-main">Voice</div><div class="set-sub" id="rootVoice">Marin</div></span><span class="set-chevron">›</span></button>
@@ -1597,6 +1588,12 @@ if(bootRecovery){wantsPower=true;interruptionHidden=true;powerLook('resume')}els
     </div>
     <p class="set-note" style="padding:0 8px 30px">Settings float above the live AHKI session. Opening or browsing them does not intentionally stop the microphone or conversation.</p>
   </section>
+  <section class="settings-page" data-page="faceplates"><div class="set-head"><button class="set-back" data-back aria-label="Back">‹</button><div class="set-title">Faceplate</div><div></div></div><p class="set-note" style="margin:8px 2px 18px">Choose the speaker that feels like yours. Your conversation stays the same.</p><div class="faceplate-grid" id="faceplateGrid">
+<button class="faceplate-option" type="button" data-faceplate="classic"><img src="backgrounds/classic-portrait.webp" alt="Classic leather and woven grille"><span>Classic</span><small>Leather · brass</small></button>
+<button class="faceplate-option" type="button" data-faceplate="heritage"><img src="backgrounds/heritage-portrait.webp" alt="Heritage walnut and round driver"><span>Heritage</span><small>Walnut · brass</small></button>
+<button class="faceplate-option" type="button" data-faceplate="radio"><img src="backgrounds/radio-portrait.webp" alt="Old-fashioned wooden radio"><span>Radio</span><small>Wood · tuning dial</small></button>
+<button class="faceplate-option" type="button" data-faceplate="modern"><img src="backgrounds/modern-portrait.webp" alt="Modern black mesh speaker"><span>Modern</span><small>Charcoal · mesh</small></button>
+</div><p class="set-note" style="margin:18px 2px">Swipe in any direction on the main speaker to return here. Tap the main speaker to start or stop AHKI.</p></section>
   <section class="settings-page" data-page="name"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Name</div><div></div></div><div class="set-hero" id="nameHero">AHKI</div><div class="set-card"><h3>Personal Name</h3><p>AHKI is the app. Give the presence inside it any name you want, and change it naturally at any time.</p><input id="nameInput" class="set-input" maxlength="32" placeholder="AHKI"><button id="saveName" class="set-button">Save</button></div><p class="set-note">Example: “Can I call you Ava?” → “Of course.” The chosen name stays on this device until you change or clear it.</p></section>
   <section class="settings-page" data-page="voice"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Voice</div><div></div></div><div class="set-group" id="voiceChoices"></div><div class="set-card"><h3>Voice preview</h3><p>Choose a voice here. To keep your current conversation uninterrupted, a changed voice is saved for the next fresh live session.</p><button id="previewVoice" class="set-button">Play simple preview tone</button></div></section>
   <section class="settings-page" data-page="memory"><div class="set-head"><button class="set-back" data-back>‹</button><div class="set-title">Memory</div><div></div></div><div class="set-group"><button class="set-row" id="memoryToggle"><span class="set-icon">◇</span><span><div class="set-main">Personal Memory</div><div class="set-sub">Prototype control</div></span><span id="memorySwitch" class="switch"></span></button></div><div class="set-group"><button class="set-row" id="viewMemories"><span class="set-icon">□</span><span><div class="set-main">View Memories</div><div class="set-sub">Shows what this prototype has stored</div></span><span class="set-chevron">›</span></button><button class="set-row" id="clearPrototypeMemory"><span class="set-icon">×</span><span><div class="set-main">Clear Prototype Memory</div><div class="set-sub">Does not alter conversation recovery</div></span><span class="set-chevron">›</span></button></div><p class="set-note">This screen is a UI prototype. It does not invent a long-term memory system that the current web build does not already have.</p></section>
@@ -2125,26 +2122,67 @@ html,body{background:#155e98!important}
  root.style.setProperty('--dust-b','221');
 })();
 </script>
-<script id="ahki-sanctuary-controller-v16">
+
+
+<style id="ahki-speaker-faceplates-v1">
+/* AHKI Speaker Faceplates V1 — one selected design, orientation-specific art. */
+html,body,body .presence,body .presence.is-on{background:#101010!important;background-image:none!important}
+body .presence{overflow:hidden!important;touch-action:pan-y;cursor:pointer}
+body .presence .sanctuary-scene{display:block!important;position:absolute!important;inset:0!important;z-index:1!important;pointer-events:none!important;background-color:#151515!important;background-image:image-set(url('backgrounds/classic-portrait.webp') type('image/webp'))!important;background-position:center center!important;background-repeat:no-repeat!important;background-size:cover!important}
+body .presence .sanctuary-scene::after{display:none!important;content:none!important}
+body .presence .ahki-dust,body .presence .ambient,body .presence .orb,body .presence .liquid-presence,body .presence .mark,body .presence .eyes,body .presence .water-sheen,body .presence .water-ring,body .presence .milk-glow,body .presence .milk-center,body .presence .milk-ring,body .presence .touch-ripple{display:none!important;opacity:0!important;visibility:hidden!important}
+body .presence::before,body .presence::after{display:none!important;content:none!important}
+body .presence .action-row,body .presence .top-compose{opacity:0!important;pointer-events:none!important;visibility:hidden!important}
+body .presence .sanctuary-picker{display:none!important}
+/* A tiny live indicator overlays the static artwork; no flashing, no decorative motion. */
+body .presence .speaker-live-indicator{position:absolute;z-index:9;left:50%;bottom:max(15px,env(safe-area-inset-bottom));transform:translateX(-50%);height:5px;width:5px;border-radius:50%;background:#e6bd79;opacity:0;box-shadow:0 0 9px 2px rgba(232,188,112,.35);pointer-events:none;transition:opacity .4s ease}
+body .presence.is-on .speaker-live-indicator{opacity:.95}
+/* Neutral utilitarian settings, consistently across every subpage. */
+#settingsShell,#settingsShell .settings-page{background:#141516!important;background-image:none!important;color:#eaeaea!important}
+#settingsShell::before,#settingsShell .settings-page::before,#settingsShell .settings-page::after{display:none!important;content:none!important}
+#settingsShell .set-head{background:#141516!important;background-image:none!important}
+#settingsShell .set-group,#settingsShell .set-card{background:#202123!important;border:1px solid #37393b!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border-radius:15px!important}
+#settingsShell .set-title,#settingsShell .set-brand,#settingsShell .set-main,#settingsShell .set-icon,#settingsShell .set-chevron{color:#f0f0f0!important}
+#settingsShell .set-kicker,#settingsShell .set-sub,#settingsShell .set-card p,#settingsShell .set-note,#settingsShell .muted{color:#a5a6a8!important}
+#settingsShell .set-row{background:transparent!important;border-bottom-color:#36383a!important;color:#eee!important}
+#settingsShell .set-back,#settingsShell .set-close{color:#f0f0f0!important;background:#262729!important;border-color:#3d3f41!important}
+#settingsShell .set-input{background:#262729!important;color:#fff!important;border-color:#444!important;box-shadow:none!important}
+#settingsShell .set-button{background:#303235!important;color:#eee!important;border-color:#555!important}
+#settingsShell .radio{border-color:#9d9d9d!important}#settingsShell .radio.on::after{background:#eee!important}
+#settingsShell .switch{background:#37383a!important;border-color:#555!important}#settingsShell .switch.on{background:#9a9a9a!important}
+#settingsShell .usage-bar{background:#333!important}#settingsShell .usage-fill{background:#bbb!important}
+.faceplate-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 12px}
+#settingsShell .faceplate-option{min-width:0;border:1px solid #393b3e;background:#202123;color:#eee;border-radius:14px;padding:8px;text-align:left;display:flex;flex-direction:column;gap:5px;cursor:pointer}
+#settingsShell .faceplate-option[aria-pressed=true]{border-color:#dedede;box-shadow:0 0 0 1px #dedede inset}
+.faceplate-option img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:8px;background:#111}
+.faceplate-option span{font-size:15px;font-weight:600;padding:3px 4px 0}.faceplate-option small{font-size:12px;color:#999;padding:0 4px 5px}
+@media (min-width:700px){.faceplate-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.faceplate-option img{aspect-ratio:4/5}}
+</style>
+<script id="ahki-speaker-faceplates-controller-v1">
 (()=>{
  const scene=document.getElementById('sanctuaryScene');
- const panel=document.getElementById('sanctuaryPanel');
- const open=document.getElementById('sanctuaryOpen');
- const choices=[...document.querySelectorAll('[data-sanctuary]')];
- const allowed=['beach','forest','pond'];
- function choose(value){
-   const name=allowed.includes(value)?value:'beach';
-   scene.style.backgroundImage=`url("backgrounds/${name}.jpg")`;
-   choices.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.sanctuary===name)));
-   try{localStorage.setItem('ahkiSanctuaryV16',name)}catch{}
+ const names=['classic','heritage','radio','modern'];
+ const labels={classic:'Classic',heritage:'Heritage',radio:'Radio',modern:'Modern'};
+ const choices=[...document.querySelectorAll('[data-faceplate]')];
+ const rootLabel=document.getElementById('rootFaceplate');
+ const orientation=window.matchMedia('(orientation: landscape)');
+ let selected='classic';
+ function apply(){
+  const mode=orientation.matches?'landscape':'portrait';
+  scene.style.setProperty('background-image',`url("backgrounds/${selected}-${mode}.webp")`,'important');
+  choices.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.faceplate===selected)));
+  if(rootLabel)rootLabel.textContent=labels[selected];
  }
- function show(value){panel.hidden=!value;open.setAttribute('aria-expanded',String(value))}
- open.addEventListener('click',e=>{e.stopPropagation();show(panel.hidden)});
- panel.addEventListener('click',e=>e.stopPropagation());
- choices.forEach(b=>b.addEventListener('click',()=>{choose(b.dataset.sanctuary);show(false)}));
- document.addEventListener('pointerdown',e=>{if(!e.target.closest('#sanctuaryPicker'))show(false)},true);
- document.addEventListener('keydown',e=>{if(e.key==='Escape')show(false)});
- try{choose(localStorage.getItem('ahkiSanctuaryV16')||'beach')}catch{choose('beach')}
+ function select(name){selected=names.includes(name)?name:'classic';try{localStorage.setItem('ahkiFaceplateV1',selected)}catch{}apply()}
+ choices.forEach(b=>b.addEventListener('click',()=>select(b.dataset.faceplate)));
+ try{selected=localStorage.getItem('ahkiFaceplateV1')||'classic'}catch{}
+ if(!names.includes(selected))selected='classic';
+ apply();orientation.addEventListener?.('change',apply);window.addEventListener('resize',apply);
+ const indicator=document.createElement('span');indicator.className='speaker-live-indicator';indicator.setAttribute('aria-hidden','true');document.getElementById('app').appendChild(indicator);
+ // Desktop mouse/trackpad drag provides the same settings gesture as touch swipes.
+ const app=document.getElementById('app');let start=null;
+ app.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button===0)start={x:e.clientX,y:e.clientY,time:Date.now()}},{passive:true});
+ app.addEventListener('pointerup',e=>{if(!start)return;const d=Math.hypot(e.clientX-start.x,e.clientY-start.y);if(d>65&&Date.now()-start.time<1200){window.AHKISettingsPrototype?.open();app.addEventListener('click',function block(ev){ev.stopImmediatePropagation();ev.preventDefault();app.removeEventListener('click',block,true)},{capture:true,once:true})}start=null},{passive:true});
 })();
 </script>
 </body>
