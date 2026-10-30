@@ -1465,7 +1465,43 @@ async function toggle(){
   if(wantsPower&&hasRecoverableActiveConversation()){primeAkiAudio();await startAki(true);return}
   wantsPower=true;primeAkiAudio();await startAki(false)
 }
-app.addEventListener('click',e=>{if(e.target.closest('button,input,textarea,a'))return;toggle()});
+// AHKI V3 — short mechanical rotary-switch click, synthesized locally (no licensed audio asset).
+// Separate on/off timbres. Triggered only by intentional taps, never by recovery.
+let knobAudioContext=null;
+function playKnobClick(turningOn){
+ try{
+  const AudioCtor=window.AudioContext||window.webkitAudioContext;
+  if(!AudioCtor)return;
+  knobAudioContext=knobAudioContext||new AudioCtor();
+  if(knobAudioContext.state==='suspended')knobAudioContext.resume().catch(()=>{});
+  const ctx=knobAudioContext,t=ctx.currentTime;
+  // Mechanical detent: two closely spaced, dry clicks with a little low wooden body.
+  const n=Math.floor(ctx.sampleRate*.035),buffer=ctx.createBuffer(1,n,ctx.sampleRate),data=buffer.getChannelData(0);
+  for(let i=0;i<n;i++)data[i]=(Math.random()*2-1)*Math.exp(-i/(ctx.sampleRate*.005));
+  function detent(offset,level,pitch){
+   const noise=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),gain=ctx.createGain();
+   noise.buffer=buffer;filter.type='bandpass';filter.frequency.value=pitch;filter.Q.value=.65;
+   gain.gain.setValueAtTime(.0001,t+offset);gain.gain.linearRampToValueAtTime(level,t+offset+.001);
+   gain.gain.exponentialRampToValueAtTime(.0001,t+offset+.033);
+   noise.connect(filter).connect(gain).connect(ctx.destination);noise.start(t+offset);noise.stop(t+offset+.035);
+   const body=ctx.createOscillator(),bodyGain=ctx.createGain();body.type='triangle';
+   body.frequency.setValueAtTime(turningOn?155:125,t+offset);
+   body.frequency.exponentialRampToValueAtTime(65,t+offset+.045);
+   bodyGain.gain.setValueAtTime(.0001,t+offset);bodyGain.gain.linearRampToValueAtTime(.065,t+offset+.002);
+   bodyGain.gain.exponentialRampToValueAtTime(.0001,t+offset+.05);
+   body.connect(bodyGain).connect(ctx.destination);body.start(t+offset);body.stop(t+offset+.055);
+  }
+  detent(0,.19,turningOn?1550:1250);
+  detent(turningOn?.062:.043,.12,turningOn?1150:950);
+ }catch(err){console.debug('[AHKI knob audio unavailable]',err)}
+}
+app.addEventListener('click',e=>{
+ if(e.target.closest('button,input,textarea,a'))return;
+ if(starting||stopping)return;
+ const turningOn=!(powered||pc||micStream);
+ playKnobClick(turningOn);
+ toggle();
+});
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden'){if(wantsPower){interruptionHidden=true;try{flushSpokenTranscript()}catch{};try{const t=String(assistantTranscript||'').trim();if(t){assistantTranscript='';rememberConversation('assistant',t)}}catch{};saveActiveConversation();markActiveConversation(true)}return}
   if(document.visibilityState==='visible'&&wantsPower){
